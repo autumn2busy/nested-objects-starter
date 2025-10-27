@@ -6,7 +6,7 @@ export const revalidate = 60;
 
 export default async function Directory() {
   // Server-side: verify session + feature access (directory_access)
-  await requireFeature("directory_access");
+  //await requireFeature("directory_access");
 
   const supabase = createClient();
   const { data: firms, error } = await supabase
