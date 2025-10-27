@@ -1,4 +1,3 @@
-
 {
   "compilerOptions": {
     "target": "es2022",
@@ -15,7 +14,10 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["node"]
+    "types": ["node"],
+
+    "baseUrl": ".",                       // ← add
+    "paths": { "@/*": ["./*"] }           // ← add (so "@/lib/..." resolves to apps/web-members/lib/...)
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
