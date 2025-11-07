@@ -19,7 +19,7 @@ import {
 // Declare Outseta on the window object for TypeScript
 declare global {
   interface Window {
-    Outseta: any;
+    Outseta?: any;
   }
 }
 
