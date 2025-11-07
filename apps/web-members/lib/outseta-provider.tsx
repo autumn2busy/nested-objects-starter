@@ -72,24 +72,44 @@ export function OutsetaProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     const outseta = window.Outseta;
-    if (!outseta) return;
 
+    // SAFER GUARD:
+    // Check for Outseta, the auth module, AND the session object.
+    if (!outseta || !outseta.auth || !outseta.auth.session) {
+      // If any part is missing, we can't subscribe.
+      // This can happen on initial load.
+      // We'll set loading to false and let the hook re-run.
+      console.warn('Outseta auth module not ready, retrying...');
+      setIsLoading(false);
+      return;
+    }
+
+    // If we're here, outseta.auth.session exists.
+    
+    // Subscribe to session changes
     outseta.auth.session.change(handleAuthChange);
+
+    // Check initial session on load
     outseta
       .auth.getSession()
       .then((session: any) => {
         handleAuthChange(session);
       })
       .catch(() => {
+        // No session found
         setIsLoading(false);
       });
 
+    // Cleanup subscription on unmount
     return () => {
-      outseta.auth.session.change(handleAuthChange, 'unsubscribe');
+      // Also check here for safety during unmount
+      if (outseta && outseta.auth && outseta.auth.session) {
+        outseta.auth.session.change(handleAuthChange, 'unsubscribe');
+      }
     };
-  }, [handleAuthChange]);
+  }, [handleAuthChange, isLoading]); // <-- Add isLoading as a dependency
 
   const value: AuthContextType = {
     user,
