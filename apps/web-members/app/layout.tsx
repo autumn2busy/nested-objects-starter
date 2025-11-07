@@ -1,8 +1,10 @@
 // In /apps/web-members/app/layout.tsx
 
 import type { Metadata } from 'next';
-import Script from 'next/script'; // Import the Next.js Script component
-import './globals.css'; // Assuming you have a global CSS file
+import Script from 'next/script';
+// 1. Import the provider from its correct location in your 'lib' folder
+import { OutsetaProvider } from '../lib/outseta-provider';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Nested Objects Member Hub',
@@ -17,10 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* The first script (o_options) must be inline and run before 
-          the main Outseta script. We use 'dangerouslySetInnerHTML' 
-          to achieve this, as recommended by Next.js for inline scripts.
-        */}
+        {/* All your existing <Script> tags remain unchanged */}
         <Script
           id="outseta-options"
           strategy="beforeInteractive"
@@ -33,11 +32,6 @@ export default function RootLayout({
             `,
           }}
         />
-
-        {/* The main Outseta script. 
-          'strategy="beforeInteractive"' ensures it loads before the page 
-          becomes interactive, which is crucial for auth.
-        */}
         <Script
           id="outseta-script"
           strategy="beforeInteractive"
@@ -46,8 +40,8 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {/* Your children prop will be your page content (e.g., page.tsx) */}
-        {children}
+        {/* 2. Wrap your {children} with the provider */}
+        <OutsetaProvider>{children}</OutsetaProvider>
       </body>
     </html>
   );
