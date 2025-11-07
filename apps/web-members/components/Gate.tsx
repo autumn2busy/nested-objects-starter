@@ -1,33 +1,47 @@
+// In /apps/web-members/components/Gate.tsx
 
-"use client";
+'use client'; // This must be a client component
 
-import { useEffect, useState } from "react";
+import React from 'react';
+import { useAuth } from '../lib/outseta-provider';
 
-type Props = {
-  feature: string;
-  fallback?: React.ReactNode;
+interface GateProps {
+  /**
+   * The child components to render if the user has access.
+   */
   children: React.ReactNode;
-};
+  
+  /**
+   * The entitlement key from Outseta, e.g., "ai_job_intel" or "directory_access"
+   * [cite: 246]
+   */
+  feature: string;
+  
+  /**
+   * Optional: A component or element to show if the user does NOT have access.
+   * Defaults to showing nothing.
+   */
+  fallback?: React.ReactNode;
+}
 
 /**
- * Client-side gate for convenience UI. Server should still enforce access.
- * Expects window.Outseta.getJwtPayload() to return entitlements.
+ * A client-side component that wraps protected features.
+ * It checks the user's Outseta entitlements and only renders
+ * its children if the required 'feature' key is present.
  */
-export default function Gate({ feature, fallback = null, children }: Props) {
-  const [allowed, setAllowed] = useState(false);
+export default function Gate({ children, feature, fallback = null }: GateProps) {
+  const { isLoading, hasEntitlement } = useAuth();
 
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const payload = await (window as any)?.Outseta?.getJwtPayload?.();
-        const entitlements: string[] = payload?.claims?.entitlements || payload?.entitlements || [];
-        setAllowed(entitlements.includes(feature));
-      } catch {
-        setAllowed(false);
-      }
-    };
-    check();
-  }, [feature]);
+  // While checking auth, render nothing to prevent content flash
+  if (isLoading) {
+    return null;
+  }
 
-  return <>{allowed ? children : fallback}</>;
+  // If the user has the entitlement, show the children
+  if (hasEntitlement(feature)) {
+    return <>{children}</>;
+  }
+
+  // Otherwise, show the fallback (which is null by default)
+  return <>{fallback}</>;
 }
