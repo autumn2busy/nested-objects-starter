@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 // 1. Import the provider from its correct location in your 'lib' folder
 import { OutsetaProvider } from '../lib/outseta-provider';
-import './globals.css';
+import '../styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Nested Objects Member Hub',
