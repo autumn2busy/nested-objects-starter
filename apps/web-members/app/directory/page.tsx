@@ -1,37 +1,83 @@
+'use client'
 
-import { createClient } from "@/lib/supabase-server";
-import { requireFeature } from "@/lib/feature-gate";
+import { useState, useEffect } from 'react'
+import { Gate } from '@/components/gate'
+import { supabase, Firm } from '@/lib/supabase'
 
-export const revalidate = 60;
+export default function DirectoryPage() {
+  const [firms, setFirms] = useState<Firm[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function Directory() {
-  // Server-side: verify session + feature access (directory_access)
-  await requireFeature("directory_access");
+  useEffect(() => {
+    const fetchFirms = async () => {
+      try {
+        setLoading(true);
+        // This query only succeeds if the user is authenticated,
+        // thanks to our RLS policy in Supabase.
+        const { data, error } = await supabase
+          .from('firms')
+          .select('id, name, url, description, niche, rating')
+          .order('name', { ascending: true });
 
-  const supabase = createClient();
-  const { data: firms, error } = await supabase
-    .from("firms")
-    .select("*")
-    .order("name", { ascending: true })
-    .limit(50);
+        if (error) throw error;
+        
+        setFirms(data || []);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (error) {
-    throw new Error(error.message);
-  }
+    fetchFirms();
+  }, []);
 
   return (
-    <main style={{padding: 24}}>
-      <h1>Hiring Firms</h1>
-      <ul style={{marginTop: 12, display: "grid", gap: 12}}>
-        {firms?.map((f: any) => (
-          <li key={f.id} style={{border: "1px solid #e5e7eb", borderRadius: 8, padding: 12}}>
-            <strong>{f.name}</strong>
-            {f.website ? <> — <a href={f.website} target="_blank">Site</a></> : null}
-            <div style={{color: "#4b5563", fontSize: 14}}>{f.niche || "—"} • {f.location || "Remote/Varies"}</div>
-            <div style={{fontSize: 14}}>{f.pay_range || ""}</div>
-          </li>
-        ))}
-      </ul>
+    <main style={{ padding: '2rem' }}>
+      <h1>Firm Directory</h1>
+
+      {/* This Gate component handles all auth and entitlement logic.
+        The content inside will only render if the user is logged in
+        AND has the "directory_access" entitlement.
+      */}
+      <Gate feature="directory_access">
+        <h2>Welcome, valued member. Here is the directory.</h2>
+        
+        {loading && <p>Loading firms...</p>}
+        {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+
+        {firms.length > 0 && (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {firms.map((firm) => (
+              <li key={firm.id} style={{ 
+                margin: '1.5rem 0', 
+                padding: '1rem', 
+                border: '1px solid #ccc', 
+                borderRadius: '8px' 
+              }}>
+                <strong style={{ fontSize: '1.25rem' }}>{firm.name}</strong> 
+                {firm.niche && (
+                  <span style={{ 
+                    marginLeft: '10px', 
+                    background: '#eee', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px',
+                    fontSize: '0.9rem'
+                  }}>
+                    {firm.niche}
+                  </span>
+                )}
+                <p>{firm.description}</p>
+                <p>Rating: {firm.rating || 'N/A'} / 5</p>
+                <a href={firm.url ?? '#'} target="_blank" rel="noopener noreferrer">
+                  Visit Website
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Gate>
     </main>
   );
 }
