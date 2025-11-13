@@ -17,7 +17,7 @@ export default function DirectoryPage() {
         // thanks to our RLS policy in Supabase.
         const { data, error } = await supabase
           .from('firms')
-          .select('id, name, url, description, niche, rating')
+          .select('*') // Select all columns
           .order('name', { ascending: true });
 
         if (error) throw error;
@@ -30,6 +30,8 @@ export default function DirectoryPage() {
       }
     };
 
+    // We can fetch immediately. The <Gate> component will handle
+    // the auth check, and RLS will protect the data.
     fetchFirms();
   }, []);
 

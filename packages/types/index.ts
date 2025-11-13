@@ -72,3 +72,39 @@ export interface Embedding {
   embedding: number[]; // returned as number[] in client, stored as vector in DB
   created_at: string;
 }
+
+export interface OutsetaUser {
+  Uid: string;
+  Email: string;
+  FirstName: string;
+  LastName: string;
+  // Add other fields you capture, like 'Phone' or custom properties
+}
+
+export interface OutsetaSubscription {
+  Uid: string;
+  Plan: {
+    Uid: string;
+    Name: string; // e.g., "Pro ($37)"
+  };
+  Account: {
+    Uid: string;
+    Name: string;
+    // Our plan uses Outseta as the source of truth for entitlements
+    AccountSubscriptionEntitlements: {
+      Entitlement: {
+        Uid: string;
+        Key: string; // This is our feature key, e.g., "ai_job_intel"
+      };
+    }[];
+  };
+  // Add other fields like 'Status', 'TrialEndDate', etc.
+}
+
+export interface AuthContextType {
+  user: OutsetaUser | null;
+  subscription: OutsetaSubscription | null;
+  isLoading: boolean;
+  // This helper function will be used by our <Gate> component
+  hasEntitlement: (key: string) => boolean;
+}

@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        [cite_start]{/* Load the Outseta embed script [cite: 318, 320] */}
+        {/* Load the Outseta embed script using your Env Variable [cite: 320] */}
         <Script
           src={`${process.env.NEXT_PUBLIC_OUTSETA_URL}/widget.js`}
           strategy="beforeInteractive"
@@ -27,7 +27,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/* Wrap the entire app in the AuthProvider */}
+        {/* Wrap the entire app in the AuthProvider we just built */}
         <AuthProvider>
           {children}
         </AuthProvider>
