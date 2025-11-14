@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Gate } from '@/components/gate'
+import { Gate } from '@/components/Gate'
 import { createClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client
