@@ -2,7 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import { Gate } from '@/components/gate'
-import { supabase, Firm } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+interface Firm {
+  id: string
+  name: string
+  niche?: string
+  website?: string
+  phone?: string
+  email?: string
+  location?: string
+  pay_range?: string
+  requirements?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
 
 export default function DirectoryPage() {
   const [firms, setFirms] = useState<Firm[]>([]);
@@ -70,14 +91,22 @@ export default function DirectoryPage() {
                     {firm.niche}
                   </span>
                 )}
-                <p>{firm.description}</p>
-                <p>Rating: {firm.rating || 'N/A'} / 5</p>
-                <a href={firm.url ?? '#'} target="_blank" rel="noopener noreferrer">
-                  Visit Website
-                </a>
+                {firm.location && <p><strong>Location:</strong> {firm.location}</p>}
+                {firm.pay_range && <p><strong>Pay Range:</strong> {firm.pay_range}</p>}
+                {firm.phone && <p><strong>Phone:</strong> {firm.phone}</p>}
+                {firm.email && <p><strong>Email:</strong> {firm.email}</p>}
+                {firm.website && (
+                  <a href={firm.website} target="_blank" rel="noopener noreferrer">
+                    Visit Website
+                  </a>
+                )}
               </li>
             ))}
           </ul>
+        )}
+
+        {!loading && firms.length === 0 && (
+          <p>No firms found in the directory.</p>
         )}
       </Gate>
     </main>

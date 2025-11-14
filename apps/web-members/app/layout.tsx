@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
-import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,15 +18,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Load the Outseta embed script using your Env Variable [cite: 320] */}
+        {/* Outseta configuration */}
+        <Script id="outseta-config" strategy="beforeInteractive">
+          {`
+            var o_options = {
+              domain: 'nested-objects.outseta.com',
+              load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+            };
+          `}
+        </Script>
+        {/* Load Outseta embed script */}
         <Script
-          src={`${process.env.NEXT_PUBLIC_OUTSETA_URL}/widget.js`}
+          src="https://cdn.outseta.com/outseta.min.js"
           strategy="beforeInteractive"
           data-options="o_options"
         />
       </head>
       <body className={inter.className}>
-        {/* Wrap the entire app in the AuthProvider we just built */}
+        {/* Wrap the entire app in the AuthProvider */}
         <AuthProvider>
           {children}
         </AuthProvider>

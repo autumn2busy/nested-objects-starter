@@ -1,4 +1,12 @@
-// TEMP: permissive gate so pages don't crash until Outseta/JWT is wired.
-export async function requireFeature(_featureKey: string): Promise<boolean> {
-  return true;
+import { requireFeature as serverRequireFeature } from './auth-server'
+
+// Server-side feature gate that verifies JWT and checks entitlements
+export async function requireFeature(featureKey: string): Promise<boolean> {
+  try {
+    await serverRequireFeature(featureKey)
+    return true
+  } catch (error) {
+    console.error(`Feature gate failed for ${featureKey}:`, error)
+    return false
+  }
 }

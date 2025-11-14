@@ -1,58 +1,108 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { useAuth } from '@/components/auth-provider'
+import { useAuth } from './auth-provider'
 
 interface GateProps {
-  feature: string; // e.g., "directory_access"
-  children: ReactNode;
+  feature: string
+  children: ReactNode
+  fallback?: ReactNode
+  loadingFallback?: ReactNode
 }
 
-export const Gate = ({ feature, children }: GateProps) => {
-  const { user, account, loading, outseta } = useAuth();
+export function Gate({ feature, children, fallback, loadingFallback }: GateProps) {
+  const { hasAccess, isLoading, isAuthenticated, login, signup } = useAuth()
 
-  if (loading) {
-    return <div>Loading session...</div>;
-  }
-
-  if (!user) {
-    // User is not logged in
-    return (
-      <div className="p-6 border rounded-lg bg-gray-50 text-center">
-        <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-        <p className="mb-4">You must be logged in to view this content.</p>
-        <button 
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => outseta.login({ mode: 'login' })}
-        >
-          Log In
-        </button>
+  // Show loading state
+  if (isLoading) {
+    return loadingFallback || (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>Loading...</p>
       </div>
-    );
+    )
   }
 
-  // Check for the specific feature/entitlement from the Outseta plan
-  // We use optional chaining (?.) just in case the subscription data isn't fully loaded
-  const hasFeature = account?.Subscription?.Plan?.Features
-    .some(f => f.Name.toLowerCase() === feature.toLowerCase());
-
-  if (hasFeature) {
-    // User has the feature, show the content
-    return <>{children}</>;
+  // User is not authenticated
+  if (!isAuthenticated) {
+    return fallback || (
+      <div style={{ 
+        padding: '3rem 2rem', 
+        textAlign: 'center',
+        border: '2px solid #e5e7eb',
+        borderRadius: '8px',
+        margin: '2rem 0'
+      }}>
+        <h2 style={{ marginBottom: '1rem' }}>Authentication Required</h2>
+        <p style={{ marginBottom: '2rem', color: '#6b7280' }}>
+          Please log in to access this feature.
+        </p>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button
+            onClick={login}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Log In
+          </button>
+          <button
+            onClick={signup}
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            Sign Up
+          </button>
+        </div>
+      </div>
+    )
   }
 
-  // User is logged in but does not have the feature
-  return (
-    <div className="p-6 border rounded-lg bg-yellow-50 text-center">
-      <h2 className="text-xl font-semibold mb-2">Upgrade Required</h2>
-      <p className="mb-4">Your current plan does not include access to this feature.</p>
-      {/* This link opens the Outseta checkout/upgrade modal via query param */}
-      <a 
-        href="/?o_checkout=true"
-        className="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Upgrade Your Plan
-      </a>
-    </div>
-  );
-};
+  // User is authenticated but lacks access
+  if (!hasAccess(feature)) {
+    return fallback || (
+      <div style={{ 
+        padding: '3rem 2rem', 
+        textAlign: 'center',
+        border: '2px solid #fbbf24',
+        borderRadius: '8px',
+        margin: '2rem 0',
+        backgroundColor: '#fffbeb'
+      }}>
+        <h2 style={{ marginBottom: '1rem' }}>Upgrade Required</h2>
+        <p style={{ marginBottom: '2rem', color: '#92400e' }}>
+          This feature is not available on your current plan.
+        </p>
+        <a
+          href="/upgrade"
+          style={{
+            display: 'inline-block',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#f59e0b',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '6px',
+            fontWeight: '500'
+          }}
+        >
+          View Plans
+        </a>
+      </div>
+    )
+  }
+
+  // User has access - render children
+  return <>{children}</>
+}

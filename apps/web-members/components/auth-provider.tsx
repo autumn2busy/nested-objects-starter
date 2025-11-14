@@ -1,132 +1,167 @@
 'use client'
 
-import React, { 
-  createContext, 
-  useContext, 
-  useState, 
-  useEffect, 
-  ReactNode 
-} from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-// Define the Outseta config object
-const outsetaOptions = {
-  domain: process.env.NEXT_PUBLIC_OUTSETA_URL,
-  monitorDom: true,
-  load: 'auth,profile'
-};
-
-// --- Types (no changes here) ---
+// Outseta user structure from JWT payload
 interface OutsetaUser {
-  Uid: string;
-  Email: string;
-  FirstName: string;
-  LastName: string;
+  email: string
+  name: string
+  given_name: string
+  family_name: string
+  sub: string // user UID
+  'outseta:accountUid': string
+  'outseta:subscriptionUid': string
+  'outseta:planUid': string
+  'outseta:addOnUids'?: string[]
 }
-interface OutsetaAccount {
-  Name: string;
-  Subscription: {
-    Plan: {
-      Name: string;
-      Features: {
-        Name: string;
-      }[];
-    };
-  };
-  Uid: string; // Add Uid for a more reliable check
-}
+
 interface AuthContextType {
-  user: OutsetaUser | null;
-  account: OutsetaAccount | null;
-  loading: boolean;
-  outseta: any;
+  user: OutsetaUser | null
+  planUid: string | null
+  isLoading: boolean
+  isAuthenticated: boolean
+  hasAccess: (feature: string) => boolean
+  login: () => void
+  signup: () => void
+  logout: () => void
 }
 
-// Create the context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Define the Provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<OutsetaUser | null>(null);
-  const [account, setAccount] = useState<OutsetaAccount | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [outseta, setOutseta] = useState<any>(null);
+// Plan UID mapping from your Outseta account
+const PLAN_UIDS = {
+  STARTER: 'L9nbKV9Z',
+  PRO: 'rQVqlLm6',
+  ELITE: 'NmdnNO90',
+  AGENCY: 'rmk5Xk9g'
+}
+
+// Feature access rules based on content groups
+const FEATURE_ACCESS: Record<string, string[]> = {
+  directory_access: [PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  ai_chatbot: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  job_intel: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  priority_support: [PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  white_label: [PLAN_UIDS.AGENCY]
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<OutsetaUser | null>(null)
+  const [planUid, setPlanUid] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // This effect runs once on mount to initialize Outseta
-    if (typeof window !== 'undefined') {
-      const Outseta = (window as any).Outseta;
-      if (!Outseta) {
-        console.error('Outseta script not loaded');
-        setLoading(false);
-        return;
-      }
-
-      const outsetaApi = Outseta.init(outsetaOptions);
-      setOutseta(outsetaApi);
-
-      // --- THIS IS THE UPDATED LOGIC ---
-
-      // This function fetches the user and account data
-      const fetchUserData = async () => {
-        try {
-          setLoading(true);
-          const acc = await outsetaApi.getAccount();
-          
-          if (acc && acc.Uid) {
-            // User has a valid session
-            setAccount(acc);
-            const u = await outsetaApi.getUser();
-            setUser(u);
-          } else {
-            // No session found
-            setAccount(null);
-            setUser(null);
-          }
-        } catch (e) {
-          console.error('Error fetching Outseta data', e);
-          setAccount(null);
-          setUser(null);
-        } finally {
-          setLoading(false);
+    // Wait for Outseta script to load
+    const initAuth = () => {
+      if (typeof window !== 'undefined' && window.Outseta) {
+        // Get the current user from Outseta
+        const currentUser = window.Outseta.getUser()
+        
+        if (currentUser) {
+          setUser(currentUser)
+          setPlanUid(currentUser['outseta:planUid'] || null)
         }
-      };
+        
+        setIsLoading(false)
 
-      // Use the 'accessToken.set' event. This fires reliably
-      // when a user logs in OR a session is loaded from a cookie.
-      outsetaApi.on('accessToken.set', () => {
-        console.log('Outseta session detected. Fetching user data...');
-        fetchUserData();
-      });
+        // Listen for auth state changes
+        window.Outseta.on('accessToken.set', (data: any) => {
+          const payload = data.decodedAccessToken
+          if (payload) {
+            setUser(payload)
+            setPlanUid(payload['outseta:planUid'] || null)
+          }
+        })
 
-      // Handle logout
-      outsetaApi.on('auth:logout', () => {
-        console.log('Outseta logout event fired.');
-        setAccount(null);
-        setUser(null);
-      });
-
-      // Run an initial check on load, in case the event
-      // has already fired before this listener was attached.
-      fetchUserData();
-
-      // --- END OF UPDATED LOGIC ---
+        window.Outseta.on('accessToken.remove', () => {
+          setUser(null)
+          setPlanUid(null)
+        })
+      }
     }
-  }, []);
 
-  const value = { user, account, loading, outseta };
+    // Check if Outseta is already loaded
+    if (window.Outseta) {
+      initAuth()
+    } else {
+      // Wait for Outseta to load
+      const checkOutseta = setInterval(() => {
+        if (window.Outseta) {
+          clearInterval(checkOutseta)
+          initAuth()
+        }
+      }, 100)
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        clearInterval(checkOutseta)
+        setIsLoading(false)
+      }, 5000)
+    }
+  }, [])
+
+  const hasAccess = (feature: string): boolean => {
+    if (!planUid) return false
+    
+    const allowedPlans = FEATURE_ACCESS[feature]
+    if (!allowedPlans) return false
+    
+    return allowedPlans.includes(planUid)
+  }
+
+  const login = () => {
+    if (window.Outseta) {
+      window.Outseta.auth.open({
+        mode: 'login'
+      })
+    }
+  }
+
+  const signup = () => {
+    if (window.Outseta) {
+      window.Outseta.auth.open({
+        mode: 'register'
+      })
+    }
+  }
+
+  const logout = () => {
+    if (window.Outseta) {
+      window.Outseta.auth.logout()
+      setUser(null)
+      setPlanUid(null)
+    }
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        planUid,
+        isLoading,
+        isAuthenticated: !!user,
+        hasAccess,
+        login,
+        signup,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-// Custom hook (no changes here)
-export const useAuth = () => {
-  const context = useContext(AuthContext);
+export function useAuth() {
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
-};
+  return context
+}
+
+// Extend Window interface for TypeScript
+declare global {
+  interface Window {
+    Outseta: any
+  }
+}

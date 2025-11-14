@@ -301,7 +301,7 @@ export default function HomePage() {
         color: '#6b7280',
         fontSize: '0.875rem'
       }}>
-        <p>© 2025 Nested Objects LLC. All rights reserved.</p>
+        <p>© 2024 Nested Objects LLC. All rights reserved.</p>
       </footer>
     </main>
   )
