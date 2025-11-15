@@ -45,7 +45,7 @@ export default function HomePage() {
                 {user.name} ({getPlanName(planUid)})
               </span>
               <button
-                onClick={logout}
+                onClick={() => logout()}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#ef4444',
