@@ -48,42 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = () => {
       if (typeof window !== 'undefined' && window.Outseta) {
         console.log('🟢 Outseta loaded, checking auth state')
         
         try {
-          // Add timeout to getUser() call
-          const getUserWithTimeout = () => {
-            return Promise.race([
-              window.Outseta.getUser(),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('getUser timeout')), 2000)
-              )
-            ])
-          }
-
-          const currentUser = await getUserWithTimeout()
+          // Use getJwtPayload() for instant access (no async needed)
+          const payload = window.Outseta.getJwtPayload()
           
-          console.log('🟢 User data received:', currentUser)
+          console.log('🟢 JWT Payload:', payload)
           
-          if (currentUser && typeof currentUser === 'object' && currentUser.email) {
-            console.log('🟢 User is authenticated:', currentUser.email)
-            setUser(currentUser as OutsetaUser)
-            setPlanUid((currentUser as any)['outseta:planUid'] || null)
+          if (payload && payload.email) {
+            console.log('🟢 User is authenticated:', payload.email)
+            setUser(payload as OutsetaUser)
+            setPlanUid(payload['outseta:planUid'] || null)
           } else {
             console.log('🟡 No authenticated user')
             setUser(null)
             setPlanUid(null)
           }
         } catch (error) {
-          console.log('🟡 Error or timeout getting user:', error)
-          // Not necessarily an error - user might just not be logged in
+          console.error('🔴 Error getting JWT payload:', error)
           setUser(null)
           setPlanUid(null)
-        } finally {
-          setIsLoading(false)
         }
+        
+        setIsLoading(false)
 
         // Listen for auth state changes
         window.Outseta.on('accessToken.set', (data: any) => {
