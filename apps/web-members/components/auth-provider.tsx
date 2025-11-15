@@ -125,13 +125,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const logout = () => {
-    if (window.Outseta) {
+const logout = () => {
+  console.log('🔴 Logout button clicked')
+  console.log('🔴 window.Outseta exists?', !!window.Outseta)
+  
+  if (window.Outseta) {
+    console.log('🔴 Calling Outseta.auth.logout()')
+    try {
       window.Outseta.auth.logout()
+      console.log('🔴 Logout successful, clearing state')
       setUser(null)
       setPlanUid(null)
+    } catch (error) {
+      console.error('🔴 Logout failed:', error)
     }
+  } else {
+    console.error('🔴 Outseta not loaded!')
+    alert('Outseta not loaded. Please refresh the page.')
   }
+}
 
   return (
     <AuthContext.Provider
