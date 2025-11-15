@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<string>('Processing...')
@@ -62,7 +62,7 @@ export default function AuthCallbackPage() {
 
       setStatus('Success! Redirecting...')
 
-      // Redirect to directory (or wherever the user was trying to go)
+      // Redirect to directory
       const redirectTo = searchParams.get('redirect') || '/directory'
       
       console.log('🟢 Redirecting to:', redirectTo)
@@ -106,6 +106,18 @@ export default function AuthCallbackPage() {
         </a>
       )}
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <p>Loading...</p>
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   )
 }
 
