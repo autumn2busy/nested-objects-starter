@@ -130,18 +130,21 @@ const logout = () => {
   console.log('🔴 window.Outseta exists?', !!window.Outseta)
   
   if (window.Outseta) {
-    console.log('🔴 Calling Outseta.auth.logout()')
+    console.log('🔴 Calling Outseta logout')
     try {
-      window.Outseta.auth.logout()
-      console.log('🔴 Logout successful, clearing state')
+      // Correct method: setAccessToken with null
+      window.Outseta.setAccessToken(null)
+      console.log('🔴 Token cleared, updating state')
       setUser(null)
       setPlanUid(null)
+      // Also clear the cookie
+      document.cookie = 'outseta_access_token=; path=/; max-age=0'
+      console.log('🔴 Logout complete')
     } catch (error) {
       console.error('🔴 Logout failed:', error)
     }
   } else {
     console.error('🔴 Outseta not loaded!')
-    alert('Outseta not loaded. Please refresh the page.')
   }
 }
 
