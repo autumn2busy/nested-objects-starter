@@ -53,30 +53,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🟢 Outseta loaded, checking auth state')
         
         try {
-          // getUser() is async - we need to await it
-          const currentUser = await window.Outseta.getUser()
+          // Add timeout to getUser() call
+          const getUserWithTimeout = () => {
+            return Promise.race([
+              window.Outseta.getUser(),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('getUser timeout')), 2000)
+              )
+            ])
+          }
+
+          const currentUser = await getUserWithTimeout()
           
-          console.log('🟢 User data:', currentUser)
+          console.log('🟢 User data received:', currentUser)
           
-          if (currentUser && currentUser.email) {
+          if (currentUser && typeof currentUser === 'object' && currentUser.email) {
             console.log('🟢 User is authenticated:', currentUser.email)
-            setUser(currentUser)
-            setPlanUid(currentUser['outseta:planUid'] || null)
+            setUser(currentUser as OutsetaUser)
+            setPlanUid((currentUser as any)['outseta:planUid'] || null)
           } else {
             console.log('🟡 No authenticated user')
             setUser(null)
             setPlanUid(null)
           }
         } catch (error) {
-          console.error('🔴 Error getting user:', error)
+          console.log('🟡 Error or timeout getting user:', error)
+          // Not necessarily an error - user might just not be logged in
           setUser(null)
           setPlanUid(null)
+        } finally {
+          setIsLoading(false)
         }
-        
-        setIsLoading(false)
 
         // Listen for auth state changes
-        window.Outseta.on('accessToken.set', async (data: any) => {
+        window.Outseta.on('accessToken.set', (data: any) => {
           console.log('🟢 Token set event:', data)
           const payload = data.decodedAccessToken
           if (payload) {
@@ -101,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let attempts = 0
       const checkOutseta = setInterval(() => {
         attempts++
-        console.log(`⏳ Waiting for Outseta... (attempt ${attempts})`)
         
         if (window.Outseta) {
           clearInterval(checkOutseta)
@@ -109,9 +118,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           initAuth()
         }
         
-        if (attempts > 50) {
+        if (attempts > 30) {
           clearInterval(checkOutseta)
-          console.error('❌ Outseta failed to load after 5 seconds')
+          console.error('❌ Outseta failed to load after 3 seconds')
           setIsLoading(false)
         }
       }, 100)
