@@ -2,13 +2,12 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-// Outseta user structure from JWT payload
 interface OutsetaUser {
   email: string
   name: string
   given_name: string
   family_name: string
-  sub: string // user UID
+  sub: string
   'outseta:accountUid': string
   'outseta:subscriptionUid': string
   'outseta:planUid': string
@@ -28,7 +27,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Plan UID mapping from your Outseta account
 const PLAN_UIDS = {
   STARTER: 'L9nbKV9Z',
   PRO: 'rQVqlLm6',
@@ -36,7 +34,6 @@ const PLAN_UIDS = {
   AGENCY: 'rmk5Xk9g'
 }
 
-// Feature access rules based on content groups
 const FEATURE_ACCESS: Record<string, string[]> = {
   directory_access: [PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   ai_chatbot: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
@@ -51,21 +48,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Wait for Outseta script to load
-    const initAuth = () => {
+    const initAuth = async () => {
       if (typeof window !== 'undefined' && window.Outseta) {
-        // Get the current user from Outseta
-        const currentUser = window.Outseta.getUser()
+        console.log('🟢 Outseta loaded, checking auth state')
         
-        if (currentUser) {
-          setUser(currentUser)
-          setPlanUid(currentUser['outseta:planUid'] || null)
+        try {
+          // getUser() is async - we need to await it
+          const currentUser = await window.Outseta.getUser()
+          
+          console.log('🟢 User data:', currentUser)
+          
+          if (currentUser && currentUser.email) {
+            console.log('🟢 User is authenticated:', currentUser.email)
+            setUser(currentUser)
+            setPlanUid(currentUser['outseta:planUid'] || null)
+          } else {
+            console.log('🟡 No authenticated user')
+            setUser(null)
+            setPlanUid(null)
+          }
+        } catch (error) {
+          console.error('🔴 Error getting user:', error)
+          setUser(null)
+          setPlanUid(null)
         }
         
         setIsLoading(false)
 
         // Listen for auth state changes
-        window.Outseta.on('accessToken.set', (data: any) => {
+        window.Outseta.on('accessToken.set', async (data: any) => {
+          console.log('🟢 Token set event:', data)
           const payload = data.decodedAccessToken
           if (payload) {
             setUser(payload)
@@ -74,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
 
         window.Outseta.on('accessToken.remove', () => {
+          console.log('🟢 Token removed event')
           setUser(null)
           setPlanUid(null)
         })
@@ -85,68 +98,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initAuth()
     } else {
       // Wait for Outseta to load
+      let attempts = 0
       const checkOutseta = setInterval(() => {
+        attempts++
+        console.log(`⏳ Waiting for Outseta... (attempt ${attempts})`)
+        
         if (window.Outseta) {
           clearInterval(checkOutseta)
+          console.log('✅ Outseta loaded!')
           initAuth()
         }
+        
+        if (attempts > 50) {
+          clearInterval(checkOutseta)
+          console.error('❌ Outseta failed to load after 5 seconds')
+          setIsLoading(false)
+        }
       }, 100)
-
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        clearInterval(checkOutseta)
-        setIsLoading(false)
-      }, 5000)
     }
   }, [])
 
   const hasAccess = (feature: string): boolean => {
     if (!planUid) return false
-    
     const allowedPlans = FEATURE_ACCESS[feature]
     if (!allowedPlans) return false
-    
     return allowedPlans.includes(planUid)
   }
 
   const login = () => {
+    console.log('🔵 Login clicked')
     if (window.Outseta) {
-      window.Outseta.auth.open({
-        mode: 'login'
-      })
+      window.Outseta.auth.open({ mode: 'login' })
     }
   }
 
   const signup = () => {
+    console.log('🔵 Signup clicked')
     if (window.Outseta) {
-      window.Outseta.auth.open({
-        mode: 'register'
-      })
+      window.Outseta.auth.open({ mode: 'register' })
     }
   }
 
-const logout = () => {
-  console.log('🔴 Logout button clicked')
-  console.log('🔴 window.Outseta exists?', !!window.Outseta)
-  
-  if (window.Outseta) {
-    console.log('🔴 Calling Outseta logout')
-    try {
-      // Correct method: setAccessToken with null
-      window.Outseta.setAccessToken(null)
-      console.log('🔴 Token cleared, updating state')
-      setUser(null)
-      setPlanUid(null)
-      // Also clear the cookie
-      document.cookie = 'outseta_access_token=; path=/; max-age=0'
-      console.log('🔴 Logout complete')
-    } catch (error) {
-      console.error('🔴 Logout failed:', error)
+  const logout = () => {
+    console.log('🔴 Logout clicked')
+    if (window.Outseta) {
+      try {
+        window.Outseta.setAccessToken(null)
+        setUser(null)
+        setPlanUid(null)
+        document.cookie = 'outseta_access_token=; path=/; max-age=0'
+        console.log('🔴 Logout complete')
+      } catch (error) {
+        console.error('🔴 Logout error:', error)
+      }
     }
-  } else {
-    console.error('🔴 Outseta not loaded!')
   }
-}
 
   return (
     <AuthContext.Provider
@@ -174,7 +180,6 @@ export function useAuth() {
   return context
 }
 
-// Extend Window interface for TypeScript
 declare global {
   interface Window {
     Outseta: any
