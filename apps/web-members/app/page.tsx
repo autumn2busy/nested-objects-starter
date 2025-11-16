@@ -79,7 +79,13 @@ export default function HomePage() {
               </Link>
               <Link href="/membership" style={{ textDecoration: 'none', color: '#111827' }}>
                 Membership
-              </Link>
+              </Link> 
+              <Link href="/tools" style={{ textDecoration: 'none', color: '#111827' }}>
+                Tools
+            </Link>
+              <Link href="/resources" style={{ textDecoration: 'none', color: '#111827' }}>
+                Resources
+          </Link>
             </nav>
           </div>
           
@@ -284,7 +290,7 @@ export default function HomePage() {
                 </span>
               </div>
               <Link 
-                href="/ai_chatbot"
+                href="/tools/ai-chatbot"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
@@ -295,7 +301,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Feature 3: Job Intel */}
+            {/* Feature 3: Firm Intel */}
             <div style={{
               padding: '2rem',
               border: '1px solid #e5e7eb',
@@ -321,7 +327,7 @@ export default function HomePage() {
                 </span>
               </div>
               <Link 
-                href="/firm_intel"
+                href="/resources/firm-intel"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
