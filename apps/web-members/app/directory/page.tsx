@@ -82,6 +82,7 @@ export default function DirectoryPage() {
   const [loadingFirms, setLoadingFirms] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string>('ALL')
+  const [search, setSearch] = useState<string>('')
 
   useEffect(() => {
     async function fetchFirms() {
@@ -147,7 +148,6 @@ export default function DirectoryPage() {
 
     if (!selected) return true
 
-    // Treat "nationwide" and "national" as matching every state
     if (
       coverage.includes('nationwide') ||
       coverage.includes('national') ||
@@ -159,7 +159,6 @@ export default function DirectoryPage() {
     const label = selected.label.toLowerCase()
     const code = selected.code.toLowerCase()
 
-    // Match either the state name or postal code in the coverage text
     if (coverage.includes(label)) return true
     if (coverage.includes(` ${code} `) || coverage.endsWith(` ${code}`)) return true
     if (coverage.includes(`(${code})`)) return true
@@ -167,10 +166,20 @@ export default function DirectoryPage() {
     return false
   }
 
-  const filteredFirms = firms.filter(matchesStateFilter)
+  const matchesSearch = (firm: Firm) => {
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      firm.name.toLowerCase().includes(q) ||
+      (firm.geographic_coverage ?? '').toLowerCase().includes(q) ||
+      (firm.industry_focus ?? '').toLowerCase().includes(q) ||
+      formatCategories(firm.categories).toLowerCase().includes(q)
+    )
+  }
+
+  const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
-  // Logged out state . show CTA instead of leaking directory
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -244,7 +253,6 @@ export default function DirectoryPage() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Header with back link and context */}
       <header
         style={{
           display: 'flex',
@@ -282,7 +290,7 @@ export default function DirectoryPage() {
               href="/membership"
               style={{ color: '#111827', textDecoration: 'none' }}
             >
-              Membership & pricing
+              Membership and pricing
             </Link>
           </div>
         </div>
@@ -299,32 +307,58 @@ export default function DirectoryPage() {
           flexWrap: 'wrap',
         }}
       >
-        <div>
-          <label
-            htmlFor="state-filter"
-            style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
-          >
-            Filter by service area
-          </label>
-          <select
-            id="state-filter"
-            value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
-            style={{
-              marginTop: '0.25rem',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '8px',
-              border: '1px solid #d1d5db',
-              fontSize: '0.9rem',
-              minWidth: '220px',
-            }}
-          >
-            {US_STATES.map((st) => (
-              <option key={st.code} value={st.code}>
-                {st.label}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div>
+            <label
+              htmlFor="state-filter"
+              style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+            >
+              Filter by service area
+            </label>
+            <select
+              id="state-filter"
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              style={{
+                marginTop: '0.25rem',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '0.9rem',
+                minWidth: '220px',
+              }}
+            >
+              {US_STATES.map((st) => (
+                <option key={st.code} value={st.code}>
+                  {st.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="search"
+              style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+            >
+              Search by name or keyword
+            </label>
+            <input
+              id="search"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
+              style={{
+                marginTop: '0.25rem',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                border: '1px solid #d1d5db',
+                fontSize: '0.9rem',
+                minWidth: '260px',
+              }}
+            />
+          </div>
         </div>
 
         <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '320px' }}>
@@ -335,14 +369,15 @@ export default function DirectoryPage() {
             </p>
           ) : (
             <p>
-              Showing firms that list {US_STATES.find((s) => s.code === stateFilter)?.label || 'this state'} in their
-              coverage, plus any nationwide firms.
+              Showing firms that list{' '}
+              {US_STATES.find((s) => s.code === stateFilter)?.label ||
+                'this state'}{' '}
+              in their coverage, plus any nationwide firms.
             </p>
           )}
         </div>
       </section>
 
-      {/* Starter plan banner */}
       {isStarter && (
         <section
           style={{
@@ -379,7 +414,6 @@ export default function DirectoryPage() {
         </section>
       )}
 
-      {/* Loading or error states */}
       {loadingFirms && (
         <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>Loading firms…</p>
       )}
@@ -390,13 +424,12 @@ export default function DirectoryPage() {
         </p>
       )}
 
-      {/* Firm list */}
       {!loadingFirms && !error && (
         <>
           {displayedFirms.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-              No firms match this service area yet, try switching back to All service
-              areas.
+              No firms match this combination yet, try clearing your search or switching
+              back to All service areas.
             </p>
           ) : (
             <div
@@ -503,8 +536,8 @@ export default function DirectoryPage() {
                 color: '#6b7280',
               }}
             >
-              Showing {displayedFirms.length} of {filteredFirms.length} matching
-              firms on the Starter preview.
+              Showing {displayedFirms.length} of {filteredFirms.length} matching firms
+              on the Starter preview.
             </p>
           )}
 
