@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Outseta configuration */}
         <Script id="outseta-config" strategy="beforeInteractive">
@@ -24,14 +24,18 @@ export default function RootLayout({
             var o_options = {
               domain: 'nested-objects.outseta.com',
               load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
+              tokenStorage: 'cookie',
+              monitorDom: true,
               auth: {
-                authenticationCallbackUrl: window.location.href
+                // Always send users back through the Next.js callback route
+                authenticationCallbackUrl: window.location.origin + '/auth/callback'
               }
             };
           `}
         </Script>
         {/* Load Outseta embed script */}
         <Script
+          id="outseta-script"
           src="https://cdn.outseta.com/outseta.min.js"
           strategy="beforeInteractive"
           data-options="o_options"
