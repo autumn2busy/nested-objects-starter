@@ -215,7 +215,7 @@ export default function MembershipPage() {
 
               {/* CTA Button */}
               <a
-                href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}#o-anonymous`}
+                href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`}
                 style={{
                   display: 'block',
                   width: '100%',
