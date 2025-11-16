@@ -1,401 +1,507 @@
 'use client'
 
-import { useAuth } from '@/components/auth-provider'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useAuth } from '@/components/auth-provider'
+
+// Map Outseta plan UIDs to human labels
+const PLAN_LABELS: { [key: string]: string } = {
+  L9nbKV9Z: 'Starter',
+  rQVqlLm6: 'Pro',
+  NmdnNO90: 'Elite',
+  rmk5Xk9g: 'Agency',
+}
+
+const PLAN_COLORS: { [key: string]: string } = {
+  L9nbKV9Z: '#10b981', // Starter . emerald
+  rQVqlLm6: '#3b82f6', // Pro . blue
+  NmdnNO90: '#a855f7', // Elite . purple
+  rmk5Xk9g: '#f59e0b', // Agency . amber
+}
+
+function getPlanLabel(planUid?: string | null) {
+  if (!planUid) return 'No active plan'
+  return PLAN_LABELS[planUid] || 'Unknown plan'
+}
+
+function getPlanColor(planUid?: string | null) {
+  if (!planUid) return '#e5e7eb'
+  return PLAN_COLORS[planUid] || '#e5e7eb'
+}
+
+function getProfileCompletion(user: any, planUid?: string | null) {
+  let score = 0
+
+  if (user?.given_name || user?.name) score += 30
+  if (user?.email) score += 30
+  if (planUid) score += 40
+
+  // Clamp just in case
+  return Math.max(0, Math.min(100, score))
+}
 
 export default function DashboardPage() {
   const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
   const router = useRouter()
 
+  // Protect the route . kick unauthenticated users back home
   useEffect(() => {
-    // Redirect to home if not authenticated
     if (!isLoading && !isAuthenticated) {
       router.push('/')
     }
   }, [isLoading, isAuthenticated, router])
 
-  const getPlanName = (uid: string | null) => {
-    switch (uid) {
-      case 'L9nbKV9Z': return 'Starter'
-      case 'rQVqlLm6': return 'Pro'
-      case 'NmdnNO90': return 'Elite'
-      case 'rmk5Xk9g': return 'Agency'
-      default: return 'Unknown'
-    }
-  }
+  const completion = getProfileCompletion(user, planUid)
+  const planLabel = getPlanLabel(planUid)
+  const planColor = getPlanColor(planUid)
 
-  const getPlanColor = (uid: string | null) => {
-    switch (uid) {
-      case 'L9nbKV9Z': return '#3b82f6'
-      case 'rQVqlLm6': return '#8b5cf6'
-      case 'NmdnNO90': return '#f59e0b'
-      case 'rmk5Xk9g': return '#ef4444'
-      default: return '#6b7280'
-    }
-  }
-
-  const hasAccess = (feature: string) => {
-    const PLAN_UIDS = {
-      STARTER: 'L9nbKV9Z',
-      PRO: 'rQVqlLm6',
-      ELITE: 'NmdnNO90',
-      AGENCY: 'rmk5Xk9g'
-    }
-
-    const FEATURE_ACCESS: Record<string, string[]> = {
-      directory_access: [PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
-      ai_chatbot: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
-      job_intel: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
-      priority_support: [PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
-      white_label: [PLAN_UIDS.AGENCY]
-    }
-
-    if (!planUid) return false
-    const allowedPlans = FEATURE_ACCESS[feature]
-    return allowedPlans ? allowedPlans.includes(planUid) : false
-  }
+  const displayName =
+    user?.given_name ||
+    (user?.name && String(user.name).split(' ')[0]) ||
+    'Member'
 
   if (isLoading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
-      }}>
-        <p>Loading your dashboard...</p>
-      </div>
+      <main
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f9fafb',
+        }}
+      >
+        <p style={{ color: '#6b7280', fontSize: '1rem' }}>Checking your session...</p>
+      </main>
     )
   }
 
   if (!isAuthenticated) {
-    return null // Will redirect via useEffect
+    // Brief state while redirecting unauthenticated users
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f9fafb',
+        }}
+      >
+        <p style={{ color: '#6b7280', fontSize: '1rem' }}>
+          Redirecting you to the home page...
+        </p>
+      </main>
+    )
   }
 
   return (
-    <main style={{ 
-      maxWidth: '1400px', 
-      margin: '0 auto', 
-      padding: '2rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '3rem',
-        paddingBottom: '2rem',
-        borderBottom: '2px solid #e5e7eb'
-      }}>
-        <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-            Welcome back, {user?.given_name || user?.name?.split(' ')[0] || 'Member'}! 👋
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: '1.125rem' }}>
-            Here's what's happening with your account
-          </p>
-        </div>
-        <button
-          onClick={() => logout()}
+    <main
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#f9fafb',
+        padding: '2rem 1.5rem',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '960px',
+          margin: '0 auto',
+        }}
+      >
+        {/* Header / profile identity */}
+        <header
           style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#ef4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            fontWeight: '500',
-            cursor: 'pointer'
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+            marginBottom: '2rem',
           }}
         >
-          Logout
-        </button>
-      </header>
-
-      {/* Account Overview */}
-      <section style={{
-        padding: '2rem',
-        backgroundColor: '#f9fafb',
-        borderRadius: '12px',
-        marginBottom: '3rem'
-      }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
-          Account Overview
-        </h2>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1.5rem'
-        }}>
-          {/* Plan Card */}
-          <div style={{
-            padding: '1.5rem',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: `2px solid ${getPlanColor(planUid)}`
-          }}>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-              Current Plan
-            </p>
-            <p style={{ 
-              fontSize: '1.75rem', 
-              fontWeight: 'bold',
-              color: getPlanColor(planUid),
-              marginBottom: '0.5rem'
-            }}>
-              {getPlanName(planUid)}
-            </p>
-            <Link
-              href="/membership"
+          <div>
+            <h1
               style={{
-                color: '#3b82f6',
-                textDecoration: 'underline',
-                fontSize: '0.875rem'
+                fontSize: '2.25rem',
+                lineHeight: 1.1,
+                fontWeight: 700,
+                marginBottom: '0.5rem',
               }}
             >
-              Upgrade plan →
-            </Link>
-          </div>
-
-          {/* Email Card */}
-          <div style={{
-            padding: '1.5rem',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb'
-          }}>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-              Email
+              Welcome back, {displayName}! 👋
+            </h1>
+            <p
+              style={{
+                color: '#6b7280',
+                fontSize: '1.05rem',
+                marginBottom: '0.35rem',
+              }}
+            >
+              This is your Nested Objects home base
             </p>
-            <p style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827' }}>
-              {user?.email}
-            </p>
-          </div>
-
-          {/* Account ID Card */}
-          <div style={{
-            padding: '1.5rem',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb'
-          }}>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-              Member Since
-            </p>
-            <p style={{ fontSize: '1.125rem', fontWeight: '500', color: '#111827' }}>
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            <p
+              style={{
+                color: '#4b5563',
+                fontSize: '0.95rem',
+              }}
+            >
+              Signed in as <strong>{user?.email}</strong>
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Quick Actions */}
-      <section style={{ marginBottom: '3rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
-          Quick Actions
-        </h2>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '1.5rem'
-        }}>
-          {/* Directory Access */}
-          <Link
-            href="/directory"
+          <button
+            onClick={logout}
             style={{
-              display: 'block',
-              padding: '2rem',
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              textDecoration: 'none',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}
-          >
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📁</div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111827' }}>
-              Browse Directory
-            </h3>
-            <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-              Access our curated directory of firms
-            </p>
-            <span style={{
-              display: 'inline-block',
-              padding: '0.25rem 0.75rem',
-              backgroundColor: '#dbeafe',
-              color: '#1e40af',
               borderRadius: '999px',
-              fontSize: '0.75rem',
-              fontWeight: '500'
-            }}>
-              All Plans
-            </span>
-          </Link>
-
-          {/* AI Chatbot */}
-          <div
-            style={{
-              padding: '2rem',
-              backgroundColor: hasAccess('ai_chatbot') ? 'white' : '#f9fafb',
+              padding: '0.45rem 1.1rem',
               border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              opacity: hasAccess('ai_chatbot') ? 1 : 0.6
+              backgroundColor: '#ffffff',
+              color: '#111827',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
             }}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🤖</div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111827' }}>
-              AI Concierge
-            </h3>
-            <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-              Get instant answers to your questions
-            </p>
-            {hasAccess('ai_chatbot') ? (
-              <Link
-                href="/ai_chatbot"
+            Log out
+          </button>
+        </header>
+
+        {/* Profile overview card with completion bar */}
+        <section
+          style={{
+            marginBottom: '2rem',
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '1.5rem 1.75rem',
+            boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
+            border: '1px solid #e5e7eb',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              marginBottom: '0.85rem',
+            }}
+          >
+            Profile overview
+          </h2>
+
+          <p
+            style={{
+              fontSize: '0.95rem',
+              color: '#4b5563',
+              marginBottom: '0.5rem',
+            }}
+          >
+            Profile completeness. <strong>{completion}%</strong>
+          </p>
+
+          <div
+            style={{
+              width: '100%',
+              height: '0.6rem',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '999px',
+              overflow: 'hidden',
+              marginBottom: '0.75rem',
+            }}
+          >
+            <div
+              style={{
+                width: `${completion}%`,
+                height: '100%',
+                background:
+                  'linear-gradient(to right, #3b82f6, #8b5cf6)',
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+
+          <p
+            style={{
+              fontSize: '0.9rem',
+              color: '#6b7280',
+            }}
+          >
+            Next step. add your service area and skills so hiring firms can match you faster.
+          </p>
+        </section>
+
+        {/* Account overview + first steps checklist */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
+            gap: '1.75rem',
+            marginBottom: '2.5rem',
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* Account card */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '1.5rem 1.75rem',
+              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
+              border: `1px solid ${planColor}`,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                marginBottom: '0.75rem',
+              }}
+            >
+              Account overview
+            </h2>
+
+            <p
+              style={{
+                fontSize: '0.95rem',
+                color: '#4b5563',
+                marginBottom: '0.5rem',
+              }}
+            >
+              Current plan.{' '}
+              <span
                 style={{
-                  color: '#3b82f6',
-                  textDecoration: 'underline',
-                  fontSize: '0.875rem'
+                  fontWeight: 600,
+                  color: planColor,
                 }}
               >
-                Open Chatbot →
-              </Link>
-            ) : (
-              <div>
-                <span style={{
-                  display: 'inline-block',
-                  padding: '0.25rem 0.75rem',
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
+                {planLabel}
+              </span>
+            </p>
+
+            <p
+              style={{
+                fontSize: '0.9rem',
+                color: '#6b7280',
+                marginBottom: '1rem',
+              }}
+            >
+              Upgrade when you are ready for more tools, not before.
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}
+            >
+              <Link
+                href="/membership"
+                style={{
+                  padding: '0.5rem 0.9rem',
                   borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  marginBottom: '0.5rem'
-                }}>
-                  Pro+
-                </span>
-                <br />
+                  border: `1px solid ${planColor}`,
+                  fontSize: '0.9rem',
+                  color: planColor,
+                  textDecoration: 'none',
+                  backgroundColor: '#ffffff',
+                }}
+              >
+                View plans
+              </Link>
+              <Link
+                href="/directory"
+                style={{
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '999px',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '0.9rem',
+                  color: '#111827',
+                  textDecoration: 'none',
+                  backgroundColor: '#f9fafb',
+                }}
+              >
+                Open firm directory
+              </Link>
+            </div>
+          </div>
+
+          {/* First steps checklist */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '1.5rem 1.75rem',
+              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
+              border: '1px solid #e5e7eb',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                marginBottom: '0.75rem',
+              }}
+            >
+              First steps checklist
+            </h2>
+
+            <ol
+              style={{
+                listStyle: 'decimal',
+                paddingLeft: '1.25rem',
+                display: 'grid',
+                rowGap: '0.55rem',
+                fontSize: '0.95rem',
+                color: '#4b5563',
+              }}
+            >
+              <li>Finish your profile basics. name, email, service area.</li>
+              <li>
                 <Link
-                  href="/membership"
+                  href="/directory"
                   style={{
                     color: '#3b82f6',
                     textDecoration: 'underline',
-                    fontSize: '0.875rem'
                   }}
                 >
-                  Upgrade to unlock →
-                </Link>
-              </div>
-            )}
+                  Bookmark three hiring firms
+                </Link>{' '}
+                you would love to work with.
+              </li>
+              <li>
+                Skim the Field Inspection Starter Kit so you understand how the
+                work and payouts actually flow.
+              </li>
+              <li>Block off time this week to complete your first three inspections.</li>
+            </ol>
           </div>
+        </section>
 
-          {/* Job Intel */}
+        {/* Activity + shortcuts */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
+            gap: '1.75rem',
+            marginBottom: '2rem',
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* Recent activity */}
           <div
             style={{
-              padding: '2rem',
-              backgroundColor: hasAccess('job_intel') ? 'white' : '#f9fafb',
-              border: '1px solid #e5e7eb',
+              backgroundColor: '#ffffff',
               borderRadius: '12px',
-              opacity: hasAccess('job_intel') ? 1 : 0.6
+              padding: '1.5rem 1.75rem',
+              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
+              border: '1px solid #e5e7eb',
             }}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📊</div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#111827' }}>
-              Job Intelligence
-            </h3>
-            <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-              Market insights and trends
-            </p>
-            {hasAccess('job_intel') ? (
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                marginBottom: '0.75rem',
+              }}
+            >
+              Recent activity
+            </h2>
+            <p
+              style={{
+                fontSize: '0.95rem',
+                color: '#6b7280',
+              }}
+            >
+              No recent activity yet.{' '}
               <Link
-                href="/job_intel"
+                href="/directory"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
-                  fontSize: '0.875rem'
                 }}
               >
-                View Intel →
-              </Link>
-            ) : (
-              <div>
-                <span style={{
-                  display: 'inline-block',
-                  padding: '0.25rem 0.75rem',
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
-                  borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  marginBottom: '0.5rem'
-                }}>
-                  Pro+
-                </span>
-                <br />
+                Open the firm directory
+              </Link>{' '}
+              and start building your list.
+            </p>
+          </div>
+
+          {/* Shortcuts */}
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '1.5rem 1.75rem',
+              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
+              border: '1px solid #e5e7eb',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                marginBottom: '0.75rem',
+              }}
+            >
+              Shortcuts
+            </h2>
+            <ul
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                display: 'grid',
+                rowGap: '0.55rem',
+                fontSize: '0.95rem',
+              }}
+            >
+              <li>
                 <Link
-                  href="/membership"
+                  href="/directory"
                   style={{
-                    color: '#3b82f6',
-                    textDecoration: 'underline',
-                    fontSize: '0.875rem'
+                    color: '#111827',
+                    textDecoration: 'none',
                   }}
                 >
-                  Upgrade to unlock →
+                  → Browse hiring firms
                 </Link>
-              </div>
-            )}
+              </li>
+              <li>
+                <Link
+                  href="/resources"
+                  style={{
+                    color: '#111827',
+                    textDecoration: 'none',
+                  }}
+                >
+                  → View training and templates
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/support"
+                  style={{
+                    color: '#111827',
+                    textDecoration: 'none',
+                  }}
+                >
+                  → Ask a question or get help
+                </Link>
+              </li>
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Recent Activity (Placeholder) */}
-      <section style={{
-        padding: '2rem',
-        backgroundColor: 'white',
-        border: '1px solid #e5e7eb',
-        borderRadius: '12px'
-      }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
-          Recent Activity
-        </h2>
-        <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
-          No recent activity to display. Start exploring the directory!
-        </p>
-      </section>
-
-      {/* Navigation */}
-      <div style={{ 
-        marginTop: '3rem', 
-        textAlign: 'center',
-        paddingTop: '2rem',
-        borderTop: '1px solid #e5e7eb'
-      }}>
-        <Link 
-          href="/"
+        <footer
           style={{
-            color: '#3b82f6',
-            textDecoration: 'underline',
-            fontSize: '1rem',
-            marginRight: '2rem'
+            fontSize: '0.8rem',
+            color: '#9ca3af',
+            textAlign: 'center',
+            marginTop: '1rem',
           }}
         >
-          ← Home
-        </Link>
-        <Link 
-          href="/directory"
-          style={{
-            color: '#3b82f6',
-            textDecoration: 'underline',
-            fontSize: '1rem'
-          }}
-        >
-          View Directory
-        </Link>
+          Built for field inspectors . not just software people.
+        </footer>
       </div>
     </main>
   )
