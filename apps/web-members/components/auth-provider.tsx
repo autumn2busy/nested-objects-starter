@@ -45,6 +45,8 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   job_routing: 'NmdnNO90',        // Elite+
   weather_tool: 'L9nbKV9Z',       // Starter+
   ai_resume: 'rQVqlLm6',          // Pro+
+  firm_intel: 'rQVqlLm6',         // Pro+
+  ai_concierge: 'rQVqlLm6',       // Elite+
 
   // Monetization / partners
   sponsor_equipment_links: 'L9nbKV9Z', // Everyone
