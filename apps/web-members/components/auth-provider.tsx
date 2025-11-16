@@ -18,6 +18,10 @@ type AuthContextValue = {
   planUid: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  // used by <Gate>
+  hasAccess: (feature?: string) => boolean
+  login: () => void
+  signup: () => void
   logout: () => void
 }
 
@@ -29,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Load auth state from Outseta on first mount
   useEffect(() => {
     let cancelled = false
 
@@ -39,20 +44,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
-        if (!window.Outseta?.getJwtPayload) {
+        const Outseta = window.Outseta
+        if (!Outseta?.getJwtPayload) {
           if (!cancelled) setIsLoading(false)
           return
         }
 
-        // Outseta.getJwtPayload() returns a Promise with the decoded JWT payload
-        const payload = await window.Outseta.getJwtPayload()
+        // Prefer the decoded JWT payload
+        const payload = await Outseta.getJwtPayload()
 
         if (cancelled) return
 
         if (payload) {
-          // Store the decoded JWT as "user"
           setUser(payload)
-          // Plan comes from the custom claim in the token
           setPlanUid(payload['outseta:planUid'] ?? null)
           setIsAuthenticated(true)
         } else {
@@ -79,16 +83,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Very simple gating for now. any authenticated user passes
+  // You can expand this later based on planUid and feature name
+  const hasAccess = (_feature?: string) => {
+    return isAuthenticated
+  }
+
+  const login = () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+
+    try {
+      if (Outseta?.auth?.open) {
+        Outseta.auth.open({ widgetMode: 'login' })
+      } else {
+        // Fallback to hosted page if embed is not ready
+        window.location.href =
+          'https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous'
+      }
+    } catch (error) {
+      console.error('Error opening Outseta login', error)
+    }
+  }
+
+  const signup = () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+
+    try {
+      if (Outseta?.auth?.open) {
+        Outseta.auth.open({ widgetMode: 'register' })
+      } else {
+        // Fallback to hosted page if embed is not ready
+        window.location.href =
+          'https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous'
+      }
+    } catch (error) {
+      console.error('Error opening Outseta signup', error)
+    }
+  }
+
   const logout = () => {
     if (typeof window === 'undefined') return
 
     try {
+      const Outseta = window.Outseta
+
       // 1. Tell Outseta there is no token
-      if (window.Outseta?.setAccessToken) {
-        window.Outseta.setAccessToken(null)
+      if (Outseta?.setAccessToken) {
+        Outseta.setAccessToken(null)
       }
 
-      // 2. Kill the cookie so a fresh load treats the user as anonymous
+      // 2. Kill our cookie so a fresh load treats the user as anonymous
       document.cookie =
         'outseta_access_token=; path=/; max-age=0; samesite=lax'
 
@@ -100,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error during logout', error)
     }
 
-    // 4. Hard redirect to home so everything, including any server logic, is in sync
+    // 4. Hard redirect to home so everything is in sync
     window.location.href = '/'
   }
 
@@ -109,6 +155,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     planUid,
     isAuthenticated,
     isLoading,
+    hasAccess,
+    login,
+    signup,
     logout,
   }
 
