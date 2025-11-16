@@ -1,508 +1,330 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 
-// Map Outseta plan UIDs to human labels
-const PLAN_LABELS: { [key: string]: string } = {
-  L9nbKV9Z: 'Starter',
-  rQVqlLm6: 'Pro',
-  NmdnNO90: 'Elite',
-  rmk5Xk9g: 'Agency',
-}
-
-const PLAN_COLORS: { [key: string]: string } = {
-  L9nbKV9Z: '#10b981', // Starter . emerald
-  rQVqlLm6: '#3b82f6', // Pro . blue
-  NmdnNO90: '#a855f7', // Elite . purple
-  rmk5Xk9g: '#f59e0b', // Agency . amber
-}
-
-function getPlanLabel(planUid?: string | null) {
-  if (!planUid) return 'No active plan'
-  return PLAN_LABELS[planUid] || 'Unknown plan'
-}
-
-function getPlanColor(planUid?: string | null) {
-  if (!planUid) return '#e5e7eb'
-  return PLAN_COLORS[planUid] || '#e5e7eb'
-}
-
-function getProfileCompletion(user: any, planUid?: string | null) {
-  let score = 0
-
-  if (user?.given_name || user?.name) score += 30
-  if (user?.email) score += 30
-  if (planUid) score += 40
-
-  // Clamp just in case
-  return Math.max(0, Math.min(100, score))
+function getPlanName(uid: string | null) {
+  switch (uid) {
+    case 'L9nbKV9Z': return 'Starter'
+    case 'rQVqlLm6': return 'Pro'
+    case 'NmdnNO90': return 'Elite'
+    case 'rmk5Xk9g': return 'Agency'
+    default: return 'Unknown'
+  }
 }
 
 export default function DashboardPage() {
   const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
   const router = useRouter()
 
-  // Protect the route . kick unauthenticated users back home
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/')
     }
   }, [isLoading, isAuthenticated, router])
 
-  const completion = getProfileCompletion(user, planUid)
-  const planLabel = getPlanLabel(planUid)
-  const planColor = getPlanColor(planUid)
+  const planName = getPlanName(planUid)
 
-  const displayName =
-    user?.given_name ||
-    (user?.name && String(user.name).split(' ')[0]) ||
+  const firstName =
+    (user as any)?.first_name ??
+    (user as any)?.FirstName ??
+    (user?.name ? user.name.split(' ')[0] : undefined) ??
+    (user?.email ? user.email.split('@')[0] : undefined) ??
     'Member'
 
-  if (isLoading) {
-    return (
-      <main
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f9fafb',
-        }}
-      >
-        <p style={{ color: '#6b7280', fontSize: '1rem' }}>Checking your session...</p>
-      </main>
-    )
-  }
+  const initials = firstName.charAt(0).toUpperCase()
 
-  if (!isAuthenticated) {
-    // Brief state while redirecting unauthenticated users
+  if (isLoading || !isAuthenticated || !user) {
     return (
-      <main
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f9fafb',
-        }}
-      >
-        <p style={{ color: '#6b7280', fontSize: '1rem' }}>
-          Redirecting you to the home page...
-        </p>
+      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '4rem 2rem' }}>
+        <p>Loading your dashboard...</p>
       </main>
     )
   }
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#f9fafb',
-        padding: '2rem 1.5rem',
-      }}
-    >
-      <div
+    <main style={{ maxWidth: '1120px', margin: '0 auto', padding: '2rem' }}>
+      {/* Top nav */}
+      <header
         style={{
-          maxWidth: '960px',
-          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: '1.75rem',
+          borderBottom: '1px solid #e5e7eb',
+          marginBottom: '2.5rem',
         }}
       >
-        {/* Header / profile identity */}
-        <header
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: '1.5rem',
-            marginBottom: '2rem',
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontSize: '2.25rem',
-                lineHeight: 1.1,
-                fontWeight: 700,
-                marginBottom: '0.5rem',
-              }}
-            >
-              Welcome back, {displayName}! 👋
-            </h1>
-            <p
-              style={{
-                color: '#6b7280',
-                fontSize: '1.05rem',
-                marginBottom: '0.35rem',
-              }}
-            >
-              This is your Nested Objects home base
-            </p>
-            <p
-              style={{
-                color: '#4b5563',
-                fontSize: '0.95rem',
-              }}
-            >
-              Signed in as <strong>{user?.email}</strong>
-            </p>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Nested Objects</h1>
+          <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.95rem' }}>
+            <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
+              Home
+            </Link>
+            <Link href="/dashboard" style={{ textDecoration: 'none', color: '#111827' }}>
+              Dashboard
+            </Link>
+            <Link href="/directory" style={{ textDecoration: 'none', color: '#111827' }}>
+              Directory
+            </Link>
+            <Link href="/membership" style={{ textDecoration: 'none', color: '#111827' }}>
+              Membership
+            </Link>
+            <Link href="/tools" style={{ textDecoration: 'none', color: '#111827' }}>
+              Tools
+            </Link>
+            <Link href="/resources" style={{ textDecoration: 'none', color: '#111827' }}>
+              Resources
+            </Link>
+          </nav>
+        </div>
 
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '999px',
+                backgroundColor: '#e5e7eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: '#111827',
+              }}
+            >
+              {initials}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
+                {firstName}
+              </span>
+              {planName !== 'Unknown' && (
+                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  {planName} plan
+                </span>
+              )}
+            </div>
+          </div>
           <button
-            onClick={logout}
+            onClick={() => logout()}
             style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
               borderRadius: '999px',
-              padding: '0.45rem 1.1rem',
-              border: '1px solid #e5e7eb',
-              backgroundColor: '#ffffff',
-              color: '#111827',
-              fontSize: '0.9rem',
               cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
+              fontSize: '0.9rem',
             }}
           >
             Log out
           </button>
-        </header>
+        </div>
+      </header>
 
-        {/* Profile overview card with completion bar */}
-        <section
+      {/* Dashboard content */}
+      <section style={{ marginBottom: '2.5rem' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+          Welcome back, {firstName}! 👋
+        </h2>
+        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+          This is your Nested Objects home base.
+        </p>
+
+        {/* Profile completeness bar */}
+        <div
           style={{
-            marginBottom: '2rem',
-            backgroundColor: '#ffffff',
+            padding: '1.5rem',
             borderRadius: '12px',
-            padding: '1.5rem 1.75rem',
-            boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
             border: '1px solid #e5e7eb',
+            marginBottom: '2rem',
+            backgroundColor: 'white',
           }}
         >
-          <h2
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 600,
-              marginBottom: '0.85rem',
-            }}
-          >
-            Profile overview
-          </h2>
-
-          <p
-            style={{
-              fontSize: '0.95rem',
-              color: '#4b5563',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Profile completeness. <strong>{completion}%</strong>
-          </p>
-
           <div
             style={{
-              width: '100%',
-              height: '0.6rem',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '999px',
-              overflow: 'hidden',
+              display: 'flex',
+              justifyContent: 'space-between',
               marginBottom: '0.75rem',
+              fontSize: '0.9rem',
+            }}
+          >
+            <span style={{ fontWeight: 600 }}>Profile completeness</span>
+            <span style={{ color: '#6b7280' }}>100%</span>
+          </div>
+          <div
+            style={{
+              height: '6px',
+              borderRadius: '999px',
+              backgroundColor: '#e5e7eb',
+              overflow: 'hidden',
             }}
           >
             <div
               style={{
-                width: `${completion}%`,
+                width: '100%',
                 height: '100%',
-                background:
-                  'linear-gradient(to right, #3b82f6, #8b5cf6)',
-                transition: 'width 0.3s ease',
+                backgroundColor: '#6366f1',
               }}
             />
           </div>
-
-          <p
-            style={{
-              fontSize: '0.9rem',
-              color: '#6b7280',
-            }}
-          >
+          <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#6b7280' }}>
             Next step. add your service area and skills so hiring firms can match you faster.
           </p>
-        </section>
+        </div>
+      </section>
 
-        {/* Account overview + first steps checklist */}
-        <section
+      {/* Two column main grid */}
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
+          gap: '1.5rem',
+          marginBottom: '2.5rem',
+        }}
+      >
+        {/* Account overview */}
+        <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
-            gap: '1.75rem',
-            marginBottom: '2.5rem',
-            alignItems: 'flex-start',
+            padding: '1.75rem',
+            borderRadius: '12px',
+            border: '1px solid #bbf7d0',
+            backgroundColor: '#ecfdf5',
           }}
         >
-          {/* Account card */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1.5rem 1.75rem',
-              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
-              border: `1px solid ${planColor}`,
-            }}
-          >
-            <h2
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+            Account overview
+          </h3>
+          <p style={{ fontSize: '0.9rem', color: '#166534', marginBottom: '0.5rem' }}>
+            Current plan.{' '}
+            <strong>{planName}</strong>
+          </p>
+          <p style={{ fontSize: '0.85rem', color: '#166534', marginBottom: '1rem' }}>
+            Upgrade when you are ready for more tools. not before.
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <Link
+              href="/membership"
               style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                marginBottom: '0.75rem',
+                padding: '0.5rem 0.9rem',
+                borderRadius: '999px',
+                border: '1px solid #16a34a',
+                color: '#166534',
+                fontSize: '0.85rem',
+                textDecoration: 'none',
+                backgroundColor: 'white',
               }}
             >
-              Account overview
-            </h2>
+              View plans
+            </Link>
+            <Link
+              href="/directory"
+              style={{
+                padding: '0.5rem 0.9rem',
+                borderRadius: '999px',
+                border: '1px solid #16a34a',
+                color: '#166534',
+                fontSize: '0.85rem',
+                textDecoration: 'none',
+                backgroundColor: 'white',
+              }}
+            >
+              Open firm directory
+            </Link>
+          </div>
+        </div>
 
-            <p
-              style={{
-                fontSize: '0.95rem',
-                color: '#4b5563',
-                marginBottom: '0.5rem',
-              }}
-            >
-              Current plan.{' '}
-              <span
-                style={{
-                  fontWeight: 600,
-                  color: planColor,
-                }}
-              >
-                {planLabel}
-              </span>
-            </p>
+        {/* First steps */}
+        <div
+          style={{
+            padding: '1.75rem',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            backgroundColor: 'white',
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+            First steps checklist
+          </h3>
+          <ol style={{ paddingLeft: '1.25rem', fontSize: '0.9rem', color: '#4b5563' }}>
+            <li>Finish your profile basics. name, email, service area.</li>
+            <li>
+              Bookmark three hiring firms you would love to work with.
+            </li>
+            <li>
+              Skim the Field Inspection Starter Kit so you understand how the work and payouts actually flow.
+            </li>
+            <li>
+              Block off time this week to complete your first three inspections.
+            </li>
+          </ol>
+        </div>
+      </section>
 
-            <p
-              style={{
-                fontSize: '0.9rem',
-                color: '#6b7280',
-                marginBottom: '1rem',
-              }}
-            >
-              Upgrade when you are ready for more tools, not before.
-            </p>
+      {/* Bottom grid. Recent activity + shortcuts */}
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
+          gap: '1.5rem',
+          marginBottom: '3rem',
+        }}
+      >
+        <div
+          style={{
+            padding: '1.75rem',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            backgroundColor: 'white',
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+            Recent activity
+          </h3>
+          <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+            No recent activity yet.{' '}
+            <Link href="/directory" style={{ color: '#2563eb' }}>
+              Open the firm directory
+            </Link>{' '}
+            and start building your list.
+          </p>
+        </div>
 
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <Link
-                href="/membership"
-                style={{
-                  padding: '0.5rem 0.9rem',
-                  borderRadius: '999px',
-                  border: `1px solid ${planColor}`,
-                  fontSize: '0.9rem',
-                  color: planColor,
-                  textDecoration: 'none',
-                  backgroundColor: '#ffffff',
-                }}
-              >
-                View plans
+        <div
+          style={{
+            padding: '1.75rem',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            backgroundColor: 'white',
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+            Shortcuts
+          </h3>
+          <ul style={{ paddingLeft: '1.25rem', fontSize: '0.9rem', color: '#4b5563' }}>
+            <li>
+              <Link href="/directory" style={{ color: '#2563eb' }}>
+                Browse hiring firms
               </Link>
-              <Link
-                href="/directory"
-                style={{
-                  padding: '0.5rem 0.9rem',
-                  borderRadius: '999px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '0.9rem',
-                  color: '#111827',
-                  textDecoration: 'none',
-                  backgroundColor: '#f9fafb',
-                }}
-              >
-                Open firm directory
+            </li>
+            <li>
+              <Link href="/resources/firm-intel" style={{ color: '#2563eb' }}>
+                View firm intel and templates
               </Link>
-            </div>
-          </div>
-
-          {/* First steps checklist */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1.5rem 1.75rem',
-              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                marginBottom: '0.75rem',
-              }}
-            >
-              First steps checklist
-            </h2>
-
-            <ol
-              style={{
-                listStyle: 'decimal',
-                paddingLeft: '1.25rem',
-                display: 'grid',
-                rowGap: '0.55rem',
-                fontSize: '0.95rem',
-                color: '#4b5563',
-              }}
-            >
-              <li>Finish your profile basics. name, email, service area.</li>
-              <li>
-                <Link
-                  href="/directory"
-                  style={{
-                    color: '#3b82f6',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Bookmark three hiring firms
-                </Link>{' '}
-                you would love to work with.
-              </li>
-              <li>
-                Skim the Field Inspection Starter Kit so you understand how the
-                work and payouts actually flow.
-              </li>
-              <li>Block off time this week to complete your first three inspections.</li>
-            </ol>
-          </div>
-        </section>
-
-        {/* Activity + shortcuts */}
-        <section
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)',
-            gap: '1.75rem',
-            marginBottom: '2rem',
-            alignItems: 'flex-start',
-          }}
-        >
-          {/* Recent activity */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1.5rem 1.75rem',
-              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Recent activity
-            </h2>
-            <p
-              style={{
-                fontSize: '0.95rem',
-                color: '#6b7280',
-              }}
-            >
-              No recent activity yet.{' '}
-              <Link
-                href="/directory"
-                style={{
-                  color: '#3b82f6',
-                  textDecoration: 'underline',
-                }}
-              >
-                Open the firm directory
-              </Link>{' '}
-              and start building your list.
-            </p>
-          </div>
-
-          {/* Shortcuts */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              padding: '1.5rem 1.75rem',
-              boxShadow: '0 10px 15px rgba(15,23,42,0.03)',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Shortcuts
-            </h2>
-            <ul
-              style={{
-                listStyle: 'none',
-                padding: 0,
-                margin: 0,
-                display: 'grid',
-                rowGap: '0.55rem',
-                fontSize: '0.95rem',
-              }}
-            >
-              <li>
-                <Link
-                  href="/directory"
-                  style={{
-                    color: '#111827',
-                    textDecoration: 'none',
-                  }}
-                >
-                  → Browse hiring firms
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/resources"
-                  style={{
-                    color: '#111827',
-                    textDecoration: 'none',
-                  }}
-                >
-                  → View training and templates
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/support"
-                  style={{
-                    color: '#111827',
-                    textDecoration: 'none',
-                  }}
-                >
-                  → Ask a question or get help
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <footer
-          style={{
-            fontSize: '0.8rem',
-            color: '#9ca3af',
-            textAlign: 'center',
-            marginTop: '1rem',
-          }}
-        >
-          Built for field inspectors . not just software people.
-        </footer>
-      </div>
+            </li>
+            <li>
+              <Link href="/tools/ai-chatbot" style={{ color: '#2563eb' }}>
+                Ask a question or get help
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </section>
     </main>
   )
 }
