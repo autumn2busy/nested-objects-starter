@@ -4,7 +4,7 @@ import { useAuth } from '@/components/auth-provider'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const { user, planUid, isLoading, isAuthenticated, login, signup, logout } = useAuth()
+  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
 
   const getPlanName = (uid: string | null) => {
     switch (uid) {
@@ -60,32 +60,36 @@ export default function HomePage() {
             </>
           ) : (
             <>
-              <button
-                onClick={login}
+              
+                href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
                 style={{
+                  display: 'inline-block',
                   padding: '0.5rem 1rem',
                   backgroundColor: 'white',
                   color: '#3b82f6',
                   border: '1px solid #3b82f6',
                   borderRadius: '6px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  textDecoration: 'none'
                 }}
               >
                 Login
-              </button>
-              <button
-                onClick={signup}
+              </a>
+              
+                href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
                 style={{
+                  display: 'inline-block',
                   padding: '0.5rem 1rem',
                   backgroundColor: '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  textDecoration: 'none'
                 }}
               >
                 Sign Up
-              </button>
+              </a>
             </>
           )}
         </div>
@@ -100,9 +104,10 @@ export default function HomePage() {
           For inspectors, notaries, and field service professionals
         </p>
         {!isAuthenticated && (
-          <button
-            onClick={signup}
+          
+            href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
             style={{
+              display: 'inline-block',
               padding: '1rem 2rem',
               backgroundColor: '#10b981',
               color: 'white',
@@ -110,11 +115,12 @@ export default function HomePage() {
               borderRadius: '8px',
               fontSize: '1.125rem',
               fontWeight: '600',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              textDecoration: 'none'
             }}
           >
             Get Started Free
-          </button>
+          </a>
         )}
       </section>
 
@@ -257,9 +263,10 @@ export default function HomePage() {
             Join thousands of field professionals already using Nested Objects.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button
-              onClick={signup}
+            
+              href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
               style={{
+                display: 'inline-block',
                 padding: '1rem 2rem',
                 backgroundColor: '#3b82f6',
                 color: 'white',
@@ -267,11 +274,12 @@ export default function HomePage() {
                 borderRadius: '8px',
                 fontSize: '1rem',
                 fontWeight: '600',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                textDecoration: 'none'
               }}
             >
               Start Free Trial
-            </button>
+            </a>
             <Link
               href="/upgrade"
               style={{
