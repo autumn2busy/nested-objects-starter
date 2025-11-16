@@ -303,7 +303,7 @@ export default function HomePage() {
               backgroundColor: 'white'
             }}>
               <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-                📊 Job Intel
+                📊 Firm Intel
               </h4>
               <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
                 Get detailed insights on pay rates, requirements, and hiring trends.
@@ -321,7 +321,7 @@ export default function HomePage() {
                 </span>
               </div>
               <Link 
-                href="/job_intel"
+                href="/firm_intel"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
