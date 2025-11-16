@@ -17,17 +17,12 @@ export default function AiChatbotPage() {
       >
         <div>
           <Link
-            href="/dashboard"
-            style={{
-              fontSize: '0.9rem',
-              textDecoration: 'none',
-              color: '#4b5563',
-              display: 'inline-block',
-              marginBottom: '0.5rem',
-            }}
-          >
-            ← Back to dashboard
-          </Link>
+  href="/tools"
+  style={{ fontSize: '0.9rem', textDecoration: 'none', color: '#4b5563', display: 'inline-block', marginBottom: '0.5rem' }}
+>
+  ← Back to tools
+</Link>
+
           <h1
             style={{
               fontSize: '2rem',
