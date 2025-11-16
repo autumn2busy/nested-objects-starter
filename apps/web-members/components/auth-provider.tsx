@@ -18,7 +18,6 @@ type AuthContextValue = {
   planUid: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  // used by <Gate>
   hasAccess: (feature?: string) => boolean
   login: () => void
   signup: () => void
@@ -35,7 +34,7 @@ type PlanUid = (typeof PLAN_ORDER)[number]
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   // Core app
   directory_access: 'L9nbKV9Z',   // Starter+
-  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
+  job_board: 'L9nbKV9Z',          // Starter+
 
   // Training
   basic_training: 'L9nbKV9Z',     // Starter+
@@ -48,14 +47,13 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   ai_resume: 'rQVqlLm6',          // Pro+
 
   // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
+  sponsor_equipment_links: 'L9nbKV9Z', // Everyone
   partner_portal: 'rmk5Xk9g',          // Agency only
   elite_autoassign: 'NmdnNO90',        // Elite vetted pool
 
   // API style auto assign for vendor feeds like WeGoLook
-  autoassign_api: 'NmdnNO90',         // Elite (supply side)
-  agency_directory: 'rmk5Xk9g',       // Agency facing view
-},
+  autoassign_api: 'NmdnNO90',          // Elite
+  agency_directory: 'rmk5Xk9g',        // Agency facing view
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -64,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load auth state from Outseta on first mount
   useEffect(() => {
     let cancelled = false
 
@@ -81,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
 
-        // Prefer the decoded JWT payload
         const payload = await Outseta.getJwtPayload()
 
         if (cancelled) return
@@ -114,26 +110,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Plan based gating
   const hasAccess = (feature?: string) => {
-    // Not logged in. no access to gated features
     if (!isAuthenticated) return false
-
-    // If no feature key is passed. just require login
     if (!feature) return true
 
     const minPlan = FEATURE_MIN_PLAN[feature]
-
-    // If we have not defined this feature yet. default to allow for any logged in user
     if (!minPlan) return true
-
     if (!planUid) return false
 
     const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
     const requiredIndex = PLAN_ORDER.indexOf(minPlan)
 
     if (currentIndex === -1 || requiredIndex === -1) return false
-
     return currentIndex >= requiredIndex
   }
 
@@ -145,7 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'login' })
       } else {
-        // Fallback to hosted page if embed is not ready
         window.location.href =
           'https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous'
       }
@@ -162,7 +149,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'register' })
       } else {
-        // Fallback to hosted page if embed is not ready
         window.location.href =
           'https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous'
       }
@@ -177,16 +163,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const Outseta = window.Outseta
 
-      // 1. Tell Outseta there is no token
       if (Outseta?.setAccessToken) {
         Outseta.setAccessToken(null)
       }
 
-      // 2. Kill our cookie so a fresh load treats the user as anonymous
       document.cookie =
         'outseta_access_token=; path=/; max-age=0; samesite=lax'
-      
-      // 3. Immediately reset React state so the UI updates right away
+
       setUser(null)
       setPlanUid(null)
       setIsAuthenticated(false)
@@ -194,7 +177,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error during logout', error)
     }
 
-    // 4. Hard redirect to home so everything is in sync
     window.location.href = '/'
   }
 
