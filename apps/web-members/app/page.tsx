@@ -60,7 +60,7 @@ export default function HomePage() {
             </>
           ) : (
             <>
-              
+              <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
                 style={{
                   display: 'inline-block',
@@ -75,7 +75,7 @@ export default function HomePage() {
               >
                 Login
               </a>
-              
+              <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
                 style={{
                   display: 'inline-block',
@@ -104,7 +104,7 @@ export default function HomePage() {
           For inspectors, notaries, and field service professionals
         </p>
         {!isAuthenticated && (
-          
+          <a
             href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
             style={{
               display: 'inline-block',
@@ -263,7 +263,7 @@ export default function HomePage() {
             Join thousands of field professionals already using Nested Objects.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            
+            <a
               href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
               style={{
                 display: 'inline-block',
