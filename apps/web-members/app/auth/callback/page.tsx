@@ -63,13 +63,14 @@ function CallbackContent() {
       setStatus('Success! Redirecting...')
 
       // Redirect to directory
-      const redirectTo = searchParams.get('redirect') || '/directory'
+      const redirectTo = searchParams.get('redirect') || '/dashboard'
       
       console.log('🟢 Redirecting to:', redirectTo)
       
-      // Small delay to ensure everything is set
+// Small delay to ensure cookie + Outseta token are fully set
       setTimeout(() => {
-        router.push(redirectTo)
+        window.location.href = redirectTo
+        // or: window.location.assign(redirectTo)
       }, 500)
     }
 
