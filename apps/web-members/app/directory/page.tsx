@@ -21,12 +21,67 @@ type Firm = {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+const US_STATES = [
+  { code: 'ALL', label: 'All service areas' },
+  { code: 'AL', label: 'Alabama' },
+  { code: 'AK', label: 'Alaska' },
+  { code: 'AZ', label: 'Arizona' },
+  { code: 'AR', label: 'Arkansas' },
+  { code: 'CA', label: 'California' },
+  { code: 'CO', label: 'Colorado' },
+  { code: 'CT', label: 'Connecticut' },
+  { code: 'DE', label: 'Delaware' },
+  { code: 'FL', label: 'Florida' },
+  { code: 'GA', label: 'Georgia' },
+  { code: 'HI', label: 'Hawaii' },
+  { code: 'ID', label: 'Idaho' },
+  { code: 'IL', label: 'Illinois' },
+  { code: 'IN', label: 'Indiana' },
+  { code: 'IA', label: 'Iowa' },
+  { code: 'KS', label: 'Kansas' },
+  { code: 'KY', label: 'Kentucky' },
+  { code: 'LA', label: 'Louisiana' },
+  { code: 'ME', label: 'Maine' },
+  { code: 'MD', label: 'Maryland' },
+  { code: 'MA', label: 'Massachusetts' },
+  { code: 'MI', label: 'Michigan' },
+  { code: 'MN', label: 'Minnesota' },
+  { code: 'MS', label: 'Mississippi' },
+  { code: 'MO', label: 'Missouri' },
+  { code: 'MT', label: 'Montana' },
+  { code: 'NE', label: 'Nebraska' },
+  { code: 'NV', label: 'Nevada' },
+  { code: 'NH', label: 'New Hampshire' },
+  { code: 'NJ', label: 'New Jersey' },
+  { code: 'NM', label: 'New Mexico' },
+  { code: 'NY', label: 'New York' },
+  { code: 'NC', label: 'North Carolina' },
+  { code: 'ND', label: 'North Dakota' },
+  { code: 'OH', label: 'Ohio' },
+  { code: 'OK', label: 'Oklahoma' },
+  { code: 'OR', label: 'Oregon' },
+  { code: 'PA', label: 'Pennsylvania' },
+  { code: 'RI', label: 'Rhode Island' },
+  { code: 'SC', label: 'South Carolina' },
+  { code: 'SD', label: 'South Dakota' },
+  { code: 'TN', label: 'Tennessee' },
+  { code: 'TX', label: 'Texas' },
+  { code: 'UT', label: 'Utah' },
+  { code: 'VT', label: 'Vermont' },
+  { code: 'VA', label: 'Virginia' },
+  { code: 'WA', label: 'Washington' },
+  { code: 'WV', label: 'West Virginia' },
+  { code: 'WI', label: 'Wisconsin' },
+  { code: 'WY', label: 'Wyoming' },
+]
+
 export default function DirectoryPage() {
   const { isAuthenticated, isLoading, planUid } = useAuth()
 
   const [firms, setFirms] = useState<Firm[]>([])
   const [loadingFirms, setLoadingFirms] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [stateFilter, setStateFilter] = useState<string>('ALL')
 
   useEffect(() => {
     async function fetchFirms() {
@@ -38,7 +93,6 @@ export default function DirectoryPage() {
       }
 
       try {
-        // Only pull published firms so incomplete rows stay hidden
         const url =
           `${SUPABASE_URL}/rest/v1/firms` +
           '?select=id,name,url,geographic_coverage,categories,' +
@@ -75,17 +129,46 @@ export default function DirectoryPage() {
   const isStarter = planUid === 'L9nbKV9Z'
   const isProOrHigher = !!planUid && !isStarter
 
-  const displayedFirms = isStarter ? firms.slice(0, 5) : firms
-
   const formatCategories = (raw: any) => {
     if (!raw) return ''
     if (Array.isArray(raw)) return raw.join(', ')
     if (typeof raw === 'string') {
-      // handle '["Property Inspection","Mortgage Services"]'
       return raw.replace(/[\[\]"]/g, '')
     }
     return String(raw)
   }
+
+  const matchesStateFilter = (firm: Firm) => {
+    if (stateFilter === 'ALL') return true
+    if (!firm.geographic_coverage) return false
+
+    const coverage = firm.geographic_coverage.toLowerCase()
+    const selected = US_STATES.find((s) => s.code === stateFilter)
+
+    if (!selected) return true
+
+    // Treat "nationwide" and "national" as matching every state
+    if (
+      coverage.includes('nationwide') ||
+      coverage.includes('national') ||
+      coverage.includes('all 50')
+    ) {
+      return true
+    }
+
+    const label = selected.label.toLowerCase()
+    const code = selected.code.toLowerCase()
+
+    // Match either the state name or postal code in the coverage text
+    if (coverage.includes(label)) return true
+    if (coverage.includes(` ${code} `) || coverage.endsWith(` ${code}`)) return true
+    if (coverage.includes(`(${code})`)) return true
+
+    return false
+  }
+
+  const filteredFirms = firms.filter(matchesStateFilter)
+  const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
   // Logged out state . show CTA instead of leaking directory
   if (!isLoading && !isAuthenticated) {
@@ -205,6 +288,60 @@ export default function DirectoryPage() {
         </div>
       </header>
 
+      {/* Filter controls */}
+      <section
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          gap: '1rem',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <label
+            htmlFor="state-filter"
+            style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+          >
+            Filter by service area
+          </label>
+          <select
+            id="state-filter"
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            style={{
+              marginTop: '0.25rem',
+              padding: '0.5rem 0.75rem',
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              fontSize: '0.9rem',
+              minWidth: '220px',
+            }}
+          >
+            {US_STATES.map((st) => (
+              <option key={st.code} value={st.code}>
+                {st.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '320px' }}>
+          {stateFilter === 'ALL' ? (
+            <p>
+              Tip. many firms are national or multi state, so start here then narrow
+              down if needed.
+            </p>
+          ) : (
+            <p>
+              Showing firms that list {US_STATES.find((s) => s.code === stateFilter)?.label || 'this state'} in their
+              coverage, plus any nationwide firms.
+            </p>
+          )}
+        </div>
+      </section>
+
       {/* Starter plan banner */}
       {isStarter && (
         <section
@@ -220,9 +357,9 @@ export default function DirectoryPage() {
             Starter members see a preview
           </h2>
           <p style={{ fontSize: '0.9rem', color: '#92400e', marginBottom: '0.75rem' }}>
-            You are currently viewing a small sample of firms. Upgrade to Pro or
-            Elite to unlock the full directory, deeper intel, and upcoming auto-assign
-            tools.
+            You are currently viewing a small sample of firms that match your filter.
+            Upgrade to Pro or Elite to unlock the full directory, deeper intel, and
+            upcoming auto assign tools.
           </p>
           <Link
             href="/membership"
@@ -258,7 +395,8 @@ export default function DirectoryPage() {
         <>
           {displayedFirms.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-              No firms are published yet, check back soon.
+              No firms match this service area yet, try switching back to All service
+              areas.
             </p>
           ) : (
             <div
@@ -278,7 +416,13 @@ export default function DirectoryPage() {
                     backgroundColor: 'white',
                   }}
                 >
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                  <h3
+                    style={{
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                    }}
+                  >
                     {firm.name}
                   </h3>
 
@@ -351,7 +495,7 @@ export default function DirectoryPage() {
             </div>
           )}
 
-          {isStarter && firms.length > displayedFirms.length && (
+          {isStarter && filteredFirms.length > displayedFirms.length && (
             <p
               style={{
                 marginTop: '1.5rem',
@@ -359,8 +503,8 @@ export default function DirectoryPage() {
                 color: '#6b7280',
               }}
             >
-              Showing {displayedFirms.length} of {firms.length} published firms on
-              the Starter preview.
+              Showing {displayedFirms.length} of {filteredFirms.length} matching
+              firms on the Starter preview.
             </p>
           )}
 
