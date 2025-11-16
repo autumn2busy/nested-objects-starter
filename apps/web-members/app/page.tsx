@@ -29,11 +29,16 @@ export default function HomePage() {
 
   const getPlanName = (uid: string | null) => {
     switch (uid) {
-      case 'L9nbKV9Z': return 'Starter'
-      case 'rQVqlLm6': return 'Pro'
-      case 'NmdnNO90': return 'Elite'
-      case 'rmk5Xk9g': return 'Agency'
-      default: return 'Unknown'
+      case 'L9nbKV9Z':
+        return 'Starter'
+      case 'rQVqlLm6':
+        return 'Pro'
+      case 'NmdnNO90':
+        return 'Elite'
+      case 'rmk5Xk9g':
+        return 'Agency'
+      default:
+        return 'Unknown'
     }
   }
 
@@ -57,26 +62,28 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '2rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
-      }}>
+      <main
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '2rem',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+        }}
+      >
         {/* Header */}
-        <header style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          paddingBottom: '2rem',
-          borderBottom: '1px solid #e5e7eb',
-          marginBottom: '3rem'
-        }}>
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: '2rem',
+            borderBottom: '1px solid #e5e7eb',
+            marginBottom: '3rem',
+          }}
+        >
           {/* Brand + nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>
-              Nested Objects
-            </h1>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>Nested Objects</h1>
 
             <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.95rem' }}>
               <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
@@ -92,7 +99,7 @@ export default function HomePage() {
               </Link>
               <Link href="/membership" style={{ textDecoration: 'none', color: '#111827' }}>
                 Membership
-              </Link> 
+              </Link>
               <Link href="/tools" style={{ textDecoration: 'none', color: '#111827' }}>
                 Tools
               </Link>
@@ -101,7 +108,7 @@ export default function HomePage() {
               </Link>
             </nav>
           </div>
-          
+
           {/* Auth controls */}
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {isLoading ? (
@@ -126,12 +133,29 @@ export default function HomePage() {
                   >
                     {initials}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: '#111827',
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                      }}
+                    >
                       {firstName}
                     </span>
                     {planName !== 'Unknown' && (
-                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      <span
+                        style={{
+                          color: '#6b7280',
+                          fontSize: '0.75rem',
+                        }}
+                      >
                         {planName} plan
                       </span>
                     )}
@@ -146,7 +170,7 @@ export default function HomePage() {
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
                   }}
                 >
                   Logout
@@ -165,7 +189,7 @@ export default function HomePage() {
                     borderRadius: '6px',
                     cursor: 'pointer',
                     textDecoration: 'none',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
                   }}
                 >
                   Login
@@ -181,7 +205,7 @@ export default function HomePage() {
                     borderRadius: '6px',
                     cursor: 'pointer',
                     textDecoration: 'none',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
                   }}
                 >
                   Sign Up
@@ -201,7 +225,14 @@ export default function HomePage() {
           </p>
 
           {isAuthenticated ? (
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <Link
                 href="/dashboard"
                 style={{
@@ -212,7 +243,7 @@ export default function HomePage() {
                   borderRadius: '8px',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
                 }}
               >
                 Go to your dashboard
@@ -228,7 +259,7 @@ export default function HomePage() {
                   border: '1px solid #3b82f6',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
                 }}
               >
                 Browse hiring firms
@@ -247,7 +278,7 @@ export default function HomePage() {
                 fontSize: '1.125rem',
                 fontWeight: '600',
                 cursor: 'pointer',
-                textDecoration: 'none'
+                textDecoration: 'none',
               }}
             >
               Get Started Free
@@ -257,46 +288,57 @@ export default function HomePage() {
 
         {/* Features Grid */}
         <section style={{ marginBottom: '4rem' }}>
-          <h3 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center' }}>
+          <h3
+            style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              marginBottom: '2rem',
+              textAlign: 'center',
+            }}
+          >
             Member Features
           </h3>
-          
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '2rem'
-          }}>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '2rem',
+            }}
+          >
             {/* Feature 1: Directory */}
-            <div style={{
-              padding: '2rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              backgroundColor: 'white'
-            }}>
-              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-                📁 Firm Directory
-              </h4>
+            <div
+              style={{
+                padding: '2rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                backgroundColor: 'white',
+              }}
+            >
+              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📁 Firm Directory</h4>
               <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
                 Access our curated directory of top firms hiring field professionals.
               </p>
               <div style={{ marginBottom: '1rem' }}>
-                <span style={{ 
-                  backgroundColor: '#dbeafe', 
-                  color: '#1e40af',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '999px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
+                <span
+                  style={{
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '999px',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                  }}
+                >
                   All Plans
                 </span>
               </div>
-              <Link 
+              <Link
                 href="/directory"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
                 }}
               >
                 View Directory →
@@ -304,36 +346,38 @@ export default function HomePage() {
             </div>
 
             {/* Feature 2: AI Chatbot */}
-            <div style={{
-              padding: '2rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              backgroundColor: 'white'
-            }}>
-              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-                🤖 AI Concierge
-              </h4>
+            <div
+              style={{
+                padding: '2rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                backgroundColor: 'white',
+              }}
+            >
+              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🤖 AI Concierge</h4>
               <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
                 Get instant answers about firms, requirements, and industry trends.
               </p>
               <div style={{ marginBottom: '1rem' }}>
-                <span style={{ 
-                  backgroundColor: '#fef3c7', 
-                  color: '#92400e',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '999px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
+                <span
+                  style={{
+                    backgroundColor: '#fef3c7',
+                    color: '#92400e',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '999px',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                  }}
+                >
                   Pro+
                 </span>
               </div>
-              <Link 
+              <Link
                 href="/tools/ai-chatbot"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
                 }}
               >
                 Try AI Chatbot →
@@ -341,36 +385,38 @@ export default function HomePage() {
             </div>
 
             {/* Feature 3: Firm Intel */}
-            <div style={{
-              padding: '2rem',
-              border: '1px solid '#e5e7eb',
-              borderRadius: '12px',
-              backgroundColor: 'white'
-            }}>
-              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-                📊 Firm Intel
-              </h4>
+            <div
+              style={{
+                padding: '2rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                backgroundColor: 'white',
+              }}
+            >
+              <h4 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📊 Firm Intel</h4>
               <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
                 Get detailed insights on pay rates, requirements, and hiring trends.
               </p>
               <div style={{ marginBottom: '1rem' }}>
-                <span style={{ 
-                  backgroundColor: '#fef3c7', 
-                  color: '#92400e',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '999px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}>
+                <span
+                  style={{
+                    backgroundColor: '#fef3c7',
+                    color: '#92400e',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '999px',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                  }}
+                >
                   Pro+
                 </span>
               </div>
-              <Link 
+              <Link
                 href="/resources/firm-intel"
                 style={{
                   color: '#3b82f6',
                   textDecoration: 'underline',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
                 }}
               >
                 View Intel →
@@ -381,19 +427,40 @@ export default function HomePage() {
 
         {/* CTA Section */}
         {!isAuthenticated && (
-          <section style={{
-            padding: '3rem',
-            backgroundColor: '#f3f4f6',
-            borderRadius: '12px',
-            textAlign: 'center'
-          }}>
-            <h3 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+          <section
+            style={{
+              padding: '3rem',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '12px',
+              textAlign: 'center',
+            }}
+          >
+            <h3
+              style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
+              }}
+            >
               Ready to grow your business?
             </h3>
-            <p style={{ fontSize: '1.125rem', color: '#6b7280', marginBottom: '2rem' }}>
+            <p
+              style={{
+                fontSize: '1.125rem',
+                color: '#6b7280',
+                marginBottom: '2rem',
+              }}
+            >
               Join thousands of field professionals already using Nested Objects.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
                 style={{
@@ -406,7 +473,7 @@ export default function HomePage() {
                   fontSize: '1rem',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
                 }}
               >
                 Start Free Trial
@@ -418,11 +485,11 @@ export default function HomePage() {
                   padding: '1rem 2rem',
                   backgroundColor: 'white',
                   color: '#3b82f6',
-                  border: '1px solid '#3b82f6',
+                  border: '1px solid #3b82f6',
                   borderRadius: '8px',
                   fontSize: '1rem',
                   fontWeight: '600',
-                  textDecoration: 'none'
+                  textDecoration: 'none',
                 }}
               >
                 View Pricing
@@ -432,14 +499,16 @@ export default function HomePage() {
         )}
 
         {/* Footer */}
-        <footer style={{
-          marginTop: '4rem',
-          paddingTop: '2rem',
-          borderTop: '1px solid #e5e7eb',
-          textAlign: 'center',
-          color: '#6b7280',
-          fontSize: '0.875rem'
-        }}>
+        <footer
+          style={{
+            marginTop: '4rem',
+            paddingTop: '2rem',
+            borderTop: '1px solid #e5e7eb',
+            textAlign: 'center',
+            color: '#6b7280',
+            fontSize: '0.875rem',
+          }}
+        >
           <p>© 2025 Nested Objects LLC. All rights reserved.</p>
         </footer>
       </main>
