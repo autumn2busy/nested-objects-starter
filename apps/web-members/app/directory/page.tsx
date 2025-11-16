@@ -426,7 +426,7 @@ export default function DirectoryPage() {
 
       {!loadingFirms && !error && (
         <>
-          {displayedFirms.length === 0 ? (
+                    {displayedFirms.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
               No firms match this combination yet, try clearing your search or switching
               back to All service areas.
@@ -443,86 +443,124 @@ export default function DirectoryPage() {
                 <article
                   key={firm.id}
                   style={{
-                    borderRadius: '12px',
+                    borderRadius: '16px',
                     border: '1px solid #e5e7eb',
                     padding: '1.5rem',
                     backgroundColor: 'white',
+                    boxShadow:
+                      '0 12px 24px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.06)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
                   }}
                 >
-                  <h3
-                    style={{
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      marginBottom: '0.25rem',
-                    }}
-                  >
-                    {firm.name}
-                  </h3>
-
-                  {firm.geographic_coverage && (
-                    <p
+                  {/* Title */}
+                  <div>
+                    <h3
                       style={{
-                        fontSize: '0.85rem',
-                        color: '#6b7280',
-                        marginBottom: '0.5rem',
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        marginBottom: '0.25rem',
                       }}
                     >
-                      Coverage. {firm.geographic_coverage}
-                    </p>
-                  )}
+                      {firm.name}
+                    </h3>
 
-                  <p
-                    style={{
-                      fontSize: '0.8rem',
-                      color: '#6b7280',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    {firm.company_size || 'Size n,a'} ·{' '}
-                    {firm.industry_focus || 'Field services'}
-                  </p>
+                    {firm.geographic_coverage && (
+                      <p
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#6b7280',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Coverage. {firm.geographic_coverage}
+                      </p>
+                    )}
 
-                  {firm.categories && (
                     <p
                       style={{
                         fontSize: '0.8rem',
-                        color: '#4b5563',
-                        marginBottom: '0.5rem',
+                        color: '#6b7280',
+                        marginBottom: '0.25rem',
                       }}
                     >
-                      Focus. {formatCategories(firm.categories)}
+                      {firm.company_size || 'Size n,a'} ·{' '}
+                      {firm.industry_focus || 'Field services'}
                     </p>
-                  )}
 
-                  {firm.pay_min != null && (
-                    <p
-                      style={{
-                        fontSize: '0.85rem',
-                        color: '#16a34a',
-                        marginBottom: '0.75rem',
-                      }}
-                    >
-                      Typical range. ${firm.pay_min}
-                      {firm.pay_max != null && ` - $${firm.pay_max}`}
-                      {firm.pay_type && ` ${firm.pay_type}`}
-                    </p>
-                  )}
+                    {firm.categories && (
+                      <p
+                        style={{
+                          fontSize: '0.8rem',
+                          color: '#4b5563',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Focus. {formatCategories(firm.categories)}
+                      </p>
+                    )}
 
-                  {firm.url && (
-                    <a
-                      href={firm.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    {firm.pay_min != null && (
+                      <p
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#16a34a',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Typical range. ${firm.pay_min}
+                        {firm.pay_max != null && ` - $${firm.pay_max}`}
+                        {firm.pay_type && ` ${firm.pay_type}`}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      marginTop: '0.5rem',
+                    }}
+                  >
+                    <Link
+                      href={`/firms/${firm.id}`}
                       style={{
                         display: 'inline-block',
-                        fontSize: '0.85rem',
-                        color: '#3b82f6',
+                        padding: '0.55rem 1.3rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
                         textDecoration: 'none',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      Visit website →
-                    </a>
-                  )}
+                      View profile →
+                    </Link>
+
+                    {firm.url && (
+                      <a
+                        href={firm.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontSize: '0.8rem',
+                          color: '#3b82f6',
+                          textDecoration: 'none',
+                          textAlign: 'right',
+                          flexGrow: 1,
+                        }}
+                      >
+                        Visit vendor website
+                      </a>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>
