@@ -27,6 +27,23 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+// Plan ordering. Starter < Pro < Elite < Agency
+const PLAN_ORDER = ['L9nbKV9Z', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
+type PlanUid = (typeof PLAN_ORDER)[number]
+
+// Minimum plan required for each feature
+const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
+  // All plans
+  directory_access: 'L9nbKV9Z',
+
+  // Pro and up
+  ai_concierge: 'rQVqlLm6',
+  job_intel: 'rQVqlLm6',
+
+  // Add more feature keys as you grow
+  // 'premium_resources': 'NmdnNO90',
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<JwtPayload | null>(null)
   const [planUid, setPlanUid] = useState<string | null>(null)
@@ -83,10 +100,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Very simple gating for now. any authenticated user passes
-  // You can expand this later based on planUid and feature name
-  const hasAccess = (_feature?: string) => {
-    return isAuthenticated
+  // Plan based gating
+  const hasAccess = (feature?: string) => {
+    // Not logged in. no access to gated features
+    if (!isAuthenticated) return false
+
+    // If no feature key is passed. just require login
+    if (!feature) return true
+
+    const minPlan = FEATURE_MIN_PLAN[feature]
+
+    // If we have not defined this feature yet. default to allow for any logged in user
+    if (!minPlan) return true
+
+    if (!planUid) return false
+
+    const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
+    const requiredIndex = PLAN_ORDER.indexOf(minPlan)
+
+    if (currentIndex === -1 || requiredIndex === -1) return false
+
+    return currentIndex >= requiredIndex
   }
 
   const login = () => {
@@ -137,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 2. Kill our cookie so a fresh load treats the user as anonymous
       document.cookie =
         'outseta_access_token=; path=/; max-age=0; samesite=lax'
-
+      
       // 3. Immediately reset React state so the UI updates right away
       setUser(null)
       setPlanUid(null)
