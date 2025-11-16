@@ -33,15 +33,29 @@ type PlanUid = (typeof PLAN_ORDER)[number]
 
 // Minimum plan required for each feature
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
-  // All plans
-  directory_access: 'L9nbKV9Z',
+  // Core app
+  directory_access: 'L9nbKV9Z',   // Starter+
+  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
 
-  // Pro and up
-  ai_concierge: 'rQVqlLm6',
-  job_intel: 'rQVqlLm6',
+  // Training
+  basic_training: 'L9nbKV9Z',     // Starter+
+  advanced_training: 'NmdnNO90',  // Elite+
 
-  // Add more feature keys as you grow
-  // 'premium_resources': 'NmdnNO90',
+  // Tools
+  job_tracking: 'rQVqlLm6',       // Pro+
+  job_routing: 'NmdnNO90',        // Elite+
+  weather_tool: 'L9nbKV9Z',       // Starter+
+  ai_resume: 'rQVqlLm6',          // Pro+
+
+  // Monetization / partners
+  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
+  partner_portal: 'rmk5Xk9g',          // Agency only
+  elite_autoassign: 'NmdnNO90',        // Elite vetted pool
+
+  // API style auto assign for vendor feeds like WeGoLook
+  autoassign_api: 'NmdnNO90',         // Elite (supply side)
+  agency_directory: 'rmk5Xk9g',       // Agency facing view
+},
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
