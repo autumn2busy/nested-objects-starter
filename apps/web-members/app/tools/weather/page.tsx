@@ -17,7 +17,7 @@ export default function WeatherToolPage() {
       >
         <div>
           <Link
-            href="/dashboard"
+            href="/tools"
             style={{
               fontSize: '0.9rem',
               textDecoration: 'none',
@@ -26,7 +26,7 @@ export default function WeatherToolPage() {
               marginBottom: '0.5rem',
             }}
           >
-            ← Back to dashboard
+            ← Back to tools
           </Link>
           <h1
             style={{
