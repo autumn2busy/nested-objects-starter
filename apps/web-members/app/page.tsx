@@ -37,6 +37,17 @@ export default function HomePage() {
     }
   }
 
+  const planName = getPlanName(planUid)
+
+  const firstName =
+    (user as any)?.first_name ??
+    (user as any)?.FirstName ??
+    (user?.name ? user.name.split(' ')[0] : undefined) ??
+    (user?.email ? user.email.split('@')[0] : undefined) ??
+    'Member'
+
+  const initials = firstName.charAt(0).toUpperCase()
+
   return (
     <>
       {/* Structured data for SEO */}
@@ -71,9 +82,11 @@ export default function HomePage() {
               <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
                 Home
               </Link>
-              <Link href="/dashboard" style={{ textDecoration: 'none', color: '#111827' }}>
-                Dashboard
-              </Link>
+              {isAuthenticated && (
+                <Link href="/dashboard" style={{ textDecoration: 'none', color: '#111827' }}>
+                  Dashboard
+                </Link>
+              )}
               <Link href="/directory" style={{ textDecoration: 'none', color: '#111827' }}>
                 Directory
               </Link>
@@ -82,10 +95,10 @@ export default function HomePage() {
               </Link> 
               <Link href="/tools" style={{ textDecoration: 'none', color: '#111827' }}>
                 Tools
-            </Link>
+              </Link>
               <Link href="/resources" style={{ textDecoration: 'none', color: '#111827' }}>
                 Resources
-          </Link>
+              </Link>
             </nav>
           </div>
           
@@ -95,9 +108,35 @@ export default function HomePage() {
               <span>Loading...</span>
             ) : isAuthenticated && user ? (
               <>
-                <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                  {user.name} ({getPlanName(planUid)})
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  {/* Simple avatar */}
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '999px',
+                      backgroundColor: '#e5e7eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      color: '#111827',
+                    }}
+                  >
+                    {initials}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
+                      {firstName}
+                    </span>
+                    {planName !== 'Unknown' && (
+                      <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                        {planName} plan
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <button
                   onClick={() => logout()}
                   style={{
@@ -304,7 +343,7 @@ export default function HomePage() {
             {/* Feature 3: Firm Intel */}
             <div style={{
               padding: '2rem',
-              border: '1px solid #e5e7eb',
+              border: '1px solid '#e5e7eb',
               borderRadius: '12px',
               backgroundColor: 'white'
             }}>
@@ -379,7 +418,7 @@ export default function HomePage() {
                   padding: '1rem 2rem',
                   backgroundColor: 'white',
                   color: '#3b82f6',
-                  border: '1px solid #3b82f6',
+                  border: '1px solid '#3b82f6',
                   borderRadius: '8px',
                   fontSize: '1rem',
                   fontWeight: '600',
