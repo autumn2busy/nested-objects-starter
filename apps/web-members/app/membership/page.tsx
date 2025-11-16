@@ -1,0 +1,362 @@
+'use client'
+
+import { useAuth } from '@/components/auth-provider'
+
+export default function MembershipPage() {
+  const { isAuthenticated, planUid } = useAuth()
+
+  const plans = [
+    {
+      name: 'Starter',
+      planUid: 'L9nbKV9Z',
+      price: '$0',
+      period: 'forever',
+      description: 'Perfect for getting started',
+      highlight: false,
+      features: [
+        'Access to Firm Directory',
+        'Basic search functionality',
+        'Community support',
+        'Monthly newsletter',
+        'Resource library access'
+      ]
+    },
+    {
+      name: 'Pro',
+      planUid: 'rQVqlLm6',
+      price: '$37',
+      period: 'month',
+      description: 'For professionals who want more',
+      highlight: true,
+      features: [
+        'Everything in Starter',
+        'AI Chatbot Concierge',
+        'Job Intel Reports',
+        'Priority email support',
+        'Advanced search filters',
+        'Weekly market insights',
+        'Export capabilities'
+      ]
+    },
+    {
+      name: 'Elite',
+      planUid: 'NmdnNO90',
+      price: '$97',
+      period: 'month',
+      description: 'For power users and agencies',
+      highlight: false,
+      features: [
+        'Everything in Pro',
+        'Priority Support (24hr response)',
+        'Custom integrations',
+        'Dedicated account manager',
+        'Early access to features',
+        'White-label options',
+        'API access',
+        'Custom reports'
+      ]
+    },
+    {
+      name: 'Agency',
+      planUid: 'rmk5Xk9g',
+      price: '$297',
+      period: 'month',
+      description: 'For teams and organizations',
+      highlight: false,
+      features: [
+        'Everything in Elite',
+        'Multi-user accounts (up to 10)',
+        'White Label branding',
+        'Custom domain',
+        'SLA guarantees',
+        'Onboarding & training',
+        'Quarterly strategy calls',
+        'Custom feature development'
+      ]
+    }
+  ]
+
+  return (
+    <main style={{ 
+      maxWidth: '1400px', 
+      margin: '0 auto', 
+      padding: '3rem 2rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      {/* Header */}
+      <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
+        <h1 style={{ 
+          fontSize: '3rem', 
+          fontWeight: 'bold', 
+          marginBottom: '1rem',
+          background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          Choose Your Plan
+        </h1>
+        <p style={{ fontSize: '1.25rem', color: '#6b7280', maxWidth: '600px', margin: '0 auto' }}>
+          Unlock powerful tools and grow your business with Nested Objects
+        </p>
+        {isAuthenticated && (
+          <p style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: '#dbeafe', borderRadius: '8px', color: '#1e40af' }}>
+            Current plan: <strong>{plans.find(p => p.planUid === planUid)?.name || 'Unknown'}</strong>
+          </p>
+        )}
+      </header>
+
+      {/* Pricing Cards */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '2rem',
+        marginBottom: '4rem'
+      }}>
+        {plans.map((plan) => {
+          const isCurrentPlan = planUid === plan.planUid
+          
+          return (
+            <div
+              key={plan.planUid}
+              style={{
+                border: plan.highlight ? '3px solid #3b82f6' : '1px solid #e5e7eb',
+                borderRadius: '16px',
+                padding: '2.5rem 2rem',
+                position: 'relative',
+                backgroundColor: 'white',
+                boxShadow: plan.highlight ? '0 10px 40px rgba(59, 130, 246, 0.15)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+                transform: plan.highlight ? 'scale(1.02)' : 'scale(1)',
+                transition: 'transform 0.2s'
+              }}
+            >
+              {/* Highlight Badge */}
+              {plan.highlight && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-14px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  padding: '0.375rem 1.25rem',
+                  borderRadius: '999px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+                }}>
+                  Most Popular
+                </div>
+              )}
+
+              {/* Current Plan Badge */}
+              {isCurrentPlan && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-14px',
+                  right: '1rem',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '0.375rem 1rem',
+                  borderRadius: '999px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600'
+                }}>
+                  Current Plan
+                </div>
+              )}
+
+              {/* Plan Header */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+                  {plan.name}
+                </h3>
+                <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+                  {plan.description}
+                </p>
+              </div>
+
+              {/* Pricing */}
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '3rem', fontWeight: 'bold', color: '#111827' }}>
+                    {plan.price}
+                  </span>
+                  <span style={{ fontSize: '1rem', color: '#6b7280' }}>
+                    / {plan.period}
+                  </span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <ul style={{ 
+                listStyle: 'none', 
+                padding: 0, 
+                marginBottom: '2rem',
+                lineHeight: '2.2'
+              }}>
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} style={{ 
+                    display: 'flex', 
+                    alignItems: 'flex-start',
+                    fontSize: '0.95rem'
+                  }}>
+                    <span style={{ 
+                      marginRight: '0.75rem', 
+                      color: '#10b981',
+                      fontSize: '1.25rem',
+                      lineHeight: '1'
+                    }}>
+                      ✓
+                    </span>
+                    <span style={{ color: '#374151' }}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA Button */}
+              <a
+                href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}#o-anonymous`}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '1rem',
+                  backgroundColor: isCurrentPlan ? '#9ca3af' : (plan.highlight ? '#3b82f6' : 'white'),
+                  color: isCurrentPlan ? 'white' : (plan.highlight ? 'white' : '#3b82f6'),
+                  border: plan.highlight ? 'none' : '2px solid #3b82f6',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                  pointerEvents: isCurrentPlan ? 'none' : 'auto'
+                }}
+              >
+                {isCurrentPlan ? 'Current Plan' : 'Get Started'}
+              </a>
+
+              {plan.name === 'Starter' && (
+                <p style={{ 
+                  marginTop: '1rem', 
+                  fontSize: '0.875rem', 
+                  color: '#6b7280',
+                  textAlign: 'center'
+                }}>
+                  No credit card required
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* FAQ Section */}
+      <section style={{
+        marginTop: '5rem',
+        padding: '3rem',
+        backgroundColor: '#f9fafb',
+        borderRadius: '12px'
+      }}>
+        <h2 style={{ 
+          fontSize: '2rem', 
+          fontWeight: 'bold', 
+          marginBottom: '2rem',
+          textAlign: 'center'
+        }}>
+          Frequently Asked Questions
+        </h2>
+        
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              Can I change plans anytime?
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              What payment methods do you accept?
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              We accept all major credit cards (Visa, Mastercard, Amex, Discover) processed securely through Stripe.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              Is there a free trial?
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              Yes! Our Starter plan is completely free forever. No credit card required. Upgrade anytime to unlock premium features.
+            </p>
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              Can I cancel my subscription?
+            </h3>
+            <p style={{ color: '#6b7280' }}>
+              Absolutely. You can cancel anytime from your profile. You'll retain access until the end of your billing period.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer CTA */}
+      <section style={{
+        marginTop: '4rem',
+        padding: '3rem',
+        backgroundColor: '#111827',
+        borderRadius: '12px',
+        textAlign: 'center',
+        color: 'white'
+      }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+          Ready to get started?
+        </h2>
+        <p style={{ fontSize: '1.125rem', marginBottom: '2rem', opacity: 0.9 }}>
+          Join hundreds of field professionals already using Nested Objects
+        </p>
+        <a
+          href="https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6#o-anonymous"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2.5rem',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            borderRadius: '8px',
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            textDecoration: 'none',
+            transition: 'transform 0.2s'
+          }}
+        >
+          Start with Pro Plan
+        </a>
+      </section>
+
+      {/* Navigation */}
+      <div style={{ 
+        marginTop: '3rem', 
+        textAlign: 'center',
+        paddingTop: '2rem',
+        borderTop: '1px solid #e5e7eb'
+      }}>
+        <a 
+          href="/"
+          style={{
+            color: '#3b82f6',
+            textDecoration: 'underline',
+            fontSize: '1rem'
+          }}
+        >
+          ← Back to home
+        </a>
+      </div>
+    </main>
+  )
+}

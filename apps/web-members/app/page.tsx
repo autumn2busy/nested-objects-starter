@@ -281,7 +281,7 @@ export default function HomePage() {
               Start Free Trial
             </a>
             <Link
-              href="/upgrade"
+              href="/membership"
               style={{
                 display: 'inline-block',
                 padding: '1rem 2rem',
