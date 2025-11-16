@@ -6,8 +6,27 @@ import { AuthProvider } from '@/components/auth-provider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Nested Objects Member Hub',
-  description: 'AI-powered member hub for inspectors, notaries, and gig pros.',
+  metadataBase: new URL('https://nested-objects-starter.vercel.app'),
+  title: {
+    default: 'Nested Objects Member Hub',
+    template: '%s | Nested Objects',
+  },
+  description:
+    'Nested Objects is the AI powered member hub for field inspectors, notaries, realtors, and gig pros, helping you find firms, get trained, and land more work.',
+  openGraph: {
+    type: 'website',
+    url: 'https://nested-objects-starter.vercel.app',
+    title: 'Nested Objects Member Hub',
+    description:
+      'AI powered member hub for field inspectors, notaries, realtors, and gig pros.',
+    siteName: 'Nested Objects',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nested Objects Member Hub',
+    description:
+      'AI powered member hub for field inspectors, notaries, realtors, and gig pros.',
+  },
 }
 
 export default function RootLayout({
