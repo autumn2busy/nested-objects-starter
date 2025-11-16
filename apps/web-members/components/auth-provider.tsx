@@ -34,29 +34,27 @@ type PlanUid = (typeof PLAN_ORDER)[number]
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   // Core app
   directory_access: 'L9nbKV9Z',   // Starter+
-  job_board: 'L9nbKV9Z',          // Starter+
+  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
 
   // Training
   basic_training: 'L9nbKV9Z',     // Starter+
   advanced_training: 'NmdnNO90',  // Elite+
 
   // Tools
+  ai_concierge: 'rQVqlLm6',       // Pro+
+  firm_intel: 'rQVqlLm6',         // Pro+
   job_tracking: 'rQVqlLm6',       // Pro+
   job_routing: 'NmdnNO90',        // Elite+
   weather_tool: 'L9nbKV9Z',       // Starter+
   ai_resume: 'rQVqlLm6',          // Pro+
-  ai_chatbot: 'rQVqlLm6',       // Elite+
-
-  // Resources
-   firm_intel: 'rQVqlLm6',         // Pro+
 
   // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone
+  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
   partner_portal: 'rmk5Xk9g',          // Agency only
   elite_autoassign: 'NmdnNO90',        // Elite vetted pool
 
   // API style auto assign for vendor feeds like WeGoLook
-  autoassign_api: 'NmdnNO90',          // Elite
+  autoassign_api: 'NmdnNO90',          // Elite (supply side)
   agency_directory: 'rmk5Xk9g',        // Agency facing view
 }
 
