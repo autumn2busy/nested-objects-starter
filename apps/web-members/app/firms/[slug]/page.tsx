@@ -31,6 +31,19 @@ type FirmRow = {
   address_postal_code: string | null
   rating: number | null
   logo_url?: string | null
+  compensation_structure?: string | null
+  payment_frequency?: string | null
+  job_volume?: string | null
+  qualifications?: string | null
+  required_technology?: string | null
+  equipment_requirements?: string | null
+  equipment_provision?: string | null
+  training_provided?: string | null
+  onboarding_process?: string | null
+  bbb_status?: string | null
+  industry_recognition?: string | null
+  client_reviews?: string | null
+
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
