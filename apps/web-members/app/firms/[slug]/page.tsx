@@ -25,29 +25,30 @@ type FirmRow = {
   pay_type: string | null
   phone: string | null
   email: string | null
-  address_street: string | null
+  address_line1?: string | null
+  address_street?: string | null
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
   rating: number | null
-  logo_url: string | null
-  compensation_structure: string | null
-  payment_frequency: string | null
-  job_volume: string | null
-  qualifications: string | null
-  required_technology: string | null
-  equipment_requirements: string | null
-  equipment_provision: string | null
-  training_provided: string | null
-  onboarding_process: string | null
-  bbb_status: string | null
-  industry_recognition: string | null
-  client_reviews: string | null
+  logo_url?: string | null
+  compensation_structure?: string | null
+  payment_frequency?: string | null
+  job_volume?: string | null
+  qualifications?: string | null
+  required_technology?: string | null
+  equipment_requirements?: string | null
+  equipment_provision?: string | null
+  training_provided?: string | null
+  onboarding_process?: string | null
+  bbb_status?: string | null
+  industry_recognition?: string | null
+  client_reviews?: string | null
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
+const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase env vars')
@@ -82,28 +83,20 @@ function formatPay(firm: FirmRow): string | null {
   return null
 }
 
-function formatLocation(firm: FirmRow): string | null {
+function buildAddress(firm: FirmRow): string | null {
+  const street =
+    firm.address_line1 ||
+    firm.address_street ||
+    null
+
   const parts = [
-    firm.address_street,
-    firm.address_city,
-    firm.address_state,
-    firm.address_postal_code,
+    street || undefined,
+    firm.address_city || undefined,
+    firm.address_state || undefined,
+    firm.address_postal_code || undefined,
   ].filter(Boolean)
   if (!parts.length) return null
   return parts.join(', ')
-}
-
-function buildFirmMapSrc(firm: FirmRow): string | null {
-  if (!MAPS_EMBED_KEY) return null
-  const parts = [
-    firm.address_street,
-    firm.address_city,
-    firm.address_state,
-    firm.address_postal_code,
-  ].filter(Boolean)
-  if (!parts.length) return null
-  const q = encodeURIComponent(parts.join(', '))
-  return `https://www.google.com/maps/embed/v1/place?key=${MAPS_EMBED_KEY}&q=${q}`
 }
 
 export async function generateMetadata({
@@ -121,13 +114,12 @@ export async function generateMetadata({
   }
 
   const pay = formatPay(firm)
-  const location = formatLocation(firm)
 
   return {
     title: `${firm.name} . Hiring firm snapshot`,
     description:
       firm.description ||
-      `Snapshot of ${firm.name}. coverage ${firm.geographic_coverage || 'field inspections'}. roles, pay and vendor signup info for inspectors in ${location || 'their service area'}.`,
+      `Snapshot of ${firm.name}. coverage ${firm.geographic_coverage || 'field inspections'}. roles, pay and vendor signup info for inspectors.`,
     openGraph: {
       title: `${firm.name} . Hiring firm snapshot`,
       description:
@@ -150,8 +142,7 @@ export default async function FirmDetailPage({
   }
 
   const pay = formatPay(firm)
-  const location = formatLocation(firm)
-  const mapSrc = buildFirmMapSrc(firm)
+  const fullAddress = buildAddress(firm)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -160,10 +151,11 @@ export default async function FirmDetailPage({
     url: firm.url,
     description: firm.description,
     areaServed: firm.geographic_coverage,
-    address: location
+    address: fullAddress
       ? {
           '@type': 'PostalAddress',
-          streetAddress: firm.address_street || undefined,
+          streetAddress:
+            firm.address_line1 || firm.address_street || undefined,
           addressLocality: firm.address_city || undefined,
           addressRegion: firm.address_state || undefined,
           postalCode: firm.address_postal_code || undefined,
@@ -182,6 +174,12 @@ export default async function FirmDetailPage({
         : undefined,
   }
 
+  const googleMapsSearchUrl = fullAddress
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        fullAddress,
+      )}`
+    : null
+
   return (
     <main
       style={{
@@ -197,7 +195,7 @@ export default async function FirmDetailPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Top crumb and back link */}
+      {/* crumb and links */}
       <div
         style={{
           display: 'flex',
@@ -223,39 +221,34 @@ export default async function FirmDetailPage({
         </Link>
       </div>
 
-      {/* Hero layout inspired by Zillow listing header */}
+      {/* Hero */}
       <section
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2.1fr) minmax(0, 1.2fr)',
+          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.3fr)',
           gap: '1.5rem',
           marginBottom: '2rem',
           alignItems: 'stretch',
         }}
       >
-        {/* Left. big hero card */}
         <div
           style={{
-            borderRadius: '18px',
+            background:
+              'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.06))',
+            borderRadius: '16px',
             padding: '1.75rem 1.75rem 1.5rem',
             border: '1px solid #e5e7eb',
-            background:
-              'radial-gradient(circle at top left, rgba(37,99,235,0.18), transparent 55%), radial-gradient(circle at bottom right, rgba(16,185,129,0.18), transparent 55%), #f9fafb',
-            boxShadow:
-              '0 18px 40px rgba(15,23,42,0.08), 0 3px 8px rgba(15,23,42,0.06)',
           }}
         >
-          {/* Logo and name row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {firm.logo_url ? (
               <div
                 style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '20px',
+                  width: 64,
+                  height: 64,
+                  borderRadius: '12px',
                   overflow: 'hidden',
-                  backgroundColor: 'white',
-                  border: '1px solid rgba(148,163,184,0.35)',
+                  backgroundColor: '#f3f4f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -271,30 +264,29 @@ export default async function FirmDetailPage({
             ) : (
               <div
                 style={{
-                  width: 64,
-                  height: 64,
+                  width: 52,
+                  height: 52,
                   borderRadius: '999px',
-                  background:
-                    'linear-gradient(135deg, #1d4ed8, #2563eb 35%, #22c55e)',
+                  backgroundColor: '#1d4ed8',
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '1.5rem',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
                 }}
               >
                 {firm.name.charAt(0).toUpperCase()}
               </div>
             )}
 
-            <div style={{ flex: 1 }}>
+            <div>
               <h1
                 style={{
                   fontSize: '2rem',
-                  fontWeight: 750,
+                  fontWeight: 700,
                   margin: 0,
-                  marginBottom: '0.2rem',
+                  marginBottom: '0.15rem',
                 }}
               >
                 {firm.name}
@@ -308,34 +300,21 @@ export default async function FirmDetailPage({
               >
                 {firm.industry_focus || 'Field services and inspections'}
               </p>
-
-              {location && (
-                <p
-                  style={{
-                    margin: '0.15rem 0 0',
-                    color: '#9ca3af',
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  {location}
-                </p>
-              )}
             </div>
           </div>
 
-          {/* Pills. coverage, size, pay, rating */}
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: '0.6rem',
-              marginTop: '1.3rem',
+              gap: '0.75rem',
+              marginTop: '1.25rem',
             }}
           >
             {firm.geographic_coverage && (
               <span
                 style={{
-                  padding: '0.35rem 0.85rem',
+                  padding: '0.35rem 0.8rem',
                   borderRadius: '999px',
                   backgroundColor: '#eff6ff',
                   color: '#1d4ed8',
@@ -350,7 +329,7 @@ export default async function FirmDetailPage({
             {firm.company_size && (
               <span
                 style={{
-                  padding: '0.35rem 0.85rem',
+                  padding: '0.35rem 0.8rem',
                   borderRadius: '999px',
                   backgroundColor: '#ecfdf5',
                   color: '#047857',
@@ -365,31 +344,15 @@ export default async function FirmDetailPage({
             {pay && (
               <span
                 style={{
-                  padding: '0.35rem 0.85rem',
+                  padding: '0.35rem 0.8rem',
                   borderRadius: '999px',
                   backgroundColor: '#fef3c7',
                   color: '#92400e',
                   fontSize: '0.8rem',
                   fontWeight: 500,
-                  whiteSpace: 'nowrap',
                 }}
               >
                 Typical pay. {pay}
-              </span>
-            )}
-
-            {typeof firm.rating === 'number' && (
-              <span
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '999px',
-                  backgroundColor: '#f5f3ff',
-                  color: '#6d28d9',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                }}
-              >
-                Inspector rating. {firm.rating.toFixed(1)} / 5
               </span>
             )}
           </div>
@@ -397,11 +360,10 @@ export default async function FirmDetailPage({
           {firm.description && (
             <p
               style={{
-                marginTop: '1.2rem',
+                marginTop: '1.25rem',
                 marginBottom: 0,
                 fontSize: '0.95rem',
-                lineHeight: 1.6,
-                color: '#374151',
+                color: '#4b5563',
                 maxWidth: '46rem',
               }}
             >
@@ -410,7 +372,7 @@ export default async function FirmDetailPage({
           )}
         </div>
 
-        {/* Right sidebar. actions, contact, mini map */}
+        {/* actions + map */}
         <aside
           style={{
             display: 'flex',
@@ -512,7 +474,7 @@ export default async function FirmDetailPage({
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {location && <p style={{ margin: 0 }}>{location}</p>}
+              {fullAddress && <p style={{ margin: 0 }}>{fullAddress}</p>}
               {firm.phone && <p style={{ margin: 0 }}>Phone. {firm.phone}</p>}
               {firm.email && (
                 <p style={{ margin: 0 }}>
@@ -536,41 +498,88 @@ export default async function FirmDetailPage({
             style={{
               borderRadius: '16px',
               border: '1px solid #e5e7eb',
-              overflow: 'hidden',
+              padding: '0.75rem',
               backgroundColor: '#f9fafb',
-              height: 180,
+              minHeight: 200,
             }}
           >
-            {mapSrc ? (
-              <iframe
-                src={mapSrc}
-                style={{ width: '100%', height: '100%', border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={`Map for ${firm.name}`}
-              />
-            ) : (
-              <div
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '1rem',
-                  fontSize: '0.8rem',
-                  color: '#9ca3af',
-                  textAlign: 'center',
-                }}
-              >
-                Add NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY in your env settings to
-                show a live map for each firm.
-              </div>
-            )}
+            <h3
+              style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                margin: 0,
+                marginBottom: '0.5rem',
+              }}
+            >
+              Service area map
+            </h3>
+
+            <div
+              style={{
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: '1px solid #e5e7eb',
+                height: 180,
+                backgroundColor: '#e5e7eb',
+              }}
+            >
+              {GOOGLE_MAPS_EMBED_KEY && fullAddress ? (
+                <iframe
+                  title="Firm location"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(
+                    fullAddress,
+                  )}`}
+                  style={{
+                    border: 0,
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : googleMapsSearchUrl ? (
+                <a
+                  href={googleMapsSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.8rem',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    padding: '1rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  Open this firms service area in Google Maps
+                </a>
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    padding: '1rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  Map preview not available yet. missing address details.
+                </div>
+              )}
+            </div>
           </div>
         </aside>
       </section>
 
-      {/* Main detail sections */}
+      {/* lower sections */}
       <section
         style={{
           display: 'grid',
@@ -579,7 +588,7 @@ export default async function FirmDetailPage({
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Snapshot */}
+          {/* snapshot */}
           <section
             style={{
               borderRadius: '16px',
@@ -680,7 +689,7 @@ export default async function FirmDetailPage({
             </dl>
           </section>
 
-          {/* Compensation */}
+          {/* compensation */}
           <section
             style={{
               borderRadius: '16px',
@@ -729,7 +738,7 @@ export default async function FirmDetailPage({
             </ul>
           </section>
 
-          {/* Requirements and tech */}
+          {/* requirements */}
           <section
             style={{
               borderRadius: '16px',
@@ -780,7 +789,7 @@ export default async function FirmDetailPage({
           </section>
         </div>
 
-        {/* Right column. reputation and pro tip */}
+        {/* reputation */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <section
             style={{
@@ -836,9 +845,9 @@ export default async function FirmDetailPage({
               Pro tip for inspectors.
             </p>
             <p style={{ margin: 0 }}>
-              Save this firm, collect three to five you are excited about, then
-              batch your applications on Sunday night so you hit their queue
-              before Monday hiring rush.
+              Save this firm, collect three to five you are excited about, then batch
+              your applications on Sunday night so you hit their queue before Monday
+              hiring rush.
             </p>
           </section>
         </div>
