@@ -17,6 +17,7 @@ type FirmRow = {
   company_size: string | null
   company_type: string | null
   industry_focus: string | null
+  assignment_process: string | null
   specializations: string | null
   services: string | null
   pay_range: string | null
