@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
+
+// Tell TypeScript there will be a global `google` from the Maps JS script
+declare const google: any
 
 type Firm = {
   id: string
@@ -88,25 +91,114 @@ function formatCategories(raw: any) {
   return String(raw)
 }
 
-function buildDirectoryMapEmbedUrl(firm: Firm | null): string | null {
-  if (!GOOGLE_MAPS_KEY || !firm) return null
-
-  const parts = [
+function buildAddress(firm: Firm): string {
+  return [
     firm.address_street,
     firm.address_city,
     firm.address_state,
     firm.address_postal_code,
-  ].filter(Boolean)
+  ]
+    .filter(Boolean)
+    .join(', ')
+}
 
-  if (!parts.length) return null
+// Small component responsible for the multi pin map
+function DirectoryMap({ firms }: { firms: Firm[] }) {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
 
-  const address = parts.join(', ')
-  const params = new URLSearchParams({
-    key: GOOGLE_MAPS_KEY,
-    q: address,
-  })
+  useEffect(() => {
+    if (!GOOGLE_MAPS_KEY) return
+    if (!mapContainerRef.current) return
+    if (!firms.length) return
 
-  return `https://www.google.com/maps/embed/v1/place?${params.toString()}`
+    const firmsWithAddress = firms.filter((f) => buildAddress(f).length > 0)
+    if (!firmsWithAddress.length) return
+
+    const loadScript = () =>
+      new Promise<void>((resolve) => {
+        const existing = document.getElementById('google-maps-js')
+        if (existing) {
+          if ((window as any).google) {
+            resolve()
+          } else {
+            existing.addEventListener('load', () => resolve())
+          }
+          return
+        }
+
+        const script = document.createElement('script')
+        script.id = 'google-maps-js'
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}`
+        script.async = true
+        script.defer = true
+        script.onload = () => resolve()
+        document.head.appendChild(script)
+      })
+
+    const initMap = async () => {
+      await loadScript()
+
+      if (!mapContainerRef.current) return
+      if (!(window as any).google) return
+
+      const map = new google.maps.Map(mapContainerRef.current, {
+        center: { lat: 39.5, lng: -98.35 }, // rough center of US
+        zoom: 4,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+      })
+
+      const geocoder = new google.maps.Geocoder()
+      const bounds = new google.maps.LatLngBounds()
+
+      firmsWithAddress.forEach((firm) => {
+        const address = buildAddress(firm)
+        if (!address) return
+
+        geocoder.geocode({ address }, (results: any, status: string) => {
+          if (status === 'OK' && results && results[0]) {
+            const location = results[0].geometry.location
+
+            const marker = new google.maps.Marker({
+              map,
+              position: location,
+              title: firm.name,
+            })
+
+            const info = new google.maps.InfoWindow({
+              content: `<div style="font-size:13px;"><strong>${firm.name}</strong><br/>${address}</div>`,
+            })
+
+            marker.addListener('click', () => {
+              info.open(map, marker)
+            })
+
+            bounds.extend(location)
+            map.fitBounds(bounds)
+          } else {
+            console.warn('Geocode failed for', firm.name, status)
+          }
+        })
+      })
+    }
+
+    initMap()
+  }, [firms])
+
+  return (
+    <div
+      ref={mapContainerRef}
+      style={{
+        width: '100%',
+        height: 260,
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: '1px solid #e5e7eb',
+        backgroundColor: '#e5e7eb',
+      }}
+    />
+  )
 }
 
 export default function DirectoryPage() {
@@ -220,9 +312,7 @@ export default function DirectoryPage() {
 
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
-
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null
-  const mapEmbedUrl = buildDirectoryMapEmbedUrl(mapHeadlineFirm)
 
   // Logged out view
   if (!isLoading && !isAuthenticated) {
@@ -659,61 +749,13 @@ export default function DirectoryPage() {
                     }}
                   >
                     <div style={{ fontWeight: 600 }}>{mapHeadlineFirm.name}</div>
-                    {(mapHeadlineFirm.address_street ||
-                      mapHeadlineFirm.address_city ||
-                      mapHeadlineFirm.address_state ||
-                      mapHeadlineFirm.address_postal_code) && (
-                      <div>
-                        {[
-                          mapHeadlineFirm.address_street,
-                          mapHeadlineFirm.address_city,
-                          mapHeadlineFirm.address_state,
-                          mapHeadlineFirm.address_postal_code,
-                        ]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </div>
+                    {buildAddress(mapHeadlineFirm) && (
+                      <div>{buildAddress(mapHeadlineFirm)}</div>
                     )}
                   </div>
                 )}
 
-                {mapEmbedUrl ? (
-                  <div
-                    style={{
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      border: '1px solid #e5e7eb',
-                      backgroundColor: '#e5e7eb',
-                    }}
-                  >
-                    <iframe
-                      src={mapEmbedUrl}
-                      loading="lazy"
-                      style={{
-                        border: 0,
-                        width: '100%',
-                        minHeight: '260px',
-                      }}
-                      referrerPolicy="no-referrer-when-downgrade"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      borderRadius: '12px',
-                      border: '1px dashed #d1d5db',
-                      padding: '1.5rem',
-                      textAlign: 'center',
-                      fontSize: '0.85rem',
-                      color: '#6b7280',
-                      backgroundColor: 'white',
-                    }}
-                  >
-                    Map preview will appear here once firms have address info and a
-                    Google Maps key is configured.
-                  </div>
-                )}
+                <DirectoryMap firms={displayedFirms} />
               </aside>
             </section>
           )}
