@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 
 type Firm = {
   id: string
   name: string
+  slug: string | null
   url: string | null
+  vendor_page_url: string | null
   geographic_coverage: string | null
   categories: any
   pay_min: number | null
@@ -15,17 +17,15 @@ type Firm = {
   pay_type: string | null
   company_size: string | null
   industry_focus: string | null
+  address_city: string | null
+  address_state: string | null
+  address_postal_code: string | null
   is_published?: boolean | null
-  slug?: string | null
-  address_street?: string | null
-  address_city?: string | null
-  address_state?: string | null
-  address_postal_code?: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
+const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
 const US_STATES = [
   { code: 'ALL', label: 'All service areas' },
@@ -81,6 +81,23 @@ const US_STATES = [
   { code: 'WY', label: 'Wyoming' },
 ]
 
+function formatCategories(raw: any) {
+  if (!raw) return ''
+  if (Array.isArray(raw)) return raw.join(', ')
+  if (typeof raw === 'string') return raw.replace(/[\[\]"]/g, '')
+  return String(raw)
+}
+
+function buildAddress(firm: Firm): string | null {
+  const parts = [
+    firm.address_city || undefined,
+    firm.address_state || undefined,
+    firm.address_postal_code || undefined,
+  ].filter(Boolean)
+  if (!parts.length) return null
+  return parts.join(', ')
+}
+
 export default function DirectoryPage() {
   const { isAuthenticated, isLoading, planUid } = useAuth()
 
@@ -89,7 +106,7 @@ export default function DirectoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string>('ALL')
   const [search, setSearch] = useState<string>('')
-  const [highlightedFirm, setHighlightedFirm] = useState<Firm | null>(null)
+  const [selectedFirmId, setSelectedFirmId] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchFirms() {
@@ -103,9 +120,25 @@ export default function DirectoryPage() {
       try {
         const url =
           `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=id,name,url,geographic_coverage,categories,' +
-          'pay_min,pay_max,pay_type,company_size,industry_focus,is_published,' +
-          'slug,address_street,address_city,address_state,address_postal_code' +
+          '?select=' +
+          [
+            'id',
+            'name',
+            'slug',
+            'url',
+            'vendor_page_url',
+            'geographic_coverage',
+            'categories',
+            'pay_min',
+            'pay_max',
+            'pay_type',
+            'company_size',
+            'industry_focus',
+            'address_city',
+            'address_state',
+            'address_postal_code',
+            'is_published',
+          ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
 
@@ -122,7 +155,6 @@ export default function DirectoryPage() {
 
         const data = (await res.json()) as Firm[]
         setFirms(data)
-        setHighlightedFirm(data[0] || null)
       } catch (err) {
         console.error('Error loading firms', err)
         setError(
@@ -138,15 +170,6 @@ export default function DirectoryPage() {
 
   const isStarter = planUid === 'L9nbKV9Z'
   const isProOrHigher = !!planUid && !isStarter
-
-  const formatCategories = (raw: any) => {
-    if (!raw) return ''
-    if (Array.isArray(raw)) return raw.join(', ')
-    if (typeof raw === 'string') {
-      return raw.replace(/[\[\]"]/g, '')
-    }
-    return String(raw)
-  }
 
   const matchesStateFilter = (firm: Firm) => {
     if (stateFilter === 'ALL') return true
@@ -186,24 +209,18 @@ export default function DirectoryPage() {
     )
   }
 
-  const buildMapSrc = (firm: Firm | null): string | null => {
-    if (!MAPS_EMBED_KEY || !firm) return null
-    const parts = [
-      firm.address_street,
-      firm.address_city,
-      firm.address_state,
-      firm.address_postal_code,
-    ].filter(Boolean)
-    if (!parts.length) return null
-    const q = encodeURIComponent(parts.join(', '))
-    return `https://www.google.com/maps/embed/v1/place?key=${MAPS_EMBED_KEY}&q=${q}`
-  }
+  const filteredFirms = useMemo(
+    () => firms.filter(matchesStateFilter).filter(matchesSearch),
+    [firms, stateFilter, search],
+  )
 
-  const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
-  const mapFirm = highlightedFirm || displayedFirms[0] || null
-  const mapSrc = buildMapSrc(mapFirm)
 
+  // Which firm should the map focus on
+  const selectedFirm =
+    displayedFirms.find((f) => f.id === selectedFirmId) || displayedFirms[0] || null
+
+  // Logged out view
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -277,6 +294,7 @@ export default function DirectoryPage() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
+      {/* Header */}
       <header
         style={{
           display: 'flex',
@@ -320,7 +338,7 @@ export default function DirectoryPage() {
         </div>
       </header>
 
-      {/* Filter controls */}
+      {/* Filters */}
       <section
         style={{
           display: 'flex',
@@ -456,198 +474,280 @@ export default function DirectoryPage() {
               back to All service areas.
             </p>
           ) : (
-            <div
+            <section
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.7fr) minmax(340px, 1.1fr)',
+                gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)',
                 gap: '1.5rem',
                 alignItems: 'flex-start',
               }}
             >
-              {/* Left. card list */}
+              {/* Cards column */}
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                  gap: '1.25rem',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '1.2rem',
                 }}
               >
-                {displayedFirms.map((firm) => (
-                  <article
-                    key={firm.id}
-                    onMouseEnter={() => setHighlightedFirm(firm)}
-                    onFocus={() => setHighlightedFirm(firm)}
-                    style={{
-                      borderRadius: '16px',
-                      border:
-                        mapFirm?.id === firm.id
-                          ? '2px solid #2563eb'
-                          : '1px solid #e5e7eb',
-                      padding: '1.4rem',
-                      backgroundColor: 'white',
-                      boxShadow:
-                        mapFirm?.id === firm.id
-                          ? '0 16px 30px rgba(37,99,235,0.18)'
-                          : '0 10px 20px rgba(15,23,42,0.04)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: '0.75rem',
-                      cursor: 'pointer',
-                      transition:
-                        'box-shadow 150ms ease, border-color 150ms ease, transform 120ms ease',
-                    }}
-                  >
-                    <div>
-                      <h3
-                        style={{
-                          fontSize: '1.05rem',
-                          fontWeight: 600,
-                          marginBottom: '0.25rem',
-                        }}
-                      >
-                        {firm.name}
-                      </h3>
+                {displayedFirms.map((firm) => {
+                  const payBits = []
+                  if (firm.pay_min != null) {
+                    const max =
+                      firm.pay_max != null
+                        ? ` - $${firm.pay_max}`
+                        : ''
+                    const unit = firm.pay_type ? ` ${firm.pay_type}` : ''
+                    payBits.push(`$${firm.pay_min}${max}${unit}`)
+                  }
 
-                      {firm.geographic_coverage && (
-                        <p
+                  const isSelected = firm.id === selectedFirmId
+
+                  return (
+                    <article
+                      key={firm.id}
+                      onMouseEnter={() => setSelectedFirmId(firm.id)}
+                      onClick={() => setSelectedFirmId(firm.id)}
+                      style={{
+                        borderRadius: '16px',
+                        border: isSelected
+                          ? '2px solid #3b82f6'
+                          : '1px solid #e5e7eb',
+                        padding: '1.25rem 1.3rem',
+                        backgroundColor: 'white',
+                        boxShadow:
+                          '0 12px 24px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div>
+                        <h3
                           style={{
-                            fontSize: '0.85rem',
-                            color: '#6b7280',
-                            marginBottom: '0.2rem',
+                            fontSize: '1.05rem',
+                            fontWeight: 600,
+                            marginBottom: '0.15rem',
                           }}
                         >
-                          Coverage. {firm.geographic_coverage}
-                        </p>
-                      )}
+                          {firm.name}
+                        </h3>
 
-                      <p
-                        style={{
-                          fontSize: '0.8rem',
-                          color: '#6b7280',
-                          marginBottom: '0.2rem',
-                        }}
-                      >
-                        {firm.company_size || 'Size n,a'} ·{' '}
-                        {firm.industry_focus || 'Field services'}
-                      </p>
+                        {firm.geographic_coverage && (
+                          <p
+                            style={{
+                              fontSize: '0.85rem',
+                              color: '#6b7280',
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            Coverage. {firm.geographic_coverage}
+                          </p>
+                        )}
 
-                      {firm.categories && (
                         <p
                           style={{
                             fontSize: '0.8rem',
-                            color: '#4b5563',
+                            color: '#6b7280',
                             marginBottom: '0.25rem',
                           }}
                         >
-                          Focus. {formatCategories(firm.categories)}
+                          {firm.company_size || 'Size n,a'} ·{' '}
+                          {firm.industry_focus || 'Field services'}
                         </p>
-                      )}
 
-                      {firm.pay_min != null && (
-                        <p
-                          style={{
-                            fontSize: '0.85rem',
-                            color: '#16a34a',
-                            marginBottom: '0.4rem',
-                          }}
-                        >
-                          Typical range. ${firm.pay_min}
-                          {firm.pay_max != null && ` - $${firm.pay_max}`}
-                          {firm.pay_type && ` ${firm.pay_type}`}
-                        </p>
-                      )}
-                    </div>
+                        {firm.categories && (
+                          <p
+                            style={{
+                              fontSize: '0.8rem',
+                              color: '#4b5563',
+                              marginBottom: '0.2rem',
+                            }}
+                          >
+                            Focus. {formatCategories(firm.categories)}
+                          </p>
+                        )}
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        marginTop: '0.3rem',
-                      }}
-                    >
-                      <Link
-                        href={`/firms/${firm.slug || firm.id}`}
+                        {payBits.length > 0 && (
+                          <p
+                            style={{
+                              fontSize: '0.85rem',
+                              color: '#16a34a',
+                              marginBottom: '0.4rem',
+                            }}
+                          >
+                            Typical range. {payBits.join(' ')}
+                          </p>
+                        )}
+                      </div>
+
+                      <div
                         style={{
-                          display: 'inline-block',
-                          padding: '0.55rem 1.3rem',
-                          borderRadius: '999px',
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          textDecoration: 'none',
-                          fontSize: '0.85rem',
-                          fontWeight: 600,
-                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          marginTop: '0.5rem',
                         }}
                       >
-                        View profile →
-                      </Link>
-
-                      {firm.url && (
-                        <a
-                          href={firm.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/firms/${firm.slug || firm.id}`}
                           style={{
-                            fontSize: '0.8rem',
-                            color: '#3b82f6',
+                            display: 'inline-block',
+                            padding: '0.55rem 1.3rem',
+                            borderRadius: '999px',
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
                             textDecoration: 'none',
-                            textAlign: 'right',
-                            flexGrow: 1,
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
                           }}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          Visit vendor website
-                        </a>
-                      )}
-                    </div>
-                  </article>
-                ))}
+                          View firm snapshot →
+                        </Link>
+
+                        {firm.url && (
+                          <a
+                            href={firm.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.8rem',
+                              color: '#3b82f6',
+                              textDecoration: 'none',
+                              textAlign: 'right',
+                              flexGrow: 1,
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Visit website
+                          </a>
+                        )}
+                      </div>
+                    </article>
+                  )
+                })}
               </div>
 
-              {/* Right. live map */}
+              {/* Map panel */}
               <aside
                 style={{
                   borderRadius: '16px',
                   border: '1px solid #e5e7eb',
-                  overflow: 'hidden',
-                  backgroundColor: '#f3f4f6',
+                  backgroundColor: '#f9fafb',
+                  padding: '1rem',
                   minHeight: 320,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
                 }}
               >
-                {mapSrc ? (
-                  <iframe
-                    src={mapSrc}
-                    style={{ width: '100%', height: '100%', border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title={
-                      mapFirm
-                        ? `Map for ${mapFirm.name}`
-                        : 'Map of matching firms'
-                    }
-                  />
+                <h2
+                  style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 600,
+                    margin: 0,
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Map preview
+                </h2>
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    margin: 0,
+                    marginBottom: '0.5rem',
+                  }}
+                >
+                  Hover or tap a firm in the list to see where they are based and how they
+                  cover your region.
+                </p>
+
+                {selectedFirm ? (
+                  <>
+                    <p
+                      style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                        margin: 0,
+                      }}
+                    >
+                      {selectedFirm.name}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: '0.8rem',
+                        color: '#6b7280',
+                        margin: 0,
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      {buildAddress(selectedFirm) ||
+                        selectedFirm.geographic_coverage ||
+                        'Coverage details not available'}
+                    </p>
+
+                    <div
+                      style={{
+                        flexGrow: 1,
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: '1px solid #e5e7eb',
+                        backgroundColor: '#e5e7eb',
+                      }}
+                    >
+                      {GOOGLE_MAPS_EMBED_KEY && buildAddress(selectedFirm) ? (
+                        <iframe
+                          title="Firm map"
+                          src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(
+                            buildAddress(selectedFirm) as string,
+                          )}`}
+                          style={{
+                            border: '0',
+                            width: '100%',
+                            height: '100%',
+                          }}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            color: '#6b7280',
+                            padding: '1rem',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Map preview will appear here once a Google Maps embed key is
+                          configured.
+                        </div>
+                      )}
+                    </div>
+                  </>
                 ) : (
-                  <div
+                  <p
                     style={{
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '1rem',
                       fontSize: '0.8rem',
-                      color: '#9ca3af',
-                      textAlign: 'center',
+                      color: '#6b7280',
+                      margin: 0,
                     }}
                   >
-                    Add NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY in your env settings to
-                    show a live map that updates as you hover firms in the list.
-                  </div>
+                    No firms to show yet. adjust your filters to see matches.
+                  </p>
                 )}
               </aside>
-            </div>
+            </section>
           )}
 
           {isStarter && filteredFirms.length > displayedFirms.length && (
@@ -671,8 +771,8 @@ export default function DirectoryPage() {
                 color: '#6b7280',
               }}
             >
-              You have full directory access. as new firms are published they will
-              appear here automatically.
+              You have full directory access. As new firms are added to Supabase and
+              marked published, they will appear here automatically.
             </p>
           )}
         </>
