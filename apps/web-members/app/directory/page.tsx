@@ -134,7 +134,6 @@ function buildDirectoryStaticMap(firms: Firm[]): string | null {
 
   return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`
 }
-}
 
 export default function DirectoryPage() {
   const { isAuthenticated, isLoading, planUid } = useAuth()
