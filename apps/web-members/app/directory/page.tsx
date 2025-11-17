@@ -17,6 +17,7 @@ type Firm = {
   company_size: string | null
   industry_focus: string | null
   is_published?: boolean | null
+  address_street: string | null
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
@@ -88,7 +89,7 @@ function formatCategories(raw: any) {
 }
 
 function hasAddress(firm: Firm) {
-  return !!(firm.address_city || firm.address_state || firm.address_postal_code)
+  return !!(firm.address_street || firm.address_city || firm.address_state || firm.address_postal_code)
 }
 
 // Build a Static Maps URL with multiple markers for the firms we’re showing
@@ -103,6 +104,7 @@ function buildStaticMapUrl(firms: Firm[]): string | null {
   const markerParams = limited
     .map((firm) => {
       const parts = [
+        firm.address_street,
         firm.address_city,
         firm.address_state,
         firm.address_postal_code,
@@ -161,6 +163,7 @@ export default function DirectoryPage() {
             'company_size',
             'industry_focus',
             'is_published',
+            'address_street',
             'address_city',
             'address_state',
             'address_postal_code',
@@ -675,12 +678,14 @@ export default function DirectoryPage() {
                     }}
                   >
                     <div style={{ fontWeight: 600 }}>{mapHeadlineFirm.name}</div>
-                    {(mapHeadlineFirm.address_city ||
+                    {(mapHeadlineFirm.address_street ||
+                      mapHeadlineFirm.address_city ||
                       mapHeadlineFirm.address_state ||
                       mapHeadlineFirm.address_postal_code) && (
                       <div>
                         {[
-                          mapHeadlineFirm.address_city,
+                          mapHeadlineFirm.address_street,
+                        mapHeadlineFirm.address_city,
                           mapHeadlineFirm.address_state,
                           mapHeadlineFirm.address_postal_code,
                         ]
