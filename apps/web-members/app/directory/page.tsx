@@ -7,7 +7,9 @@ import { useAuth } from '@/components/auth-provider'
 type Firm = {
   id: string
   name: string
+  slug: string | null
   url: string | null
+  vendor_page_url: string | null
   geographic_coverage: string | null
   categories: any
   pay_min: number | null
@@ -96,7 +98,7 @@ export default function DirectoryPage() {
       try {
         const url =
           `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=id,name,url,geographic_coverage,categories,' +
+          '?select=id,name,slug,url,vendor_page_url,geographic_coverage,categories,' +
           'pay_min,pay_max,pay_type,company_size,industry_focus,is_published' +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -426,9 +428,9 @@ export default function DirectoryPage() {
 
       {!loadingFirms && !error && (
         <>
-                    {displayedFirms.length === 0 ? (
+          {displayedFirms.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-              No firms match this combination yet, try clearing your search or switching
+              No firms match this combination yet. try clearing your search or switching
               back to All service areas.
             </p>
           ) : (
@@ -455,7 +457,7 @@ export default function DirectoryPage() {
                     gap: '0.75rem',
                   }}
                 >
-                  {/* Title */}
+                  {/* Title + summary */}
                   <div>
                     <h3
                       style={{
@@ -464,7 +466,14 @@ export default function DirectoryPage() {
                         marginBottom: '0.25rem',
                       }}
                     >
-                      {firm.name}
+                      <Link
+                        href={
+                          firm.slug ? `/firms/${firm.slug}` : `/firms/${firm.id}`
+                        }
+                        style={{ color: '#111827', textDecoration: 'none' }}
+                      >
+                        {firm.name}
+                      </Link>
                     </h3>
 
                     {firm.geographic_coverage && (
@@ -525,10 +534,13 @@ export default function DirectoryPage() {
                       alignItems: 'center',
                       gap: '0.75rem',
                       marginTop: '0.5rem',
+                      flexWrap: 'wrap',
                     }}
                   >
                     <Link
-                      href={`/firms/${firm.id}`}
+                      href={
+                        firm.slug ? `/firms/${firm.slug}` : `/firms/${firm.id}`
+                      }
                       style={{
                         display: 'inline-block',
                         padding: '0.55rem 1.3rem',
@@ -541,25 +553,56 @@ export default function DirectoryPage() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      View profile →
+                      View firm profile →
                     </Link>
 
-                    {firm.url && (
-                      <a
-                        href={firm.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          fontSize: '0.8rem',
-                          color: '#3b82f6',
-                          textDecoration: 'none',
-                          textAlign: 'right',
-                          flexGrow: 1,
-                        }}
-                      >
-                        Visit vendor website
-                      </a>
-                    )}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end',
+                        flexGrow: 1,
+                      }}
+                    >
+                      {firm.vendor_page_url && (
+                        <a
+                          href={firm.vendor_page_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '0.8rem',
+                            color: '#16a34a',
+                            textDecoration: 'none',
+                            padding: '0.4rem 0.9rem',
+                            borderRadius: '999px',
+                            border: '1px solid #bbf7d0',
+                            backgroundColor: '#f0fdf4',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Vendor signup portal
+                        </a>
+                      )}
+
+                      {firm.url && (
+                        <a
+                          href={firm.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '0.8rem',
+                            color: '#3b82f6',
+                            textDecoration: 'none',
+                            textAlign: 'right',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Company website
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </article>
               ))}
