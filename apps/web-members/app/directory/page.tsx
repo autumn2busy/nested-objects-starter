@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth-provider'
 
 type Firm = {
   id: string
+  slug: string | null
   name: string
   url: string | null
   geographic_coverage: string | null
@@ -149,6 +150,7 @@ export default function DirectoryPage() {
           '?select=' +
           [
             'id',
+            'slug',
             'name',
             'url',
             'geographic_coverage',
