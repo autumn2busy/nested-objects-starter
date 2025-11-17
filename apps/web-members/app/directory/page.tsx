@@ -522,7 +522,7 @@ export default function DirectoryPage() {
                     key={firm.id}
                     style={{
                       borderRadius: '16px',
-                      border: '1px solid '#e5e7eb',
+                      border: '1px solid #e5e7eb',
                       padding: '1.5rem',
                       backgroundColor: 'white',
                       boxShadow:
@@ -563,7 +563,7 @@ export default function DirectoryPage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        {firm.company_size || 'Size n,a'} ·{' '}
+                        {firm.company_size || 'Size n/a'} ·{' '}
                         {firm.industry_focus || 'Field services'}
                       </p>
 
