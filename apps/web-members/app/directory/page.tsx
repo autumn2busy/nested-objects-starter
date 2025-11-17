@@ -25,7 +25,7 @@ type Firm = {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
+const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || ''
 
 const US_STATES = [
   { code: 'ALL', label: 'All service areas' },
@@ -88,13 +88,10 @@ function formatCategories(raw: any) {
   return String(raw)
 }
 
-function hasAddress(firm: Firm) {
-  return !!(firm.address_street || firm.address_city || firm.address_state || firm.address_postal_code)
-}
-
-// Build a Static Maps URL with multiple markers for the firms we’re showing
+// Build a Static Maps URL with multiple markers for the firms we are showing
 function buildDirectoryStaticMap(firms: Firm[]): string | null {
   if (!GOOGLE_MAPS_KEY) return null
+  if (!firms.length) return null
 
   const locations = firms
     .filter((f) => f.address_city && f.address_state)
@@ -108,7 +105,6 @@ function buildDirectoryStaticMap(firms: Firm[]): string | null {
   params.set('scale', '2')
   params.set('maptype', 'roadmap')
 
-  // center on the first firm
   const first = locations[0]
   const firstAddressParts = [
     first.address_street,
@@ -127,6 +123,7 @@ function buildDirectoryStaticMap(firms: Firm[]): string | null {
       f.address_postal_code,
     ].filter(Boolean)
     const loc = parts.join(', ')
+    if (!loc) return
     params.append('markers', `color:red|${loc}`)
   })
 
@@ -250,7 +247,7 @@ export default function DirectoryPage() {
   const mapUrl = buildDirectoryStaticMap(displayedFirms)
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null
 
-  // Logged-out view
+  // Logged out view
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -525,7 +522,7 @@ export default function DirectoryPage() {
                     key={firm.id}
                     style={{
                       borderRadius: '16px',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid '#e5e7eb',
                       padding: '1.5rem',
                       backgroundColor: 'white',
                       boxShadow:
@@ -692,7 +689,7 @@ export default function DirectoryPage() {
                       <div>
                         {[
                           mapHeadlineFirm.address_street,
-                        mapHeadlineFirm.address_city,
+                          mapHeadlineFirm.address_city,
                           mapHeadlineFirm.address_state,
                           mapHeadlineFirm.address_postal_code,
                         ]
