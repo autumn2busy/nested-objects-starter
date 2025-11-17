@@ -247,7 +247,7 @@ export default function DirectoryPage() {
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
-  const mapUrl = buildStaticMapUrl(displayedFirms)
+  const mapUrl = buildDirectoryStaticMap(displayedFirms)
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null
 
   // Logged-out view
