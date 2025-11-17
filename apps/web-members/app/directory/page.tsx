@@ -88,48 +88,25 @@ function formatCategories(raw: any) {
   return String(raw)
 }
 
-// Build a Static Maps URL with multiple markers for the firms we are showing
-function buildDirectoryStaticMap(firms: Firm[]): string | null {
-  if (!GOOGLE_MAPS_KEY) return null
-  if (!firms.length) return null
+function buildDirectoryMapEmbedUrl(firm: Firm | null): string | null {
+  if (!GOOGLE_MAPS_KEY || !firm) return null
 
-  const locations = firms
-    .filter((f) => f.address_city && f.address_state)
-    .slice(0, 50)
-
-  if (!locations.length) return null
-
-  const params = new URLSearchParams()
-
-  params.set('size', '600x260')
-  params.set('scale', '2')
-  params.set('maptype', 'roadmap')
-
-  const first = locations[0]
-  const firstAddressParts = [
-    first.address_street,
-    first.address_city,
-    first.address_state,
-    first.address_postal_code,
+  const parts = [
+    firm.address_street,
+    firm.address_city,
+    firm.address_state,
+    firm.address_postal_code,
   ].filter(Boolean)
-  params.set('center', firstAddressParts.join(', '))
-  params.set('zoom', '5')
 
-  locations.forEach((f) => {
-    const parts = [
-      f.address_street,
-      f.address_city,
-      f.address_state,
-      f.address_postal_code,
-    ].filter(Boolean)
-    const loc = parts.join(', ')
-    if (!loc) return
-    params.append('markers', `color:red|${loc}`)
+  if (!parts.length) return null
+
+  const address = parts.join(', ')
+  const params = new URLSearchParams({
+    key: GOOGLE_MAPS_KEY,
+    q: address,
   })
 
-  params.set('key', GOOGLE_MAPS_KEY)
-
-  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`
+  return `https://www.google.com/maps/embed/v1/place?${params.toString()}`
 }
 
 export default function DirectoryPage() {
@@ -244,8 +221,8 @@ export default function DirectoryPage() {
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
-  const mapUrl = buildDirectoryStaticMap(displayedFirms)
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null
+  const mapEmbedUrl = buildDirectoryMapEmbedUrl(mapHeadlineFirm)
 
   // Logged out view
   if (!isLoading && !isAuthenticated) {
@@ -563,7 +540,7 @@ export default function DirectoryPage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        {firm.company_size || 'Size n/a'} ·{' '}
+                        {firm.company_size || 'Size n,a'} ·{' '}
                         {firm.industry_focus || 'Field services'}
                       </p>
 
@@ -700,7 +677,7 @@ export default function DirectoryPage() {
                   </div>
                 )}
 
-                {mapUrl ? (
+                {mapEmbedUrl ? (
                   <div
                     style={{
                       borderRadius: '12px',
@@ -709,15 +686,16 @@ export default function DirectoryPage() {
                       backgroundColor: '#e5e7eb',
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={mapUrl}
-                      alt="Map with pins for firms in this directory view"
+                    <iframe
+                      src={mapEmbedUrl}
+                      loading="lazy"
                       style={{
-                        display: 'block',
+                        border: 0,
                         width: '100%',
-                        height: 'auto',
+                        minHeight: '260px',
                       }}
+                      referrerPolicy="no-referrer-when-downgrade"
+                      allowFullScreen
                     />
                   </div>
                 ) : (
@@ -732,8 +710,8 @@ export default function DirectoryPage() {
                       backgroundColor: 'white',
                     }}
                   >
-                    Map preview will appear here once a Google Maps key is configured
-                    and firms have address info.
+                    Map preview will appear here once firms have address info and a
+                    Google Maps key is configured.
                   </div>
                 )}
               </aside>
