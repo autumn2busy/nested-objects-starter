@@ -7,9 +7,7 @@ import { useAuth } from '@/components/auth-provider'
 type Firm = {
   id: string
   name: string
-  slug: string | null
   url: string | null
-  vendor_page_url: string | null
   geographic_coverage: string | null
   categories: any
   pay_min: number | null
@@ -18,10 +16,16 @@ type Firm = {
   company_size: string | null
   industry_focus: string | null
   is_published?: boolean | null
+  slug?: string | null
+  address_street?: string | null
+  address_city?: string | null
+  address_state?: string | null
+  address_postal_code?: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
 const US_STATES = [
   { code: 'ALL', label: 'All service areas' },
@@ -85,6 +89,7 @@ export default function DirectoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string>('ALL')
   const [search, setSearch] = useState<string>('')
+  const [highlightedFirm, setHighlightedFirm] = useState<Firm | null>(null)
 
   useEffect(() => {
     async function fetchFirms() {
@@ -98,8 +103,9 @@ export default function DirectoryPage() {
       try {
         const url =
           `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=id,name,slug,url,vendor_page_url,geographic_coverage,categories,' +
-          'pay_min,pay_max,pay_type,company_size,industry_focus,is_published' +
+          '?select=id,name,url,geographic_coverage,categories,' +
+          'pay_min,pay_max,pay_type,company_size,industry_focus,is_published,' +
+          'slug,address_street,address_city,address_state,address_postal_code' +
           '&is_published=eq.true' +
           '&order=name.asc'
 
@@ -116,6 +122,7 @@ export default function DirectoryPage() {
 
         const data = (await res.json()) as Firm[]
         setFirms(data)
+        setHighlightedFirm(data[0] || null)
       } catch (err) {
         console.error('Error loading firms', err)
         setError(
@@ -179,8 +186,23 @@ export default function DirectoryPage() {
     )
   }
 
+  const buildMapSrc = (firm: Firm | null): string | null => {
+    if (!MAPS_EMBED_KEY || !firm) return null
+    const parts = [
+      firm.address_street,
+      firm.address_city,
+      firm.address_state,
+      firm.address_postal_code,
+    ].filter(Boolean)
+    if (!parts.length) return null
+    const q = encodeURIComponent(parts.join(', '))
+    return `https://www.google.com/maps/embed/v1/place?key=${MAPS_EMBED_KEY}&q=${q}`
+  }
+
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
+  const mapFirm = highlightedFirm || displayedFirms[0] || null
+  const mapSrc = buildMapSrc(mapFirm)
 
   if (!isLoading && !isAuthenticated) {
     return (
@@ -249,9 +271,9 @@ export default function DirectoryPage() {
   return (
     <main
       style={{
-        maxWidth: '960px',
+        maxWidth: '1200px',
         margin: '0 auto',
-        padding: '2rem',
+        padding: '2rem 1.5rem 3rem',
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
@@ -430,161 +452,138 @@ export default function DirectoryPage() {
         <>
           {displayedFirms.length === 0 ? (
             <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
-              No firms match this combination yet. try clearing your search or switching
+              No firms match this combination yet, try clearing your search or switching
               back to All service areas.
             </p>
           ) : (
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'minmax(0, 1.7fr) minmax(340px, 1.1fr)',
                 gap: '1.5rem',
+                alignItems: 'flex-start',
               }}
             >
-              {displayedFirms.map((firm) => (
-                <article
-                  key={firm.id}
-                  style={{
-                    borderRadius: '16px',
-                    border: '1px solid #e5e7eb',
-                    padding: '1.5rem',
-                    backgroundColor: 'white',
-                    boxShadow:
-                      '0 12px 24px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.06)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    gap: '0.75rem',
-                  }}
-                >
-                  {/* Title + summary */}
-                  <div>
-                    <h3
-                      style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 600,
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      <Link
-                        href={
-                          firm.slug ? `/firms/${firm.slug}` : `/firms/${firm.id}`
-                        }
-                        style={{ color: '#111827', textDecoration: 'none' }}
-                      >
-                        {firm.name}
-                      </Link>
-                    </h3>
-
-                    {firm.geographic_coverage && (
-                      <p
+              {/* Left. card list */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1.25rem',
+                }}
+              >
+                {displayedFirms.map((firm) => (
+                  <article
+                    key={firm.id}
+                    onMouseEnter={() => setHighlightedFirm(firm)}
+                    onFocus={() => setHighlightedFirm(firm)}
+                    style={{
+                      borderRadius: '16px',
+                      border:
+                        mapFirm?.id === firm.id
+                          ? '2px solid #2563eb'
+                          : '1px solid #e5e7eb',
+                      padding: '1.4rem',
+                      backgroundColor: 'white',
+                      boxShadow:
+                        mapFirm?.id === firm.id
+                          ? '0 16px 30px rgba(37,99,235,0.18)'
+                          : '0 10px 20px rgba(15,23,42,0.04)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '0.75rem',
+                      cursor: 'pointer',
+                      transition:
+                        'box-shadow 150ms ease, border-color 150ms ease, transform 120ms ease',
+                    }}
+                  >
+                    <div>
+                      <h3
                         style={{
-                          fontSize: '0.85rem',
-                          color: '#6b7280',
+                          fontSize: '1.05rem',
+                          fontWeight: 600,
                           marginBottom: '0.25rem',
                         }}
                       >
-                        Coverage. {firm.geographic_coverage}
-                      </p>
-                    )}
+                        {firm.name}
+                      </h3>
 
-                    <p
-                      style={{
-                        fontSize: '0.8rem',
-                        color: '#6b7280',
-                        marginBottom: '0.25rem',
-                      }}
-                    >
-                      {firm.company_size || 'Size n,a'} ·{' '}
-                      {firm.industry_focus || 'Field services'}
-                    </p>
+                      {firm.geographic_coverage && (
+                        <p
+                          style={{
+                            fontSize: '0.85rem',
+                            color: '#6b7280',
+                            marginBottom: '0.2rem',
+                          }}
+                        >
+                          Coverage. {firm.geographic_coverage}
+                        </p>
+                      )}
 
-                    {firm.categories && (
                       <p
                         style={{
                           fontSize: '0.8rem',
-                          color: '#4b5563',
-                          marginBottom: '0.25rem',
+                          color: '#6b7280',
+                          marginBottom: '0.2rem',
                         }}
                       >
-                        Focus. {formatCategories(firm.categories)}
+                        {firm.company_size || 'Size n,a'} ·{' '}
+                        {firm.industry_focus || 'Field services'}
                       </p>
-                    )}
 
-                    {firm.pay_min != null && (
-                      <p
-                        style={{
-                          fontSize: '0.85rem',
-                          color: '#16a34a',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        Typical range. ${firm.pay_min}
-                        {firm.pay_max != null && ` - $${firm.pay_max}`}
-                        {firm.pay_type && ` ${firm.pay_type}`}
-                      </p>
-                    )}
-                  </div>
+                      {firm.categories && (
+                        <p
+                          style={{
+                            fontSize: '0.8rem',
+                            color: '#4b5563',
+                            marginBottom: '0.25rem',
+                          }}
+                        >
+                          Focus. {formatCategories(firm.categories)}
+                        </p>
+                      )}
 
-                  {/* Actions */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      marginTop: '0.5rem',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Link
-                      href={
-                        firm.slug ? `/firms/${firm.slug}` : `/firms/${firm.id}`
-                      }
-                      style={{
-                        display: 'inline-block',
-                        padding: '0.55rem 1.3rem',
-                        borderRadius: '999px',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        textDecoration: 'none',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      View firm profile →
-                    </Link>
+                      {firm.pay_min != null && (
+                        <p
+                          style={{
+                            fontSize: '0.85rem',
+                            color: '#16a34a',
+                            marginBottom: '0.4rem',
+                          }}
+                        >
+                          Typical range. ${firm.pay_min}
+                          {firm.pay_max != null && ` - $${firm.pay_max}`}
+                          {firm.pay_type && ` ${firm.pay_type}`}
+                        </p>
+                      )}
+                    </div>
 
                     <div
                       style={{
                         display: 'flex',
-                        gap: '0.5rem',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-end',
-                        flexGrow: 1,
+                        gap: '0.75rem',
+                        marginTop: '0.3rem',
                       }}
                     >
-                      {firm.vendor_page_url && (
-                        <a
-                          href={firm.vendor_page_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            fontSize: '0.8rem',
-                            color: '#16a34a',
-                            textDecoration: 'none',
-                            padding: '0.4rem 0.9rem',
-                            borderRadius: '999px',
-                            border: '1px solid #bbf7d0',
-                            backgroundColor: '#f0fdf4',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          Vendor signup portal
-                        </a>
-                      )}
+                      <Link
+                        href={`/firms/${firm.slug || firm.id}`}
+                        style={{
+                          display: 'inline-block',
+                          padding: '0.55rem 1.3rem',
+                          borderRadius: '999px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          textDecoration: 'none',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        View profile →
+                      </Link>
 
                       {firm.url && (
                         <a
@@ -596,16 +595,58 @@ export default function DirectoryPage() {
                             color: '#3b82f6',
                             textDecoration: 'none',
                             textAlign: 'right',
-                            whiteSpace: 'nowrap',
+                            flexGrow: 1,
                           }}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          Company website
+                          Visit vendor website
                         </a>
                       )}
                     </div>
+                  </article>
+                ))}
+              </div>
+
+              {/* Right. live map */}
+              <aside
+                style={{
+                  borderRadius: '16px',
+                  border: '1px solid #e5e7eb',
+                  overflow: 'hidden',
+                  backgroundColor: '#f3f4f6',
+                  minHeight: 320,
+                }}
+              >
+                {mapSrc ? (
+                  <iframe
+                    src={mapSrc}
+                    style={{ width: '100%', height: '100%', border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={
+                      mapFirm
+                        ? `Map for ${mapFirm.name}`
+                        : 'Map of matching firms'
+                    }
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '1rem',
+                      fontSize: '0.8rem',
+                      color: '#9ca3af',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Add NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY in your env settings to
+                    show a live map that updates as you hover firms in the list.
                   </div>
-                </article>
-              ))}
+                )}
+              </aside>
             </div>
           )}
 
@@ -630,8 +671,8 @@ export default function DirectoryPage() {
                 color: '#6b7280',
               }}
             >
-              You have full directory access. As n8n adds new published firms to
-              Supabase, they will appear here automatically.
+              You have full directory access. as new firms are published they will
+              appear here automatically.
             </p>
           )}
         </>
