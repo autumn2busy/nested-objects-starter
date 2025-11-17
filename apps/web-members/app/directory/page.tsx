@@ -93,39 +93,47 @@ function hasAddress(firm: Firm) {
 }
 
 // Build a Static Maps URL with multiple markers for the firms we’re showing
-function buildStaticMapUrl(firms: Firm[]): string | null {
+function buildDirectoryStaticMap(firms: Firm[]): string | null {
   if (!GOOGLE_MAPS_KEY) return null
-  if (!firms.length) return null
 
-  // Limit to avoid URL length issues
-  const limited = firms.filter(hasAddress).slice(0, 50)
-  if (!limited.length) return null
+  const locations = firms
+    .filter((f) => f.address_city && f.address_state)
+    .slice(0, 50)
 
-  const markerParams = limited
-    .map((firm) => {
-      const parts = [
-        firm.address_street,
-        firm.address_city,
-        firm.address_state,
-        firm.address_postal_code,
-      ].filter(Boolean)
+  if (!locations.length) return null
 
-      if (!parts.length) return null
+  const params = new URLSearchParams()
 
-      const addr = parts.join(' ')
-      // Default markers, Google will geocode the address
-      return `markers=${encodeURIComponent(addr)}`
-    })
-    .filter(Boolean)
-    .join('&')
+  params.set('size', '600x260')
+  params.set('scale', '2')
+  params.set('maptype', 'roadmap')
 
-  if (!markerParams) return null
+  // center on the first firm
+  const first = locations[0]
+  const firstAddressParts = [
+    first.address_street,
+    first.address_city,
+    first.address_state,
+    first.address_postal_code,
+  ].filter(Boolean)
+  params.set('center', firstAddressParts.join(', '))
+  params.set('zoom', '5')
 
-  const size = 'size=600x350'
-  const scale = 'scale=2'
-  const maptype = 'maptype=roadmap'
+  locations.forEach((f) => {
+    const parts = [
+      f.address_street,
+      f.address_city,
+      f.address_state,
+      f.address_postal_code,
+    ].filter(Boolean)
+    const loc = parts.join(', ')
+    params.append('markers', `color:red|${loc}`)
+  })
 
-  return `https://maps.googleapis.com/maps/api/staticmap?${size}&${scale}&${maptype}&${markerParams}&key=${GOOGLE_MAPS_KEY}`
+  params.set('key', GOOGLE_MAPS_KEY)
+
+  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`
+}
 }
 
 export default function DirectoryPage() {
