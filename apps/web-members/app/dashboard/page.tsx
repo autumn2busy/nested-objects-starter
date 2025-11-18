@@ -83,75 +83,50 @@ export default function DashboardPage() {
             <Link href="/resources" style={{ textDecoration: 'none', color: '#111827' }}>
               Resources
             </Link>
+            <Link href="/profile" style={{ textDecoration: 'none', color: '#111827' }}>
+              Profile
+            </Link>
           </nav>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          {/* Avatar plus name now links to profile */}
           <Link
             href="/profile"
-            style={{ textDecoration: 'none', color: 'inherit' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
           >
             <div
               style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '999px',
+                backgroundColor: '#e5e7eb',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-                cursor: 'pointer',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: '#111827',
               }}
             >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '999px',
-                  background:
-                    'radial-gradient(circle at 30% 30%, #4f46e5, #0f766e)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                  color: '#f9fafb',
-                  boxShadow: '0 6px 14px rgba(15,23,42,0.35)',
-                }}
-              >
-                {initials}
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                }}
-              >
-                <span
-                  style={{
-                    color: '#111827',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                  }}
-                >
-                  {firstName}
+              {initials}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
+                {firstName}
+              </span>
+              {planName !== 'Unknown' && (
+                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                  {planName} plan
                 </span>
-                {planName !== 'Unknown' && (
-                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    {planName} plan
-                  </span>
-                )}
-                <span
-                  style={{
-                    color: '#2563eb',
-                    fontSize: '0.7rem',
-                    marginTop: '0.1rem',
-                  }}
-                >
-                  View profile
-                </span>
-              </div>
+              )}
             </div>
           </Link>
-
           <button
             onClick={() => logout()}
             style={{
@@ -300,14 +275,12 @@ export default function DashboardPage() {
               Skim the Field Inspection Starter Kit so you understand how the work and
               payouts actually flow.
             </li>
-            <li>
-              Block off time this week to complete your first three inspections.
-            </li>
+            <li>Block off time this week to complete your first three inspections.</li>
           </ol>
         </div>
       </section>
 
-      {/* Bottom grid. Recent activity plus shortcuts */}
+      {/* Bottom grid. Recent activity + shortcuts */}
       <section
         style={{
           display: 'grid',
@@ -320,7 +293,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid '#e5e7eb',
             backgroundColor: 'white',
           }}
         >
@@ -340,7 +313,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid '#e5e7eb',
             backgroundColor: 'white',
           }}
         >
