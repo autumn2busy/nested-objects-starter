@@ -7,11 +7,16 @@ import { useAuth } from '@/components/auth-provider'
 
 function getPlanName(uid: string | null) {
   switch (uid) {
-    case 'L9nbKV9Z': return 'Starter'
-    case 'rQVqlLm6': return 'Pro'
-    case 'NmdnNO90': return 'Elite'
-    case 'rmk5Xk9g': return 'Agency'
-    default: return 'Unknown'
+    case 'L9nbKV9Z':
+      return 'Starter'
+    case 'rQVqlLm6':
+      return 'Pro'
+    case 'NmdnNO90':
+      return 'Elite'
+    case 'rmk5Xk9g':
+      return 'Agency'
+    default:
+      return 'Unknown'
   }
 }
 
@@ -82,34 +87,71 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Avatar plus name now links to profile */}
+          <Link
+            href="/profile"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '999px',
-                backgroundColor: '#e5e7eb',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: '#111827',
+                gap: '0.75rem',
+                cursor: 'pointer',
               }}
             >
-              {initials}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
-                {firstName}
-              </span>
-              {planName !== 'Unknown' && (
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {planName} plan
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '999px',
+                  background:
+                    'radial-gradient(circle at 30% 30%, #4f46e5, #0f766e)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#f9fafb',
+                  boxShadow: '0 6px 14px rgba(15,23,42,0.35)',
+                }}
+              >
+                {initials}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#111827',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {firstName}
                 </span>
-              )}
+                {planName !== 'Unknown' && (
+                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    {planName} plan
+                  </span>
+                )}
+                <span
+                  style={{
+                    color: '#2563eb',
+                    fontSize: '0.7rem',
+                    marginTop: '0.1rem',
+                  }}
+                >
+                  View profile
+                </span>
+              </div>
             </div>
-          </div>
+          </Link>
+
           <button
             onClick={() => logout()}
             style={{
@@ -174,7 +216,8 @@ export default function DashboardPage() {
             />
           </div>
           <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#6b7280' }}>
-            Next step. add your service area and skills so hiring firms can match you faster.
+            Next step. add your service area and skills so hiring firms can match you
+            faster.
           </p>
         </div>
       </section>
@@ -201,8 +244,7 @@ export default function DashboardPage() {
             Account overview
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#166534', marginBottom: '0.5rem' }}>
-            Current plan.{' '}
-            <strong>{planName}</strong>
+            Current plan. <strong>{planName}</strong>
           </p>
           <p style={{ fontSize: '0.85rem', color: '#166534', marginBottom: '1rem' }}>
             Upgrade when you are ready for more tools. not before.
@@ -253,11 +295,10 @@ export default function DashboardPage() {
           </h3>
           <ol style={{ paddingLeft: '1.25rem', fontSize: '0.9rem', color: '#4b5563' }}>
             <li>Finish your profile basics. name, email, service area.</li>
+            <li>Bookmark three hiring firms you would love to work with.</li>
             <li>
-              Bookmark three hiring firms you would love to work with.
-            </li>
-            <li>
-              Skim the Field Inspection Starter Kit so you understand how the work and payouts actually flow.
+              Skim the Field Inspection Starter Kit so you understand how the work and
+              payouts actually flow.
             </li>
             <li>
               Block off time this week to complete your first three inspections.
@@ -266,7 +307,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Bottom grid. Recent activity + shortcuts */}
+      {/* Bottom grid. Recent activity plus shortcuts */}
       <section
         style={{
           display: 'grid',
