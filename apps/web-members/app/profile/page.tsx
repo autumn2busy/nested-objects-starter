@@ -104,7 +104,7 @@ export default function ProfilePage() {
           setTools(row.tools || '')
           setNotes(row.notes || '')
         } else {
-          // No profile yet. seed the form from email
+          // No profile yet, seed the form from email
           setProfile(null)
           setDisplayName(fallbackName)
           setHeadline('')
@@ -295,7 +295,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Top layout. avatar summary + form */}
+      {/* Top layout, avatar summary + form */}
       <section
         style={{
           display: 'grid',
@@ -304,7 +304,7 @@ export default function ProfilePage() {
           alignItems: 'flex-start',
         }}
       >
-        {/* Left. avatar + summary */}
+        {/* Left, avatar + summary */}
         <aside
           style={{
             borderRadius: '16px',
@@ -385,7 +385,7 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Right. editable form */}
+        {/* Right, editable form */}
         <section
           style={{
             borderRadius: '16px',
