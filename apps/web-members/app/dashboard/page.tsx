@@ -5,9 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
 function getPlanName(uid: string | null): string {
   switch (uid) {
     case 'L9nbKV9Z':
@@ -23,11 +20,23 @@ function getPlanName(uid: string | null): string {
   }
 }
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+type ProfileHeader = {
+  display_name: string | null
+}
+
 export default function DashboardPage() {
-  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth() as any
+  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
   const router = useRouter()
 
-  const [profileName, setProfileName] = useState<string | null>(null)
+  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
+
+  const userEmail: string | null =
+    ((user as any)?.email as string | undefined) ??
+    ((user as any)?.Email as string | undefined) ??
+    null
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -35,66 +44,55 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, router])
 
-  // Pull first name from Outseta auth
-  const firstNameFromAuth: string =
-    user?.first_name ??
-    user?.FirstName ??
-    (user?.name ? (user.name as string).split(' ')[0] : undefined) ??
-    (user?.email ? (user.email as string).split('@')[0] : undefined) ??
-    'Member'
-
-  const greetingName: string = profileName || firstNameFromAuth
-
-  const initialsSource = greetingName || firstNameFromAuth
-  const initials = initialsSource.charAt(0).toUpperCase()
-
-  const planName = getPlanName(planUid ?? null)
-
-  // Load profile display_name from Supabase so dashboard reflects /profile updates
+  // Pull display_name from Supabase profiles so the dashboard greeting
+  // always reflects what the user saved on their profile page.
   useEffect(() => {
     async function loadProfileName() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
-      if (!user?.email) return
+      if (!userEmail) return
 
       try {
-        const encodedEmail = encodeURIComponent(user.email as string)
+        const encodedEmail = encodeURIComponent(userEmail)
         const url =
           `${SUPABASE_URL}/rest/v1/profiles` +
           `?user_email=eq.${encodedEmail}` +
-          `&select=display_name` +
-          `&limit=1`
+          `&select=display_name`
 
         const res = await fetch(url, {
           headers: {
-            apikey: SUPABASE_ANON_KEY,
+            apikey: SUPABASE_ANON_KEY as string,
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           },
         })
 
-        if (!res.ok) {
-          // soft-fail. dashboard still works with Outseta name
-          console.warn(
-            'Failed to load profile name for dashboard',
-            res.status,
-            res.statusText,
-          )
-          return
-        }
+        if (!res.ok) return
 
-        const rows = (await res.json()) as { display_name: string | null }[]
+        const rows = (await res.json()) as ProfileHeader[]
         const row = rows[0]
-        if (row?.display_name) {
-          setProfileName(row.display_name)
+        if (row && row.display_name) {
+          setProfileDisplayName(row.display_name)
         }
       } catch (err) {
-        console.error('Error loading profile name for dashboard', err)
+        console.error('Error loading profile display name', err)
       }
     }
 
     if (!isLoading && isAuthenticated) {
       loadProfileName()
     }
-  }, [isLoading, isAuthenticated, user?.email])
+  }, [isLoading, isAuthenticated, userEmail])
+
+  const planName = getPlanName(planUid ?? null)
+
+  const firstName =
+    profileDisplayName ??
+    (user as any)?.first_name ??
+    (user as any)?.FirstName ??
+    (user?.name ? user.name.split(' ')[0] : undefined) ??
+    (user?.email ? user.email.split('@')[0] : undefined) ??
+    'Member'
+
+  const initials = firstName.charAt(0).toUpperCase()
 
   if (isLoading || !isAuthenticated || !user) {
     return (
@@ -210,7 +208,7 @@ export default function DashboardPage() {
                     fontWeight: 500,
                   }}
                 >
-                  {greetingName}
+                  {firstName}
                 </span>
                 {planName !== 'Unknown' && (
                   <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
@@ -247,7 +245,7 @@ export default function DashboardPage() {
             marginBottom: '0.5rem',
           }}
         >
-          Welcome back, {greetingName}! 👋
+          Welcome back, {firstName}! 👋
         </h2>
         <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
           This is your Nested Objects home base.
@@ -297,7 +295,7 @@ export default function DashboardPage() {
               color: '#6b7280',
             }}
           >
-            Next step: add your service area and skills so hiring firms can match you
+            Next step. add your service area and skills so hiring firms can match you
             faster.
           </p>
         </div>
@@ -337,7 +335,7 @@ export default function DashboardPage() {
               marginBottom: '0.5rem',
             }}
           >
-            Current plan: <strong>{planName}</strong>
+            Current plan. <strong>{planName}</strong>
           </p>
           <p
             style={{
@@ -346,7 +344,7 @@ export default function DashboardPage() {
               marginBottom: '1rem',
             }}
           >
-            Upgrade when you are ready for more tools, not before.
+            Upgrade when you are ready for more tools. not before.
           </p>
           <div
             style={{
@@ -411,7 +409,7 @@ export default function DashboardPage() {
               color: '#4b5563',
             }}
           >
-            <li>Finish your profile basics: name, email, service area.</li>
+            <li>Finish your profile basics. name, email, service area.</li>
             <li>Bookmark three hiring firms you would love to work with.</li>
             <li>
               Skim the Field Inspection Starter Kit so you understand how the work and
@@ -422,7 +420,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Bottom grid: Recent activity + shortcuts */}
+      {/* Bottom grid. Recent activity + shortcuts */}
       <section
         style={{
           display: 'grid',
