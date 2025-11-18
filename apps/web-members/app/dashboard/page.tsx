@@ -1,9 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 function getPlanName(uid: string | null): string {
   switch (uid) {
@@ -21,8 +24,10 @@ function getPlanName(uid: string | null): string {
 }
 
 export default function DashboardPage() {
-  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
+  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth() as any
   const router = useRouter()
+
+  const [profileName, setProfileName] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -30,16 +35,66 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, router])
 
-  const planName = getPlanName(planUid ?? null)
-
-  const firstName =
-    (user as any)?.first_name ??
-    (user as any)?.FirstName ??
-    (user?.name ? user.name.split(' ')[0] : undefined) ??
-    (user?.email ? user.email.split('@')[0] : undefined) ??
+  // Pull first name from Outseta auth
+  const firstNameFromAuth: string =
+    user?.first_name ??
+    user?.FirstName ??
+    (user?.name ? (user.name as string).split(' ')[0] : undefined) ??
+    (user?.email ? (user.email as string).split('@')[0] : undefined) ??
     'Member'
 
-  const initials = firstName.charAt(0).toUpperCase()
+  const greetingName: string = profileName || firstNameFromAuth
+
+  const initialsSource = greetingName || firstNameFromAuth
+  const initials = initialsSource.charAt(0).toUpperCase()
+
+  const planName = getPlanName(planUid ?? null)
+
+  // Load profile display_name from Supabase so dashboard reflects /profile updates
+  useEffect(() => {
+    async function loadProfileName() {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+      if (!user?.email) return
+
+      try {
+        const encodedEmail = encodeURIComponent(user.email as string)
+        const url =
+          `${SUPABASE_URL}/rest/v1/profiles` +
+          `?user_email=eq.${encodedEmail}` +
+          `&select=display_name` +
+          `&limit=1`
+
+        const res = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        })
+
+        if (!res.ok) {
+          // soft-fail. dashboard still works with Outseta name
+          console.warn(
+            'Failed to load profile name for dashboard',
+            res.status,
+            res.statusText,
+          )
+          return
+        }
+
+        const rows = (await res.json()) as { display_name: string | null }[]
+        const row = rows[0]
+        if (row?.display_name) {
+          setProfileName(row.display_name)
+        }
+      } catch (err) {
+        console.error('Error loading profile name for dashboard', err)
+      }
+    }
+
+    if (!isLoading && isAuthenticated) {
+      loadProfileName()
+    }
+  }, [isLoading, isAuthenticated, user?.email])
 
   if (isLoading || !isAuthenticated || !user) {
     return (
@@ -155,7 +210,7 @@ export default function DashboardPage() {
                     fontWeight: 500,
                   }}
                 >
-                  {firstName}
+                  {greetingName}
                 </span>
                 {planName !== 'Unknown' && (
                   <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
@@ -192,7 +247,7 @@ export default function DashboardPage() {
             marginBottom: '0.5rem',
           }}
         >
-          Welcome back, {firstName}! 👋
+          Welcome back, {greetingName}! 👋
         </h2>
         <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
           This is your Nested Objects home base.
@@ -242,7 +297,8 @@ export default function DashboardPage() {
               color: '#6b7280',
             }}
           >
-            Next step: add your service area and skills so hiring firms can match you faster.
+            Next step: add your service area and skills so hiring firms can match you
+            faster.
           </p>
         </div>
       </section>
