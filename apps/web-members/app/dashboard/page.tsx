@@ -242,8 +242,7 @@ export default function DashboardPage() {
               color: '#6b7280',
             }}
           >
-            Next step. add your service area and skills so hiring firms can match you
-            faster.
+            Next step: add your service area and skills so hiring firms can match you faster.
           </p>
         </div>
       </section>
@@ -282,7 +281,7 @@ export default function DashboardPage() {
               marginBottom: '0.5rem',
             }}
           >
-            Current plan. <strong>{planName}</strong>
+            Current plan: <strong>{planName}</strong>
           </p>
           <p
             style={{
@@ -291,7 +290,7 @@ export default function DashboardPage() {
               marginBottom: '1rem',
             }}
           >
-            Upgrade when you are ready for more tools. not before.
+            Upgrade when you are ready for more tools, not before.
           </p>
           <div
             style={{
@@ -336,7 +335,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid '#e5e7eb',
+            border: '1px solid #e5e7eb',
             backgroundColor: 'white',
           }}
         >
@@ -356,7 +355,7 @@ export default function DashboardPage() {
               color: '#4b5563',
             }}
           >
-            <li>Finish your profile basics. name, email, service area.</li>
+            <li>Finish your profile basics: name, email, service area.</li>
             <li>Bookmark three hiring firms you would love to work with.</li>
             <li>
               Skim the Field Inspection Starter Kit so you understand how the work and
@@ -367,7 +366,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Bottom grid. Recent activity + shortcuts */}
+      {/* Bottom grid: Recent activity + shortcuts */}
       <section
         style={{
           display: 'grid',
@@ -380,7 +379,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid '#e5e7eb',
+            border: '1px solid #e5e7eb',
             backgroundColor: 'white',
           }}
         >
@@ -406,7 +405,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid '#e5e7eb',
+            border: '1px solid #e5e7eb',
             backgroundColor: 'white',
           }}
         >
