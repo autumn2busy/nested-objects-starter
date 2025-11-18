@@ -21,7 +21,6 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default function ProfilePage() {
-  // Treat auth as any so we can safely grab fields from Outseta
   const auth = useAuth() as any
   const { isAuthenticated, isLoading, user } = auth
   const userEmail: string | null = (user?.email as string | undefined) ?? null
@@ -40,7 +39,6 @@ export default function ProfilePage() {
   const [tools, setTools] = useState('')
   const [notes, setNotes] = useState('')
 
-  // Pull first name from Outseta user as the canonical fallback
   const firstNameFromAuth: string | undefined =
     user?.first_name ??
     user?.FirstName ??
@@ -53,10 +51,7 @@ export default function ProfilePage() {
     'Member'
 
   const emailLabel = userEmail ?? 'Your profile'
-
-  // What we actually show in the UI for the name/avatar
   const effectiveDisplayName = displayName || nameFallbackFromAuth
-
   const initials = effectiveDisplayName
     .split(' ')
     .filter(Boolean)
@@ -64,7 +59,6 @@ export default function ProfilePage() {
     .map((part) => part.charAt(0).toUpperCase())
     .join('')
 
-  // Load profile from Supabase
   useEffect(() => {
     async function loadProfile() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -114,7 +108,6 @@ export default function ProfilePage() {
           setTools(row.tools || '')
           setNotes(row.notes || '')
         } else {
-          // No profile yet. seed the form from Outseta first name
           setProfile(null)
           setDisplayName(nameFallbackFromAuth)
           setHeadline('')
@@ -208,7 +201,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Not logged in
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -266,7 +258,6 @@ export default function ProfilePage() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Header */}
       <header
         style={{
           display: 'flex',
@@ -306,7 +297,6 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Top layout. avatar summary + form */}
       <section
         style={{
           display: 'grid',
@@ -315,11 +305,10 @@ export default function ProfilePage() {
           alignItems: 'flex-start',
         }}
       >
-        {/* Left. avatar + summary */}
         <aside
           style={{
             borderRadius: '16px',
-            border: '1px solid '#e5e7eb',
+            border: '1px solid #e5e7eb',
             padding: '1.5rem 1.5rem 1.25rem',
             background:
               'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.04))',
@@ -378,7 +367,7 @@ export default function ProfilePage() {
             }}
           >
             <p style={{ marginTop: 0, marginBottom: '0.4rem' }}>
-              Treat this like your “inspector resume” inside Nested Objects.
+              Treat this like your "inspector resume" inside Nested Objects.
             </p>
             <ul
               style={{
@@ -396,7 +385,6 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Right. editable form */}
         <section
           style={{
             borderRadius: '16px',
@@ -592,7 +580,7 @@ export default function ProfilePage() {
                       width: '100%',
                       padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
-                      border: '1px solid '#d1d5db',
+                      border: '1px solid #d1d5db',
                       fontSize: '0.9rem',
                     }}
                   />
