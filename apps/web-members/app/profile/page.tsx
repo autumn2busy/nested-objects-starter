@@ -1,97 +1,83 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 
 type Profile = {
   id?: string
   user_email: string
-  full_name: string
-  headline: string
-  city: string
-  state: string
-  primary_services: string
-  experience_level: string
-  bio: string
-  avatar_url: string
+  display_name: string | null
+  headline: string | null
+  city: string | null
+  state: string | null
+  primary_interest: string | null
+  tools: string | null
+  notes: string | null
+  avatar_url: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-function getInitials(source?: string | null) {
-  if (!source) return 'N'
-  const fromEmail = source.includes('@')
-    ? source.split('@')[0]?.replace(/[._]/g, ' ')
-    : source
-
-  const parts = fromEmail
-    .split(' ')
-    .filter((p) => p.trim().length > 0)
-
-  if (parts.length === 0) return 'N'
-  if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase()
-
-  return (
-    parts[0]!.charAt(0).toUpperCase() +
-    parts[parts.length - 1]!.charAt(0).toUpperCase()
-  )
-}
-
 export default function ProfilePage() {
+  // Treat auth as any so we can safely grab user.email even if the hook’s type is strict
   const auth = useAuth() as any
   const { isAuthenticated, isLoading } = auth
-  const user = auth.user ?? null
-
   const userEmail: string | null =
-    user?.email ??
-    user?.Email ??
-    user?.primaryEmail ??
-    user?.PrimaryEmail ??
-    null
+    (auth?.user?.email as string | undefined) ?? null
 
-  const fallbackName: string =
-    user?.fullName ??
-    user?.FullName ??
-    user?.name ??
-    user?.Name ??
-    (userEmail ?? '')
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
-  const [profile, setProfile] = useState<Profile>({
-    user_email: userEmail ?? '',
-    full_name: fallbackName || '',
-    headline: '',
-    city: '',
-    state: '',
-    primary_services: '',
-    experience_level: '',
-    bio: '',
-    avatar_url: '',
-  })
+  const [displayName, setDisplayName] = useState('')
+  const [headline, setHeadline] = useState('')
+  const [city, setCity] = useState('')
+  const [state, setState] = useState('')
+  const [primaryInterest, setPrimaryInterest] = useState('')
+  const [tools, setTools] = useState('')
+  const [notes, setNotes] = useState('')
 
-  const [loadingProfile, setLoadingProfile] = useState<boolean>(true)
-  const [saving, setSaving] = useState<boolean>(false)
-  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  // Derive a label and initials for the avatar
+  const emailLabel = userEmail ?? 'Your profile'
+  const fallbackName =
+    profile?.display_name ||
+    emailLabel.split('@')[0]?.replace(/[._]/g, ' ') ||
+    'Member'
+  const initials = fallbackName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
 
-  const initials = useMemo(
-    () => getInitials(profile.full_name || userEmail || 'Nested Objects'),
-    [profile.full_name, userEmail],
-  )
-
+  // Load profile from Supabase
   useEffect(() => {
-    if (!userEmail || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      setLoadingProfile(false)
-      return
-    }
-
-    let cancelled = false
-
     async function loadProfile() {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setError('Profile service is temporarily unavailable.')
+        setLoadingProfile(false)
+        return
+      }
+
+      if (!userEmail) {
+        setError('No user email found for this session.')
+        setLoadingProfile(false)
+        return
+      }
+
       try {
+        setLoadingProfile(true)
+        setError(null)
+        setSuccess(null)
+
+        const encodedEmail = encodeURIComponent(userEmail)
         const url =
           `${SUPABASE_URL}/rest/v1/profiles` +
-          `?user_email=eq.${encodeURIComponent(userEmail)}` +
+          `?user_email=eq.${encodedEmail}` +
           `&select=*`
 
         const res = await fetch(url, {
@@ -102,86 +88,116 @@ export default function ProfilePage() {
         })
 
         if (!res.ok) {
-          console.error('Failed to load profile', await res.text())
-          return
+          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
         }
 
         const rows = (await res.json()) as Profile[]
+        const row = rows[0] ?? null
 
-        if (cancelled) return
-
-        if (rows.length > 0) {
-          setProfile(rows[0])
+        if (row) {
+          setProfile(row)
+          setDisplayName(row.display_name || '')
+          setHeadline(row.headline || '')
+          setCity(row.city || '')
+          setState(row.state || '')
+          setPrimaryInterest(row.primary_interest || '')
+          setTools(row.tools || '')
+          setNotes(row.notes || '')
         } else {
-          // seed with auth data if no profile row yet
-          setProfile((prev) => ({
-            ...prev,
-            user_email: userEmail,
-            full_name: fallbackName || prev.full_name,
-          }))
+          // No profile yet. seed the form from email
+          setProfile(null)
+          setDisplayName(fallbackName)
+          setHeadline('')
+          setCity('')
+          setState('')
+          setPrimaryInterest('')
+          setTools('')
+          setNotes('')
         }
       } catch (err) {
         console.error('Error loading profile', err)
+        setError(
+          err instanceof Error ? err.message : 'Unknown error while loading profile',
+        )
       } finally {
-        if (!cancelled) setLoadingProfile(false)
+        setLoadingProfile(false)
       }
     }
 
-    loadProfile()
-
-    return () => {
-      cancelled = true
+    if (!isLoading && isAuthenticated) {
+      loadProfile()
     }
-  }, [userEmail, fallbackName])
+  }, [isLoading, isAuthenticated, userEmail, fallbackName])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      setSaveMessage('Supabase is not configured on this project.')
+      setError('Profile service is temporarily unavailable.')
       return
     }
     if (!userEmail) {
-      setSaveMessage('You need to be logged in to save your profile.')
+      setError('No user email found for this session.')
       return
     }
 
-    setSaving(true)
-    setSaveMessage(null)
-
     try {
-      const url = `${SUPABASE_URL}/rest/v1/profiles`
-      const payload: Profile = {
-        ...profile,
+      setSaving(true)
+      setError(null)
+      setSuccess(null)
+
+      const payload = {
         user_email: userEmail,
+        display_name: displayName || null,
+        headline: headline || null,
+        city: city || null,
+        state: state || null,
+        primary_interest: primaryInterest || null,
+        tools: tools || null,
+        notes: notes || null,
       }
 
+      const encodedEmail = encodeURIComponent(userEmail)
+      const hasExisting = !!profile
+
+      const url = hasExisting
+        ? `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}`
+        : `${SUPABASE_URL}/rest/v1/profiles`
+
+      const method = hasExisting ? 'PATCH' : 'POST'
+
       const res = await fetch(url, {
-        method: 'POST',
+        method,
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates',
+          Prefer: 'return=representation',
         },
-        body: JSON.stringify([payload]),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        console.error('Save error', text)
-        setSaveMessage('Something went wrong saving your profile. Try again.')
-        return
+        throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
       }
 
-      setSaveMessage('Profile saved.')
+      const rows = (await res.json()) as Profile[]
+      const row = rows[0] ?? null
+      if (row) {
+        setProfile(row)
+      }
+
+      setSuccess('Profile updated.')
     } catch (err) {
-      console.error(err)
-      setSaveMessage('Something went wrong saving your profile.')
+      console.error('Error saving profile', err)
+      setError(
+        err instanceof Error ? err.message : 'Unknown error while saving profile',
+      )
     } finally {
       setSaving(false)
     }
   }
 
+  // Not logged in
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -196,10 +212,9 @@ export default function ProfilePage() {
           Your profile
         </h1>
         <p style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
-          Log in to set up your inspector profile so firms know who they are assigning work to.
+          Log in to view and personalize your Nested Objects profile.
         </p>
-
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem' }}>
           <a
             href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
             style={{
@@ -234,12 +249,13 @@ export default function ProfilePage() {
   return (
     <main
       style={{
-        maxWidth: '960px',
+        maxWidth: '1100px',
         margin: '0 auto',
         padding: '2rem 1.5rem 3rem',
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
+      {/* Header */}
       <header
         style={{
           display: 'flex',
@@ -260,11 +276,11 @@ export default function ProfilePage() {
           >
             Account
           </p>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>
             Your inspector profile
           </h1>
-          <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.3rem' }}>
-            This is what firms see when they click into your profile from the directory tools.
+          <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.35rem' }}>
+            This is what Nested Objects will use to match you to firms, gigs, and tools.
           </p>
         </div>
 
@@ -275,123 +291,98 @@ export default function ProfilePage() {
           >
             ← Back to dashboard
           </Link>
+          <div style={{ marginTop: '0.25rem' }}>{emailLabel}</div>
         </div>
       </header>
 
+      {/* Top layout. avatar summary + form */}
       <section
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 2fr)',
+          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1.8fr)',
           gap: '1.75rem',
           alignItems: 'flex-start',
         }}
       >
-        {/* Left. avatar and snapshot */}
+        {/* Left. avatar + summary */}
         <aside
           style={{
             borderRadius: '16px',
             border: '1px solid #e5e7eb',
-            padding: '1.5rem',
-            backgroundColor: '#f9fafb',
+            padding: '1.5rem 1.5rem 1.25rem',
+            background:
+              'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.04))',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div
               style={{
-                width: '72px',
-                height: '72px',
+                width: 64,
+                height: 64,
                 borderRadius: '999px',
                 background:
-                  profile.avatar_url
-                    ? 'transparent'
-                    : 'radial-gradient(circle at 0 0, #4f46e5, #111827)',
+                  'radial-gradient(circle at 30% 30%, #4f46e5, #0f766e)',
                 color: 'white',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: '1.5rem',
-                overflow: 'hidden',
+                fontSize: '1.4rem',
+                boxShadow: '0 10px 25px rgba(15,23,42,0.35)',
               }}
             >
-              {profile.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name || 'Avatar'}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              ) : (
-                initials
-              )}
+              {initials || '?'}
             </div>
-
             <div>
               <div
                 style={{
-                  fontSize: '1rem',
+                  fontSize: '1.1rem',
                   fontWeight: 600,
                   marginBottom: '0.1rem',
                 }}
               >
-                {profile.full_name || 'Your name'}
+                {displayName || fallbackName}
               </div>
               <div
                 style={{
                   fontSize: '0.85rem',
-                  color: '#6b7280',
-                  marginBottom: '0.2rem',
+                  color: '#4b5563',
+                  marginBottom: '0.15rem',
                 }}
               >
-                {profile.headline || 'Independent field services pro'}
+                {headline || 'Add a short headline so firms know your lane.'}
               </div>
-              {userEmail && (
-                <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
-                  {userEmail}
-                </div>
-              )}
+              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                {city && state ? `${city}, ${state}` : 'Add your city and state.'}
+              </div>
             </div>
           </div>
 
-          <hr
+          <div
             style={{
-              margin: '1.25rem 0',
-              border: 'none',
-              borderTop: '1px solid #e5e7eb',
-            }}
-          />
-
-          <dl
-            style={{
+              marginTop: '1.25rem',
               fontSize: '0.85rem',
               color: '#4b5563',
-              display: 'grid',
-              rowGap: '0.4rem',
+              lineHeight: 1.5,
             }}
           >
-            <div>
-              <dt style={{ color: '#9ca3af' }}>Location</dt>
-              <dd>
-                {profile.city || profile.state
-                  ? [profile.city, profile.state].filter(Boolean).join(', ')
-                  : 'Add your city and state'}
-              </dd>
-            </div>
-            <div>
-              <dt style={{ color: '#9ca3af' }}>Primary services</dt>
-              <dd>
-                {profile.primary_services || 'Ex. mortgage occupancy, insurance, REO'}
-              </dd>
-            </div>
-            <div>
-              <dt style={{ color: '#9ca3af' }}>Experience level</dt>
-              <dd>{profile.experience_level || 'Tell firms how seasoned you are.'}</dd>
-            </div>
-          </dl>
+            <p style={{ marginTop: 0, marginBottom: '0.4rem' }}>
+              Treat this like your “inspector resume” inside Nested Objects.
+            </p>
+            <ul
+              style={{
+                paddingLeft: '1.1rem',
+                margin: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem',
+              }}
+            >
+              <li>Highlight your main field services lanes and regions.</li>
+              <li>List tools you already use so firms know you are plug and play.</li>
+              <li>Use the notes area to track goals, certifications, or next steps.</li>
+            </ul>
+          </div>
         </aside>
 
         {/* Right. editable form */}
@@ -399,48 +390,112 @@ export default function ProfilePage() {
           style={{
             borderRadius: '16px',
             border: '1px solid #e5e7eb',
-            padding: '1.5rem 1.75rem',
+            padding: '1.5rem 1.75rem 1.5rem',
             backgroundColor: 'white',
+            boxShadow:
+              '0 14px 28px rgba(15,23,42,0.05), 0 3px 6px rgba(15,23,42,0.06)',
           }}
         >
-          <form onSubmit={handleSave}>
-            <fieldset disabled={loadingProfile || saving} style={{ border: 'none', padding: 0, margin: 0 }}>
-              <legend
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  marginBottom: '1rem',
-                }}
-              >
-                Edit your profile
-              </legend>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              Profile details
+            </h2>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: '#6b7280',
+              }}
+            >
+              Firms never see your email unless you share it directly.
+            </span>
+          </div>
+
+          {loadingProfile && (
+            <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+              Loading your profile…
+            </p>
+          )}
+
+          {!loadingProfile && (
+            <form
+              onSubmit={handleSave}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
+              {error && (
+                <div
+                  style={{
+                    borderRadius: '8px',
+                    padding: '0.75rem 0.9rem',
+                    fontSize: '0.85rem',
+                    backgroundColor: '#fef2f2',
+                    color: '#b91c1c',
+                    border: '1px solid #fecaca',
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div
+                  style={{
+                    borderRadius: '8px',
+                    padding: '0.75rem 0.9rem',
+                    fontSize: '0.85rem',
+                    backgroundColor: '#ecfdf5',
+                    color: '#047857',
+                    border: '1px solid #bbf7d0',
+                  }}
+                >
+                  {success}
+                </div>
+              )}
 
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1rem',
+                  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                  gap: '0.9rem 1rem',
                 }}
               >
                 <div>
                   <label
-                    htmlFor="full_name"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+                    htmlFor="displayName"
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      color: '#6b7280',
+                      marginBottom: '0.15rem',
+                    }}
                   >
-                    Full name
+                    Name or display name
                   </label>
                   <input
-                    id="full_name"
+                    id="displayName"
                     type="text"
-                    value={profile.full_name}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, full_name: e.target.value }))
-                    }
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="e,g. Autumn Williams"
                     style={{
-                      marginTop: '0.25rem',
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
                       border: '1px solid #d1d5db',
                       fontSize: '0.9rem',
@@ -451,133 +506,27 @@ export default function ProfilePage() {
                 <div>
                   <label
                     htmlFor="headline"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      color: '#6b7280',
+                      marginBottom: '0.15rem',
+                    }}
                   >
                     Headline
                   </label>
                   <input
                     id="headline"
                     type="text"
-                    placeholder="Ex. Mortgage occupancy inspector, ATL region"
-                    value={profile.headline}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, headline: e.target.value }))
-                    }
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="e,g. Mortgage inspector · Atlanta metro · 5 years"
                     style={{
-                      marginTop: '0.25rem',
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
                       border: '1px solid #d1d5db',
                       fontSize: '0.9rem',
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 1fr',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                }}
-              >
-                <div>
-                  <label
-                    htmlFor="primary_services"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
-                  >
-                    Primary services
-                  </label>
-                  <input
-                    id="primary_services"
-                    type="text"
-                    placeholder="Ex. Property inspection, insurance loss, mystery shop"
-                    value={profile.primary_services}
-                    onChange={(e) =>
-                      setProfile((p) => ({
-                        ...p,
-                        primary_services: e.target.value,
-                      }))
-                    }
-                    style={{
-                      marginTop: '0.25rem',
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="experience_level"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
-                  >
-                    Experience level
-                  </label>
-                  <select
-                    id="experience_level"
-                    value={profile.experience_level}
-                    onChange={(e) =>
-                      setProfile((p) => ({
-                        ...p,
-                        experience_level: e.target.value,
-                      }))
-                    }
-                    style={{
-                      marginTop: '0.25rem',
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                      backgroundColor: 'white',
-                    }}
-                  >
-                    <option value="">Select one</option>
-                    <option value="New to field services">New to field services</option>
-                    <option value="1-2 years active">1–2 years active</option>
-                    <option value="3-5 years active">3–5 years active</option>
-                    <option value="5+ years, high volume">5+ years, high volume</option>
-                  </select>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 1fr',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                }}
-              >
-                <div>
-                  <label
-                    htmlFor="bio"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
-                  >
-                    Short bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    rows={4}
-                    placeholder="Share how you work, what regions you know best, and what types of assignments you are built for."
-                    value={profile.bio}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, bio: e.target.value }))
-                    }
-                    style={{
-                      marginTop: '0.25rem',
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                      resize: 'vertical',
                     }}
                   />
                 </div>
@@ -585,86 +534,143 @@ export default function ProfilePage() {
                 <div>
                   <label
                     htmlFor="city"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      color: '#6b7280',
+                      marginBottom: '0.15rem',
+                    }}
                   >
                     City
                   </label>
                   <input
                     id="city"
                     type="text"
-                    value={profile.city}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, city: e.target.value }))
-                    }
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e,g. Atlanta"
                     style={{
-                      marginTop: '0.25rem',
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
                       border: '1px solid #d1d5db',
                       fontSize: '0.9rem',
-                      marginBottom: '0.75rem',
                     }}
                   />
+                </div>
 
+                <div>
                   <label
                     htmlFor="state"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
+                    style={{
+                      display: 'block',
+                      fontSize: '0.8rem',
+                      color: '#6b7280',
+                      marginBottom: '0.15rem',
+                    }}
                   >
                     State
                   </label>
                   <input
                     id="state"
                     type="text"
-                    value={profile.state}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, state: e.target.value }))
-                    }
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    placeholder="e,g. GA"
                     style={{
-                      marginTop: '0.25rem',
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                      marginBottom: '0.75rem',
-                    }}
-                  />
-
-                  <label
-                    htmlFor="avatar_url"
-                    style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280' }}
-                  >
-                    Avatar image URL
-                  </label>
-                  <input
-                    id="avatar_url"
-                    type="url"
-                    placeholder="Paste a square image link here"
-                    value={profile.avatar_url}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, avatar_url: e.target.value }))
-                    }
-                    style={{
-                      marginTop: '0.25rem',
-                      width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
                       border: '1px solid #d1d5db',
                       fontSize: '0.9rem',
                     }}
                   />
-                  <p
-                    style={{
-                      fontSize: '0.75rem',
-                      color: '#9ca3af',
-                      marginTop: '0.25rem',
-                    }}
-                  >
-                    Later we can swap this for a true upload flow. For now you can use an
-                    image from Google Drive, Notion, or another host.
-                  </p>
                 </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="primaryInterest"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    marginBottom: '0.15rem',
+                  }}
+                >
+                  Primary lanes or interests
+                </label>
+                <input
+                  id="primaryInterest"
+                  type="text"
+                  value={primaryInterest}
+                  onChange={(e) => setPrimaryInterest(e.target.value)}
+                  placeholder="e,g. Mortgage occupancy inspections, insurance loss, REO"
+                  style={{
+                    width: '100%',
+                    padding: '0.55rem 0.7rem',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.9rem',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="tools"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    marginBottom: '0.15rem',
+                  }}
+                >
+                  Tools and platforms you already use
+                </label>
+                <input
+                  id="tools"
+                  type="text"
+                  value={tools}
+                  onChange={(e) => setTools(e.target.value)}
+                  placeholder="e,g. Aspen iAgent, EZInspections, Spectora, FieldCom"
+                  style={{
+                    width: '100%',
+                    padding: '0.55rem 0.7rem',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.9rem',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="notes"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    marginBottom: '0.15rem',
+                  }}
+                >
+                  Notes, goals, or certifications
+                </label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                  placeholder="e,g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.7rem',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.9rem',
+                    resize: 'vertical',
+                  }}
+                />
               </div>
 
               <div
@@ -672,41 +678,41 @@ export default function ProfilePage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginTop: '1rem',
-                  gap: '1rem',
+                  marginTop: '0.75rem',
+                  gap: '0.75rem',
                 }}
               >
                 <button
                   type="submit"
                   disabled={saving}
                   style={{
-                    padding: '0.65rem 1.4rem',
+                    padding: '0.7rem 1.6rem',
                     borderRadius: '999px',
                     border: 'none',
-                    backgroundColor: '#3b82f6',
+                    backgroundColor: saving ? '#93c5fd' : '#3b82f6',
                     color: 'white',
-                    fontSize: '0.9rem',
+                    fontSize: '0.95rem',
                     fontWeight: 600,
-                    cursor: 'pointer',
-                    opacity: saving ? 0.8 : 1,
+                    cursor: saving ? 'default' : 'pointer',
                   }}
                 >
                   {saving ? 'Saving…' : 'Save profile'}
                 </button>
 
-                {saveMessage && (
-                  <p
-                    style={{
-                      fontSize: '0.8rem',
-                      color: saveMessage.includes('saved') ? '#166534' : '#b91c1c',
-                    }}
-                  >
-                    {saveMessage}
-                  </p>
-                )}
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    color: '#6b7280',
+                    margin: 0,
+                    textAlign: 'right',
+                  }}
+                >
+                  As we roll out more tools, this profile will help auto match you to
+                  firms, training, and routes.
+                </p>
               </div>
-            </fieldset>
-          </form>
+            </form>
+          )}
         </section>
       </section>
     </main>
