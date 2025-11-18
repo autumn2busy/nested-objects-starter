@@ -21,9 +21,16 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default function ProfilePage() {
+  // Treat auth as any so we can safely grab user.email etc even if the hook type is strict
   const auth = useAuth() as any
-  const { isAuthenticated, isLoading, user } = auth
-  const userEmail: string | null = (user?.email as string | undefined) ?? null
+  const { isAuthenticated, isLoading } = auth
+  const userEmail: string | null =
+    (auth?.user?.email as string | undefined) ?? null
+
+  const outsetaFirstName: string | null =
+    (auth?.user?.FirstName as string | undefined) ??
+    (auth?.user?.first_name as string | undefined) ??
+    null
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
@@ -39,26 +46,21 @@ export default function ProfilePage() {
   const [tools, setTools] = useState('')
   const [notes, setNotes] = useState('')
 
-  const firstNameFromAuth: string | undefined =
-    user?.first_name ??
-    user?.FirstName ??
-    (user?.name ? (user.name as string).split(' ')[0] : undefined)
-
-  const nameFallbackFromAuth: string =
-    firstNameFromAuth ||
-    (user?.name ? (user.name as string).split(' ')[0] : undefined) ||
-    (userEmail ? userEmail.split('@')[0]?.replace(/[._]/g, ' ') : '') ||
-    'Member'
-
+  // Derive a label and initials for the avatar
   const emailLabel = userEmail ?? 'Your profile'
-  const effectiveDisplayName = displayName || nameFallbackFromAuth
-  const initials = effectiveDisplayName
+  const fallbackName =
+    profile?.display_name ||
+    outsetaFirstName ||
+    emailLabel.split('@')[0]?.replace(/[._]/g, ' ') ||
+    'Member'
+  const initials = fallbackName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('')
 
+  // Load profile from Supabase
   useEffect(() => {
     async function loadProfile() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -100,7 +102,7 @@ export default function ProfilePage() {
 
         if (row) {
           setProfile(row)
-          setDisplayName(row.display_name || nameFallbackFromAuth)
+          setDisplayName(row.display_name || '')
           setHeadline(row.headline || '')
           setCity(row.city || '')
           setState(row.state || '')
@@ -108,8 +110,9 @@ export default function ProfilePage() {
           setTools(row.tools || '')
           setNotes(row.notes || '')
         } else {
+          // No profile yet. seed the form from Outseta name or email
           setProfile(null)
-          setDisplayName(nameFallbackFromAuth)
+          setDisplayName(fallbackName)
           setHeadline('')
           setCity('')
           setState('')
@@ -130,7 +133,7 @@ export default function ProfilePage() {
     if (!isLoading && isAuthenticated) {
       loadProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, nameFallbackFromAuth])
+  }, [isLoading, isAuthenticated, userEmail, fallbackName])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -150,7 +153,7 @@ export default function ProfilePage() {
 
       const payload = {
         user_email: userEmail,
-        display_name: displayName || nameFallbackFromAuth,
+        display_name: displayName || null,
         headline: headline || null,
         city: city || null,
         state: state || null,
@@ -187,7 +190,9 @@ export default function ProfilePage() {
       const row = rows[0] ?? null
       if (row) {
         setProfile(row)
-        setDisplayName(row.display_name || nameFallbackFromAuth)
+        if (row.display_name) {
+          setDisplayName(row.display_name)
+        }
       }
 
       setSuccess('Profile updated.')
@@ -201,6 +206,7 @@ export default function ProfilePage() {
     }
   }
 
+  // Not logged in
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -258,6 +264,7 @@ export default function ProfilePage() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
+      {/* Header */}
       <header
         style={{
           display: 'flex',
@@ -297,6 +304,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
+      {/* Top layout. avatar summary + form */}
       <section
         style={{
           display: 'grid',
@@ -305,6 +313,7 @@ export default function ProfilePage() {
           alignItems: 'flex-start',
         }}
       >
+        {/* Left. avatar + summary */}
         <aside
           style={{
             borderRadius: '16px',
@@ -341,7 +350,7 @@ export default function ProfilePage() {
                   marginBottom: '0.1rem',
                 }}
               >
-                {effectiveDisplayName}
+                {displayName || fallbackName}
               </div>
               <div
                 style={{
@@ -367,7 +376,7 @@ export default function ProfilePage() {
             }}
           >
             <p style={{ marginTop: 0, marginBottom: '0.4rem' }}>
-              Treat this like your "inspector resume" inside Nested Objects.
+              Treat this like your “inspector resume” inside Nested Objects.
             </p>
             <ul
               style={{
@@ -385,6 +394,7 @@ export default function ProfilePage() {
           </div>
         </aside>
 
+        {/* Right. editable form */}
         <section
           style={{
             borderRadius: '16px',
@@ -491,7 +501,7 @@ export default function ProfilePage() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g. Autumn Williams"
+                    placeholder="e,g. Autumn Williams"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -519,7 +529,7 @@ export default function ProfilePage() {
                     type="text"
                     value={headline}
                     onChange={(e) => setHeadline(e.target.value)}
-                    placeholder="e.g. Mortgage inspector · Atlanta metro · 5 years"
+                    placeholder="e,g. Mortgage inspector · Atlanta metro · 5 years"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -547,7 +557,7 @@ export default function ProfilePage() {
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Atlanta"
+                    placeholder="e,g. Atlanta"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -575,7 +585,7 @@ export default function ProfilePage() {
                     type="text"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    placeholder="e.g. GA"
+                    placeholder="e,g. GA"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -604,7 +614,7 @@ export default function ProfilePage() {
                   type="text"
                   value={primaryInterest}
                   onChange={(e) => setPrimaryInterest(e.target.value)}
-                  placeholder="e.g. Mortgage occupancy inspections, insurance loss, REO"
+                  placeholder="e,g. Mortgage occupancy inspections, insurance loss, REO"
                   style={{
                     width: '100%',
                     padding: '0.55rem 0.7rem',
@@ -632,7 +642,7 @@ export default function ProfilePage() {
                   type="text"
                   value={tools}
                   onChange={(e) => setTools(e.target.value)}
-                  placeholder="e.g. Aspen iAgent, EZInspections, Spectora, FieldCom"
+                  placeholder="e,g. Aspen iAgent, EZInspections, Spectora, FieldCom"
                   style={{
                     width: '100%',
                     padding: '0.55rem 0.7rem',
@@ -660,7 +670,7 @@ export default function ProfilePage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
-                  placeholder="e.g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
+                  placeholder="e,g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
                   style={{
                     width: '100%',
                     padding: '0.6rem 0.7rem',
