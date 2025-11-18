@@ -21,11 +21,10 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default function ProfilePage() {
-  // Treat auth as any so we can safely grab user.email even if the hook’s type is strict
+  // Treat auth as any so we can safely grab fields from Outseta
   const auth = useAuth() as any
-  const { isAuthenticated, isLoading } = auth
-  const userEmail: string | null =
-    (auth?.user?.email as string | undefined) ?? null
+  const { isAuthenticated, isLoading, user } = auth
+  const userEmail: string | null = (user?.email as string | undefined) ?? null
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
@@ -41,13 +40,24 @@ export default function ProfilePage() {
   const [tools, setTools] = useState('')
   const [notes, setNotes] = useState('')
 
-  // Derive a label and initials for the avatar
-  const emailLabel = userEmail ?? 'Your profile'
-  const fallbackName =
-    profile?.display_name ||
-    emailLabel.split('@')[0]?.replace(/[._]/g, ' ') ||
+  // Pull first name from Outseta user as the canonical fallback
+  const firstNameFromAuth: string | undefined =
+    user?.first_name ??
+    user?.FirstName ??
+    (user?.name ? (user.name as string).split(' ')[0] : undefined)
+
+  const nameFallbackFromAuth: string =
+    firstNameFromAuth ||
+    (user?.name ? (user.name as string).split(' ')[0] : undefined) ||
+    (userEmail ? userEmail.split('@')[0]?.replace(/[._]/g, ' ') : '') ||
     'Member'
-  const initials = fallbackName
+
+  const emailLabel = userEmail ?? 'Your profile'
+
+  // What we actually show in the UI for the name/avatar
+  const effectiveDisplayName = displayName || nameFallbackFromAuth
+
+  const initials = effectiveDisplayName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -96,7 +106,7 @@ export default function ProfilePage() {
 
         if (row) {
           setProfile(row)
-          setDisplayName(row.display_name || '')
+          setDisplayName(row.display_name || nameFallbackFromAuth)
           setHeadline(row.headline || '')
           setCity(row.city || '')
           setState(row.state || '')
@@ -104,9 +114,9 @@ export default function ProfilePage() {
           setTools(row.tools || '')
           setNotes(row.notes || '')
         } else {
-          // No profile yet, seed the form from email
+          // No profile yet. seed the form from Outseta first name
           setProfile(null)
-          setDisplayName(fallbackName)
+          setDisplayName(nameFallbackFromAuth)
           setHeadline('')
           setCity('')
           setState('')
@@ -127,7 +137,7 @@ export default function ProfilePage() {
     if (!isLoading && isAuthenticated) {
       loadProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, fallbackName])
+  }, [isLoading, isAuthenticated, userEmail, nameFallbackFromAuth])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -147,7 +157,7 @@ export default function ProfilePage() {
 
       const payload = {
         user_email: userEmail,
-        display_name: displayName || null,
+        display_name: displayName || nameFallbackFromAuth,
         headline: headline || null,
         city: city || null,
         state: state || null,
@@ -184,6 +194,7 @@ export default function ProfilePage() {
       const row = rows[0] ?? null
       if (row) {
         setProfile(row)
+        setDisplayName(row.display_name || nameFallbackFromAuth)
       }
 
       setSuccess('Profile updated.')
@@ -295,7 +306,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Top layout, avatar summary + form */}
+      {/* Top layout. avatar summary + form */}
       <section
         style={{
           display: 'grid',
@@ -304,11 +315,11 @@ export default function ProfilePage() {
           alignItems: 'flex-start',
         }}
       >
-        {/* Left, avatar + summary */}
+        {/* Left. avatar + summary */}
         <aside
           style={{
             borderRadius: '16px',
-            border: '1px solid #e5e7eb',
+            border: '1px solid '#e5e7eb',
             padding: '1.5rem 1.5rem 1.25rem',
             background:
               'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.04))',
@@ -341,7 +352,7 @@ export default function ProfilePage() {
                   marginBottom: '0.1rem',
                 }}
               >
-                {displayName || fallbackName}
+                {effectiveDisplayName}
               </div>
               <div
                 style={{
@@ -385,7 +396,7 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Right, editable form */}
+        {/* Right. editable form */}
         <section
           style={{
             borderRadius: '16px',
@@ -492,7 +503,7 @@ export default function ProfilePage() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e,g. Autumn Williams"
+                    placeholder="e.g. Autumn Williams"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -520,7 +531,7 @@ export default function ProfilePage() {
                     type="text"
                     value={headline}
                     onChange={(e) => setHeadline(e.target.value)}
-                    placeholder="e,g. Mortgage inspector · Atlanta metro · 5 years"
+                    placeholder="e.g. Mortgage inspector · Atlanta metro · 5 years"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -548,7 +559,7 @@ export default function ProfilePage() {
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e,g. Atlanta"
+                    placeholder="e.g. Atlanta"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
@@ -576,12 +587,12 @@ export default function ProfilePage() {
                     type="text"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    placeholder="e,g. GA"
+                    placeholder="e.g. GA"
                     style={{
                       width: '100%',
                       padding: '0.55rem 0.7rem',
                       borderRadius: '8px',
-                      border: '1px solid #d1d5db',
+                      border: '1px solid '#d1d5db',
                       fontSize: '0.9rem',
                     }}
                   />
@@ -605,7 +616,7 @@ export default function ProfilePage() {
                   type="text"
                   value={primaryInterest}
                   onChange={(e) => setPrimaryInterest(e.target.value)}
-                  placeholder="e,g. Mortgage occupancy inspections, insurance loss, REO"
+                  placeholder="e.g. Mortgage occupancy inspections, insurance loss, REO"
                   style={{
                     width: '100%',
                     padding: '0.55rem 0.7rem',
@@ -633,7 +644,7 @@ export default function ProfilePage() {
                   type="text"
                   value={tools}
                   onChange={(e) => setTools(e.target.value)}
-                  placeholder="e,g. Aspen iAgent, EZInspections, Spectora, FieldCom"
+                  placeholder="e.g. Aspen iAgent, EZInspections, Spectora, FieldCom"
                   style={{
                     width: '100%',
                     padding: '0.55rem 0.7rem',
@@ -661,7 +672,7 @@ export default function ProfilePage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
-                  placeholder="e,g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
+                  placeholder="e.g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
                   style={{
                     width: '100%',
                     padding: '0.6rem 0.7rem',
