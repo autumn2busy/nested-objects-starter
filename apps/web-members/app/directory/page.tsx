@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 import Script from 'next/script'
@@ -103,7 +103,6 @@ function buildAddress(firm: Firm): string {
 declare global {
   interface Window {
     google: any
-    initMap: () => void
   }
 }
 
@@ -115,8 +114,10 @@ export default function DirectoryPage() {
   const [error, setError] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string>('ALL')
   const [search, setSearch] = useState<string>('')
-  const [map, setMap] = useState<any>(null)
-  const [markers, setMarkers] = useState<any[]>([])
+  const [mapLoaded, setMapLoaded] = useState(false)
+  
+  const mapRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
 
   useEffect(() => {
     async function fetchFirms() {
@@ -221,92 +222,88 @@ export default function DirectoryPage() {
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
-  // Initialize Google Map
+  // Initialize and update map
   useEffect(() => {
-    if (!GOOGLE_MAPS_KEY || displayedFirms.length === 0) return
+    if (!mapLoaded || !window.google || displayedFirms.length === 0) return
 
-    // Clear existing markers
-    markers.forEach(marker => marker.setMap(null))
-    setMarkers([])
-
-    // Initialize map if not exists
-    if (!map && window.google) {
+    // Initialize map only once
+    if (!mapRef.current) {
       const mapElement = document.getElementById('google-map')
       if (mapElement) {
-        const newMap = new window.google.maps.Map(mapElement, {
+        mapRef.current = new window.google.maps.Map(mapElement, {
           zoom: 4,
           center: { lat: 39.8283, lng: -98.5795 }, // Center of US
           mapTypeControl: true,
           streetViewControl: false,
           fullscreenControl: true,
         })
-        setMap(newMap)
       }
     }
 
-    // Add markers for displayed firms
-    if (map && window.google) {
-      const geocoder = new window.google.maps.Geocoder()
-      const newMarkers: any[] = []
-      
-      displayedFirms.forEach((firm) => {
-        const address = buildAddress(firm)
-        if (!address) return
+    // Clear old markers
+    markersRef.current.forEach(marker => marker.setMap(null))
+    markersRef.current = []
 
-        geocoder.geocode({ address }, (results: any, status: any) => {
-          if (status === 'OK' && results[0]) {
-            const marker = new window.google.maps.Marker({
-              position: results[0].geometry.location,
-              map,
-              title: firm.name,
-            })
+    // Geocode and add markers
+    const geocoder = new window.google.maps.Geocoder()
+    const bounds = new window.google.maps.LatLngBounds()
+    let geocodedCount = 0
 
-            // Info window on hover
-            const infoWindow = new window.google.maps.InfoWindow({
-              content: `
-                <div style="padding: 8px; max-width: 200px;">
-                  <strong>${firm.name}</strong><br/>
-                  <span style="font-size: 0.9em; color: #666;">${address}</span>
-                </div>
-              `
-            })
+    displayedFirms.forEach((firm) => {
+      const address = buildAddress(firm)
+      if (!address) return
 
-            marker.addListener('mouseover', () => {
-              infoWindow.open(map, marker)
-            })
+      geocoder.geocode({ address }, (results: any, status: any) => {
+        if (status === 'OK' && results[0]) {
+          const location = results[0].geometry.location
 
-            marker.addListener('mouseout', () => {
-              infoWindow.close()
-            })
+          const marker = new window.google.maps.Marker({
+            position: location,
+            map: mapRef.current,
+            title: firm.name,
+          })
 
-            marker.addListener('click', () => {
-              window.location.href = `/firms/${firm.slug ?? firm.id}`
-            })
+          // Info window on hover
+          const infoWindow = new window.google.maps.InfoWindow({
+            content: `
+              <div style="padding: 8px; max-width: 220px;">
+                <strong style="font-size: 14px;">${firm.name}</strong><br/>
+                <span style="font-size: 12px; color: #666;">${address}</span>
+              </div>
+            `
+          })
 
-            newMarkers.push(marker)
-          }
-        })
-      })
+          marker.addListener('mouseover', () => {
+            infoWindow.open(mapRef.current, marker)
+          })
 
-      setMarkers(newMarkers)
+          marker.addListener('mouseout', () => {
+            infoWindow.close()
+          })
 
-      // Auto-zoom to fit all markers
-      if (displayedFirms.length > 0) {
-        const bounds = new window.google.maps.LatLngBounds()
-        displayedFirms.forEach((firm) => {
-          const address = buildAddress(firm)
-          if (address) {
-            geocoder.geocode({ address }, (results: any, status: any) => {
-              if (status === 'OK' && results[0]) {
-                bounds.extend(results[0].geometry.location)
-                map.fitBounds(bounds)
+          marker.addListener('click', () => {
+            window.location.href = `/firms/${firm.slug ?? firm.id}`
+          })
+
+          markersRef.current.push(marker)
+          bounds.extend(location)
+
+          // Fit bounds only after ALL markers are geocoded
+          geocodedCount++
+          if (geocodedCount === displayedFirms.filter(f => buildAddress(f)).length) {
+            mapRef.current.fitBounds(bounds)
+            
+            // Prevent over-zooming for single marker
+            const listener = window.google.maps.event.addListenerOnce(mapRef.current, 'bounds_changed', () => {
+              if (mapRef.current.getZoom() > 15) {
+                mapRef.current.setZoom(15)
               }
             })
           }
-        })
-      }
-    }
-  }, [displayedFirms, map])
+        }
+      })
+    })
+  }, [displayedFirms, mapLoaded])
 
   // Logged out view
   if (!isLoading && !isAuthenticated) {
@@ -337,13 +334,9 @@ export default function DirectoryPage() {
       {/* Load Google Maps */}
       {GOOGLE_MAPS_KEY && (
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&callback=initMap`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}`}
           strategy="afterInteractive"
-          onLoad={() => {
-            window.initMap = () => {
-              // Map initialization happens in useEffect
-            }
-          }}
+          onLoad={() => setMapLoaded(true)}
         />
       )}
 
@@ -494,8 +487,7 @@ export default function DirectoryPage() {
                       border: '1px solid #e5e7eb',
                       padding: '1.5rem',
                       backgroundColor: 'white',
-                      boxShadow:
-                        '0 4px 6px rgba(0, 0, 0, 0.05)',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '0.75rem',
@@ -649,7 +641,7 @@ export default function DirectoryPage() {
                     marginBottom: '1rem',
                   }}
                 >
-                  Pins show firms in your current filter. Hover over pins to see details.
+                  Pins show firms in your current filter. Hover over pins to see details. Zoom and pan to explore.
                 </p>
 
                 {GOOGLE_MAPS_KEY ? (
