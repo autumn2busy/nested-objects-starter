@@ -74,6 +74,9 @@ export default function DashboardPage() {
             <Link href="/directory" style={{ textDecoration: 'none', color: '#111827' }}>
               Directory
             </Link>
+            <Link href="/profile" style={{ textDecoration: 'none', color: '#111827' }}>
+              Profile
+            </Link>
             <Link href="/membership" style={{ textDecoration: 'none', color: '#111827' }}>
               Membership
             </Link>
@@ -83,48 +86,53 @@ export default function DashboardPage() {
             <Link href="/resources" style={{ textDecoration: 'none', color: '#111827' }}>
               Resources
             </Link>
-            <Link href="/profile" style={{ textDecoration: 'none', color: '#111827' }}>
-              Profile
-            </Link>
           </nav>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link
             href="/profile"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
+            style={{ textDecoration: 'none', color: 'inherit' }}
           >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '999px',
-                backgroundColor: '#e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: '#111827',
-              }}
-            >
-              {initials}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ color: '#111827', fontSize: '0.9rem', fontWeight: 500 }}>
-                {firstName}
-              </span>
-              {planName !== 'Unknown' && (
-                <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  {planName} plan
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '999px',
+                  backgroundColor: '#e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: '#111827',
+                }}
+              >
+                {initials}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#111827',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  {firstName}
                 </span>
-              )}
+                {planName !== 'Unknown' && (
+                  <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    {planName} plan
+                  </span>
+                )}
+              </div>
             </div>
           </Link>
           <button
@@ -191,7 +199,7 @@ export default function DashboardPage() {
             />
           </div>
           <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#6b7280' }}>
-            Next step. add your service area and skills so hiring firms can match you
+            Next step, add your service area and skills so hiring firms can match you
             faster.
           </p>
         </div>
@@ -219,10 +227,10 @@ export default function DashboardPage() {
             Account overview
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#166534', marginBottom: '0.5rem' }}>
-            Current plan. <strong>{planName}</strong>
+            Current plan, <strong>{planName}</strong>
           </p>
           <p style={{ fontSize: '0.85rem', color: '#166534', marginBottom: '1rem' }}>
-            Upgrade when you are ready for more tools. not before.
+            Upgrade when you are ready for more tools, not before.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <Link
@@ -269,7 +277,7 @@ export default function DashboardPage() {
             First steps checklist
           </h3>
           <ol style={{ paddingLeft: '1.25rem', fontSize: '0.9rem', color: '#4b5563' }}>
-            <li>Finish your profile basics. name, email, service area.</li>
+            <li>Finish your profile basics, name, email, service area.</li>
             <li>Bookmark three hiring firms you would love to work with.</li>
             <li>
               Skim the Field Inspection Starter Kit so you understand how the work and
@@ -280,7 +288,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Bottom grid. Recent activity + shortcuts */}
+      {/* Bottom grid, Recent activity + shortcuts */}
       <section
         style={{
           display: 'grid',
@@ -301,9 +309,9 @@ export default function DashboardPage() {
             Recent activity
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-            No recent activity yet.{' '}
+            No recent activity yet,{' '}
             <Link href="/directory" style={{ color: '#2563eb' }}>
-              Open the firm directory
+              open the firm directory
             </Link>{' '}
             and start building your list.
           </p>
@@ -313,7 +321,7 @@ export default function DashboardPage() {
           style={{
             padding: '1.75rem',
             borderRadius: '12px',
-            border: '1px solid '#e5e7eb',
+            border: '1px solid #e5e7eb',
             backgroundColor: 'white',
           }}
         >
