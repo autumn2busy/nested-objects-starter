@@ -1,11 +1,8 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
-
-// Let TypeScript know about the Google Maps JS global
-declare const google: any
 
 type Firm = {
   id: string
@@ -102,107 +99,35 @@ function buildAddress(firm: Firm): string {
     .join(', ')
 }
 
-// Map component with multi-pin support
-function DirectoryMap({ firms }: { firms: Firm[] }) {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+function buildDirectoryStaticMap(firms: Firm[]): string | null {
+  if (!GOOGLE_MAPS_KEY) return null
+  if (!firms.length) return null
 
-  useEffect(() => {
-    if (!GOOGLE_MAPS_KEY) return
-    if (!mapContainerRef.current) return
-    if (!firms.length) return
+  const locations = firms
+    .filter((f) => buildAddress(f).length > 0)
+    .slice(0, 40)
 
-    const firmsWithAddress = firms
-      .filter((f) => buildAddress(f).length > 0)
-      .slice(0, 50)
+  if (!locations.length) return null
 
-    if (!firmsWithAddress.length) return
+  const params = new URLSearchParams()
+  params.set('size', '600x260')
+  params.set('scale', '2')
+  params.set('maptype', 'roadmap')
 
-    const loadScript = () =>
-      new Promise<void>((resolve) => {
-        const existing = document.getElementById('google-maps-js')
-        if (existing) {
-          if ((window as any).google) {
-            resolve()
-          } else {
-            existing.addEventListener('load', () => resolve())
-          }
-          return
-        }
+  // center on the first firm that has an address
+  const first = locations[0]
+  params.set('center', buildAddress(first) || 'United States')
+  params.set('zoom', '4')
 
-        const script = document.createElement('script')
-        script.id = 'google-maps-js'
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}`
-        script.async = true
-        script.defer = true
-        script.onload = () => resolve()
-        document.head.appendChild(script)
-      })
+  locations.forEach((f) => {
+    const addr = buildAddress(f)
+    if (!addr) return
+    params.append('markers', `color:red|${addr}`)
+  })
 
-    const initMap = async () => {
-      await loadScript()
-      if (!mapContainerRef.current) return
+  params.set('key', GOOGLE_MAPS_KEY)
 
-      const g = (window as any).google
-      if (!g || !g.maps) return
-
-      const map = new g.maps.Map(mapContainerRef.current, {
-        center: { lat: 39.5, lng: -98.35 }, // rough US center
-        zoom: 4,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-      })
-
-      const geocoder = new g.maps.Geocoder()
-      const bounds = new g.maps.LatLngBounds()
-
-      firmsWithAddress.forEach((firm) => {
-        const address = buildAddress(firm)
-        if (!address) return
-
-        geocoder.geocode({ address }, (results: any, status: string) => {
-          if (status === 'OK' && results && results[0]) {
-            const location = results[0].geometry.location
-
-            const marker = new g.maps.Marker({
-              map,
-              position: location,
-              title: firm.name,
-            })
-
-            const info = new g.maps.InfoWindow({
-              content: `<div style="font-size:13px;"><strong>${firm.name}</strong><br/>${address}</div>`,
-            })
-
-            marker.addListener('click', () => {
-              info.open(map, marker)
-            })
-
-            bounds.extend(location)
-            map.fitBounds(bounds)
-          } else {
-            console.warn('Geocode failed for', firm.name, status)
-          }
-        })
-      })
-    }
-
-    initMap()
-  }, [firms])
-
-  return (
-    <div
-      ref={mapContainerRef}
-      style={{
-        width: '100%',
-        height: 260,
-        borderRadius: 16,
-        overflow: 'hidden',
-        border: '1px solid #e5e7eb',
-        backgroundColor: '#e5e7eb',
-      }}
-    />
-  )
+  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`
 }
 
 export default function DirectoryPage() {
@@ -316,6 +241,8 @@ export default function DirectoryPage() {
 
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
+
+  const mapUrl = buildDirectoryStaticMap(displayedFirms)
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null
 
   // Logged out view
@@ -390,8 +317,6 @@ export default function DirectoryPage() {
         margin: '0 auto',
         padding: '2rem 1.5rem 3rem',
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        background:
-          'radial-gradient(circle at top left, #eef2ff 0, #ffffff 42%, #f9fafb 100%)',
       }}
     >
       {/* Header */}
@@ -464,11 +389,10 @@ export default function DirectoryPage() {
               style={{
                 marginTop: '0.25rem',
                 padding: '0.5rem 0.75rem',
-                borderRadius: '999px',
+                borderRadius: '8px',
                 border: '1px solid #d1d5db',
                 fontSize: '0.9rem',
                 minWidth: '220px',
-                backgroundColor: 'white',
               }}
             >
               {US_STATES.map((st) => (
@@ -495,11 +419,10 @@ export default function DirectoryPage() {
               style={{
                 marginTop: '0.25rem',
                 padding: '0.5rem 0.75rem',
-                borderRadius: '999px',
+                borderRadius: '8px',
                 border: '1px solid #d1d5db',
                 fontSize: '0.9rem',
                 minWidth: '260px',
-                backgroundColor: 'white',
               }}
             />
           </div>
@@ -508,7 +431,7 @@ export default function DirectoryPage() {
         <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '320px' }}>
           {stateFilter === 'ALL' ? (
             <p>
-              Tip, many firms are national or multi state, so start here then narrow
+              Tip. many firms are national or multi state, so start here then narrow
               down if needed.
             </p>
           ) : (
@@ -525,11 +448,10 @@ export default function DirectoryPage() {
       {isStarter && (
         <section
           style={{
-            borderRadius: '16px',
+            borderRadius: '12px',
             padding: '1.5rem',
             marginBottom: '1.5rem',
-            background:
-              'linear-gradient(135deg, #fffbeb 0%, #fef3c7 40%, #fff7ed 100%)',
+            backgroundColor: '#fffbeb',
             border: '1px solid #f59e0b',
           }}
         >
@@ -597,57 +519,40 @@ export default function DirectoryPage() {
                   <article
                     key={firm.id}
                     style={{
-                      borderRadius: 16,
+                      borderRadius: '16px',
                       border: '1px solid #e5e7eb',
                       padding: '1.5rem',
-                      background: 'linear-gradient(135deg, #ffffff, #f9fafb)',
+                      backgroundColor: 'white',
                       boxShadow:
-                        '0 18px 35px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04)',
+                        '0 12px 24px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.06)',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      gap: '0.8rem',
+                      gap: '0.75rem',
                     }}
                   >
                     <div>
-                      <div
+                      <h3
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '0.35rem',
-                          gap: '0.75rem',
+                          fontSize: '1.1rem',
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
                         }}
                       >
-                        <h3
+                        {firm.name}
+                      </h3>
+
+                      {firm.geographic_coverage && (
+                        <p
                           style={{
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
-                            margin: 0,
+                            fontSize: '0.85rem',
+                            color: '#6b7280',
+                            marginBottom: '0.25rem',
                           }}
                         >
-                          {firm.name}
-                        </h3>
-
-                        {firm.geographic_coverage && (
-                          <span
-                            style={{
-                              fontSize: '0.7rem',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.08em',
-                              padding: '0.18rem 0.5rem',
-                              borderRadius: '999px',
-                              backgroundColor: '#eef2ff',
-                              color: '#4f46e5',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {firm.geographic_coverage.includes('National')
-                              ? 'National coverage'
-                              : 'Regional'}
-                          </span>
-                        )}
-                      </div>
+                          Coverage. {firm.geographic_coverage}
+                        </p>
+                      )}
 
                       <p
                         style={{
@@ -656,7 +561,7 @@ export default function DirectoryPage() {
                           marginBottom: '0.25rem',
                         }}
                       >
-                        {firm.company_size || 'Size n,a'} ·{' '}
+                        {firm.company_size || 'Size n/a'} ·{' '}
                         {firm.industry_focus || 'Field services'}
                       </p>
 
@@ -668,47 +573,22 @@ export default function DirectoryPage() {
                             marginBottom: '0.25rem',
                           }}
                         >
-                          <span style={{ color: '#9ca3af' }}>Focus.</span>{' '}
-                          {formatCategories(firm.categories)}
-                        </p>
-                      )}
-
-                      {(firm.address_city || firm.address_state) && (
-                        <p
-                          style={{
-                            fontSize: '0.8rem',
-                            color: '#6b7280',
-                            marginBottom: '0.25rem',
-                          }}
-                        >
-                          <span style={{ color: '#9ca3af' }}>Based in.</span>{' '}
-                          {[
-                            firm.address_city,
-                            firm.address_state,
-                          ]
-                            .filter(Boolean)
-                            .join(', ')}
+                          Focus. {formatCategories(firm.categories)}
                         </p>
                       )}
 
                       {firm.pay_min != null && (
-                        <div
+                        <p
                           style={{
-                            display: 'inline-block',
-                            padding: '0.35rem 0.9rem',
-                            borderRadius: 999,
-                            background:
-                              'linear-gradient(135deg, rgba(22,163,74,0.12), rgba(22,163,74,0.24))',
-                            fontSize: '0.8rem',
-                            color: '#166534',
-                            fontWeight: 600,
-                            marginTop: '0.3rem',
+                            fontSize: '0.85rem',
+                            color: '#16a34a',
+                            marginBottom: '0.5rem',
                           }}
                         >
                           Typical range. ${firm.pay_min}
-                          {firm.pay_max != null && ` – $${firm.pay_max}`}
+                          {firm.pay_max != null && ` - $${firm.pay_max}`}
                           {firm.pay_type && ` ${firm.pay_type}`}
-                        </div>
+                        </p>
                       )}
                     </div>
 
@@ -726,7 +606,7 @@ export default function DirectoryPage() {
                         style={{
                           display: 'inline-block',
                           padding: '0.55rem 1.3rem',
-                          borderRadius: 999,
+                          borderRadius: '999px',
                           backgroundColor: '#3b82f6',
                           color: 'white',
                           textDecoration: 'none',
@@ -762,10 +642,10 @@ export default function DirectoryPage() {
               {/* Map column */}
               <aside
                 style={{
-                  borderRadius: 16,
+                  borderRadius: '16px',
                   border: '1px solid #e5e7eb',
                   padding: '1.25rem 1.5rem',
-                  background: 'linear-gradient(135deg, #ffffff, #f9fafb)',
+                  backgroundColor: '#f9fafb',
                 }}
               >
                 <h2
@@ -787,8 +667,8 @@ export default function DirectoryPage() {
                     marginBottom: '0.75rem',
                   }}
                 >
-                  Pins show firms in your current filter, hover over cards or change
-                  filters to see how they cover your region.
+                  Pins show firms in your current filter . change filters to see how
+                  they cover your region.
                 </p>
 
                 {mapHeadlineFirm && (
@@ -806,7 +686,42 @@ export default function DirectoryPage() {
                   </div>
                 )}
 
-                <DirectoryMap firms={displayedFirms} />
+                {mapUrl ? (
+                  <div
+                    style={{
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: '1px solid #e5e7eb',
+                      backgroundColor: '#e5e7eb',
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={mapUrl}
+                      alt="Map with pins for firms in this directory view"
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        height: 'auto',
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      borderRadius: '12px',
+                      border: '1px dashed #d1d5db',
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      fontSize: '0.85rem',
+                      color: '#6b7280',
+                      backgroundColor: 'white',
+                    }}
+                  >
+                    Map preview will appear here once a Google Maps key is configured
+                    and firms have address info.
+                  </div>
+                )}
               </aside>
             </section>
           )}
