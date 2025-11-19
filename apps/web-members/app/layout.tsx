@@ -1,9 +1,6 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/components/auth-provider'
 import '../styles/globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Nested Objects Member Hub',
@@ -72,7 +69,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: orgJson }}
         />
       </head>
-      <body className={inter.className}>
+      <body style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

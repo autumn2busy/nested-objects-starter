@@ -21,6 +21,7 @@ type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
+  starter_featured?: boolean | null
 }
 
 type Bookmark = {
@@ -180,6 +181,7 @@ export default function DirectoryPage() {
             'address_city',
             'address_state',
             'address_postal_code',
+            'starter_featured',
           ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -328,7 +330,10 @@ export default function DirectoryPage() {
   }
 
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-  const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
+  const starterFeatured = filteredFirms.filter((firm) => firm.starter_featured)
+  const displayedFirms = isStarter
+    ? (starterFeatured.length ? starterFeatured : filteredFirms).slice(0, 5)
+    : filteredFirms
 
   const mapUrl = buildDirectoryStaticMap(displayedFirms)
   const mapHeadlineFirm = displayedFirms[0] ?? filteredFirms[0] ?? null

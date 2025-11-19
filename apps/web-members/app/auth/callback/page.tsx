@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter()
   const params = useSearchParams()
 
@@ -34,5 +34,13 @@ export default function AuthCallbackPage() {
         Sit tight for a second while we connect your Nested Objects account.
       </p>
     </main>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem' }}>Finishing your sign in...</div>}>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }

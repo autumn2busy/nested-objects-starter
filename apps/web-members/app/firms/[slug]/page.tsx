@@ -50,13 +50,17 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase env vars')
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null
 
 async function getFirmBySlug(slug: string): Promise<FirmRow | null> {
+  if (!supabase) {
+    console.error('Missing Supabase env vars')
+    return null
+  }
+
   const { data, error } = await supabase
     .from('firms')
     .select('*')

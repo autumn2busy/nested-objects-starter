@@ -8,12 +8,6 @@ import React, {
   ReactNode,
 } from 'react'
 
-declare global {
-  interface Window {
-    Outseta?: any
-  }
-}
-
 type AuthContextValue = {
   user: any | null
   isAuthenticated: boolean
