@@ -30,8 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [planUid, setPlanUid] = useState<string | null>(null)
 
   useEffect(() => {
-    function handleIdentity(identity: any) {
-      const currentUser = identity?.user ?? null
+    function applyUser(raw: any) {
+      // Outseta sometimes passes { user: {...} } and sometimes just the user
+      const currentUser = raw?.user ?? raw ?? null
       setUser(currentUser)
       setIsLoading(false)
 
@@ -48,12 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    function waitForOutseta(tries = 0) {
+    function initOutseta(tries = 0) {
       if (typeof window === 'undefined') return
 
-      if (!window.Outseta) {
+      const sdk = window.Outseta
+      if (!sdk) {
         if (tries < 80) {
-          setTimeout(() => waitForOutseta(tries + 1), 150)
+          setTimeout(() => initOutseta(tries + 1), 150)
         } else {
           console.warn('Outseta not found on window after waiting')
           setIsLoading(false)
@@ -61,32 +63,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      window.Outseta.on('identityReady', handleIdentity)
+      try {
+        // Subscribe to any events the SDK exposes so future changes update state
+        if (typeof sdk.on === 'function') {
+          try {
+            sdk.on('userUpdated', applyUser)
+          } catch {
+            /* ignore */
+          }
+          try {
+            sdk.on('identityReady', applyUser)
+          } catch {
+            /* ignore */
+          }
+        }
 
-      // Pull current identity on first load
-      window.Outseta
-        .getIdentity()
-        .catch((err: any) => {
-          console.error('Outseta.getIdentity failed', err)
+        // Initial load. prefer getUser, fall back to getIdentity if present
+        if (typeof sdk.getUser === 'function') {
+          sdk
+            .getUser()
+            .then(applyUser)
+            .catch((err: any) => {
+              console.error('Outseta.getUser failed', err)
+              setIsLoading(false)
+            })
+        } else if (typeof sdk.getIdentity === 'function') {
+          sdk
+            .getIdentity()
+            .then(applyUser)
+            .catch((err: any) => {
+              console.error('Outseta.getIdentity failed', err)
+              setIsLoading(false)
+            })
+        } else {
+          console.warn(
+            'Outseta SDK loaded, but no getUser or getIdentity function was found',
+          )
           setIsLoading(false)
-        })
+        }
+      } catch (err) {
+        console.error('Error initializing Outseta auth', err)
+        setIsLoading(false)
+      }
     }
 
-    waitForOutseta()
+    initOutseta()
 
     return () => {
-      if (typeof window !== 'undefined' && window.Outseta) {
-        window.Outseta.off('identityReady', handleIdentity)
+      if (typeof window === 'undefined') return
+      const sdk = window.Outseta
+      if (!sdk || typeof sdk.off !== 'function') return
+
+      try {
+        sdk.off('userUpdated', applyUser)
+      } catch {
+        /* ignore */
+      }
+      try {
+        sdk.off('identityReady', applyUser)
+      } catch {
+        /* ignore */
       }
     }
   }, [])
 
   const logout = () => {
-    if (typeof window !== 'undefined' && window.Outseta) {
+    if (typeof window !== 'undefined' && window.Outseta?.auth?.logout) {
       window.Outseta.auth.logout()
-      setUser(null)
-      setPlanUid(null)
     }
+    setUser(null)
+    setPlanUid(null)
   }
 
   const value: AuthContextValue = {
