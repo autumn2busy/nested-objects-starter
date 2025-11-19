@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
-import './globals.css'
+import '../styles/globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'AI-powered member hub for inspectors, notaries, and gig pros.',
 }
 
-// Structured data for SEO (optional - can be added later)
+// Structured data for SEO
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
