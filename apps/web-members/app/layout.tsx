@@ -35,15 +35,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const outsetaDomain = process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nested-objects.outseta.com'
+  const outsetaDomain =
+    process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nested-objects.outseta.com'
 
   return (
     <html lang="en">
       <head>
-        {/* 
-          Outseta Configuration - Must be defined BEFORE loading the script
-          Based on: https://go.outseta.com/support/kb/articles/A93nZlQ0/how-to-integrate-outseta-with-react
-        */}
+        {/* Outseta configuration. must be defined before loading the script */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -51,19 +49,16 @@ export default function RootLayout({
                 domain: '${outsetaDomain}',
                 load: 'auth,profile',
                 monitorDom: true,
-                tokenStorage: 'local',
-                auth: {
-                  authenticationCallbackUrl: '/dashboard'
-                }
+                tokenStorage: 'local'
+                // No authenticationCallbackUrl here.
+                // Redirect behavior is controlled by the Post login URL
+                // in Outseta's Auth > Embeds settings.
               };
             `,
           }}
         />
 
-        {/* 
-          Outseta Script - Use cdn.outseta.com/outseta.min.js (NOT widget.js)
-          Based on: https://go.outseta.com/support/kb/articles/aWxXddWV/javascript-configuration-guide
-        */}
+        {/* Outseta core script */}
         <Script
           src="https://cdn.outseta.com/outseta.min.js"
           data-options="o_options"
@@ -79,13 +74,13 @@ export default function RootLayout({
         <Script
           id="structured-data-org"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationStructuredData),
+          }}
         />
       </head>
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )
