@@ -5,211 +5,105 @@ import React, {
   useContext,
   useEffect,
   useState,
+  ReactNode,
 } from 'react'
 
-type JwtPayload = {
-  email?: string
-  name?: string
-  [key: string]: any
+declare global {
+  interface Window {
+    Outseta?: any
+  }
 }
 
 type AuthContextValue = {
-  user: JwtPayload | null
-  planUid: string | null
+  user: any | null
   isAuthenticated: boolean
   isLoading: boolean
-  hasAccess: (feature?: string) => boolean
-  login: () => void
-  signup: () => void
+  planUid: string | null
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-// Plan ordering. Starter < Pro < Elite < Agency
-const PLAN_ORDER = ['L9nbKV9Z', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
-type PlanUid = (typeof PLAN_ORDER)[number]
-
-// Minimum plan required for each feature
-const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
-  // Core app
-  directory_access: 'L9nbKV9Z',   // Starter+
-  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
-
-  // Training
-  basic_training: 'L9nbKV9Z',     // Starter+
-  advanced_training: 'NmdnNO90',  // Elite+
-
-  // Tools
-  ai_concierge: 'rQVqlLm6',       // Pro+
-  firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'rQVqlLm6',       // Pro+
-  job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Starter+
-  ai_resume: 'rQVqlLm6',          // Pro+
-
-  // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
-  partner_portal: 'rmk5Xk9g',          // Agency only
-  elite_autoassign: 'NmdnNO90',        // Elite vetted pool
-
-  // API style auto assign for vendor feeds like WeGoLook
-  autoassign_api: 'NmdnNO90',          // Elite (supply side)
-  agency_directory: 'rmk5Xk9g',        // Agency facing view
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<JwtPayload | null>(null)
-  const [planUid, setPlanUid] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [planUid, setPlanUid] = useState<string | null>(null)
 
   useEffect(() => {
-    let cancelled = false
+    function handleIdentity(identity: any) {
+      const currentUser = identity?.user ?? null
+      setUser(currentUser)
+      setIsLoading(false)
 
-    const loadUser = async () => {
-      try {
-        if (typeof window === 'undefined') {
-          if (!cancelled) setIsLoading(false)
-          return
-        }
+      if (currentUser?.subscriptions?.length) {
+        const active =
+          currentUser.subscriptions.find(
+            (s: any) => s.status === 'active',
+          ) ?? currentUser.subscriptions[0]
 
-        const Outseta = window.Outseta
-        if (!Outseta?.getJwtPayload) {
-          if (!cancelled) setIsLoading(false)
-          return
-        }
-
-        const payload = await Outseta.getJwtPayload()
-
-        if (cancelled) return
-
-        if (payload) {
-          setUser(payload)
-          setPlanUid(payload['outseta:planUid'] ?? null)
-          setIsAuthenticated(true)
-        } else {
-          setUser(null)
-          setPlanUid(null)
-          setIsAuthenticated(false)
-        }
-      } catch (error) {
-        console.error('Error loading auth state from Outseta', error)
-        if (!cancelled) {
-          setUser(null)
-          setPlanUid(null)
-          setIsAuthenticated(false)
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false)
+        const uid = active?.plan?.Uid ?? null
+        setPlanUid(uid)
+      } else {
+        setPlanUid(null)
       }
     }
 
-    loadUser()
+    function waitForOutseta(tries = 0) {
+      if (typeof window === 'undefined') return
+
+      if (!window.Outseta) {
+        if (tries < 80) {
+          setTimeout(() => waitForOutseta(tries + 1), 150)
+        } else {
+          console.warn('Outseta not found on window after waiting')
+          setIsLoading(false)
+        }
+        return
+      }
+
+      window.Outseta.on('identityReady', handleIdentity)
+
+      // Pull current identity on first load
+      window.Outseta
+        .getIdentity()
+        .catch((err: any) => {
+          console.error('Outseta.getIdentity failed', err)
+          setIsLoading(false)
+        })
+    }
+
+    waitForOutseta()
 
     return () => {
-      cancelled = true
+      if (typeof window !== 'undefined' && window.Outseta) {
+        window.Outseta.off('identityReady', handleIdentity)
+      }
     }
   }, [])
 
-  const hasAccess = (feature?: string) => {
-    if (!isAuthenticated) return false
-    if (!feature) return true
-
-    const minPlan = FEATURE_MIN_PLAN[feature]
-    if (!minPlan) return true
-    if (!planUid) return false
-
-    const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
-    const requiredIndex = PLAN_ORDER.indexOf(minPlan)
-
-    if (currentIndex === -1 || requiredIndex === -1) return false
-    return currentIndex >= requiredIndex
-  }
-
-  const login = () => {
-    if (typeof window === 'undefined') return
-    const Outseta = window.Outseta
-
-    try {
-      if (Outseta?.auth?.open) {
-        Outseta.auth.open({ widgetMode: 'login' })
-      } else {
-        window.location.href =
-          'https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous'
-      }
-    } catch (error) {
-      console.error('Error opening Outseta login', error)
-    }
-  }
-
-  const signup = () => {
-    if (typeof window === 'undefined') return
-    const Outseta = window.Outseta
-
-    try {
-      if (Outseta?.auth?.open) {
-        Outseta.auth.open({ widgetMode: 'register' })
-      } else {
-        window.location.href =
-          'https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous'
-      }
-    } catch (error) {
-      console.error('Error opening Outseta signup', error)
-    }
-  }
-
   const logout = () => {
-    if (typeof window === 'undefined') return
-
-    try {
-      const Outseta = window.Outseta
-
-      if (Outseta?.setAccessToken) {
-        Outseta.setAccessToken(null)
-      }
-
-      document.cookie =
-        'outseta_access_token=; path=/; max-age=0; samesite=lax'
-
+    if (typeof window !== 'undefined' && window.Outseta) {
+      window.Outseta.auth.logout()
       setUser(null)
       setPlanUid(null)
-      setIsAuthenticated(false)
-    } catch (error) {
-      console.error('Error during logout', error)
     }
-
-    window.location.href = '/'
   }
 
   const value: AuthContextValue = {
     user,
-    planUid,
-    isAuthenticated,
+    isAuthenticated: !!user,
     isLoading,
-    hasAccess,
-    login,
-    signup,
+    planUid,
     logout,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
   if (!ctx) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return ctx
-}
-
-declare global {
-  interface Window {
-    Outseta: any
-  }
 }
