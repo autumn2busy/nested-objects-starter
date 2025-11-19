@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
 import '../styles/globals.css'
 
@@ -11,7 +10,6 @@ export const metadata: Metadata = {
   description: 'AI-powered member hub for inspectors, notaries, and gig pros.',
 }
 
-// Structured data for SEO
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -38,45 +36,40 @@ export default function RootLayout({
   const outsetaDomain =
     process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nested-objects.outseta.com'
 
+  const siteJson = JSON.stringify(structuredData)
+  const orgJson = JSON.stringify(organizationStructuredData)
+
   return (
     <html lang="en">
       <head>
-        {/* Outseta configuration. must be defined before loading the script */}
+        {/* Outseta config must come BEFORE the script */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              var o_options = {
+              window.o_options = {
                 domain: '${outsetaDomain}',
                 load: 'auth,profile',
                 monitorDom: true,
                 tokenStorage: 'local'
-                // No authenticationCallbackUrl here.
-                // Redirect behavior is controlled by the Post login URL
-                // in Outseta's Auth > Embeds settings.
               };
             `,
           }}
         />
-
-        {/* Outseta core script */}
-        <Script
+        <script
           src="https://cdn.outseta.com/outseta.min.js"
           data-options="o_options"
-          strategy="afterInteractive"
         />
 
-        {/* Structured Data for SEO */}
-        <Script
+        {/* SEO structured data */}
+        <script
           id="structured-data-website"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: siteJson }}
         />
-        <Script
+        <script
           id="structured-data-org"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationStructuredData),
-          }}
+          dangerouslySetInnerHTML={{ __html: orgJson }}
         />
       </head>
       <body className={inter.className}>
