@@ -40,13 +40,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Define Outseta configuration BEFORE loading widget */}
+        {/* 
+          Outseta Configuration - Must be defined BEFORE loading the script
+          Based on: https://go.outseta.com/support/kb/articles/A93nZlQ0/how-to-integrate-outseta-with-react
+        */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.o_options = {
+              var o_options = {
                 domain: '${outsetaDomain}',
                 load: 'auth,profile',
+                monitorDom: true,
+                tokenStorage: 'local',
                 auth: {
                   authenticationCallbackUrl: '/dashboard'
                 }
@@ -55,9 +60,13 @@ export default function RootLayout({
           }}
         />
 
-        {/* Load the Outseta embed script */}
+        {/* 
+          Outseta Script - Use cdn.outseta.com/outseta.min.js (NOT widget.js)
+          Based on: https://go.outseta.com/support/kb/articles/aWxXddWV/javascript-configuration-guide
+        */}
         <Script
-          src={`https://${outsetaDomain}/widget.js`}
+          src="https://cdn.outseta.com/outseta.min.js"
+          data-options="o_options"
           strategy="afterInteractive"
         />
 
