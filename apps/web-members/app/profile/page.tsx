@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 
@@ -36,9 +36,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'about'>('overview')
+
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   const [displayName, setDisplayName] = useState('')
   const [headline, setHeadline] = useState('')
@@ -133,6 +136,83 @@ export default function ProfilePage() {
       loadProfile()
     }
   }, [isLoading, isAuthenticated, userEmail, fallbackName])
+
+  async function handleCoverPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5MB')
+      return
+    }
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !userEmail) {
+      setError('Cannot upload cover photo at this time')
+      return
+    }
+
+    try {
+      setUploadingCover(true)
+      setError(null)
+      setSuccess(null)
+
+      // Convert to base64 for simple storage (or use Supabase Storage for production)
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64String = reader.result as string
+
+        // Update profile with cover photo URL
+        const encodedEmail = encodeURIComponent(userEmail)
+        const url = `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}`
+
+        const res = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({
+            cover_photo_url: base64String,
+          }),
+        })
+
+        if (!res.ok) {
+          throw new Error(`Failed to upload cover photo: ${res.statusText}`)
+        }
+
+        const rows = (await res.json()) as Profile[]
+        const row = rows[0] ?? null
+        if (row) {
+          setProfile(row)
+          setSuccess('Cover photo updated!')
+        }
+
+        setUploadingCover(false)
+      }
+
+      reader.onerror = () => {
+        setError('Failed to read image file')
+        setUploadingCover(false)
+      }
+
+      reader.readAsDataURL(file)
+    } catch (err) {
+      console.error('Error uploading cover photo', err)
+      setError(
+        err instanceof Error ? err.message : 'Unknown error uploading cover photo',
+      )
+      setUploadingCover(false)
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -271,7 +351,8 @@ export default function ProfilePage() {
           borderBottom: '1px solid #d0d5dd',
         }}
       >
-        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1120px', margin: '0 auto', position: 'relative' }}>
+          {/* Cover Photo */}
           <div
             style={{
               width: '100%',
@@ -281,9 +362,44 @@ export default function ProfilePage() {
                 : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               borderRadius: '0 0 8px 8px',
               position: 'relative',
+              overflow: 'hidden',
             }}
-          />
+          >
+            {/* Upload Cover Photo Button */}
+            <button
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+              style={{
+                position: 'absolute',
+                bottom: '1rem',
+                right: '1rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: '#050505',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: uploadingCover ? 'default' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}
+            >
+              {uploadingCover ? '⏳' : '📷'} 
+              {uploadingCover ? 'Uploading...' : 'Edit cover photo'}
+            </button>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverPhotoUpload}
+              style={{ display: 'none' }}
+            />
+          </div>
 
+          {/* Profile Info Bar */}
           <div style={{ padding: '0 1rem' }}>
             <div
               style={{
@@ -295,7 +411,9 @@ export default function ProfilePage() {
                 paddingBottom: '1rem',
               }}
             >
+              {/* Left: Avatar + Name */}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                {/* Avatar */}
                 <div
                   style={{
                     width: '168px',
@@ -316,6 +434,7 @@ export default function ProfilePage() {
                   {initials || '?'}
                 </div>
 
+                {/* Name and Headline */}
                 <div style={{ paddingBottom: '0.5rem' }}>
                   <h1
                     style={{
@@ -352,6 +471,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              {/* Right: Action Buttons */}
               <div
                 style={{
                   display: 'flex',
@@ -393,6 +513,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Tab Navigation */}
             <div
               style={{
                 borderTop: '1px solid #d0d5dd',
@@ -439,7 +560,41 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Main Content Area */}
       <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '1rem' }}>
+        {/* Status Messages */}
+        {error && (
+          <div
+            style={{
+              borderRadius: '8px',
+              padding: '0.75rem 1rem',
+              fontSize: '0.9rem',
+              backgroundColor: '#ffebe9',
+              color: '#c41c00',
+              border: '1px solid #ffc9c2',
+              marginBottom: '1rem',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div
+            style={{
+              borderRadius: '8px',
+              padding: '0.75rem 1rem',
+              fontSize: '0.9rem',
+              backgroundColor: '#e7f3ff',
+              color: '#0a66c2',
+              border: '1px solid #c3e0ff',
+              marginBottom: '1rem',
+            }}
+          >
+            {success}
+          </div>
+        )}
+
         <div
           style={{
             display: 'grid',
@@ -448,6 +603,7 @@ export default function ProfilePage() {
             alignItems: 'flex-start',
           }}
         >
+          {/* Left Sidebar */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div
               style={{
@@ -511,6 +667,7 @@ export default function ProfilePage() {
             </div>
           </aside>
 
+          {/* Main Content */}
           <main>
             {activeTab === 'overview' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -657,36 +814,6 @@ export default function ProfilePage() {
                       gap: '1.25rem',
                     }}
                   >
-                    {error && (
-                      <div
-                        style={{
-                          borderRadius: '8px',
-                          padding: '0.75rem 1rem',
-                          fontSize: '0.9rem',
-                          backgroundColor: '#ffebe9',
-                          color: '#c41c00',
-                          border: '1px solid #ffc9c2',
-                        }}
-                      >
-                        {error}
-                      </div>
-                    )}
-
-                    {success && (
-                      <div
-                        style={{
-                          borderRadius: '8px',
-                          padding: '0.75rem 1rem',
-                          fontSize: '0.9rem',
-                          backgroundColor: '#e7f3ff',
-                          color: '#0a66c2',
-                          border: '1px solid #c3e0ff',
-                        }}
-                      >
-                        {success}
-                      </div>
-                    )}
-
                     <div>
                       <label
                         htmlFor="displayName"
