@@ -1,22 +1,51 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import Script from 'next/script'
-import { 
-  structuredData, 
-  organizationStructuredData, 
-  offerCatalogStructuredData 
-} from './metadata'
+import { AuthProvider } from '@/components/auth-provider'
+import './globals.css'
 
-export default function RootLayout({ children }) {
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Nested Objects Member Hub',
+  description: 'AI-powered member hub for inspectors, notaries, and gig pros.',
+}
+
+// Structured data for SEO (optional - can be added later)
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Nested Objects',
+  url: 'https://nestedobjects.com',
+  description:
+    'AI-powered membership platform for field service professionals including inspectors, notaries, and contractors.',
+}
+
+const organizationStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Nested Objects',
+  url: 'https://nestedobjects.com',
+  description:
+    'AI-powered membership platform connecting field service professionals with top firms, training, and career resources.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
       <head>
-        {/* Your existing Outseta script */}
+        {/* Load the Outseta embed script */}
         <Script
           src={`${process.env.NEXT_PUBLIC_OUTSETA_URL}/widget.js`}
           strategy="beforeInteractive"
           data-options="o_options"
         />
 
-        {/* NEW: Structured Data for SEO */}
+        {/* Structured Data for SEO */}
         <Script
           id="structured-data-website"
           type="application/ld+json"
@@ -26,11 +55,6 @@ export default function RootLayout({ children }) {
           id="structured-data-org"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
-        />
-        <Script
-          id="structured-data-offers"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogStructuredData) }}
         />
       </head>
       <body className={inter.className}>
