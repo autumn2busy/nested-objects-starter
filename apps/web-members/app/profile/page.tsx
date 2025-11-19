@@ -16,6 +16,7 @@ type Profile = {
   notes: string | null
   avatar_url: string | null
   cover_photo_url?: string | null
+  created_at?: string
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -60,7 +61,6 @@ export default function ProfilePage() {
     .map((part) => part.charAt(0).toUpperCase())
     .join('')
 
-  // Load profile from Supabase
   useEffect(() => {
     async function loadProfile() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -195,7 +195,6 @@ export default function ProfilePage() {
       }
 
       setSuccess('Profile updated successfully')
-      // Switch back to overview tab after saving
       setActiveTab('overview')
     } catch (err) {
       console.error('Error saving profile', err)
@@ -207,7 +206,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Not logged in
   if (!isLoading && !isAuthenticated) {
     return (
       <main
@@ -225,7 +223,7 @@ export default function ProfilePage() {
           Log in to view and personalize your Nested Objects profile.
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          
+          <a
             href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
             style={{
               padding: '0.75rem 1.5rem',
@@ -239,7 +237,7 @@ export default function ProfilePage() {
           >
             Log in
           </a>
-          
+          <a
             href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
             style={{
               padding: '0.75rem 1.5rem',
@@ -266,7 +264,6 @@ export default function ProfilePage() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Cover Photo Section */}
       <div
         style={{
           width: '100%',
@@ -275,7 +272,6 @@ export default function ProfilePage() {
         }}
       >
         <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
-          {/* Cover Photo */}
           <div
             style={{
               width: '100%',
@@ -288,7 +284,6 @@ export default function ProfilePage() {
             }}
           />
 
-          {/* Profile Info Bar */}
           <div style={{ padding: '0 1rem' }}>
             <div
               style={{
@@ -300,9 +295,7 @@ export default function ProfilePage() {
                 paddingBottom: '1rem',
               }}
             >
-              {/* Left: Avatar + Name */}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
-                {/* Avatar */}
                 <div
                   style={{
                     width: '168px',
@@ -323,7 +316,6 @@ export default function ProfilePage() {
                   {initials || '?'}
                 </div>
 
-                {/* Name and Headline */}
                 <div style={{ paddingBottom: '0.5rem' }}>
                   <h1
                     style={{
@@ -360,7 +352,6 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Right: Action Buttons */}
               <div
                 style={{
                   display: 'flex',
@@ -402,7 +393,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Tab Navigation */}
             <div
               style={{
                 borderTop: '1px solid #d0d5dd',
@@ -449,7 +439,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '1rem' }}>
         <div
           style={{
@@ -459,9 +448,7 @@ export default function ProfilePage() {
             alignItems: 'flex-start',
           }}
         >
-          {/* Left Sidebar */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Intro Card */}
             <div
               style={{
                 backgroundColor: 'white',
@@ -524,11 +511,9 @@ export default function ProfilePage() {
             </div>
           </aside>
 
-          {/* Main Content */}
           <main>
             {activeTab === 'overview' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {/* Notes/Goals Card */}
                 {notes && (
                   <div
                     style={{
@@ -562,7 +547,6 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Quick Stats Card */}
                 <div
                   style={{
                     backgroundColor: 'white',
