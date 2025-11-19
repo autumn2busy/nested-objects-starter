@@ -170,9 +170,3 @@ export default function UpgradePage() {
     </main>
   )
 }
-//
-// declare global {
-  // interface Window {
-    // Outseta: any
-  //}
-//}
