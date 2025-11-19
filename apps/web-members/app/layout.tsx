@@ -35,14 +35,30 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const outsetaDomain = process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nested-objects.outseta.com'
+
   return (
     <html lang="en">
       <head>
+        {/* Define Outseta configuration BEFORE loading widget */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.o_options = {
+                domain: '${outsetaDomain}',
+                load: 'auth,profile',
+                auth: {
+                  authenticationCallbackUrl: '/dashboard'
+                }
+              };
+            `,
+          }}
+        />
+
         {/* Load the Outseta embed script */}
         <Script
-          src={`https://${process.env.NEXT_PUBLIC_OUTSETA_DOMAIN}/widget.js`}
-          strategy="beforeInteractive"
-          data-options="o_options"
+          src={`https://${outsetaDomain}/widget.js`}
+          strategy="afterInteractive"
         />
 
         {/* Structured Data for SEO */}
