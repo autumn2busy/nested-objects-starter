@@ -25,7 +25,7 @@ type Firm = {
 
 type Bookmark = {
   id: string
-  user_id: string
+  user_email: string
   firm_id: string
   created_at: string
 }
@@ -202,7 +202,7 @@ export default function DirectoryPage() {
         if (userEmail) {
           const encodedEmail = encodeURIComponent(userEmail)
           const bookmarksRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.${encodedEmail}&select=*`,
+            `${SUPABASE_URL}/rest/v1/bookmarks?user_email=eq.${encodedEmail}&select=*`,
             {
               headers: {
                 apikey: SUPABASE_ANON_KEY,
@@ -243,7 +243,7 @@ export default function DirectoryPage() {
         // Remove bookmark
         const encodedEmail = encodeURIComponent(userEmail)
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/bookmarks?user_id=eq.${encodedEmail}&firm_id=eq.${firmId}`,
+          `${SUPABASE_URL}/rest/v1/bookmarks?user_email=eq.${encodedEmail}&firm_id=eq.${firmId}`,
           {
             method: 'DELETE',
             headers: {
@@ -271,7 +271,7 @@ export default function DirectoryPage() {
             Prefer: 'return=representation',
           },
           body: JSON.stringify({
-            user_id: userEmail,
+            user_email: userEmail,
             firm_id: firmId,
           }),
         })
