@@ -405,19 +405,71 @@ export default function DirectoryPage() {
                 <label style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.35rem' }}>
                   Search by name or keyword
                 </label>
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '0.9rem',
-                  }}
-                />
+                {isStarter ? (
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                    }}
+                  >
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Search/filter available on paid plans"
+                      style={{
+                        width: '100%',
+                        padding: '0.6rem 0.75rem',
+                        borderRadius: '8px',
+                        border: '1px solid #fbbf24',
+                        fontSize: '0.9rem',
+                        backgroundColor: '#fef3c7',
+                        cursor: 'not-allowed',
+                        color: '#92400e',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        marginTop: '0.5rem',
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '6px',
+                        backgroundColor: '#fffbeb',
+                        border: '1px solid #fbbf24',
+                        fontSize: '0.75rem',
+                        color: '#92400e',
+                        zIndex: 10,
+                      }}
+                    >
+                      🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
+                      <Link
+                        href="/membership"
+                        style={{
+                          color: '#ea580c',
+                          textDecoration: 'underline',
+                          fontWeight: 600,
+                        }}
+                      >
+                        View plans
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
+                    style={{
+                      width: '100%',
+                      padding: '0.6rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      fontSize: '0.9rem',
+                    }}
+                  />
+                )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'flex-end' }}>
