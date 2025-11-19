@@ -1,108 +1,61 @@
 'use client'
 
-import { ReactNode } from 'react'
-import { useAuth } from './auth-provider'
+import { useAuth } from '@/components/auth-provider'
+import { hasFeatureAccess } from '@/lib/feature-gate'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface GateProps {
   feature: string
-  children: ReactNode
-  fallback?: ReactNode
-  loadingFallback?: ReactNode
+  children: React.ReactNode
+  fallback?: React.ReactNode
+  loadingFallback?: React.ReactNode
 }
 
 export function Gate({ feature, children, fallback, loadingFallback }: GateProps) {
-  const { hasAccess, isLoading, isAuthenticated, login, signup } = useAuth()
+  const { user, isLoading, isAuthenticated, login, signup } = useAuth()
 
   // Show loading state
   if (isLoading) {
     return loadingFallback || (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <p>Loading...</p>
-      </div>
+      <div className="animate-pulse p-4 bg-gray-100 rounded-lg w-full h-24"></div>
     )
   }
 
-  // User is not authenticated
-  if (!isAuthenticated) {
-    return fallback || (
-      <div style={{ 
-        padding: '3rem 2rem', 
-        textAlign: 'center',
-        border: '2px solid #e5e7eb',
-        borderRadius: '8px',
-        margin: '2rem 0'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Authentication Required</h2>
-        <p style={{ marginBottom: '2rem', color: '#6b7280' }}>
-          Please log in to access this feature.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button
-            onClick={login}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Log In
-          </button>
-          <button
-            onClick={signup}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Sign Up
-          </button>
+  // Check access using the helper function instead of expecting it from useAuth
+  const hasAccess = user ? hasFeatureAccess(user, feature) : false
+
+  // If user has access, show content
+  if (hasAccess) {
+    return <>{children}</>
+  }
+
+  // If specific fallback provided, show it
+  if (fallback) {
+    return <>{fallback}</>
+  }
+
+  // Default fallback: Upsell UI
+  return (
+    <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        Premium Feature Locked
+      </h3>
+      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+        The {feature.replace(/-/g, ' ')} feature is available on our Pro and Elite plans. 
+        Upgrade your membership to access this tool.
+      </p>
+      
+      {!isAuthenticated ? (
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => login()}>Log In</Button>
+          <Button variant="outline" onClick={() => signup()}>Sign Up</Button>
         </div>
-      </div>
-    )
-  }
-
-  // User is authenticated but lacks access
-  if (!hasAccess(feature)) {
-    return fallback || (
-      <div style={{ 
-        padding: '3rem 2rem', 
-        textAlign: 'center',
-        border: '2px solid #fbbf24',
-        borderRadius: '8px',
-        margin: '2rem 0',
-        backgroundColor: '#fffbeb'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Upgrade Required</h2>
-        <p style={{ marginBottom: '2rem', color: '#92400e' }}>
-          This feature is not available on your current plan.
-        </p>
-        <a
-          href="/upgrade"
-          style={{
-            display: 'inline-block',
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#f59e0b',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '6px',
-            fontWeight: '500'
-          }}
-        >
-          View Plans
-        </a>
-      </div>
-    )
-  }
-
-  // User has access - render children
-  return <>{children}</>
+      ) : (
+        <Button asChild>
+          <Link href="/upgrade">View Upgrade Options</Link>
+        </Button>
+      )}
+    </div>
+  )
 }
