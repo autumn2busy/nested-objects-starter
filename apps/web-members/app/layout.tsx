@@ -40,7 +40,7 @@ export default function RootLayout({
       <head>
         {/* Load the Outseta embed script */}
         <Script
-          src={`${process.env.NEXT_PUBLIC_OUTSETA_DOMAIN}/widget.js`}
+          src={`https://${process.env.NEXT_PUBLIC_OUTSETA_DOMAIN}/widget.js`}
           strategy="beforeInteractive"
           data-options="o_options"
         />
