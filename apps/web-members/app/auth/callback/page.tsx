@@ -1,129 +1,38 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-function CallbackContent() {
+export default function AuthCallbackPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [status, setStatus] = useState<string>('Processing...')
+  const params = useSearchParams()
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        console.log('🟢 Callback page loaded')
-        console.log('🟢 Full URL:', window.location.href)
-        console.log('🟢 Search params:', window.location.search)
-        
-        // Get the access token from URL query params
-        const accessToken = searchParams.get('access_token')
-        
-        console.log('🟢 Access token found?', !!accessToken)
-        
-        if (!accessToken) {
-          setStatus('No access token received. Checking Outseta...')
-          
-          // Wait a moment for Outseta to load
-          setTimeout(() => {
-            if (window.Outseta) {
-              const token = window.Outseta.getAccessToken()
-              if (token) {
-                console.log('🟢 Got token from Outseta directly')
-                proceedWithToken(token)
-              } else {
-                setStatus('Error: No access token found. Please try logging in again.')
-                setTimeout(() => router.push('/'), 3000)
-              }
-            }
-          }, 1000)
-          return
-        }
+    const error = params.get('error')
 
-        proceedWithToken(accessToken)
-        
-      } catch (err) {
-        console.error('🔴 Auth callback error:', err)
-        setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
+    if (error) {
+      console.error('Outseta auth error from callback', error)
     }
 
-    const proceedWithToken = (accessToken: string) => {
-      console.log('🟢 Processing token...')
-      
-      // Store the token in a cookie (accessible by server-side code)
-      document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
-      console.log('🟢 Token stored in cookie')
-
-      // Initialize Outseta with the token if it's loaded
-      if (window.Outseta) {
-        window.Outseta.setAccessToken(accessToken)
-        console.log('🟢 Token set in Outseta')
-      }
-
-      setStatus('Success! Redirecting...')
-
-      // Redirect to directory
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
-      
-      console.log('🟢 Redirecting to:', redirectTo)
-      
-// Small delay to ensure cookie + Outseta token are fully set
-      setTimeout(() => {
-        window.location.href = redirectTo
-        // or: window.location.assign(redirectTo)
-      }, 500)
-    }
-
-    handleCallback()
-  }, [searchParams, router])
+    // After Outseta finishes its own login work, send the user to the dashboard
+    router.replace('/dashboard')
+  }, [router, params])
 
   return (
-    <div style={{ 
-      padding: '4rem 2rem', 
-      textAlign: 'center',
-      maxWidth: '600px',
-      margin: '0 auto'
-    }}>
-      <h1 style={{ marginBottom: '1rem' }}>
-        {status.includes('Error') ? '⚠️' : '✓'} Authentication
+    <main
+      style={{
+        maxWidth: '640px',
+        margin: '0 auto',
+        padding: '2rem',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+        Finishing your sign in
       </h1>
-      <p style={{ 
-        fontSize: '1.125rem',
-        color: status.includes('Error') ? '#ef4444' : '#6b7280'
-      }}>
-        {status}
+      <p style={{ fontSize: '0.95rem', color: '#4b5563' }}>
+        Sit tight for a second while we connect your Nested Objects account.
       </p>
-      {status.includes('Error') && (
-        <a 
-          href="/"
-          style={{
-            display: 'inline-block',
-            marginTop: '2rem',
-            color: '#3b82f6',
-            textDecoration: 'underline'
-          }}
-        >
-          Return to home
-        </a>
-      )}
-    </div>
+    </main>
   )
-}
-
-export default function AuthCallbackPage() {
-  return (
-    <Suspense fallback={
-      <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-        <p>Loading...</p>
-      </div>
-    }>
-      <CallbackContent />
-    </Suspense>
-  )
-}
-
-declare global {
-  interface Window {
-    Outseta: any
-  }
 }
