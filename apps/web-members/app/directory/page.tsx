@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/auth-provider'
-import { Gate } from '@/components/gate'
+import { Gate } from '@/components/Gate'
 
 type Firm = {
   id: string
