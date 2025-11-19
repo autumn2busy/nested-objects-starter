@@ -15,13 +15,13 @@ type Profile = {
   tools: string | null
   notes: string | null
   avatar_url: string | null
+  cover_photo_url?: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default function ProfilePage() {
-  // Treat auth as any so we can safely grab user.email etc even if the hook type is strict
   const auth = useAuth() as any
   const { isAuthenticated, isLoading } = auth
   const userEmail: string | null =
@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'about'>('overview')
 
   const [displayName, setDisplayName] = useState('')
   const [headline, setHeadline] = useState('')
@@ -46,7 +47,6 @@ export default function ProfilePage() {
   const [tools, setTools] = useState('')
   const [notes, setNotes] = useState('')
 
-  // Derive a label and initials for the avatar
   const emailLabel = userEmail ?? 'Your profile'
   const fallbackName =
     profile?.display_name ||
@@ -110,7 +110,6 @@ export default function ProfilePage() {
           setTools(row.tools || '')
           setNotes(row.notes || '')
         } else {
-          // No profile yet. seed the form from Outseta name or email
           setProfile(null)
           setDisplayName(fallbackName)
           setHeadline('')
@@ -195,7 +194,9 @@ export default function ProfilePage() {
         }
       }
 
-      setSuccess('Profile updated.')
+      setSuccess('Profile updated successfully')
+      // Switch back to overview tab after saving
+      setActiveTab('overview')
     } catch (err) {
       console.error('Error saving profile', err)
       setError(
@@ -220,35 +221,37 @@ export default function ProfilePage() {
         <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
           Your profile
         </h1>
-        <p style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
+        <p style={{ color: '#65676b', marginBottom: '1.5rem' }}>
           Log in to view and personalize your Nested Objects profile.
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <a
+          
             href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
             style={{
               padding: '0.75rem 1.5rem',
-              borderRadius: '999px',
-              border: '1px solid #3b82f6',
-              color: '#3b82f6',
+              borderRadius: '6px',
+              border: '1px solid #0866ff',
+              color: '#0866ff',
               textDecoration: 'none',
               fontSize: '0.95rem',
+              fontWeight: 600,
             }}
           >
-            Login
+            Log in
           </a>
-          <a
+          
             href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
             style={{
               padding: '0.75rem 1.5rem',
-              borderRadius: '999px',
-              backgroundColor: '#3b82f6',
+              borderRadius: '6px',
+              backgroundColor: '#0866ff',
               color: 'white',
               textDecoration: 'none',
               fontSize: '0.95rem',
+              fontWeight: 600,
             }}
           >
-            Get free access
+            Sign up
           </a>
         </div>
       </main>
@@ -256,474 +259,712 @@ export default function ProfilePage() {
   }
 
   return (
-    <main
+    <div
       style={{
-        maxWidth: '1100px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem 3rem',
+        minHeight: '100vh',
+        backgroundColor: '#f0f2f5',
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Header */}
-      <header
+      {/* Cover Photo Section */}
+      <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.75rem',
+          width: '100%',
+          backgroundColor: 'white',
+          borderBottom: '1px solid #d0d5dd',
         }}
       >
-        <div>
-          <p
+        <div style={{ maxWidth: '1120px', margin: '0 auto' }}>
+          {/* Cover Photo */}
+          <div
             style={{
-              fontSize: '0.8rem',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: '#9ca3af',
-              marginBottom: '0.25rem',
+              width: '100%',
+              height: '360px',
+              background: profile?.cover_photo_url
+                ? `url(${profile.cover_photo_url}) center/cover`
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '0 0 8px 8px',
+              position: 'relative',
             }}
-          >
-            Account
-          </p>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>
-            Your inspector profile
-          </h1>
-          <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.35rem' }}>
-            This is what Nested Objects will use to match you to firms, gigs, and tools.
-          </p>
-        </div>
+          />
 
-        <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#6b7280' }}>
-          <Link
-            href="/dashboard"
-            style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.9rem' }}
-          >
-            ← Back to dashboard
-          </Link>
-          <div style={{ marginTop: '0.25rem' }}>{emailLabel}</div>
-        </div>
-      </header>
-
-      {/* Top layout. avatar summary + form */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1.8fr)',
-          gap: '1.75rem',
-          alignItems: 'flex-start',
-        }}
-      >
-        {/* Left. avatar + summary */}
-        <aside
-          style={{
-            borderRadius: '16px',
-            border: '1px solid #e5e7eb',
-            padding: '1.5rem 1.5rem 1.25rem',
-            background:
-              'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.04))',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Profile Info Bar */}
+          <div style={{ padding: '0 1rem' }}>
             <div
               style={{
-                width: 64,
-                height: 64,
-                borderRadius: '999px',
-                background:
-                  'radial-gradient(circle at 30% 30%, #4f46e5, #0f766e)',
-                color: 'white',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '1.4rem',
-                boxShadow: '0 10px 25px rgba(15,23,42,0.35)',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+                position: 'relative',
+                marginTop: '-88px',
+                paddingBottom: '1rem',
               }}
             >
-              {initials || '?'}
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  marginBottom: '0.1rem',
-                }}
-              >
-                {displayName || fallbackName}
-              </div>
-              <div
-                style={{
-                  fontSize: '0.85rem',
-                  color: '#4b5563',
-                  marginBottom: '0.15rem',
-                }}
-              >
-                {headline || 'Add a short headline so firms know your lane.'}
-              </div>
-              <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                {city && state ? `${city}, ${state}` : 'Add your city and state.'}
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: '1.25rem',
-              fontSize: '0.85rem',
-              color: '#4b5563',
-              lineHeight: 1.5,
-            }}
-          >
-            <p style={{ marginTop: 0, marginBottom: '0.4rem' }}>
-              Treat this like your “inspector resume” inside Nested Objects.
-            </p>
-            <ul
-              style={{
-                paddingLeft: '1.1rem',
-                margin: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-              }}
-            >
-              <li>Highlight your main field services lanes and regions.</li>
-              <li>List tools you already use so firms know you are plug and play.</li>
-              <li>Use the notes area to track goals, certifications, or next steps.</li>
-            </ul>
-          </div>
-        </aside>
-
-        {/* Right. editable form */}
-        <section
-          style={{
-            borderRadius: '16px',
-            border: '1px solid #e5e7eb',
-            padding: '1.5rem 1.75rem 1.5rem',
-            backgroundColor: 'white',
-            boxShadow:
-              '0 14px 28px rgba(15,23,42,0.05), 0 3px 6px rgba(15,23,42,0.06)',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Profile details
-            </h2>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: '#6b7280',
-              }}
-            >
-              Firms never see your email unless you share it directly.
-            </span>
-          </div>
-
-          {loadingProfile && (
-            <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-              Loading your profile…
-            </p>
-          )}
-
-          {!loadingProfile && (
-            <form
-              onSubmit={handleSave}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              {error && (
+              {/* Left: Avatar + Name */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                {/* Avatar */}
                 <div
                   style={{
-                    borderRadius: '8px',
-                    padding: '0.75rem 0.9rem',
-                    fontSize: '0.85rem',
-                    backgroundColor: '#fef2f2',
-                    color: '#b91c1c',
-                    border: '1px solid #fecaca',
+                    width: '168px',
+                    height: '168px',
+                    borderRadius: '50%',
+                    border: '4px solid white',
+                    background:
+                      'radial-gradient(circle at 30% 30%, #4f46e5, #0f766e)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '3.5rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   }}
                 >
-                  {error}
+                  {initials || '?'}
                 </div>
-              )}
 
-              {success && (
-                <div
-                  style={{
-                    borderRadius: '8px',
-                    padding: '0.75rem 0.9rem',
-                    fontSize: '0.85rem',
-                    backgroundColor: '#ecfdf5',
-                    color: '#047857',
-                    border: '1px solid #bbf7d0',
-                  }}
-                >
-                  {success}
-                </div>
-              )}
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-                  gap: '0.9rem 1rem',
-                }}
-              >
-                <div>
-                  <label
-                    htmlFor="displayName"
+                {/* Name and Headline */}
+                <div style={{ paddingBottom: '0.5rem' }}>
+                  <h1
                     style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#6b7280',
-                      marginBottom: '0.15rem',
+                      fontSize: '2rem',
+                      fontWeight: 700,
+                      margin: 0,
+                      color: '#050505',
                     }}
                   >
-                    Name or display name
-                  </label>
-                  <input
-                    id="displayName"
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e,g. Autumn Williams"
-                    style={{
-                      width: '100%',
-                      padding: '0.55rem 0.7rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="headline"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#6b7280',
-                      marginBottom: '0.15rem',
-                    }}
-                  >
-                    Headline
-                  </label>
-                  <input
-                    id="headline"
-                    type="text"
-                    value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
-                    placeholder="e,g. Mortgage inspector · Atlanta metro · 5 years"
-                    style={{
-                      width: '100%',
-                      padding: '0.55rem 0.7rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="city"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#6b7280',
-                      marginBottom: '0.15rem',
-                    }}
-                  >
-                    City
-                  </label>
-                  <input
-                    id="city"
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="e,g. Atlanta"
-                    style={{
-                      width: '100%',
-                      padding: '0.55rem 0.7rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="state"
-                    style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#6b7280',
-                      marginBottom: '0.15rem',
-                    }}
-                  >
-                    State
-                  </label>
-                  <input
-                    id="state"
-                    type="text"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    placeholder="e,g. GA"
-                    style={{
-                      width: '100%',
-                      padding: '0.55rem 0.7rem',
-                      borderRadius: '8px',
-                      border: '1px solid #d1d5db',
-                      fontSize: '0.9rem',
-                    }}
-                  />
+                    {displayName || fallbackName}
+                  </h1>
+                  {headline && (
+                    <p
+                      style={{
+                        fontSize: '0.95rem',
+                        color: '#65676b',
+                        margin: '0.25rem 0 0 0',
+                      }}
+                    >
+                      {headline}
+                    </p>
+                  )}
+                  {(city || state) && (
+                    <p
+                      style={{
+                        fontSize: '0.9rem',
+                        color: '#65676b',
+                        margin: '0.15rem 0 0 0',
+                      }}
+                    >
+                      {city && state ? `${city}, ${state}` : city || state}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="primaryInterest"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    marginBottom: '0.15rem',
-                  }}
-                >
-                  Primary lanes or interests
-                </label>
-                <input
-                  id="primaryInterest"
-                  type="text"
-                  value={primaryInterest}
-                  onChange={(e) => setPrimaryInterest(e.target.value)}
-                  placeholder="e,g. Mortgage occupancy inspections, insurance loss, REO"
-                  style={{
-                    width: '100%',
-                    padding: '0.55rem 0.7rem',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '0.9rem',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="tools"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    marginBottom: '0.15rem',
-                  }}
-                >
-                  Tools and platforms you already use
-                </label>
-                <input
-                  id="tools"
-                  type="text"
-                  value={tools}
-                  onChange={(e) => setTools(e.target.value)}
-                  placeholder="e,g. Aspen iAgent, EZInspections, Spectora, FieldCom"
-                  style={{
-                    width: '100%',
-                    padding: '0.55rem 0.7rem',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '0.9rem',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="notes"
-                  style={{
-                    display: 'block',
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    marginBottom: '0.15rem',
-                  }}
-                >
-                  Notes, goals, or certifications
-                </label>
-                <textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={4}
-                  placeholder="e,g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.7rem',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '0.9rem',
-                    resize: 'vertical',
-                  }}
-                />
-              </div>
-
+              {/* Right: Action Buttons */}
               <div
                 style={{
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '0.75rem',
-                  gap: '0.75rem',
+                  gap: '0.5rem',
+                  paddingBottom: '0.5rem',
                 }}
               >
                 <button
-                  type="submit"
-                  disabled={saving}
+                  onClick={() => setActiveTab('about')}
                   style={{
-                    padding: '0.7rem 1.6rem',
-                    borderRadius: '999px',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
                     border: 'none',
-                    backgroundColor: saving ? '#93c5fd' : '#3b82f6',
-                    color: 'white',
+                    backgroundColor: activeTab === 'about' ? '#e4e6eb' : '#0866ff',
+                    color: activeTab === 'about' ? '#050505' : 'white',
                     fontSize: '0.95rem',
                     fontWeight: 600,
-                    cursor: saving ? 'default' : 'pointer',
+                    cursor: 'pointer',
                   }}
                 >
-                  {saving ? 'Saving…' : 'Save profile'}
+                  ✏️ Edit profile
                 </button>
-
-                <p
+                <Link
+                  href="/dashboard"
                   style={{
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    margin: 0,
-                    textAlign: 'right',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    backgroundColor: '#e4e6eb',
+                    color: '#050505',
+                    fontSize: '0.95rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
                   }}
                 >
-                  As we roll out more tools, this profile will help auto match you to
-                  firms, training, and routes.
-                </p>
+                  ← Dashboard
+                </Link>
               </div>
-            </form>
-          )}
-        </section>
-      </section>
-    </main>
+            </div>
+
+            {/* Tab Navigation */}
+            <div
+              style={{
+                borderTop: '1px solid #d0d5dd',
+                display: 'flex',
+                gap: '0.5rem',
+              }}
+            >
+              <button
+                onClick={() => setActiveTab('overview')}
+                style={{
+                  padding: '1rem 1rem',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: activeTab === 'overview' ? '#0866ff' : '#65676b',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  borderBottom:
+                    activeTab === 'overview' ? '3px solid #0866ff' : '3px solid transparent',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('about')}
+                style={{
+                  padding: '1rem 1rem',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: activeTab === 'about' ? '#0866ff' : '#65676b',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  borderBottom:
+                    activeTab === 'about' ? '3px solid #0866ff' : '3px solid transparent',
+                  transition: 'all 0.2s',
+                }}
+              >
+                About
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '1rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '360px 1fr',
+            gap: '1rem',
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* Left Sidebar */}
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Intro Card */}
+            <div
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '1rem',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  margin: '0 0 1rem 0',
+                  color: '#050505',
+                }}
+              >
+                Intro
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {primaryInterest && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>💼</span>
+                    <span style={{ fontSize: '0.95rem', color: '#050505' }}>
+                      {primaryInterest}
+                    </span>
+                  </div>
+                )}
+                {tools && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>🛠️</span>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#65676b',
+                          marginBottom: '0.25rem',
+                        }}
+                      >
+                        Tools & platforms
+                      </div>
+                      <span style={{ fontSize: '0.95rem', color: '#050505' }}>{tools}</span>
+                    </div>
+                  </div>
+                )}
+                {(city || state) && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>📍</span>
+                    <span style={{ fontSize: '0.95rem', color: '#050505' }}>
+                      {city && state ? `${city}, ${state}` : city || state}
+                    </span>
+                  </div>
+                )}
+                {userEmail && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>✉️</span>
+                    <span style={{ fontSize: '0.95rem', color: '#050505' }}>{userEmail}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main>
+            {activeTab === 'overview' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Notes/Goals Card */}
+                {notes && (
+                  <div
+                    style={{
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      padding: '1.25rem',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        margin: '0 0 1rem 0',
+                        color: '#050505',
+                      }}
+                    >
+                      Notes & Goals
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: '0.95rem',
+                        color: '#050505',
+                        lineHeight: 1.6,
+                        margin: 0,
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Quick Stats Card */}
+                <div
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    padding: '1.25rem',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      margin: '0 0 1rem 0',
+                      color: '#050505',
+                    }}
+                  >
+                    Profile Stats
+                  </h3>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '1rem',
+                    }}
+                  >
+                    <div style={{ textAlign: 'center' }}>
+                      <div
+                        style={{
+                          fontSize: '1.75rem',
+                          fontWeight: 700,
+                          color: '#0866ff',
+                        }}
+                      >
+                        0
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#65676b' }}>
+                        Saved Firms
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div
+                        style={{
+                          fontSize: '1.75rem',
+                          fontWeight: 700,
+                          color: '#0866ff',
+                        }}
+                      >
+                        0
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#65676b' }}>
+                        Applications
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div
+                        style={{
+                          fontSize: '1.75rem',
+                          fontWeight: 700,
+                          color: '#0866ff',
+                        }}
+                      >
+                        {profile?.created_at
+                          ? Math.floor(
+                              (Date.now() - new Date(profile.created_at).getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            )
+                          : 0}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#65676b' }}>Days Active</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'about' && (
+              <div
+                style={{
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  padding: '1.5rem',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 700,
+                    margin: '0 0 1.5rem 0',
+                    color: '#050505',
+                  }}
+                >
+                  Edit Profile
+                </h3>
+
+                {loadingProfile && (
+                  <p style={{ fontSize: '0.95rem', color: '#65676b' }}>
+                    Loading your profile…
+                  </p>
+                )}
+
+                {!loadingProfile && (
+                  <form
+                    onSubmit={handleSave}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1.25rem',
+                    }}
+                  >
+                    {error && (
+                      <div
+                        style={{
+                          borderRadius: '8px',
+                          padding: '0.75rem 1rem',
+                          fontSize: '0.9rem',
+                          backgroundColor: '#ffebe9',
+                          color: '#c41c00',
+                          border: '1px solid #ffc9c2',
+                        }}
+                      >
+                        {error}
+                      </div>
+                    )}
+
+                    {success && (
+                      <div
+                        style={{
+                          borderRadius: '8px',
+                          padding: '0.75rem 1rem',
+                          fontSize: '0.9rem',
+                          backgroundColor: '#e7f3ff',
+                          color: '#0a66c2',
+                          border: '1px solid #c3e0ff',
+                        }}
+                      >
+                        {success}
+                      </div>
+                    )}
+
+                    <div>
+                      <label
+                        htmlFor="displayName"
+                        style={{
+                          display: 'block',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#050505',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Name
+                      </label>
+                      <input
+                        id="displayName"
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your full name"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #ccd0d5',
+                          fontSize: '0.95rem',
+                          backgroundColor: '#f0f2f5',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="headline"
+                        style={{
+                          display: 'block',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#050505',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Headline
+                      </label>
+                      <input
+                        id="headline"
+                        type="text"
+                        value={headline}
+                        onChange={(e) => setHeadline(e.target.value)}
+                        placeholder="e.g., Mortgage inspector · Atlanta metro · 5 years"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #ccd0d5',
+                          fontSize: '0.95rem',
+                          backgroundColor: '#f0f2f5',
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '1rem',
+                      }}
+                    >
+                      <div>
+                        <label
+                          htmlFor="city"
+                          style={{
+                            display: 'block',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            color: '#050505',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
+                          City
+                        </label>
+                        <input
+                          id="city"
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="e.g., Atlanta"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            borderRadius: '6px',
+                            border: '1px solid #ccd0d5',
+                            fontSize: '0.95rem',
+                            backgroundColor: '#f0f2f5',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor="state"
+                          style={{
+                            display: 'block',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            color: '#050505',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
+                          State
+                        </label>
+                        <input
+                          id="state"
+                          type="text"
+                          value={state}
+                          onChange={(e) => setState(e.target.value)}
+                          placeholder="e.g., GA"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            borderRadius: '6px',
+                            border: '1px solid #ccd0d5',
+                            fontSize: '0.95rem',
+                            backgroundColor: '#f0f2f5',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="primaryInterest"
+                        style={{
+                          display: 'block',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#050505',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Primary Lanes or Interests
+                      </label>
+                      <input
+                        id="primaryInterest"
+                        type="text"
+                        value={primaryInterest}
+                        onChange={(e) => setPrimaryInterest(e.target.value)}
+                        placeholder="e.g., Mortgage occupancy inspections, insurance loss, REO"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #ccd0d5',
+                          fontSize: '0.95rem',
+                          backgroundColor: '#f0f2f5',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="tools"
+                        style={{
+                          display: 'block',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#050505',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Tools and Platforms You Use
+                      </label>
+                      <input
+                        id="tools"
+                        type="text"
+                        value={tools}
+                        onChange={(e) => setTools(e.target.value)}
+                        placeholder="e.g., Aspen iAgent, EZInspections, Spectora, FieldCom"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #ccd0d5',
+                          fontSize: '0.95rem',
+                          backgroundColor: '#f0f2f5',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="notes"
+                        style={{
+                          display: 'block',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          color: '#050505',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        Notes, Goals, or Certifications
+                      </label>
+                      <textarea
+                        id="notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        rows={5}
+                        placeholder="e.g., Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          borderRadius: '6px',
+                          border: '1px solid #ccd0d5',
+                          fontSize: '0.95rem',
+                          backgroundColor: '#f0f2f5',
+                          resize: 'vertical',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        style={{
+                          padding: '0.75rem 2rem',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: saving ? '#97b9f7' : '#0866ff',
+                          color: 'white',
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          cursor: saving ? 'default' : 'pointer',
+                        }}
+                      >
+                        {saving ? 'Saving…' : 'Save Changes'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('overview')}
+                        style={{
+                          padding: '0.75rem 2rem',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: '#e4e6eb',
+                          color: '#050505',
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
   )
 }
