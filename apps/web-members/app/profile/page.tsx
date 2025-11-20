@@ -179,6 +179,8 @@ export default function ProfilePage() {
           setPhone(structured.phone)
           setLinkedin(structured.linkedin)
           setNotes(structured.notes)
+
+          auth.updateProfileDisplayName?.(row.display_name || null)
         } else {
           // No profile yet. seed the form from Outseta name or email
           setProfile(null)
@@ -192,6 +194,8 @@ export default function ProfilePage() {
           setPhone('')
           setLinkedin('')
           setNotes('')
+
+          auth.updateProfileDisplayName?.(fallbackName || null)
         }
       } catch (err) {
         console.error('Error loading profile', err)
@@ -206,7 +210,7 @@ export default function ProfilePage() {
     if (!isLoading && isAuthenticated) {
       loadProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, fallbackName])
+  }, [isLoading, isAuthenticated, userEmail, fallbackName, auth])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -288,6 +292,7 @@ export default function ProfilePage() {
         if (row.display_name) {
           setDisplayName(row.display_name)
         }
+        auth.updateProfileDisplayName?.(row.display_name || null)
       }
 
       setSuccess('Profile updated. Your dashboard greeting will reflect this change.')

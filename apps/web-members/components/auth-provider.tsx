@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -16,13 +17,19 @@ type JwtPayload = {
 type AuthContextValue = {
   user: JwtPayload | null
   planUid: string | null
+  profileDisplayName: string | null
   isAuthenticated: boolean
   isLoading: boolean
   hasAccess: (feature?: string) => boolean
   login: () => void
   signup: () => void
   logout: () => void
+  refreshProfileDisplayName: () => Promise<void>
+  updateProfileDisplayName: (name: string | null) => void
 }
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
@@ -61,8 +68,30 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<JwtPayload | null>(null)
   const [planUid, setPlanUid] = useState<string | null>(null)
+  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  const persistProfileDisplayName = useCallback((name: string | null) => {
+    setProfileDisplayName(name || null)
+
+    if (typeof window === 'undefined') return
+
+    if (name) {
+      window.localStorage.setItem('profileDisplayName', name)
+    } else {
+      window.localStorage.removeItem('profileDisplayName')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const cachedName = window.localStorage.getItem('profileDisplayName')
+    if (cachedName) {
+      setProfileDisplayName(cachedName)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -111,6 +140,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       cancelled = true
     }
   }, [])
+
+  const refreshProfileDisplayName = useCallback(async () => {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    if (!isAuthenticated || !user) return
+
+    const userEmail =
+      (user?.email as string | undefined) ??
+      (user?.Email as string | undefined) ??
+      null
+
+    if (!userEmail) return
+
+    try {
+      const encodedEmail = encodeURIComponent(userEmail)
+      const url =
+        `${SUPABASE_URL}/rest/v1/profiles` +
+        `?user_email=eq.${encodedEmail}` +
+        `&select=display_name`
+
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+
+      if (!res.ok) {
+        persistProfileDisplayName(null)
+        return
+      }
+
+      const rows = (await res.json()) as { display_name: string | null }[]
+      const row = rows[0]
+      persistProfileDisplayName(row?.display_name || null)
+    } catch (error) {
+      console.error('Error loading profile display name', error)
+      persistProfileDisplayName(null)
+    }
+  }, [isAuthenticated, persistProfileDisplayName, user])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const hydrateProfileName = async () => {
+      await refreshProfileDisplayName()
+      if (cancelled) return
+    }
+
+    if (!isLoading && isAuthenticated) {
+      hydrateProfileName()
+    }
+
+    if (!isAuthenticated) {
+      persistProfileDisplayName(null)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoading, isAuthenticated, refreshProfileDisplayName, persistProfileDisplayName])
 
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
@@ -174,6 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(null)
       setPlanUid(null)
+      persistProfileDisplayName(null)
       setIsAuthenticated(false)
     } catch (error) {
       console.error('Error during logout', error)
@@ -185,12 +275,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextValue = {
     user,
     planUid,
+    profileDisplayName,
     isAuthenticated,
     isLoading,
     hasAccess,
     login,
     signup,
     logout,
+    refreshProfileDisplayName,
+    updateProfileDisplayName: (name: string | null) =>
+      persistProfileDisplayName(name || null),
   }
 
   return (

@@ -25,7 +25,14 @@ const jsonLd = {
 }
 
 export default function HomePage() {
-  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
+  const {
+    user,
+    planUid,
+    profileDisplayName,
+    isLoading,
+    isAuthenticated,
+    logout,
+  } = useAuth()
 
   const getPlanName = (uid: string | null) => {
     switch (uid) {
@@ -44,14 +51,17 @@ export default function HomePage() {
 
   const planName = getPlanName(planUid)
 
-  const firstName =
+  const displayName =
+    profileDisplayName ??
     (user as any)?.first_name ??
     (user as any)?.FirstName ??
     (user?.name ? user.name.split(' ')[0] : undefined) ??
     (user?.email ? user.email.split('@')[0] : undefined) ??
     'Member'
 
-  const initials = firstName.charAt(0).toUpperCase()
+  const resolvedDisplayName = displayName.trim() || 'Member'
+
+  const initials = resolvedDisplayName.charAt(0).toUpperCase()
 
   return (
     <>
@@ -102,7 +112,7 @@ export default function HomePage() {
                     {initials}
                   </div>
                   <div className="flex flex-col leading-tight">
-                    <span className="text-sm font-semibold text-slate-900">{firstName}</span>
+                    <span className="text-sm font-semibold text-slate-900">{resolvedDisplayName}</span>
                     {planName !== 'Unknown' && (
                       <span className="text-xs text-slate-500">{planName} plan</span>
                     )}
