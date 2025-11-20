@@ -24,7 +24,6 @@ type AuthContextValue = {
   login: () => void
   signup: () => void
   logout: () => void
-  refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
 }
 
