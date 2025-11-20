@@ -9,3 +9,4 @@ dist/
 # Env files
 # Ignore all .env files in all directories (root, apps, packages, etc.)
 **/.env*
+.env.local
