@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
@@ -20,67 +20,16 @@ function getPlanName(uid: string | null): string {
   }
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-type ProfileHeader = {
-  display_name: string | null
-}
-
 export default function DashboardPage() {
-  const { user, planUid, isLoading, isAuthenticated, logout } = useAuth()
+  const { user, planUid, profileDisplayName, isLoading, isAuthenticated, logout } =
+    useAuth()
   const router = useRouter()
-
-  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
-
-  const userEmail: string | null =
-    ((user as any)?.email as string | undefined) ??
-    ((user as any)?.Email as string | undefined) ??
-    null
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/')
     }
   }, [isLoading, isAuthenticated, router])
-
-  // Pull display_name from Supabase profiles so the dashboard greeting
-  // always reflects what the user saved on their profile page.
-  useEffect(() => {
-    async function loadProfileName() {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
-      if (!userEmail) return
-
-      try {
-        const encodedEmail = encodeURIComponent(userEmail)
-        const url =
-          `${SUPABASE_URL}/rest/v1/profiles` +
-          `?user_email=eq.${encodedEmail}` +
-          `&select=display_name`
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY as string,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-
-        if (!res.ok) return
-
-        const rows = (await res.json()) as ProfileHeader[]
-        const row = rows[0]
-        if (row && row.display_name) {
-          setProfileDisplayName(row.display_name)
-        }
-      } catch (err) {
-        console.error('Error loading profile display name', err)
-      }
-    }
-
-    if (!isLoading && isAuthenticated) {
-      loadProfileName()
-    }
-  }, [isLoading, isAuthenticated, userEmail])
 
   const planName = getPlanName(planUid ?? null)
 
