@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 
@@ -9,7 +9,7 @@ import { useAuth } from '@/components/auth-provider'
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
-export default function MembershipPage() {
+function MembershipContent() {
   const searchParams = useSearchParams()
   const checkoutStatus = searchParams.get('checkout')
 
@@ -133,7 +133,7 @@ export default function MembershipPage() {
   ]
 
   return (
-    <main style={{ 
+    <main style={{
       maxWidth: '1400px', 
       margin: '0 auto', 
       padding: '3rem 2rem',
@@ -516,5 +516,28 @@ export default function MembershipPage() {
         </a>
       </div>
     </main>
+  )
+}
+
+export default function MembershipPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '3rem 2rem',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}
+        >
+          <p style={{ fontSize: '1.125rem', color: '#4b5563' }}>
+            Loading membership options...
+          </p>
+        </main>
+      }
+    >
+      <MembershipContent />
+    </Suspense>
   )
 }
