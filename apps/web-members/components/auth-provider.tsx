@@ -25,6 +25,7 @@ type AuthContextValue = {
   signup: () => void
   logout: () => void
   updateProfileDisplayName: (name: string | null) => void
+  refreshProfileDisplayName: () => Promise<void> // ✅ Add this line
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
