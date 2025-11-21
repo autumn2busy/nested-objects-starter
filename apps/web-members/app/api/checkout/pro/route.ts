@@ -1,0 +1,82 @@
+import Stripe from 'stripe'
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+if (!stripeSecretKey) {
+  console.warn('STRIPE_SECRET_KEY is not set; Pro checkout will be disabled.')
+}
+
+if (!publishableKey) {
+  console.warn(
+    'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set; the client cannot launch Stripe Checkout.'
+  )
+}
+
+const normalizeKeySignature = (key: string | undefined | null) => {
+  if (!key) return null
+  // Stripe keys are formatted like pk_test_xxx / sk_test_xxx — the part after the second underscore
+  // represents the same account. Comparing signatures helps surface “No such setupintent” errors
+  // that happen when mismatched keys from different Stripe accounts are used together.
+  const [, , signature] = key.split('_')
+  return signature || null
+}
+
+const publishableSignature = normalizeKeySignature(publishableKey)
+const secretSignature = normalizeKeySignature(stripeSecretKey)
+
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, { apiVersion: '2024-06-20' })
+  : null
+
+export async function POST(request: Request) {
+  if (!stripe || !publishableKey) {
+    return new Response(
+      JSON.stringify({ error: 'Stripe keys are missing. Please configure environment variables.' }),
+      { status: 500 }
+    )
+  }
+
+  if (!publishableSignature || !secretSignature || publishableSignature !== secretSignature) {
+    console.error('Stripe keys are misaligned between publishable and secret keys.')
+    return new Response(
+      JSON.stringify({
+        error:
+          'Stripe keys are misconfigured. Use publishable/secret keys from the same Stripe account (test or live).',
+      }),
+      { status: 500 }
+    )
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+  try {
+    const { email } = (await request.json()) as { email?: string }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      success_url: `${siteUrl}/membership?checkout=success`,
+      cancel_url: `${siteUrl}/membership?checkout=cancelled`,
+      customer_email: email,
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            unit_amount: 3700,
+            recurring: { interval: 'month' },
+            product_data: {
+              name: 'Nested Objects Pro',
+              description: 'Pro subscription billed monthly',
+            },
+          },
+          quantity: 1,
+        },
+      ],
+    })
+
+    return new Response(JSON.stringify({ id: session.id }), { status: 200 })
+  } catch (error) {
+    console.error('Error creating Stripe Checkout session', error)
+    return new Response(JSON.stringify({ error: 'Unable to start checkout.' }), { status: 500 })
+  }
+}

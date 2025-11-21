@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
-
-const inter = Inter({ subsets: ['latin'] })
+import '../styles/globals.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nested-objects-starter.vercel.app'),
@@ -60,7 +58,7 @@ export default function RootLayout({
           data-options="o_options"
         />
       </head>
-      <body className={inter.className}>
+      <body>
         {/* Wrap the entire app in the AuthProvider */}
         <AuthProvider>
           {children}

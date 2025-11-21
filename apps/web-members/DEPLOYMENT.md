@@ -54,6 +54,11 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 # App
 NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
+
+# Stripe (test mode)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_SITE_URL=https://nested-objects-starter.vercel.app
 ```
 
 **CRITICAL:** After adding env vars, click **"Redeploy"** from the Deployments tab.
