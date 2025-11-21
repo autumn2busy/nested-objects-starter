@@ -20,7 +20,6 @@ const stripe = stripeSecretKey
 // Prefer explicit site/app URL env vars, fall back to localhost for dev only
 const resolveSiteUrl = () => {
   const envUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.SITE_URL
 
