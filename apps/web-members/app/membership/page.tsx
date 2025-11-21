@@ -61,6 +61,9 @@ function MembershipContent() {
     }
   }
 
+  const proCheckoutUrl =
+    'https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6&planPaymentTerm=month&skipPlanOptions=true'
+
   const plans = [
     {
       name: 'Starter',
@@ -144,6 +147,7 @@ function MembershipContent() {
         <h1 style={{
           fontSize: '3rem',
           fontWeight: 'bold',
+          fontWeight: 'bold', 
           marginBottom: '1rem',
           background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
           WebkitBackgroundClip: 'text',
@@ -201,6 +205,11 @@ function MembershipContent() {
         <ol style={{ paddingLeft: '1.25rem', color: '#064e3b', lineHeight: 1.8, marginBottom: '1rem' }}>
           <li>Click the green "Start Pro Checkout" button below and register with any test name/email.</li>
           <li>The Pro monthly plan will be preselected automatically in the Stripe Checkout flow.</li>
+          <li>
+            Open the <a href={proCheckoutUrl} style={{ color: '#047857', fontWeight: 600 }}>Pro checkout link</a> and register
+            with any test name/email.
+          </li>
+          <li>Choose the Pro monthly plan when prompted (preselected via the link above).</li>
           <li>
             Use Stripe test card <code style={{ background: '#d1fae5', padding: '0.15rem 0.35rem', borderRadius: '6px' }}>4242 4242 4242 4242</code>,
             any future expiry, CVC, and ZIP to complete the payment.

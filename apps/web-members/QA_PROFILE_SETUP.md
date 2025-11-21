@@ -4,6 +4,7 @@ Use these steps to create a Pro subscription profile safely in test mode. This w
 
 ## Steps
 1. On `/membership`, click **Start Pro Checkout** (green button) to launch Stripe Checkout in test mode.
+1. Open the Pro checkout link: https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6&planPaymentTerm=month&skipPlanOptions=true.
 2. Register with any test name and email (they do not need to be real inboxes).
 3. When prompted for payment, use the Stripe test Visa number `4242 4242 4242 4242` with any future expiration, any CVC, and any ZIP/postal code.
 4. Complete the flow; you will land in the app with Pro entitlements enabled. You can repeat these steps as often as needed during QA without billing a real card.
