@@ -5,6 +5,9 @@ import { useAuth } from '@/components/auth-provider'
 export default function MembershipPage() {
   const { isAuthenticated, planUid } = useAuth()
 
+  const proCheckoutUrl =
+    'https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6&planPaymentTerm=month&skipPlanOptions=true'
+
   const plans = [
     {
       name: 'Starter',
@@ -85,8 +88,8 @@ export default function MembershipPage() {
     }}>
       {/* Header */}
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 style={{ 
-          fontSize: '3rem', 
+        <h1 style={{
+          fontSize: '3rem',
           fontWeight: 'bold', 
           marginBottom: '1rem',
           background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
@@ -104,6 +107,35 @@ export default function MembershipPage() {
           </p>
         )}
       </header>
+
+      {/* Guided QA instructions for creating a Pro profile with Stripe test cards */}
+      <section style={{
+        marginBottom: '3rem',
+        padding: '1.5rem',
+        border: '1px solid #d1fae5',
+        backgroundColor: '#ecfdf3',
+        borderRadius: '12px',
+        boxShadow: '0 8px 20px rgba(16, 185, 129, 0.08)'
+      }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#065f46', marginBottom: '0.5rem' }}>
+          QA: Create a Pro profile with Stripe test payment cards
+        </h2>
+        <ol style={{ paddingLeft: '1.25rem', color: '#064e3b', lineHeight: 1.8, marginBottom: '1rem' }}>
+          <li>
+            Open the <a href={proCheckoutUrl} style={{ color: '#047857', fontWeight: 600 }}>Pro checkout link</a> and register
+            with any test name/email.
+          </li>
+          <li>Choose the Pro monthly plan when prompted (preselected via the link above).</li>
+          <li>
+            Use Stripe test card <code style={{ background: '#d1fae5', padding: '0.15rem 0.35rem', borderRadius: '6px' }}>4242 4242 4242 4242</code>,
+            any future expiry, CVC, and ZIP to complete the payment.
+          </li>
+          <li>Finish onboarding and you will land on the dashboard with Pro entitlements.</li>
+        </ol>
+        <p style={{ margin: 0, color: '#047857' }}>
+          This flow creates a Pro test profile without charging a real card and is safe to repeat during QA.
+        </p>
+      </section>
 
       {/* Pricing Cards */}
       <div style={{ 
