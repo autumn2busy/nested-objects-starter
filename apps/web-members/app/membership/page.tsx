@@ -90,13 +90,47 @@ function MembershipContent() {
 
   const proPlan = plans.find((p) => p.planUid === 'rQVqlLm6')!
 
-  const buildPlanUrl = (plan: Plan) => {
-    const base = 'https://nested-objects.outseta.com/auth'
+  const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+
+  const openPlanWidget = (plan: Plan, isCurrentPlan: boolean) => {
+    if (isCurrentPlan) return
+    if (typeof window === 'undefined') return
+
+    const Outseta = window.Outseta
     const widgetMode = isAuthenticated ? 'updateSubscription' : 'register'
 
-    // This is the Outseta plan widget. when authenticated it opens the
-    // “change/upgrade plan” experience. when logged out it runs sign-up.
-    return `${base}?widgetMode=${widgetMode}&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`
+    // Preferred. use the embedded widget so existing sessions are respected.
+    if (Outseta?.auth?.open) {
+      Outseta.auth.open({
+        widgetMode,
+        planUid: plan.planUid,
+        planPaymentTerm: 'month',
+        skipPlanOptions: true,
+      })
+      return
+    }
+
+    // Fallback. if the JS SDK is missing, bounce to the hosted page.
+    const params = new URLSearchParams({
+      widgetMode,
+      planUid: plan.planUid,
+      planPaymentTerm: 'month',
+      skipPlanOptions: 'true',
+    })
+
+    window.location.href = `${hostedBaseUrl}?${params.toString()}`
+  }
+
+  const openManageBilling = () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+
+    if (Outseta?.auth?.open) {
+      Outseta.auth.open({ widgetMode: 'updateSubscription' })
+      return
+    }
+
+    window.location.href = `${hostedBaseUrl}?widgetMode=updateSubscription`
   }
 
   return (
@@ -137,12 +171,13 @@ function MembershipContent() {
         {isProOrHigher && (
           <p className="mt-4 text-sm text-slate-500">
             Your billing and plan changes are managed from the{' '}
-            <a
-              href="https://nested-objects.outseta.com/auth?widgetMode=updateSubscription"
-              className="font-semibold text-sky-600 underline underline-offset-4"
+            <button
+              type="button"
+              onClick={openManageBilling}
+              className="font-semibold text-sky-600 underline underline-offset-4 hover:text-sky-700"
             >
-              Manage plan &amp; billing
-            </a>{' '}
+              manage plan &amp; billing
+            </button>{' '}
             widget.
           </p>
         )}
@@ -217,15 +252,14 @@ function MembershipContent() {
                   </ul>
 
                   <div className="mt-auto">
-                    {isCurrentPlan ? (
-                      <button type="button" disabled className={buttonClasses}>
-                        {label}
-                      </button>
-                    ) : (
-                      <a href={buildPlanUrl(plan)} className={buttonClasses}>
-                        {label}
-                      </a>
-                    )}
+                    <button
+                      type="button"
+                      disabled={isCurrentPlan}
+                      className={buttonClasses}
+                      onClick={() => openPlanWidget(plan, isCurrentPlan)}
+                    >
+                      {label}
+                    </button>
 
                     {plan.name === 'Starter' && (
                       <p className="mt-2 text-center text-xs text-slate-500">
@@ -289,7 +323,7 @@ function MembershipContent() {
               Can I change plans or cancel anytime.
             </h3>
             <p className="mt-2">
-              Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
+              Yes. you can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
               changes take effect immediately and you keep access until the end of your billing
               period.
             </p>
@@ -300,7 +334,7 @@ function MembershipContent() {
               What payment methods do you accept.
             </h3>
             <p className="mt-2">
-              All major credit cards are processed securely through Outseta + Stripe. your billing
+              All major credit cards are processed securely through Outseta and Stripe. your billing
               details never touch the Nested Objects servers.
             </p>
           </div>
@@ -340,19 +374,21 @@ function MembershipContent() {
         </p>
 
         {isProOrHigher ? (
-          <a
-            href="https://nested-objects.outseta.com/auth?widgetMode=updateSubscription"
+          <button
+            type="button"
+            onClick={openManageBilling}
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Open manage plan &amp; billing
-          </a>
+          </button>
         ) : (
-          <a
-            href={buildPlanUrl(proPlan)}
+          <button
+            type="button"
+            onClick={() => openPlanWidget(proPlan, false)}
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Start with Pro
-          </a>
+          </button>
         )}
 
         <p className="mt-3 text-xs text-slate-300">
@@ -384,4 +420,4 @@ export default function MembershipPage() {
       <MembershipContent />
     </Suspense>
   )
-}
+                       }
