@@ -61,6 +61,9 @@ function MembershipContent() {
     }
   }
 
+  const proCheckoutUrl =
+    'https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6&planPaymentTerm=month&skipPlanOptions=true'
+
   const plans = [
     {
       name: 'Starter',
@@ -143,7 +146,7 @@ function MembershipContent() {
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <h1 style={{
           fontSize: '3rem',
-          fontWeight: 'bold',
+          fontWeight: 'bold', 
           marginBottom: '1rem',
           background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
           WebkitBackgroundClip: 'text',

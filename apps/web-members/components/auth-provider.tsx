@@ -215,6 +215,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, loadProfileDisplayName, persistProfileDisplayName])
 
+  const refreshProfileDisplayName = useCallback(async () => {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    if (!isAuthenticated || !user) return
+
+    const userEmail =
+      (user?.email as string | undefined) ??
+      (user?.Email as string | undefined) ??
+      null
+
+    if (!userEmail) return
+
+    try {
+      const encodedEmail = encodeURIComponent(userEmail)
+      const url =
+        `${SUPABASE_URL}/rest/v1/profiles` +
+        `?user_email=eq.${encodedEmail}` +
+        `&select=display_name`
+
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+
+      if (!res.ok) {
+        persistProfileDisplayName(null)
+        return
+      }
+
+      const rows = (await res.json()) as { display_name: string | null }[]
+      const row = rows[0]
+      persistProfileDisplayName(row?.display_name || null)
+    } catch (error) {
+      console.error('Error loading profile display name', error)
+      persistProfileDisplayName(null)
+    }
+  }, [isAuthenticated, persistProfileDisplayName, user])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const hydrateProfileName = async () => {
+      await refreshProfileDisplayName()
+      if (cancelled) return
+    }
+
+    if (!isLoading && isAuthenticated) {
+      hydrateProfileName()
+    }
+
+    if (!isAuthenticated) {
+      persistProfileDisplayName(null)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoading, isAuthenticated, refreshProfileDisplayName, persistProfileDisplayName])
+
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
