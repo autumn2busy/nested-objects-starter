@@ -1,9 +1,65 @@
 'use client'
 
+import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { loadStripe } from '@stripe/stripe-js'
+
 import { useAuth } from '@/components/auth-provider'
 
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null
+
 export default function MembershipPage() {
-  const { isAuthenticated, planUid } = useAuth()
+  const searchParams = useSearchParams()
+  const checkoutStatus = searchParams.get('checkout')
+
+  const { isAuthenticated, planUid, user } = useAuth()
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
+
+  const startProCheckout = async () => {
+    if (!stripePromise || !publishableKey) {
+      setCheckoutError('Stripe is not configured. Add your publishable key to continue.')
+      return
+    }
+
+    setCheckoutError(null)
+    setIsCheckingOut(true)
+
+    try {
+      const stripe = await stripePromise
+      if (!stripe) {
+        throw new Error('Stripe failed to initialize.')
+      }
+
+      const response = await fetch('/api/checkout/pro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:
+            (user?.email as string | undefined) ??
+            (user?.Email as string | undefined) ??
+            undefined,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok || !data?.id) {
+        throw new Error(data?.error || 'Unable to start checkout.')
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId: data.id })
+      if (error) {
+        throw error
+      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to start checkout. Please try again.'
+      setCheckoutError(message)
+    } finally {
+      setIsCheckingOut(false)
+    }
+  }
 
   const plans = [
     {
@@ -85,9 +141,9 @@ export default function MembershipPage() {
     }}>
       {/* Header */}
       <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 style={{ 
-          fontSize: '3rem', 
-          fontWeight: 'bold', 
+        <h1 style={{
+          fontSize: '3rem',
+          fontWeight: 'bold',
           marginBottom: '1rem',
           background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
           WebkitBackgroundClip: 'text',
@@ -103,7 +159,58 @@ export default function MembershipPage() {
             Current plan: <strong>{plans.find(p => p.planUid === planUid)?.name || 'Unknown'}</strong>
           </p>
         )}
+
+        {checkoutStatus === 'success' && (
+          <p style={{
+            marginTop: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#ecfdf3',
+            borderRadius: '8px',
+            color: '#065f46',
+            fontWeight: 600
+          }}>
+            Checkout succeeded — your Pro subscription is being activated.
+          </p>
+        )}
+        {checkoutStatus === 'cancelled' && (
+          <p style={{
+            marginTop: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#fef3c7',
+            borderRadius: '8px',
+            color: '#92400e',
+            fontWeight: 600
+          }}>
+            Checkout was cancelled. You can restart whenever you're ready.
+          </p>
+        )}
       </header>
+
+      {/* Guided QA instructions for creating a Pro profile with Stripe test cards */}
+      <section style={{
+        marginBottom: '3rem',
+        padding: '1.5rem',
+        border: '1px solid #d1fae5',
+        backgroundColor: '#ecfdf3',
+        borderRadius: '12px',
+        boxShadow: '0 8px 20px rgba(16, 185, 129, 0.08)'
+      }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#065f46', marginBottom: '0.5rem' }}>
+          QA: Create a Pro profile with Stripe test payment cards
+        </h2>
+        <ol style={{ paddingLeft: '1.25rem', color: '#064e3b', lineHeight: 1.8, marginBottom: '1rem' }}>
+          <li>Click the green "Start Pro Checkout" button below and register with any test name/email.</li>
+          <li>The Pro monthly plan will be preselected automatically in the Stripe Checkout flow.</li>
+          <li>
+            Use Stripe test card <code style={{ background: '#d1fae5', padding: '0.15rem 0.35rem', borderRadius: '6px' }}>4242 4242 4242 4242</code>,
+            any future expiry, CVC, and ZIP to complete the payment.
+          </li>
+          <li>Finish onboarding and you will land on the dashboard with Pro entitlements.</li>
+        </ol>
+        <p style={{ margin: 0, color: '#047857' }}>
+          This flow creates a Pro test profile without charging a real card and is safe to repeat during QA.
+        </p>
+      </section>
 
       {/* Pricing Cards */}
       <div style={{ 
@@ -214,27 +321,60 @@ export default function MembershipPage() {
               </ul>
 
               {/* CTA Button */}
-              <a
-                href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '1rem',
-                  backgroundColor: isCurrentPlan ? '#9ca3af' : (plan.highlight ? '#3b82f6' : 'white'),
-                  color: isCurrentPlan ? 'white' : (plan.highlight ? 'white' : '#3b82f6'),
-                  border: plan.highlight ? 'none' : '2px solid #3b82f6',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s',
-                  pointerEvents: isCurrentPlan ? 'none' : 'auto'
-                }}
-              >
-                {isCurrentPlan ? 'Current Plan' : 'Get Started'}
-              </a>
+              {plan.planUid === 'rQVqlLm6' ? (
+                <button
+                  onClick={startProCheckout}
+                  disabled={isCurrentPlan || isCheckingOut}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: isCurrentPlan
+                      ? '#9ca3af'
+                      : plan.highlight
+                        ? '#3b82f6'
+                        : 'white',
+                    color: isCurrentPlan ? 'white' : (plan.highlight ? 'white' : '#3b82f6'),
+                    border: plan.highlight ? 'none' : '2px solid #3b82f6',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    cursor: isCurrentPlan || isCheckingOut ? 'not-allowed' : 'pointer',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    pointerEvents: isCurrentPlan || isCheckingOut ? 'none' : 'auto'
+                  }}
+                >
+                  {isCurrentPlan
+                    ? 'Current Plan'
+                    : isCheckingOut
+                      ? 'Starting checkout...'
+                      : 'Get Started'}
+                </button>
+              ) : (
+                <a
+                  href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '1rem',
+                    backgroundColor: isCurrentPlan ? '#9ca3af' : (plan.highlight ? '#3b82f6' : 'white'),
+                    color: isCurrentPlan ? 'white' : (plan.highlight ? 'white' : '#3b82f6'),
+                    border: plan.highlight ? 'none' : '2px solid #3b82f6',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    cursor: isCurrentPlan ? 'not-allowed' : 'pointer',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    pointerEvents: isCurrentPlan ? 'none' : 'auto'
+                  }}
+                >
+                  {isCurrentPlan ? 'Current Plan' : 'Get Started'}
+                </a>
+              )}
 
               {plan.name === 'Starter' && (
                 <p style={{ 
@@ -321,8 +461,9 @@ export default function MembershipPage() {
         <p style={{ fontSize: '1.125rem', marginBottom: '2rem', opacity: 0.9 }}>
           Join hundreds of field professionals already using Nested Objects
         </p>
-        <a
-          href="https://nested-objects.outseta.com/auth?widgetMode=register&planUid=rQVqlLm6#o-anonymous"
+        <button
+          onClick={startProCheckout}
+          disabled={isCheckingOut}
           style={{
             display: 'inline-block',
             padding: '1rem 2.5rem',
@@ -332,12 +473,29 @@ export default function MembershipPage() {
             fontSize: '1.125rem',
             fontWeight: '600',
             textDecoration: 'none',
-            transition: 'transform 0.2s'
+            transition: 'transform 0.2s',
+            cursor: isCheckingOut ? 'not-allowed' : 'pointer',
+            opacity: isCheckingOut ? 0.85 : 1,
+            border: 'none'
           }}
         >
-          Start with Pro Plan
-        </a>
+          {isCheckingOut ? 'Starting checkout...' : 'Start with Pro Plan'}
+        </button>
       </section>
+
+      {checkoutError && (
+        <div style={{
+          marginTop: '2rem',
+          padding: '1rem',
+          borderRadius: '8px',
+          backgroundColor: '#fef2f2',
+          color: '#991b1b',
+          border: '1px solid #fecdd3',
+          fontWeight: 600
+        }}>
+          {checkoutError}
+        </div>
+      )}
 
       {/* Navigation */}
       <div style={{ 
