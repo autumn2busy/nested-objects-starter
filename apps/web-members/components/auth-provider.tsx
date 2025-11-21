@@ -24,14 +24,25 @@ type AuthContextValue = {
   login: () => void
   signup: () => void
   logout: () => void
+  refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
-  refreshProfileDisplayName: () => Promise<void> // ✅ Add this line
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+const deriveDisplayName = (payload: JwtPayload | null): string | null => {
+  const fallback =
+    (payload?.first_name as string | undefined) ??
+    (payload?.FirstName as string | undefined) ??
+    (payload?.name ? payload.name.split(' ')[0] : undefined) ??
+    (payload?.email ? payload.email.split('@')[0] : undefined) ??
+    null
+
+  return fallback ? fallback.trim() || null : null
+}
 
 // Plan ordering. Starter < Pro < Elite < Agency
 const PLAN_ORDER = ['L9nbKV9Z', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
@@ -117,6 +128,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(payload)
           setPlanUid(payload['outseta:planUid'] ?? null)
           setIsAuthenticated(true)
+          if (!profileDisplayName) {
+            persistProfileDisplayName(deriveDisplayName(payload))
+          }
         } else {
           setUser(null)
           setPlanUid(null)
@@ -139,7 +153,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [profileDisplayName, persistProfileDisplayName])
+
+  const loadProfileDisplayName = useCallback(async () => {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    if (!isAuthenticated || !user) return
+
+    const userEmail =
+      (user?.email as string | undefined) ??
+      (user?.Email as string | undefined) ??
+      null
+
+    if (!userEmail) return
+
+    try {
+      const encodedEmail = encodeURIComponent(userEmail)
+      const url =
+        `${SUPABASE_URL}/rest/v1/profiles` +
+        `?user_email=eq.${encodedEmail}` +
+        `&select=display_name`
+
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+
+      if (!res.ok) {
+        persistProfileDisplayName(deriveDisplayName(user))
+        return
+      }
+
+      const rows = (await res.json()) as { display_name: string | null }[]
+      const row = rows[0]
+      persistProfileDisplayName(row?.display_name || deriveDisplayName(user))
+    } catch (error) {
+      console.error('Error loading profile display name', error)
+      persistProfileDisplayName(deriveDisplayName(user))
+    }
+  }, [isAuthenticated, persistProfileDisplayName, user])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const hydrateProfileName = async () => {
+      await loadProfileDisplayName()
+      if (cancelled) return
+    }
+
+    if (!isLoading && isAuthenticated) {
+      hydrateProfileName()
+    }
+
+    if (!isAuthenticated) {
+      persistProfileDisplayName(null)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoading, isAuthenticated, loadProfileDisplayName, persistProfileDisplayName])
 
   const refreshProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
@@ -282,7 +356,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
-    refreshProfileDisplayName,
+    refreshProfileDisplayName: loadProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
   }
