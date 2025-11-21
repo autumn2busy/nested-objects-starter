@@ -26,6 +26,12 @@ type StructuredNotes = {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+const hasSupabaseConfig = Boolean(
+  SUPABASE_URL?.startsWith('http') &&
+    !SUPABASE_URL.includes('YOUR_URL') &&
+    SUPABASE_ANON_KEY,
+)
+
 function parseStructuredNotes(rawNotes: string | null): StructuredNotes {
   if (!rawNotes) {
     return { bio: '', phone: '', linkedin: '', notes: '' }
@@ -70,7 +76,7 @@ function formatDate(value: string | number | Date | undefined): string {
 export default function ProfilePage() {
   // Treat auth as any so we can safely grab user.email etc even if the hook type is strict
   const auth = useAuth() as any
-  const { isAuthenticated, isLoading, logout } = auth
+  const { isAuthenticated, isLoading, logout, updateProfileDisplayName } = auth
   const userEmail: string | null =
     (auth?.user?.email as string | undefined) ??
     (auth?.user?.Email as string | undefined) ??
@@ -128,7 +134,7 @@ export default function ProfilePage() {
   // Load profile from Supabase
   useEffect(() => {
     async function loadProfile() {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      if (!hasSupabaseConfig) {
         setError('Profile service is temporarily unavailable.')
         setLoadingProfile(false)
         return
@@ -180,7 +186,7 @@ export default function ProfilePage() {
           setLinkedin(structured.linkedin)
           setNotes(structured.notes)
 
-          auth.updateProfileDisplayName?.(row.display_name || null)
+          updateProfileDisplayName?.(row.display_name || null)
         } else {
           // No profile yet. seed the form from Outseta name or email
           setProfile(null)
@@ -195,7 +201,7 @@ export default function ProfilePage() {
           setLinkedin('')
           setNotes('')
 
-          auth.updateProfileDisplayName?.(fallbackName || null)
+          updateProfileDisplayName?.(fallbackName || null)
         }
       } catch (err) {
         console.error('Error loading profile', err)
@@ -210,11 +216,11 @@ export default function ProfilePage() {
     if (!isLoading && isAuthenticated) {
       loadProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, fallbackName, auth])
+  }, [isLoading, isAuthenticated, userEmail, fallbackName, updateProfileDisplayName])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (!hasSupabaseConfig) {
       setError('Profile service is temporarily unavailable.')
       return
     }

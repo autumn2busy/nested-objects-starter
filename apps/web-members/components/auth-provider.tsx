@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useMemo,
 } from 'react'
 
 type JwtPayload = {
@@ -30,6 +31,12 @@ type AuthContextValue = {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+const hasSupabaseConfig = Boolean(
+  SUPABASE_URL?.startsWith('http') &&
+    !SUPABASE_URL.includes('YOUR_URL') &&
+    SUPABASE_ANON_KEY,
+)
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
@@ -156,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [profileDisplayName, persistProfileDisplayName])
 
   const loadProfileDisplayName = useCallback(async () => {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    if (!hasSupabaseConfig) return
     if (!isAuthenticated || !user) return
 
     const userEmail =
@@ -216,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isLoading, isAuthenticated, loadProfileDisplayName, persistProfileDisplayName])
 
   const refreshProfileDisplayName = useCallback(async () => {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    if (!hasSupabaseConfig) return
     if (!isAuthenticated || !user) return
 
     const userEmail =
@@ -275,22 +282,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, refreshProfileDisplayName, persistProfileDisplayName])
 
-  const hasAccess = (feature?: string) => {
-    if (!isAuthenticated) return false
-    if (!feature) return true
+  const hasAccess = useCallback(
+    (feature?: string) => {
+      if (!isAuthenticated) return false
+      if (!feature) return true
 
-    const minPlan = FEATURE_MIN_PLAN[feature]
-    if (!minPlan) return true
-    if (!planUid) return false
+      const minPlan = FEATURE_MIN_PLAN[feature]
+      if (!minPlan) return true
+      if (!planUid) return false
 
-    const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
-    const requiredIndex = PLAN_ORDER.indexOf(minPlan)
+      const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
+      const requiredIndex = PLAN_ORDER.indexOf(minPlan)
 
-    if (currentIndex === -1 || requiredIndex === -1) return false
-    return currentIndex >= requiredIndex
-  }
+      if (currentIndex === -1 || requiredIndex === -1) return false
+      return currentIndex >= requiredIndex
+    },
+    [isAuthenticated, planUid],
+  )
 
-  const login = () => {
+  const login = useCallback(() => {
     if (typeof window === 'undefined') return
     const Outseta = window.Outseta
 
@@ -304,9 +314,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error opening Outseta login', error)
     }
-  }
+  }, [])
 
-  const signup = () => {
+  const signup = useCallback(() => {
     if (typeof window === 'undefined') return
     const Outseta = window.Outseta
 
@@ -320,9 +330,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error opening Outseta signup', error)
     }
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     if (typeof window === 'undefined') return
 
     try {
@@ -344,22 +354,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     window.location.href = '/'
-  }
+  }, [persistProfileDisplayName])
 
-  const value: AuthContextValue = {
-    user,
-    planUid,
-    profileDisplayName,
-    isAuthenticated,
-    isLoading,
-    hasAccess,
-    login,
-    signup,
-    logout,
-    refreshProfileDisplayName: loadProfileDisplayName,
-    updateProfileDisplayName: (name: string | null) =>
-      persistProfileDisplayName(name || null),
-  }
+  const updateProfileDisplayName = useCallback(
+    (name: string | null) => persistProfileDisplayName(name || null),
+    [persistProfileDisplayName],
+  )
+
+  const value: AuthContextValue = useMemo(
+    () => ({
+      user,
+      planUid,
+      profileDisplayName,
+      isAuthenticated,
+      isLoading,
+      hasAccess,
+      login,
+      signup,
+      logout,
+      refreshProfileDisplayName: loadProfileDisplayName,
+      updateProfileDisplayName,
+    }),
+    [
+      user,
+      planUid,
+      profileDisplayName,
+      isAuthenticated,
+      isLoading,
+      hasAccess,
+      login,
+      signup,
+      logout,
+      loadProfileDisplayName,
+      updateProfileDisplayName,
+    ],
+  )
 
   return (
     <AuthContext.Provider value={value}>
