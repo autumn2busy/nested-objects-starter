@@ -1,13 +1,7 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { loadStripe } from '@stripe/stripe-js'
-
+import { Suspense } from 'react'
 import { useAuth } from '@/components/auth-provider'
-
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
 type Plan = {
   name: string
@@ -86,61 +80,24 @@ const plans: Plan[] = [
 ]
 
 function MembershipContent() {
-  const searchParams = useSearchParams()
-  const checkoutStatus = searchParams.get('checkout')
-
-  const { isAuthenticated, planUid, user } = useAuth()
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
-  const [checkoutError, setCheckoutError] = useState<string | null>(null)
-
-  const showQaBanner = process.env.NODE_ENV !== 'production'
-
-  const startProCheckout = async () => {
-    if (!stripePromise || !publishableKey) {
-      setCheckoutError('Stripe is not configured yet. Add your publishable key to continue.')
-      return
-    }
-
-    setCheckoutError(null)
-    setIsCheckingOut(true)
-
-    try {
-      const stripe = await stripePromise
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize.')
-      }
-
-      const response = await fetch('/api/checkout/pro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email:
-            (user?.email as string | undefined) ??
-            (user?.Email as string | undefined) ??
-            undefined,
-        }),
-      })
-
-      const data = await response.json()
-      if (!response.ok || !data?.id) {
-        throw new Error(data?.error || 'Unable to start checkout.')
-      }
-
-      const { error } = await stripe.redirectToCheckout({ sessionId: data.id })
-      if (error) {
-        throw error
-      }
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to start checkout. Please try again.'
-      setCheckoutError(message)
-    } finally {
-      setIsCheckingOut(false)
-    }
-  }
+  const { isAuthenticated, planUid } = useAuth()
 
   const currentPlanName =
     plans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
+
+  const isProOrHigher =
+    planUid === 'rQVqlLm6' || planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g'
+
+  const proPlan = plans.find((p) => p.planUid === 'rQVqlLm6')!
+
+  const buildPlanUrl = (plan: Plan) => {
+    const base = 'https://nested-objects.outseta.com/auth'
+    const widgetMode = isAuthenticated ? 'updateSubscription' : 'register'
+
+    // This is the Outseta plan widget. when authenticated it opens the
+    // “change/upgrade plan” experience. when logged out it runs sign-up.
+    return `${base}?widgetMode=${widgetMode}&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
@@ -164,50 +121,32 @@ function MembershipContent() {
           </p>
         )}
 
-        {checkoutStatus === 'success' && (
-          <p
-            className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
-            aria-live="polite"
-          >
-            Checkout complete. Your Pro subscription is being activated. You can close this tab once
-            your dashboard finishes loading.
+        {!isAuthenticated && (
+          <p className="mt-4 text-sm text-slate-500">
+            Create a free Starter account first. then upgrade inside the hub whenever you are ready.
           </p>
         )}
 
-        {checkoutStatus === 'cancelled' && (
-          <p
-            className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
-            aria-live="polite"
-          >
-            Checkout was cancelled. You can restart whenever you are ready.
+        {isAuthenticated && !isProOrHigher && (
+          <p className="mt-4 text-sm text-slate-500">
+            You can upgrade your plan using the buttons below. changes are handled securely by
+            Outseta&apos;s billing portal.
+          </p>
+        )}
+
+        {isProOrHigher && (
+          <p className="mt-4 text-sm text-slate-500">
+            Your billing and plan changes are managed from the{' '}
+            <a
+              href="https://nested-objects.outseta.com/auth?widgetMode=updateSubscription"
+              className="font-semibold text-sky-600 underline underline-offset-4"
+            >
+              Manage plan &amp; billing
+            </a>{' '}
+            widget.
           </p>
         )}
       </header>
-
-      {/* QA banner. only visible outside production */}
-      {showQaBanner && (
-        <section className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-sm sm:p-6">
-          <h2 className="text-sm font-semibold text-emerald-900 sm:text-base">
-            QA only. Create a Pro profile using Stripe test cards.
-          </h2>
-          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-emerald-800 sm:text-[0.95rem]">
-            <li>Click the Pro plan button below to start checkout.</li>
-            <li>Register with any test name and email address.</li>
-            <li>
-              Use the Stripe test card{' '}
-              <code className="rounded bg-emerald-100 px-1.5 py-0.5 text-[0.8rem]">
-                4242&nbsp;4242&nbsp;4242&nbsp;4242
-              </code>{' '}
-              with any future expiry, CVC, and ZIP code.
-            </li>
-            <li>Complete checkout and you will land in the hub with Pro entitlements.</li>
-          </ol>
-          <p className="mt-2 text-xs text-emerald-700">
-            This flow is for testing only. It does not charge a real card and can be repeated as
-            needed during QA.
-          </p>
-        </section>
-      )}
 
       {/* Plans + sidebar */}
       <section className="mt-10 lg:mt-14">
@@ -216,7 +155,6 @@ function MembershipContent() {
           <div className="grid gap-6 md:grid-cols-2">
             {plans.map((plan) => {
               const isCurrentPlan = planUid === plan.planUid
-              const isPro = plan.planUid === 'rQVqlLm6'
 
               const buttonBase =
                 'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
@@ -229,6 +167,13 @@ function MembershipContent() {
               } else {
                 buttonClasses = `${buttonBase} border border-sky-600 text-sky-700 hover:bg-sky-50`
               }
+
+              const label = (() => {
+                if (isCurrentPlan) return 'Current plan'
+                if (!isAuthenticated && plan.name === 'Starter') return 'Join free'
+                if (!isAuthenticated) return `Start on ${plan.name}`
+                return `Switch to ${plan.name}`
+              })()
 
               return (
                 <article
@@ -272,35 +217,19 @@ function MembershipContent() {
                   </ul>
 
                   <div className="mt-auto">
-                    {isPro ? (
-                      <button
-                        type="button"
-                        onClick={startProCheckout}
-                        disabled={isCurrentPlan || isCheckingOut}
-                        className={buttonClasses}
-                      >
-                        {isCurrentPlan
-                          ? 'Current plan'
-                          : isCheckingOut
-                          ? 'Starting checkout...'
-                          : 'Start with Pro'}
+                    {isCurrentPlan ? (
+                      <button type="button" disabled className={buttonClasses}>
+                        {label}
                       </button>
                     ) : (
-                      <a
-                        href={`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&planPaymentTerm=month&skipPlanOptions=true`}
-                        className={buttonClasses}
-                        aria-disabled={isCurrentPlan}
-                        onClick={(e) => {
-                          if (isCurrentPlan) e.preventDefault()
-                        }}
-                      >
-                        {isCurrentPlan ? 'Current plan' : 'Get started'}
+                      <a href={buildPlanUrl(plan)} className={buttonClasses}>
+                        {label}
                       </a>
                     )}
 
                     {plan.name === 'Starter' && (
                       <p className="mt-2 text-center text-xs text-slate-500">
-                        No credit card required. Upgrade whenever you are ready.
+                        No credit card required. upgrade whenever you are ready.
                       </p>
                     )}
                   </div>
@@ -309,7 +238,7 @@ function MembershipContent() {
             })}
           </div>
 
-          {/* Right sidebar. who this is for + 7 day roadmap */}
+          {/* Right sidebar */}
           <aside className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-700 shadow-sm">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
@@ -360,8 +289,9 @@ function MembershipContent() {
               Can I change plans or cancel anytime.
             </h3>
             <p className="mt-2">
-              Yes. You can upgrade, downgrade, or cancel from your profile at any time. Changes take
-              effect immediately and you keep access until the end of your billing period.
+              Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
+              changes take effect immediately and you keep access until the end of your billing
+              period.
             </p>
           </div>
 
@@ -370,8 +300,8 @@ function MembershipContent() {
               What payment methods do you accept.
             </h3>
             <p className="mt-2">
-              All major credit cards are processed securely through Stripe. Your billing details never
-              touch the Nested Objects servers.
+              All major credit cards are processed securely through Outseta + Stripe. your billing
+              details never touch the Nested Objects servers.
             </p>
           </div>
 
@@ -380,8 +310,8 @@ function MembershipContent() {
               Is there a free option while I am getting started.
             </h3>
             <p className="mt-2">
-              Yes. The Starter plan gives you ongoing access to the directory and core hub without a
-              card on file. When you are ready for intel and AI tools you can upgrade into Pro or
+              Yes. the Starter plan gives you ongoing access to the directory and core hub without a
+              card on file. when you are ready for intel and AI tools you can upgrade into Pro or
               higher.
             </p>
           </div>
@@ -392,7 +322,7 @@ function MembershipContent() {
             </h3>
             <p className="mt-2">
               Field inspectors, mobile notaries, real estate and investor friendly agents, and gig
-              workers adding inspections as a new income lane. If you work outside, drive routes, or
+              workers adding inspections as a new income lane. if you work outside, drive routes, or
               step into other people&apos;s properties, this hub is for you.
             </p>
           </div>
@@ -408,27 +338,27 @@ function MembershipContent() {
           Start with the Pro plan so you can see firms, intel, and tools in one place instead of
           chasing random posts and rumor threads.
         </p>
-        <button
-          type="button"
-          onClick={startProCheckout}
-          disabled={isCheckingOut}
-          className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:bg-sky-400"
-        >
-          {isCheckingOut ? 'Starting checkout...' : 'Start with Pro'}
-        </button>
+
+        {isProOrHigher ? (
+          <a
+            href="https://nested-objects.outseta.com/auth?widgetMode=updateSubscription"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+          >
+            Open manage plan &amp; billing
+          </a>
+        ) : (
+          <a
+            href={buildPlanUrl(proPlan)}
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+          >
+            Start with Pro
+          </a>
+        )}
+
         <p className="mt-3 text-xs text-slate-300">
-          Prefer to ease in. Stay on Starter and upgrade from your dashboard any time.
+          Prefer to ease in. stay on Starter and upgrade from your dashboard any time.
         </p>
       </section>
-
-      {checkoutError && (
-        <div
-          className="mt-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800"
-          aria-live="polite"
-        >
-          {checkoutError}
-        </div>
-      )}
 
       <div className="mt-10 border-t border-slate-200 pt-4 text-center">
         <a
