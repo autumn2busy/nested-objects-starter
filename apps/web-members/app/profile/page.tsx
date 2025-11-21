@@ -151,16 +151,25 @@ export default function ProfilePage() {
         setError(null)
         setSuccess(null)
 
+        const anonKey = SUPABASE_ANON_KEY
+        const supabaseUrl = SUPABASE_URL
+
+        if (!anonKey || !supabaseUrl) {
+          setError('Profile service is temporarily unavailable.')
+          setLoadingProfile(false)
+          return
+        }
+
         const encodedEmail = encodeURIComponent(userEmail)
         const url =
-          `${SUPABASE_URL}/rest/v1/profiles` +
+          `${supabaseUrl}/rest/v1/profiles` +
           `?user_email=eq.${encodedEmail}` +
           `&select=*`
 
         const res = await fetch(url, {
           headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
           },
         })
 
@@ -267,20 +276,28 @@ export default function ProfilePage() {
         notes: JSON.stringify(structuredNotes),
       }
 
+      const anonKey = SUPABASE_ANON_KEY
+      const supabaseUrl = SUPABASE_URL
+
+      if (!anonKey || !supabaseUrl) {
+        setError('Profile service is temporarily unavailable.')
+        return
+      }
+
       const encodedEmail = encodeURIComponent(userEmail)
       const hasExisting = !!profile
 
       const url = hasExisting
-        ? `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}`
-        : `${SUPABASE_URL}/rest/v1/profiles`
+        ? `${supabaseUrl}/rest/v1/profiles?user_email=eq.${encodedEmail}`
+        : `${supabaseUrl}/rest/v1/profiles`
 
       const method = hasExisting ? 'PATCH' : 'POST'
 
       const res = await fetch(url, {
         method,
         headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
           'Content-Type': 'application/json',
           Prefer: 'return=representation',
         },
