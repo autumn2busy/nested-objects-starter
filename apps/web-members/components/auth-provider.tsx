@@ -84,26 +84,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const persistProfileDisplayName = useCallback((name: string | null) => {
-    setProfileDisplayName(name || null)
+    const safeName = name?.trim() || null
+    setProfileDisplayName(safeName)
 
     if (typeof window === 'undefined') return
 
-    if (name) {
-      window.localStorage.setItem('profileDisplayName', name)
+    if (safeName) {
+      window.localStorage.setItem('profileDisplayName', safeName)
     } else {
       window.localStorage.removeItem('profileDisplayName')
     }
   }, [])
 
+  // Hydrate any cached profile name once on mount
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const cachedName = window.localStorage.getItem('profileDisplayName')
-    if (cachedName) {
-      setProfileDisplayName(cachedName)
+    try {
+      const cachedName = window.localStorage.getItem('profileDisplayName')
+      if (cachedName) {
+        setProfileDisplayName(cachedName)
+      }
+    } catch {
+      // ignore localStorage issues
     }
   }, [])
 
+  // Load auth state from Outseta (once on mount)
   useEffect(() => {
     let cancelled = false
 
@@ -128,7 +135,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(payload)
           setPlanUid(payload['outseta:planUid'] ?? null)
           setIsAuthenticated(true)
-          if (!profileDisplayName) {
+
+          // If there is no cached display name, seed it from the payload
+          try {
+            const cachedName = window.localStorage.getItem('profileDisplayName')
+            if (!cachedName) {
+              persistProfileDisplayName(deriveDisplayName(payload))
+            }
+          } catch {
             persistProfileDisplayName(deriveDisplayName(payload))
           }
         } else {
@@ -153,9 +167,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [profileDisplayName, persistProfileDisplayName])
+  }, [persistProfileDisplayName])
 
-  const loadProfileDisplayName = useCallback(async () => {
+  const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
     if (!isAuthenticated || !user) return
 
@@ -181,99 +195,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (!res.ok) {
+        // Fall back to derived name if Supabase doesn’t have one yet
         persistProfileDisplayName(deriveDisplayName(user))
         return
       }
 
       const rows = (await res.json()) as { display_name: string | null }[]
       const row = rows[0]
-      persistProfileDisplayName(row?.display_name || deriveDisplayName(user))
+      const nameFromDb = row?.display_name?.trim() || null
+
+      if (nameFromDb) {
+        persistProfileDisplayName(nameFromDb)
+      } else {
+        persistProfileDisplayName(deriveDisplayName(user))
+      }
     } catch (error) {
       console.error('Error loading profile display name', error)
       persistProfileDisplayName(deriveDisplayName(user))
     }
   }, [isAuthenticated, persistProfileDisplayName, user])
 
+  // hydrate profile name from Supabase once auth is ready
   useEffect(() => {
-    let cancelled = false
-
-    const hydrateProfileName = async () => {
-      await loadProfileDisplayName()
-      if (cancelled) return
-    }
-
     if (!isLoading && isAuthenticated) {
-      hydrateProfileName()
+      void fetchProfileDisplayName()
     }
 
     if (!isAuthenticated) {
       persistProfileDisplayName(null)
     }
-
-    return () => {
-      cancelled = true
-    }
-  }, [isLoading, isAuthenticated, loadProfileDisplayName, persistProfileDisplayName])
-
-  const refreshProfileDisplayName = useCallback(async () => {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
-    if (!isAuthenticated || !user) return
-
-    const userEmail =
-      (user?.email as string | undefined) ??
-      (user?.Email as string | undefined) ??
-      null
-
-    if (!userEmail) return
-
-    try {
-      const encodedEmail = encodeURIComponent(userEmail)
-      const url =
-        `${SUPABASE_URL}/rest/v1/profiles` +
-        `?user_email=eq.${encodedEmail}` +
-        `&select=display_name`
-
-      const res = await fetch(url, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-      })
-
-      if (!res.ok) {
-        persistProfileDisplayName(null)
-        return
-      }
-
-      const rows = (await res.json()) as { display_name: string | null }[]
-      const row = rows[0]
-      persistProfileDisplayName(row?.display_name || null)
-    } catch (error) {
-      console.error('Error loading profile display name', error)
-      persistProfileDisplayName(null)
-    }
-  }, [isAuthenticated, persistProfileDisplayName, user])
-
-  useEffect(() => {
-    let cancelled = false
-
-    const hydrateProfileName = async () => {
-      await refreshProfileDisplayName()
-      if (cancelled) return
-    }
-
-    if (!isLoading && isAuthenticated) {
-      hydrateProfileName()
-    }
-
-    if (!isAuthenticated) {
-      persistProfileDisplayName(null)
-    }
-
-    return () => {
-      cancelled = true
-    }
-  }, [isLoading, isAuthenticated, refreshProfileDisplayName, persistProfileDisplayName])
+  }, [isLoading, isAuthenticated, fetchProfileDisplayName, persistProfileDisplayName])
 
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
@@ -356,7 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
-    refreshProfileDisplayName: loadProfileDisplayName,
+    refreshProfileDisplayName: fetchProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
   }
