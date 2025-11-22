@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import Link from 'next/link'
+import { SiteHeader } from '@/components/SiteHeader'
 import { useAuth } from '@/components/auth-provider'
 
 const jsonLd = {
@@ -64,105 +65,18 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main className="min-h-screen bg-slate-50 text-slate-900">
-        {/* Top bar / header */}
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-            {/* Brand + nav */}
-            <div className="flex items-center gap-6">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-600 text-sm font-semibold text-white">
-                  NO
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold tracking-tight">Nested Objects</span>
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                    Field Inspector Hub
-                  </span>
-                </div>
-              </Link>
-
-              <nav className="hidden items-center gap-4 text-sm font-medium text-slate-700 md:flex">
-                <Link href="/" className="text-sky-700">
-                  Home
-                </Link>
-                {isAuthenticated && (
-                  <Link href="/dashboard" className="hover:text-sky-700">
-                    Dashboard
-                  </Link>
-                )}
-                <Link href="/directory" className="hover:text-sky-700">
-                  Directory
-                </Link>
-                <Link href="/membership" className="hover:text-sky-700">
-                  Membership
-                </Link>
-                <Link href="/tools" className="hover:text-sky-700">
-                  Tools
-                </Link>
-                <Link href="/resources" className="hover:text-sky-700">
-                  Resources
-                </Link>
-              </nav>
-            </div>
-
-            {/* Auth area */}
-            <div className="flex items-center gap-3">
-              {isLoading ? (
-                <span className="text-xs text-slate-500">Checking your hub…</span>
-              ) : isAuthenticated && user ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-sky-800">
-                      {initials}
-                    </div>
-                    <div className="hidden flex-col items-start text-xs sm:flex">
-                      <span className="font-semibold text-slate-900">
-                        {firstName.length > 18 ? `${firstName.slice(0, 16)}…` : firstName}
-                      </span>
-                      {planName && (
-                        <span className="text-[11px] uppercase tracking-wide text-slate-500">
-                          {planName} plan
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => logout()}
-                    className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <a
-                    href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                    className="rounded-full px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50"
-                  >
-                    Login
-                  </a>
-                  <a
-                    href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                    className="hidden rounded-full bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-700 sm:inline-flex"
-                  >
-                    Join free
-                  </a>
-                </>
-              )}
-            </div>
-          </div>
-        </header>
+      <main className="min-h-screen bg-brand-sand text-brand-dark">
+        <SiteHeader />
 
         {/* Hero + stat card section */}
-        <section className="border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100">
+        <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-12 lg:px-8 lg:py-16">
             {/* Left hero copy */}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-700">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-brand-copper">
                 Built for people who work in the field
               </p>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-brand-dark sm:text-4xl lg:text-5xl">
                 Keep routes moving. Keep assets compliant. Keep your time protected.
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-700 sm:text-base">
@@ -175,13 +89,13 @@ export default function HomePage() {
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
                   href="/directory"
-                  className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700"
+                  className="inline-flex items-center justify-center rounded-full bg-brand-copper px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
                 >
                   Preview hiring firms
                 </Link>
                 <Link
                   href="/membership"
-                  className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-white px-5 py-2.5 text-sm font-semibold text-sky-700 hover:bg-sky-50"
+                  className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-white px-5 py-2.5 text-sm font-semibold text-brand-dark transition hover:bg-brand-mist"
                 >
                   See plans & pricing
                 </Link>
@@ -259,7 +173,7 @@ export default function HomePage() {
                   </div>
                   <Link
                     href="/dashboard"
-                    className="text-[11px] font-semibold text-sky-600 hover:text-sky-700"
+                    className="text-[11px] font-semibold text-brand-copper hover:text-brand-copperDark"
                   >
                     Open your hub →
                   </Link>
@@ -284,7 +198,7 @@ export default function HomePage() {
               </div>
               <Link
                 href="/membership"
-                className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+                className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-brand-mist px-4 py-2 text-xs font-semibold text-brand-dark hover:bg-white"
               >
                 Compare Starter vs Pro →
               </Link>
@@ -302,7 +216,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/directory"
-                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   Browse active firms →
                 </Link>
@@ -319,7 +233,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/resources/firm-intel"
-                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   View sample snapshots →
                 </Link>
@@ -336,7 +250,7 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/tools"
-                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   Explore tools →
                 </Link>
@@ -346,7 +260,7 @@ export default function HomePage() {
         </section>
 
         {/* How it works timeline */}
-        <section className="border-b border-slate-200 bg-slate-50">
+        <section className="border-b border-brand-copper/15 bg-brand-mist">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="max-w-3xl">
               <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -359,16 +273,16 @@ export default function HomePage() {
             </div>
 
             <ol className="mt-8 grid gap-6 text-sm text-slate-700 md:grid-cols-3">
-              <li className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 1</p>
+              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 1</p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">Dial in your lane.</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   Create your profile, pick your service lanes, and mark your home base. The hub
                   filters firms and routes around where you actually drive.
                 </p>
               </li>
-              <li className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 2</p>
+              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 2</p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
                   Shortlist firms that fit your life.
                 </h3>
@@ -377,8 +291,8 @@ export default function HomePage() {
                   avoid dead-end portals and low-ball routes.
                 </p>
               </li>
-              <li className="rounded-2xl border border-slate-200 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 3</p>
+              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 3</p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
                   Track applications and routes in one place.
                 </h3>
@@ -395,7 +309,7 @@ export default function HomePage() {
         <section className="border-b border-slate-200 bg-white">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="grid gap-8 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6">
+              <div className="rounded-2xl border border-brand-copper/20 bg-white p-6">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
                   Just getting started.
                 </h2>
@@ -410,13 +324,13 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/membership"
-                  className="mt-4 inline-flex text-sm font-semibold text-sky-600 hover:text-sky-700"
+                  className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   Start on Starter (free) →
                 </Link>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-900/95 p-6 text-slate-50">
+              <div className="rounded-2xl border border-brand-copper/30 bg-brand-dark p-6 text-slate-50">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200">
                   Already in the field.
                 </h2>
@@ -431,7 +345,7 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/membership"
-                  className="mt-4 inline-flex text-sm font-semibold text-amber-200 hover:text-amber-100"
+                  className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   See Pro features →
                 </Link>
@@ -441,7 +355,7 @@ export default function HomePage() {
         </section>
 
         {/* Final CTA banner */}
-        <section className="bg-slate-900">
+        <section className="bg-brand-dark">
           <div className="mx-auto max-w-6xl px-4 py-10 text-center text-slate-50 sm:px-6 lg:px-8 lg:py-14">
             <h2 className="text-2xl font-semibold sm:text-3xl">
               Ready to stop guessing and start planning real routes.
@@ -453,13 +367,13 @@ export default function HomePage() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 href="/membership"
-                className="inline-flex items-center justify-center rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600"
+                className="inline-flex items-center justify-center rounded-full bg-brand-copper px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
               >
                 Explore membership options
               </Link>
               <Link
                 href="/directory"
-                className="inline-flex items-center justify-center rounded-full border border-slate-600 px-6 py-2.5 text-sm font-semibold text-slate-100 hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Preview the firm directory
               </Link>
@@ -472,17 +386,17 @@ export default function HomePage() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-slate-800 bg-slate-950">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-[11px] text-slate-400 sm:flex-row sm:px-6 lg:px-8">
+        <footer className="border-t border-brand-copper/25 bg-brand-dark">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-[11px] text-brand-steel sm:flex-row sm:px-6 lg:px-8">
             <p>© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/membership" className="hover:text-slate-200">
+              <Link href="/membership" className="hover:text-white">
                 Membership
               </Link>
-              <Link href="/directory" className="hover:text-slate-200">
+              <Link href="/directory" className="hover:text-white">
                 Directory
               </Link>
-              <Link href="/resources" className="hover:text-slate-200">
+              <Link href="/resources" className="hover:text-white">
                 Resources
               </Link>
             </div>

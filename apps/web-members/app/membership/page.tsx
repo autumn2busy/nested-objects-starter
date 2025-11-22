@@ -137,7 +137,7 @@ function MembershipContent() {
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
       {/* Hero */}
       <header className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
           Membership
         </p>
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
@@ -174,7 +174,7 @@ function MembershipContent() {
             <button
               type="button"
               onClick={openManageBilling}
-              className="font-semibold text-sky-600 underline underline-offset-4 hover:text-sky-700"
+              className="font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
             >
               manage plan &amp; billing
             </button>{' '}
@@ -192,15 +192,15 @@ function MembershipContent() {
               const isCurrentPlan = planUid === plan.planUid
 
               const buttonBase =
-                'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
+                'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
 
               let buttonClasses = ''
               if (isCurrentPlan) {
                 buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-300 text-white`
               } else if (plan.highlight) {
-                buttonClasses = `${buttonBase} bg-sky-600 text-white shadow-sm hover:bg-sky-700`
+                buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
               } else {
-                buttonClasses = `${buttonBase} border border-sky-600 text-sky-700 hover:bg-sky-50`
+                buttonClasses = `${buttonBase} border border-brand-copper text-brand-copperDark hover:bg-brand-mist`
               }
 
               const label = (() => {
@@ -215,13 +215,13 @@ function MembershipContent() {
                   key={plan.planUid}
                   className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
                     plan.highlight
-                      ? 'border-sky-400/80 ring-sky-100 shadow-lg shadow-sky-100'
+                      ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                       : 'border-slate-200'
                   }`}
                   aria-label={`${plan.name} plan`}
                 >
                   {plan.highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
                       Most popular
                     </div>
                   )}
@@ -377,7 +377,7 @@ function MembershipContent() {
           <button
             type="button"
             onClick={openManageBilling}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Open manage plan &amp; billing
           </button>
@@ -385,7 +385,7 @@ function MembershipContent() {
           <button
             type="button"
             onClick={() => openPlanWidget(proPlan, false)}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Start with Pro
           </button>
@@ -399,7 +399,7 @@ function MembershipContent() {
       <div className="mt-10 border-t border-slate-200 pt-4 text-center">
         <a
           href="/"
-          className="text-sm font-medium text-sky-600 underline underline-offset-4 hover:text-sky-700"
+          className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
         >
           ← Back to home
         </a>

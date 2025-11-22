@@ -111,7 +111,7 @@ export function UpgradeContent() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
       <header className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">Upgrade</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Upgrade</p>
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
           Choose your plan
         </h1>
@@ -119,7 +119,7 @@ export function UpgradeContent() {
           Unlock more features and grow your business.
         </p>
         {currentPlanName && (
-          <p className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-800">
+          <p className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-brand-copper/30 bg-brand-mist px-4 py-2 text-sm font-medium text-brand-copperDark">
             Current plan: <span className="font-semibold">{currentPlanName}</span>
           </p>
         )}
@@ -134,12 +134,12 @@ export function UpgradeContent() {
               key={plan.uid}
               className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
                 plan.recommended
-                  ? 'border-sky-400/80 ring-sky-100 shadow-lg shadow-sky-100'
+                  ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                   : 'border-slate-200'
               }`}
             >
               {plan.recommended && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
                   Recommended
                 </div>
               )}
@@ -169,12 +169,12 @@ export function UpgradeContent() {
                   type="button"
                   onClick={() => handleUpgrade(plan.uid, isCurrentPlan)}
                   disabled={isCurrentPlan}
-                  className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+                  className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                     isCurrentPlan
                       ? 'cursor-not-allowed bg-slate-300 text-white'
                       : plan.recommended
-                        ? 'bg-sky-600 text-white shadow-sm hover:bg-sky-700'
-                        : 'border border-sky-600 text-sky-700 hover:bg-sky-50'
+                        ? 'bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark'
+                        : 'border border-brand-copper text-brand-copperDark hover:bg-brand-mist'
                   }`}
                 >
                   {isCurrentPlan ? 'Current Plan' : 'Select Plan'}
@@ -188,7 +188,7 @@ export function UpgradeContent() {
       <div className="mt-12 text-center">
         <a
           href="/"
-          className="text-sm font-medium text-sky-600 underline underline-offset-4 hover:text-sky-700"
+          className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
         >
           ← Back to home
         </a>
