@@ -4,6 +4,7 @@ import Script from 'next/script'
 import Link from 'next/link'
 import { SiteHeader } from '@/components/SiteHeader'
 import { RoleCarousel } from '@/components/RoleCarousel'
+import { SiteFooter } from '@/components/SiteFooter'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -256,23 +257,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="border-t border-brand-copper/25 bg-brand-dark">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-[11px] text-brand-steel sm:flex-row sm:px-6 lg:px-8">
-            <p>© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href="/membership" className="hover:text-white">
-                Membership
-              </Link>
-              <Link href="/directory" className="hover:text-white">
-                Directory
-              </Link>
-              <Link href="/resources" className="hover:text-white">
-                Resources
-              </Link>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter />
       </main>
     </>
   )
