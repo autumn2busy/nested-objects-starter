@@ -4,6 +4,7 @@ import Script from 'next/script'
 import Link from 'next/link'
 import { SiteHeader } from '@/components/SiteHeader'
 import { useAuth } from '@/components/auth-provider'
+import { RoleCarousel } from '@/components/RoleCarousel'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -182,6 +183,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <RoleCarousel />
 
         {/* Feature pillars (Directory / Intel / AI tools) */}
         <section className="border-b border-slate-200 bg-white">
