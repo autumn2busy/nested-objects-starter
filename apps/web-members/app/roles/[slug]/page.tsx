@@ -46,14 +46,21 @@ const roleContent = {
     heroCopy:
       'Prep guides, photo standards, and AI-assisted checklists grounded in the same intel that powers our directory.',
   },
-} satisfies Record<string, { title: string; valueProp: string; image: { src: string; alt: string }; heroCopy: string }>
+} as const
+
+type RoleSlug = keyof typeof roleContent
+type RoleDefinition = (typeof roleContent)[RoleSlug]
+
+function isRoleSlug(slug: string): slug is RoleSlug {
+  return slug in roleContent
+}
 
 export function generateMetadata({
   params,
 }: {
   params: { slug: string }
 }): Metadata {
-  const role = roleContent[params.slug]
+  const role = isRoleSlug(params.slug) ? roleContent[params.slug] : null
 
   if (!role) {
     return {
@@ -85,11 +92,11 @@ export default function RoleDetailPage({
 }: {
   params: { slug: string }
 }) {
-  const role = roleContent[params.slug]
-
-  if (!role) {
+  if (!isRoleSlug(params.slug)) {
     notFound()
   }
+
+  const role: RoleDefinition = roleContent[params.slug]
 
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
