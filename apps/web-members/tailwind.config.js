@@ -8,12 +8,12 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          dark: '#1f2a33',
-          copper: '#c47b4f',
-          copperDark: '#a26232',
-          sand: '#f4ede3',
-          mist: '#e9e3da',
-          steel: '#7d838c',
+          dark: '#0f1f2a',
+          copper: '#1f6f78',
+          copperDark: '#0f4f56',
+          sand: '#f2f4f5',
+          mist: '#e4eaed',
+          steel: '#5f6b73',
         },
       },
     },

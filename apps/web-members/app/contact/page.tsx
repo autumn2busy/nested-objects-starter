@@ -7,19 +7,19 @@ const contactChannels = [
   {
     title: 'Member support',
     description: 'Questions about your account, plan, or billing? We respond fastest inside the hub.',
-    email: 'support@nestedobjects.ai',
-    response: 'Pro, Elite, and Agency members get priority replies.',
+    email: 'support@nestedobjects.com',
+    response: 'Elite and Agency members get concierge routing and faster replies.',
   },
   {
     title: 'Partnerships & firms',
     description: 'Looking to onboard inspectors, post roles, or collaborate on training?',
-    email: 'partners@nestedobjects.ai',
+    email: 'partners@nestedobjects.com',
     response: 'We will connect you with the right team member within one business day.',
   },
   {
     title: 'Media & speaking',
     description: 'Press inquiries and events focused on inspections, real estate, or field services.',
-    email: 'press@nestedobjects.ai',
+    email: 'press@nestedobjects.com',
     response: 'We can share data-backed trends and practical stories from members.',
   },
 ]
@@ -61,12 +61,12 @@ export default function ContactPage() {
             <div className="rounded-3xl border border-brand-copper/20 bg-brand-mist p-6">
               <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Plan-aware support</p>
               <p className="mt-2 text-sm text-slate-700">
-                Starter members can use the form below for general questions. Pro and above get concierge routing to the right team, faster replies, and tailored next steps based on your region.
+                Starter members can use the form below for general questions. Pro receives faster routing in the queue, while Elite and Agency unlock concierge handling with tailored next steps based on your region.
               </p>
               <div className="mt-4 grid gap-2 text-xs text-brand-dark sm:grid-cols-3">
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Starter · 1-2 business days</span>
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Pro · priority queue</span>
-                <span className="rounded-full bg-white px-3 py-1 font-semibold">Elite/Agency · dedicated routing</span>
+                <span className="rounded-full bg-white px-3 py-1 font-semibold">Elite/Agency · concierge routing</span>
               </div>
             </div>
 
@@ -84,7 +84,7 @@ export default function ContactPage() {
             <div className="rounded-2xl border border-brand-copper/20 bg-brand-dark p-5 text-slate-100">
               <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Call the concierge</p>
               <p className="mt-2 text-sm text-slate-100">
-                Active Pro, Elite, and Agency members can request a 15-minute call to review routes, onboarding steps, or crew rollouts.
+                Active Elite and Agency members can request a 15-minute call to review routes, onboarding steps, or crew rollouts.
               </p>
               <div className="mt-3 flex flex-wrap gap-3">
                 <a
