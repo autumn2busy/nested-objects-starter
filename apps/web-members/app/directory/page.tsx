@@ -23,6 +23,7 @@ type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
+  logo_url: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -153,7 +154,7 @@ function FilterBar({
                 id="keyword-filter"
                 type="text"
                 disabled
-                placeholder="Search/filter available on paid plans"
+                placeholder="Search and filters are available on paid plans"
                 className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-inner"
               />
               <p className="flex items-center gap-2 text-xs text-amber-800">
@@ -180,7 +181,7 @@ function FilterBar({
       </div>
 
       <p className="mt-4 text-sm text-slate-600">
-        Tip: many firms are national or multi-state, so start here then narrow down if needed.
+        Tip: many firms are national or multi state, so start here then narrow down if needed.
       </p>
     </section>
   )
@@ -193,13 +194,27 @@ type FirmCardProps = {
   onBlur: () => void
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join('')
+}
+
 function FirmCard({ firm, isHovered, onBlur, onHover }: FirmCardProps) {
-  const firmAddress = buildAddress(firm)
+  const payRange =
+    firm.pay_min != null
+      ? `$${firm.pay_min}${firm.pay_max != null ? ` - $${firm.pay_max}` : ''}${
+          firm.pay_type ? ` ${firm.pay_type}` : ''
+        }`
+      : null
 
   return (
     <article
-      className={`relative flex flex-col gap-4 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-md outline-none transition duration-200 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2 ${
-        isHovered ? '-translate-y-1.5 scale-[1.01] shadow-xl ring-2 ring-blue-500/30 ring-offset-1' : ''
+      className={`relative flex min-h-[140px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:flex-row ${
+        isHovered ? 'ring-2 ring-sky-400 ring-offset-1' : ''
       }`}
       tabIndex={0}
       onMouseEnter={onHover}
@@ -207,66 +222,58 @@ function FirmCard({ firm, isHovered, onBlur, onHover }: FirmCardProps) {
       onFocus={onHover}
       onBlur={onBlur}
     >
-      <div
-        className={`pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/10 via-cyan-400/5 to-transparent opacity-0 transition-opacity duration-200 ${
-          isHovered ? 'opacity-100' : ''
-        }`}
-      />
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Verified firm</p>
-          <h3 className="text-lg font-bold text-slate-900">{firm.name}</h3>
-          {firm.industry_focus && <p className="text-sm font-medium text-blue-700">{firm.industry_focus}</p>}
+      {/* Left logo strip */}
+      <div className="flex w-full items-center justify-center border-b border-slate-200 pb-3 sm:w-40 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
+        {firm.logo_url ? (
+          <img
+            src={firm.logo_url}
+            alt={`${firm.name} logo`}
+            className="max-h-16 max-w-[120px] object-contain"
+          />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold uppercase text-slate-50">
+            {getInitials(firm.name)}
+          </div>
+        )}
+      </div>
+
+      {/* Right content */}
+      <div className="flex flex-1 flex-col justify-between pt-3 sm:pl-4 sm:pt-0">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">{firm.name}</h3>
+
+          {firm.geographic_coverage && (
+            <p className="mt-1 text-xs text-slate-600">
+              Coverage area. <span className="font-medium text-slate-800">{firm.geographic_coverage}</span>
+            </p>
+          )}
+
+          {payRange && (
+            <p className="mt-1 text-xs text-emerald-700">
+              Pay range. <span className="font-semibold">{payRange}</span>
+            </p>
+          )}
         </div>
 
-        {firm.url && (
-          <a
-            href={firm.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+        <div className="mt-3 flex flex-wrap gap-2">
+          {firm.url && (
+            <a
+              href={firm.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-sky-500 px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+            >
+              Visit website
+            </a>
+          )}
+
+          <Link
+            href={`/firms/${firm.slug ?? firm.id}`}
+            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-50 hover:bg-slate-800"
           >
-            Visit website ↗
-          </a>
-        )}
-      </div>
-
-      <div className="relative grid gap-3 sm:grid-cols-2">
-        {firm.geographic_coverage && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <span className="block text-xs font-medium text-slate-600">Coverage</span>
-            <strong className="block text-sm text-slate-900">{firm.geographic_coverage}</strong>
-          </div>
-        )}
-
-        {firm.categories && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <span className="block text-xs font-medium text-slate-600">Services</span>
-            <strong className="block text-sm text-slate-900">{formatCategories(firm.categories)}</strong>
-          </div>
-        )}
-      </div>
-
-      {firm.pay_min != null && (
-        <p className="relative text-sm font-semibold text-emerald-700">
-          ${firm.pay_min}
-          {firm.pay_max != null && ` - $${firm.pay_max}`}
-          {firm.pay_type && ` ${firm.pay_type}`}
-        </p>
-      )}
-
-      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1 text-sm text-slate-700">
-          {firmAddress ? <p>{firmAddress}</p> : <p>Regional or national coverage</p>}
-          {firm.company_size && <p className="text-xs text-slate-500">Team size: {firm.company_size}</p>}
+            View snapshot
+          </Link>
         </div>
-
-        <Link
-          href={`/firms/${firm.slug ?? firm.id}`}
-          className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
-        >
-          View snapshot →
-        </Link>
       </div>
     </article>
   )
@@ -342,6 +349,7 @@ export default function DirectoryPage() {
             'address_city',
             'address_state',
             'address_postal_code',
+            'logo_url',
           ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -549,67 +557,13 @@ export default function DirectoryPage() {
               onStateChange={setStateFilter}
             />
 
-            {/* Filters */}
-            <section className="mb-6 flex flex-wrap items-end gap-6">
-              <div className="min-w-[220px] flex-1 space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
-                  Filter by service area
-                </label>
-                <select
-                  value={stateFilter}
-                  onChange={(e) => setStateFilter(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
-                >
-                  {US_STATES.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="min-w-[280px] flex-[1.4] space-y-1">
-                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
-                  Search by name or keyword
-                </label>
-                {isStarter ? (
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      disabled
-                      placeholder="Search/filter available on paid plans"
-                      className="w-full cursor-not-allowed rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 shadow-inner"
-                    />
-                    <div className="absolute left-0 top-full mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-sm">
-                      🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
-                      <Link href="/membership" className="font-semibold text-orange-600 underline">
-                        View plans
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
-                  />
-                )}
-              </div>
-
-              <p className="flex-1 text-sm text-slate-600">
-                Tip: many firms are national or multi-state, so start here then narrow down if needed.
-              </p>
-            </section>
-
             {/* Starter upgrade banner */}
             {isStarter && (
               <div className="mt-5 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm">
                 <h3 className="text-lg font-semibold text-amber-900">Starter members see a preview</h3>
                 <p className="mt-2 text-sm text-amber-800">
                   You are currently viewing a small sample of firms that match your filter. Upgrade to Pro or Elite to unlock the
-                  full directory, deeper intel, and upcoming auto-assign tools.
+                  full directory, deeper intel, and upcoming auto assign tools.
                 </p>
                 <Link
                   href="/membership"
@@ -621,14 +575,16 @@ export default function DirectoryPage() {
             )}
 
             <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,_1.4fr)_minmax(0,_1fr)]">
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {displayedFirms.map((firm) => (
                   <FirmCard
                     key={firm.id}
                     firm={firm}
                     isHovered={hoveredFirmId === firm.id}
                     onHover={() => setHoveredFirmId(firm.id)}
-                    onBlur={() => setHoveredFirmId((current) => (current === firm.id ? null : current))}
+                    onBlur={() =>
+                      setHoveredFirmId((current) => (current === firm.id ? null : current))
+                    }
                   />
                 ))}
               </div>
