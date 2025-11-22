@@ -24,6 +24,9 @@ type Firm = {
   address_state: string | null
   address_postal_code: string | null
 }
+import { FirmCard } from '@/components/FirmCard'
+import { useAuth } from '@/components/auth-provider'
+import { Firm } from '@/lib/directory'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -551,6 +554,61 @@ export default function DirectoryPage() {
               onStateChange={setStateFilter}
             />
 
+            {/* Filters */}
+            <section className="mb-6 flex flex-wrap items-end gap-6">
+              <div className="min-w-[220px] flex-1 space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Filter by service area
+                </label>
+                <select
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                >
+                  {US_STATES.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="min-w-[280px] flex-[1.4] space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Search by name or keyword
+                </label>
+                {isStarter ? (
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Search/filter available on paid plans"
+                      className="w-full cursor-not-allowed rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 shadow-inner"
+                    />
+                    <div className="absolute left-0 top-full mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-sm">
+                      🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
+                      <Link href="/membership" className="font-semibold text-orange-600 underline">
+                        View plans
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  />
+                )}
+              </div>
+
+              <p className="flex-1 text-sm text-slate-600">
+                Tip: many firms are national or multi-state, so start here then narrow down if needed.
+              </p>
+            </section>
+
+            {/* Starter upgrade banner */}
             {isStarter && (
               <div className="mt-5 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm">
                 <h3 className="text-lg font-semibold text-amber-900">Starter members see a preview</h3>
@@ -588,6 +646,61 @@ export default function DirectoryPage() {
             {isStarter && filteredFirms.length > displayedFirms.length && (
               <p className="mt-4 text-sm text-slate-600">
                 Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the Starter preview.
+            {/* Main content: Cards + Map */}
+            <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              {/* Firm cards */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {displayedFirms.map((firm) => {
+                  const firmAddress = buildAddress(firm)
+
+                  return (
+                    <FirmCard
+                      key={firm.id}
+                      firm={firm}
+                      address={firmAddress}
+                      categories={formatCategories(firm.categories)}
+                      isActive={hoveredFirmId === firm.id}
+                      onHover={() => setHoveredFirmId(firm.id)}
+                      onLeave={() =>
+                        setHoveredFirmId((current) => (current === firm.id ? null : current))
+                      }
+                      onFocus={() => setHoveredFirmId(firm.id)}
+                      onBlur={() =>
+                        setHoveredFirmId((current) => (current === firm.id ? null : current))
+                      }
+                    />
+                  )
+                })}
+              </div>
+
+              {/* Interactive Map */}
+              <aside className="sticky top-8 rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <h2 className="mt-0 text-lg font-semibold text-slate-900">Map preview</h2>
+
+                <p className="mb-4 mt-0 text-sm text-slate-600">
+                  Pins show firms in your current filter. Hover over pins to see details. Zoom and pan to explore.
+                </p>
+
+                {GOOGLE_MAPS_KEY ? (
+                  <div
+                    id="google-map"
+                    className="h-[500px] w-full overflow-hidden border border-slate-200 bg-white shadow-inner"
+                  />
+                ) : (
+                  <div className="flex h-[500px] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600">
+                    <div>
+                      <p className="mb-2">Interactive map preview</p>
+                      <p className="text-xs">Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable</p>
+                    </div>
+                  </div>
+                )}
+              </aside>
+            </section>
+
+            {isStarter && filteredFirms.length > displayedFirms.length && (
+              <p className="mt-6 text-sm text-slate-600">
+                Showing {displayedFirms.length} of {filteredFirms.length} matching firms
+                on the Starter preview.
               </p>
             )}
 
