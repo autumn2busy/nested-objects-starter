@@ -3,7 +3,6 @@
 import Script from 'next/script'
 import Link from 'next/link'
 import { SiteHeader } from '@/components/SiteHeader'
-import { useAuth } from '@/components/auth-provider'
 import { RoleCarousel } from '@/components/RoleCarousel'
 
 const jsonLd = {
@@ -26,37 +25,7 @@ const jsonLd = {
   },
 }
 
-// Map Outseta plan UIDs to plan names for quick display
-const getPlanName = (uid: string | null) => {
-  switch (uid) {
-    case 'L9nbKV9Z':
-      return 'Starter'
-    case 'rQVqlLm6':
-      return 'Pro'
-    case 'NmdnNO90':
-      return 'Elite'
-    case 'rmk5Xk9g':
-      return 'Agency'
-    default:
-      return null
-  }
-}
-
 export default function HomePage() {
-  const { user, planUid, isLoading, isAuthenticated, logout, profileDisplayName } = useAuth()
-
-  const planName = getPlanName(planUid)
-
-  const firstName =
-    (profileDisplayName as string | null) ??
-    ((user as any)?.first_name as string | undefined) ??
-    ((user as any)?.FirstName as string | undefined) ??
-    (user?.name ? user.name.split(' ')[0] : undefined) ??
-    (user?.email ? user.email.split('@')[0] : undefined) ??
-    'Member'
-
-  const initials = firstName.charAt(0).toUpperCase()
-
   return (
     <>
       {/* Structured data for SEO */}
@@ -69,122 +38,21 @@ export default function HomePage() {
       <main className="min-h-screen bg-brand-sand text-brand-dark">
         <SiteHeader />
 
-        {/* Hero + stat card section */}
-        <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-12 lg:px-8 lg:py-16">
-            {/* Left hero copy */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-brand-copper">
-                Built for people who work in the field
-              </p>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight text-brand-dark sm:text-4xl lg:text-5xl">
-                Keep routes moving. Keep assets compliant. Keep your time protected.
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-700 sm:text-base">
-                The Nested Objects Member Hub is your command center for inspections. See which firms
-                are onboarding, understand requirements in plain language, and use AI-powered tools to
-                plan your next route before you leave the driveway.
-              </p>
+        <RoleCarousel />
 
-              {/* Primary CTAs */}
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link
-                  href="/directory"
-                  className="inline-flex items-center justify-center rounded-full bg-brand-copper px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-                >
-                  Preview hiring firms
-                </Link>
-                <Link
-                  href="/membership"
-                  className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-white px-5 py-2.5 text-sm font-semibold text-brand-dark transition hover:bg-brand-mist"
-                >
-                  See plans & pricing
-                </Link>
-              </div>
-
-              {/* Who we serve strip */}
-              <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs text-slate-700 shadow-sm sm:text-[13px]">
-                <p className="font-semibold text-slate-900">Who this hub serves</p>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                  <span>• Mortgage & insurance field inspectors</span>
-                  <span>• Mobile notaries & signing agents</span>
-                  <span>• Realtors & investor-friendly agents</span>
-                  <span>• Gig pros adding inspections as a new lane</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: daily route preview card */}
-            <div className="flex items-stretch">
-              <div className="relative w-full rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-xl shadow-slate-200 sm:p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Live beta
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
-                      {isAuthenticated ? `Welcome back, ${firstName}` : 'Your daily route overview'}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Today&apos;s opportunities. filtered by your state.
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                    {planName ? `${planName} member` : 'Guest preview'}
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-3 text-xs">
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-900">
-                        Exterior occupancy checks · 12 stops
-                      </p>
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                        Priority
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-slate-600">
-                      Local bank portfolio · 45–60 sec per door. ladder not required.
-                    </p>
-                    <p className="mt-1 text-[11px] font-semibold text-emerald-700">$180–$240 route est.</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
-                    <p className="font-semibold text-slate-900">
-                      Insurance loss photos · 6 stops · ladder required
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-600">
-                      Mix of roofs & interiors. pay bump for photo sets and measurements.
-                    </p>
-                    <p className="mt-1 text-[11px] font-semibold text-emerald-700">$90 min est.</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-3">
-                    <p className="text-[11px] text-slate-600">
-                      Turn on Pro to see real firms, rates, and requirements mapped to your home base.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                  <div className="text-[11px] text-slate-500">
-                    <span className="font-semibold text-slate-900">3</span> lanes selected ·{' '}
-                    <span className="font-semibold text-slate-900">2</span> firms in onboarding status
-                  </div>
-                  <Link
-                    href="/dashboard"
-                    className="text-[11px] font-semibold text-brand-copper hover:text-brand-copperDark"
-                  >
-                    Open your hub →
-                  </Link>
-                </div>
+        <section className="border-b border-slate-200 bg-white/80">
+          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+            <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
+              <p className="font-semibold text-slate-900">Who this hub serves</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                <span>• Mortgage & insurance field inspectors</span>
+                <span>• Mobile notaries & signing agents</span>
+                <span>• Realtors & investor-friendly agents</span>
+                <span>• Gig pros adding inspections as a new lane</span>
               </div>
             </div>
           </div>
         </section>
-
-        <RoleCarousel />
 
         {/* Feature pillars (Directory / Intel / AI tools) */}
         <section className="border-b border-slate-200 bg-white">
