@@ -73,7 +73,20 @@ export function UpgradeContent() {
     if (typeof window === 'undefined') return
 
     const Outseta = window.Outseta
-    const widgetMode = isAuthenticated ? 'updateSubscription' : 'register'
+
+    // Ensure the embedded widget is aware of the existing session cookie so
+    // authenticated users aren't prompted to log in again when upgrading.
+    const accessToken = document.cookie
+      .split('; ')
+      .find((cookie) => cookie.startsWith('outseta_access_token='))
+      ?.split('=')[1]
+
+    if (accessToken && Outseta?.setAccessToken) {
+      Outseta.setAccessToken(decodeURIComponent(accessToken))
+    }
+
+    const hasSession = isAuthenticated || Boolean(accessToken)
+    const widgetMode = hasSession ? 'updateSubscription' : 'register'
 
     if (Outseta?.auth?.open) {
       Outseta.auth.open({
