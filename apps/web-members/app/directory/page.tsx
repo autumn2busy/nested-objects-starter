@@ -549,6 +549,61 @@ export default function DirectoryPage() {
               onStateChange={setStateFilter}
             />
 
+            {/* Filters */}
+            <section className="mb-6 flex flex-wrap items-end gap-6">
+              <div className="min-w-[220px] flex-1 space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Filter by service area
+                </label>
+                <select
+                  value={stateFilter}
+                  onChange={(e) => setStateFilter(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                >
+                  {US_STATES.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="min-w-[280px] flex-[1.4] space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Search by name or keyword
+                </label>
+                {isStarter ? (
+                  <div className="relative w-full">
+                    <input
+                      type="text"
+                      disabled
+                      placeholder="Search/filter available on paid plans"
+                      className="w-full cursor-not-allowed rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 shadow-inner"
+                    />
+                    <div className="absolute left-0 top-full mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-sm">
+                      🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
+                      <Link href="/membership" className="font-semibold text-orange-600 underline">
+                        View plans
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  />
+                )}
+              </div>
+
+              <p className="flex-1 text-sm text-slate-600">
+                Tip: many firms are national or multi-state, so start here then narrow down if needed.
+              </p>
+            </section>
+
+            {/* Starter upgrade banner */}
             {isStarter && (
               <div className="mt-5 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm">
                 <h3 className="text-lg font-semibold text-amber-900">Starter members see a preview</h3>
