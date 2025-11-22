@@ -8,6 +8,8 @@ import { useAuth } from './auth-provider'
 
 const navLinks = [
   { href: '/', label: 'Home' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/profile', label: 'Profile' },
   { href: '/about', label: 'About' },
   { href: '/membership', label: 'Membership' },
   { href: '/directory', label: 'Directory' },
@@ -50,13 +52,6 @@ export function SiteHeader() {
     }
   })()
 
-  const authedLinks = isAuthenticated
-    ? [
-        { href: '/dashboard', label: 'Dashboard' },
-        { href: '/profile', label: 'Profile' },
-      ]
-    : []
-
   return (
     <header className="sticky top-0 z-30 border-b border-brand-slate/30 bg-brand-slate/95 text-white backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -73,7 +68,7 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-1 text-sm font-medium md:flex" aria-label="Primary">
             <div className="flex items-center gap-1 border border-brand-steel/40 bg-brand-slate/60 px-1 py-1">
-              {[...navLinks, ...authedLinks].map((link) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

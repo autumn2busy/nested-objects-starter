@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { SiteHeader } from '@/components/SiteHeader'
 
 const serviceHighlights = [
   {
@@ -152,7 +151,6 @@ export default function AboutPage() {
 
   return (
     <main className="bg-brand-sand text-brand-dark">
-      <SiteHeader />
       <article>
         <header className="border-b border-brand-mist bg-brand-dark text-white">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:px-8 lg:py-20">

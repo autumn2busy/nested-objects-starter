@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { SiteHeader } from '@/components/SiteHeader'
 
 const contactChannels = [
   {
@@ -27,8 +26,6 @@ const contactChannels = [
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
-      <SiteHeader />
-
       <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
           <div className="max-w-3xl">
