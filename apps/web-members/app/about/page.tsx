@@ -56,10 +56,10 @@ export default function AboutPage() {
           </div>
 
           <div className="rounded-3xl border border-brand-copper/20 bg-white/90 p-6 shadow-xl shadow-brand-copper/10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-steel">Mission</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-steel">Mission & founder story</p>
             <h2 className="mt-2 text-xl font-semibold text-brand-dark">Put real intel into the hands of people who keep properties moving.</h2>
             <p className="mt-3 text-sm text-slate-700">
-              We started Nested Objects to fix the guesswork around inspections. Instead of chasing rumor threads and portal screenshots, members get one place to compare firms, prep routes, and ask questions of an AI concierge that is trained on the same data you see.
+              Nested Objects began as the parent site built by an operator-product hybrid who spent years coordinating property inspections and simplifying complex workflows. The mission on nestedobjects.com/about-us—clear guidance, modern product thinking, and respect for field pros—carries directly into this member hub.
             </p>
             <div className="mt-4 grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
               <div className="rounded-2xl border border-brand-copper/20 bg-brand-mist px-4 py-3">
@@ -70,6 +70,12 @@ export default function AboutPage() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Who we serve</p>
                 <p className="mt-1">Inspectors, notaries, realtors, and coordinators who keep assets compliant.</p>
               </div>
+            </div>
+            <div className="mt-4 rounded-2xl border border-brand-copper/20 bg-brand-dark px-4 py-3 text-sm text-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Founder background</p>
+              <p className="mt-1 text-slate-100">
+                Built by a founder who has worked on both the operations floor and in product teams, blending field experience with modern software to make every resource practical, calm, and credible—just like the parent site describes.
+              </p>
             </div>
           </div>
         </div>
