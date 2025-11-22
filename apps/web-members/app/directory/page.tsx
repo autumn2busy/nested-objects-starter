@@ -2,27 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/components/auth-provider'
 import Script from 'next/script'
-
-type Firm = {
-  id: string
-  slug: string | null
-  name: string
-  url: string | null
-  geographic_coverage: string | null
-  categories: any
-  pay_min: number | null
-  pay_max: number | null
-  pay_type: string | null
-  company_size: string | null
-  industry_focus: string | null
-  is_published?: boolean | null
-  address_street: string | null
-  address_city: string | null
-  address_state: string | null
-  address_postal_code: string | null
-}
+import { FirmCard } from '@/components/FirmCard'
+import { useAuth } from '@/components/auth-provider'
+import { Firm } from '@/lib/directory'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -341,30 +324,19 @@ export default function DirectoryPage() {
         />
       )}
 
-      <main
-        style={{
-          maxWidth: '1440px',
-          margin: '0 auto',
-          padding: '2rem 1.5rem',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-        }}
-      >
+      <main className="mx-auto max-w-screen-xl px-6 py-8 font-sans">
         {/* Header */}
-        <header style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <header className="mb-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p style={{ fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: '0.25rem' }}>
-                DIRECTORY
-              </p>
-              <h1 style={{ fontSize: '2.25rem', fontWeight: 700, margin: 0 }}>
-                Firms hiring field inspectors
-              </h1>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">DIRECTORY</p>
+              <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">Firms hiring field inspectors</h1>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
-              <Link href="/dashboard" style={{ color: '#3b82f6', textDecoration: 'none' }}>
+            <div className="flex flex-wrap gap-3 text-sm font-semibold">
+              <Link href="/dashboard" className="text-blue-600 hover:underline">
                 ← Back to dashboard
               </Link>
-              <Link href="/membership" style={{ color: '#6b7280', textDecoration: 'none' }}>
+              <Link href="/membership" className="text-slate-600 hover:underline">
                 Membership and pricing
               </Link>
             </div>
@@ -377,13 +349,15 @@ export default function DirectoryPage() {
         {!loadingFirms && !error && (
           <>
             {/* Filters */}
-            <section className="filter-controls">
-              <div className="filter-control">
-                <label className="filter-label">Filter by service area</label>
+            <section className="mb-6 flex flex-wrap items-end gap-6">
+              <div className="min-w-[220px] flex-1 space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Filter by service area
+                </label>
                 <select
                   value={stateFilter}
                   onChange={(e) => setStateFilter(e.target.value)}
-                  className="filter-input"
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 >
                   {US_STATES.map((s) => (
                     <option key={s.code} value={s.code}>
@@ -393,19 +367,21 @@ export default function DirectoryPage() {
                 </select>
               </div>
 
-              <div className="filter-control wide">
-                <label className="filter-label">Search by name or keyword</label>
+              <div className="min-w-[280px] flex-[1.4] space-y-1">
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Search by name or keyword
+                </label>
                 {isStarter ? (
-                  <div className="locked-input">
+                  <div className="relative w-full">
                     <input
                       type="text"
                       disabled
                       placeholder="Search/filter available on paid plans"
-                      className="filter-input locked"
+                      className="w-full cursor-not-allowed rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 shadow-inner"
                     />
-                    <div className="locked-tooltip">
+                    <div className="absolute left-0 top-full mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 shadow-sm">
                       🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
-                      <Link href="/membership" className="locked-link">
+                      <Link href="/membership" className="font-semibold text-orange-600 underline">
                         View plans
                       </Link>
                     </div>
@@ -416,12 +392,12 @@ export default function DirectoryPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
-                    className="filter-input"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
                   />
                 )}
               </div>
 
-              <p className="filter-tip">
+              <p className="flex-1 text-sm text-slate-600">
                 Tip: many firms are national or multi-state, so start here then narrow down if needed.
               </p>
             </section>
@@ -462,148 +438,50 @@ export default function DirectoryPage() {
             )}
 
             {/* Main content: Cards + Map */}
-            <section className="directory-layout">
+            <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
               {/* Firm cards */}
-              <div className="cards-grid">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {displayedFirms.map((firm) => {
                   const firmAddress = buildAddress(firm)
 
-                    return (
-                      <article
-                        key={firm.id}
-                        className={`firm-card ${hoveredFirmId === firm.id ? 'is-hovered' : ''}`}
-                        onMouseEnter={() => setHoveredFirmId(firm.id)}
-                        onMouseLeave={() =>
-                          setHoveredFirmId((current) => (current === firm.id ? null : current))
-                        }
-                        onFocus={() => setHoveredFirmId(firm.id)}
-                        onBlur={() => setHoveredFirmId((current) => (current === firm.id ? null : current))}
-                        tabIndex={0}
-                      >
-                        <div className="card-stripe" aria-hidden="true" />
-                        <div className="card-header">
-                          <div>
-                            <p className="card-label">Verified firm</p>
-                            <h3 className="card-title">{firm.name}</h3>
-                            {firm.industry_focus && (
-                              <p className="card-subtitle">{firm.industry_focus}</p>
-                            )}
-                          </div>
-
-                          {firm.url && (
-                            <a
-                              href={firm.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="card-website"
-                            >
-                              Visit website ↗
-                            </a>
-                          )}
-                        </div>
-
-                        <div className="card-details">
-                          {firm.geographic_coverage && (
-                            <div className="detail-pill">
-                              <span className="detail-label">Coverage</span>
-                              <strong className="detail-value">{firm.geographic_coverage}</strong>
-                            </div>
-                          )}
-
-                          {firm.categories && (
-                            <div className="detail-pill">
-                              <span className="detail-label">Services</span>
-                              <strong className="detail-value">{formatCategories(firm.categories)}</strong>
-                            </div>
-                          )}
-                        </div>
-
-                        {firm.pay_min != null && (
-                          <p className="pay-rate">
-                            ${firm.pay_min}
-                            {firm.pay_max != null && ` - $${firm.pay_max}`}
-                            {firm.pay_type && ` ${firm.pay_type}`}
-                          </p>
-                        )}
-
-                        <div className="card-footer">
-                          <div className="card-contact">
-                            {firmAddress ? (
-                              <p className="card-address">{firmAddress}</p>
-                            ) : (
-                              <p className="card-address">Regional or national coverage</p>
-                            )}
-
-                            {firm.company_size && (
-                              <p className="card-meta">Team size: {firm.company_size}</p>
-                            )}
-                          </div>
-
-                          <Link href={`/firms/${firm.slug ?? firm.id}`} className="card-button">
-                            View snapshot →
-                          </Link>
-                        </div>
-                      </article>
-                    )
-                  })}
+                  return (
+                    <FirmCard
+                      key={firm.id}
+                      firm={firm}
+                      address={firmAddress}
+                      categories={formatCategories(firm.categories)}
+                      isActive={hoveredFirmId === firm.id}
+                      onHover={() => setHoveredFirmId(firm.id)}
+                      onLeave={() =>
+                        setHoveredFirmId((current) => (current === firm.id ? null : current))
+                      }
+                      onFocus={() => setHoveredFirmId(firm.id)}
+                      onBlur={() =>
+                        setHoveredFirmId((current) => (current === firm.id ? null : current))
+                      }
+                    />
+                  )
+                })}
               </div>
 
               {/* Interactive Map */}
-              <aside className="map-card">
-                <h2
-                  style={{
-                    fontSize: '1.05rem',
-                    fontWeight: 600,
-                    marginTop: 0,
-                    marginBottom: '0.75rem',
-                  }}
-                >
-                  Map preview
-                </h2>
+              <aside className="sticky top-8 rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <h2 className="mt-0 text-lg font-semibold text-slate-900">Map preview</h2>
 
-                <p
-                  style={{
-                    fontSize: '0.85rem',
-                    color: '#4b5563',
-                    marginTop: 0,
-                    marginBottom: '1rem',
-                  }}
-                >
+                <p className="mb-4 mt-0 text-sm text-slate-600">
                   Pins show firms in your current filter. Hover over pins to see details. Zoom and pan to explore.
                 </p>
 
                 {GOOGLE_MAPS_KEY ? (
                   <div
                     id="google-map"
-                    style={{
-                      width: '100%',
-                      height: '500px',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      border: '1px solid #e5e7eb',
-                    }}
+                    className="h-[500px] w-full overflow-hidden border border-slate-200 bg-white shadow-inner"
                   />
                 ) : (
-                  <div
-                    style={{
-                      borderRadius: '12px',
-                      border: '1px dashed #d1d5db',
-                      padding: '3rem 1.5rem',
-                      textAlign: 'center',
-                      fontSize: '0.85rem',
-                      color: '#6b7280',
-                      backgroundColor: 'white',
-                      height: '500px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <div className="flex h-[500px] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600">
                     <div>
-                      <p style={{ marginBottom: '0.5rem' }}>Interactive map preview</p>
-                      <p style={{ fontSize: '0.75rem' }}>
-                        Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable
-                      </p>
+                      <p className="mb-2">Interactive map preview</p>
+                      <p className="text-xs">Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable</p>
                     </div>
                   </div>
                 )}
@@ -611,26 +489,14 @@ export default function DirectoryPage() {
             </section>
 
             {isStarter && filteredFirms.length > displayedFirms.length && (
-              <p
-                style={{
-                  marginTop: '1.5rem',
-                  fontSize: '0.85rem',
-                  color: '#6b7280',
-                }}
-              >
+              <p className="mt-6 text-sm text-slate-600">
                 Showing {displayedFirms.length} of {filteredFirms.length} matching firms
                 on the Starter preview.
               </p>
             )}
 
             {isProOrHigher && (
-              <p
-                style={{
-                  marginTop: '1.5rem',
-                  fontSize: '0.85rem',
-                  color: '#6b7280',
-                }}
-              >
+              <p className="mt-6 text-sm text-slate-600">
                 You have full directory access. As new published firms are added to
                 Supabase, they will appear here automatically.
               </p>
@@ -639,301 +505,6 @@ export default function DirectoryPage() {
         )}
       </main>
 
-      <style jsx>{`
-        .directory-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-          gap: 2rem;
-          align-items: flex-start;
-        }
-
-        .cards-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 1.25rem;
-        }
-
-        .firm-card {
-          position: relative;
-          border-radius: 16px;
-          border: 1px solid #e5e7eb;
-          padding: 1.5rem;
-          background: linear-gradient(145deg, #ffffff, #f8fafc);
-          box-shadow: 0 8px 16px rgba(17, 24, 39, 0.06);
-          display: flex;
-          flex-direction: column;
-          gap: 0.85rem;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease,
-            outline 0.2s ease;
-          outline: 2px solid transparent;
-        }
-
-        .firm-card:focus-visible {
-          outline: 2px solid rgba(37, 99, 235, 0.3);
-          outline-offset: 2px;
-        }
-
-        .card-stripe {
-          position: absolute;
-          inset: 0;
-          border-radius: 16px;
-          background: linear-gradient(120deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.04));
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
-
-        .firm-card.is-hovered .card-stripe {
-          opacity: 1;
-        }
-
-        .card-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 1rem;
-        }
-
-        .card-label {
-          font-size: 0.75rem;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: #6b7280;
-          margin: 0 0 0.2rem 0;
-        }
-
-        .card-title {
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: #0f172a;
-          margin: 0 0 0.15rem 0;
-        }
-
-        .card-subtitle {
-          font-size: 0.9rem;
-          color: #1d4ed8;
-          margin: 0;
-        }
-
-        .card-website {
-          font-size: 0.85rem;
-          color: #2563eb;
-          text-decoration: none;
-          font-weight: 600;
-        }
-
-        .card-details {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 0.75rem;
-        }
-
-        .detail-pill {
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 0.65rem 0.75rem;
-          background: #f8fafc;
-        }
-
-        .detail-label {
-          display: block;
-          font-size: 0.75rem;
-          color: #6b7280;
-          margin-bottom: 0.2rem;
-        }
-
-        .detail-value {
-          font-size: 0.95rem;
-          color: #111827;
-        }
-
-        .pay-rate {
-          font-size: 0.95rem;
-          color: #15803d;
-          font-weight: 600;
-          margin: 0.2rem 0 0;
-        }
-
-        .card-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .card-contact {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .card-address {
-          margin: 0;
-          font-size: 0.9rem;
-          color: #4b5563;
-        }
-
-        .card-meta {
-          margin: 0;
-          font-size: 0.8rem;
-          color: #6b7280;
-        }
-
-        .card-button {
-          display: inline-block;
-          padding: 0.65rem 1.3rem;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
-          color: white;
-          text-decoration: none;
-          font-size: 0.9rem;
-          font-weight: 700;
-          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          white-space: nowrap;
-        }
-
-        .card-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 26px rgba(37, 99, 235, 0.28);
-        }
-
-        .firm-card.is-hovered {
-          transform: translateY(-6px) scale(1.01);
-          box-shadow: 0 18px 32px rgba(17, 24, 39, 0.12);
-          border-color: #2563eb;
-          outline: 2px solid rgba(37, 99, 235, 0.18);
-        }
-
-        .map-card {
-          position: sticky;
-          top: 2rem;
-          border-radius: 16px;
-          border: 1px solid #e5e7eb;
-          padding: 1.25rem;
-          background-color: #f9fafb;
-        }
-
-        .filter-controls {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 1.5rem;
-          align-items: flex-end;
-          margin-bottom: 1.5rem;
-        }
-
-        .filter-control {
-          flex: 1 1 220px;
-          min-width: 220px;
-        }
-
-        .filter-control.wide {
-          flex: 1 1 320px;
-          min-width: 280px;
-        }
-
-        .filter-label {
-          display: block;
-          font-size: 0.8rem;
-          color: #6b7280;
-          margin-bottom: 0.35rem;
-        }
-
-        .filter-input {
-          width: 100%;
-          padding: 0.6rem 0.75rem;
-          border-radius: 8px;
-          border: 1px solid #d1d5db;
-          font-size: 0.9rem;
-          background-color: white;
-        }
-
-        .filter-input.locked {
-          border: 1px solid #fbbf24;
-          background-color: #fef3c7;
-          cursor: not-allowed;
-          color: #92400e;
-        }
-
-        .locked-input {
-          position: relative;
-          width: 100%;
-        }
-
-        .locked-tooltip {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          margin-top: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          border-radius: 6px;
-          background-color: #fffbeb;
-          border: 1px solid #fbbf24;
-          font-size: 0.75rem;
-          color: #92400e;
-          z-index: 10;
-        }
-
-        .locked-link {
-          color: #ea580c;
-          text-decoration: underline;
-          font-weight: 600;
-        }
-
-        .filter-tip {
-          flex: 1 1 100%;
-          margin: 0;
-          font-size: 0.85rem;
-          color: #6b7280;
-        }
-
-        @media (max-width: 1180px) {
-          .cards-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          }
-        }
-
-        @media (max-width: 1024px) {
-          .directory-layout {
-            grid-template-columns: 1fr;
-          }
-
-          .map-card {
-            position: static;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .filter-controls {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .filter-tip {
-            order: 3;
-          }
-
-          .card-header {
-            flex-direction: column;
-          }
-
-          .card-button {
-            width: 100%;
-            text-align: center;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .cards-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .firm-card {
-            padding: 1.25rem;
-          }
-        }
-      `}</style>
     </>
   )
 }
