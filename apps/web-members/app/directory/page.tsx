@@ -468,81 +468,84 @@ export default function DirectoryPage() {
                 {displayedFirms.map((firm) => {
                   const firmAddress = buildAddress(firm)
 
-                  return (
-                    <article
-                      key={firm.id}
-                    className={`firm-card ${hoveredFirmId === firm.id ? 'is-hovered' : ''}`}
-                    onMouseEnter={() => setHoveredFirmId(firm.id)}
-                    onMouseLeave={() => setHoveredFirmId((current) => (current === firm.id ? null : current))}
-                    onFocus={() => setHoveredFirmId(firm.id)}
-                    onBlur={() => setHoveredFirmId((current) => (current === firm.id ? null : current))}
-                    tabIndex={0}
-                  >
-                    <div className="card-stripe" aria-hidden="true" />
-                    <div className="card-header">
-                      <div>
-                        <p className="card-label">Verified firm</p>
-                        <h3 className="card-title">{firm.name}</h3>
-                        {firm.industry_focus && (
-                          <p className="card-subtitle">{firm.industry_focus}</p>
-                        )}
-                      </div>
+                    return (
+                      <article
+                        key={firm.id}
+                        className={`firm-card ${hoveredFirmId === firm.id ? 'is-hovered' : ''}`}
+                        onMouseEnter={() => setHoveredFirmId(firm.id)}
+                        onMouseLeave={() =>
+                          setHoveredFirmId((current) => (current === firm.id ? null : current))
+                        }
+                        onFocus={() => setHoveredFirmId(firm.id)}
+                        onBlur={() => setHoveredFirmId((current) => (current === firm.id ? null : current))}
+                        tabIndex={0}
+                      >
+                        <div className="card-stripe" aria-hidden="true" />
+                        <div className="card-header">
+                          <div>
+                            <p className="card-label">Verified firm</p>
+                            <h3 className="card-title">{firm.name}</h3>
+                            {firm.industry_focus && (
+                              <p className="card-subtitle">{firm.industry_focus}</p>
+                            )}
+                          </div>
 
-                      {firm.url && (
-                        <a
-                          href={firm.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="card-website"
-                        >
-                          Visit website ↗
-                        </a>
-                      )}
-                    </div>
-
-                    <div className="card-details">
-                      {firm.geographic_coverage && (
-                        <div className="detail-pill">
-                          <span className="detail-label">Coverage</span>
-                          <strong className="detail-value">{firm.geographic_coverage}</strong>
+                          {firm.url && (
+                            <a
+                              href={firm.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="card-website"
+                            >
+                              Visit website ↗
+                            </a>
+                          )}
                         </div>
-                      )}
 
-                      {firm.categories && (
-                        <div className="detail-pill">
-                          <span className="detail-label">Services</span>
-                          <strong className="detail-value">{formatCategories(firm.categories)}</strong>
+                        <div className="card-details">
+                          {firm.geographic_coverage && (
+                            <div className="detail-pill">
+                              <span className="detail-label">Coverage</span>
+                              <strong className="detail-value">{firm.geographic_coverage}</strong>
+                            </div>
+                          )}
+
+                          {firm.categories && (
+                            <div className="detail-pill">
+                              <span className="detail-label">Services</span>
+                              <strong className="detail-value">{formatCategories(firm.categories)}</strong>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {firm.pay_min != null && (
-                      <p className="pay-rate">
-                        ${firm.pay_min}
-                        {firm.pay_max != null && ` - $${firm.pay_max}`}
-                        {firm.pay_type && ` ${firm.pay_type}`}
-                      </p>
-                    )}
-
-                    <div className="card-footer">
-                      <div className="card-contact">
-                        {firmAddress ? (
-                          <p className="card-address">{firmAddress}</p>
-                        ) : (
-                          <p className="card-address">Regional or national coverage</p>
+                        {firm.pay_min != null && (
+                          <p className="pay-rate">
+                            ${firm.pay_min}
+                            {firm.pay_max != null && ` - $${firm.pay_max}`}
+                            {firm.pay_type && ` ${firm.pay_type}`}
+                          </p>
                         )}
 
-                        {firm.company_size && (
-                          <p className="card-meta">Team size: {firm.company_size}</p>
-                        )}
-                      </div>
+                        <div className="card-footer">
+                          <div className="card-contact">
+                            {firmAddress ? (
+                              <p className="card-address">{firmAddress}</p>
+                            ) : (
+                              <p className="card-address">Regional or national coverage</p>
+                            )}
 
-                      <Link href={`/firms/${firm.slug ?? firm.id}`} className="card-button">
-                        View snapshot →
-                      </Link>
-                    </div>
-                  )
-                })}
+                            {firm.company_size && (
+                              <p className="card-meta">Team size: {firm.company_size}</p>
+                            )}
+                          </div>
+
+                          <Link href={`/firms/${firm.slug ?? firm.id}`} className="card-button">
+                            View snapshot →
+                          </Link>
+                        </div>
+                      </article>
+                    )
+                  })}
               </div>
 
               {/* Interactive Map */}
