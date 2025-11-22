@@ -11,6 +11,7 @@ type Firm = {
   slug: string | null
   name: string
   url: string | null
+  logo_url: string | null
   geographic_coverage: string | null
   categories: any
   pay_min: number | null
@@ -23,7 +24,6 @@ type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
-  logo_url: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -102,48 +102,6 @@ function buildAddress(firm: Firm): string {
     .join(', ')
 }
 
-function formatPayRange(firm: Firm): string | null {
-  const { pay_min, pay_max, pay_type } = firm
-
-  if (pay_min == null && pay_max == null) return null
-
-  let range = ''
-  if (pay_min != null && pay_max != null) {
-    range = `$${pay_min} - $${pay_max}`
-  } else if (pay_min != null) {
-    range = `From $${pay_min}`
-  } else if (pay_max != null) {
-    range = `Up to $${pay_max}`
-  }
-
-  if (pay_type) {
-    range += ` ${pay_type}`
-  }
-
-  return range
-}
-
-// Simple deterministic color generator so each firm gets its own palette
-function getBrandColors(seed: string) {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  const hue = Math.abs(hash) % 360
-  const sat = 65
-
-  const bg = `linear-gradient(135deg,
-    hsl(${hue}, ${sat}%, 97%) 0%,
-    hsl(${(hue + 15) % 360}, ${sat}%, 94%) 45%,
-    hsl(${(hue + 35) % 360}, ${sat}%, 91%) 100%)`
-
-  const border = `hsl(${hue}, ${sat}%, 78%)`
-  const accent = `hsl(${hue}, ${sat + 5}%, 40%)`
-  const accentSoft = `hsl(${hue}, ${sat}%, 96%)`
-
-  return { bg, border, accent, accentSoft }
-}
-
 declare global {
   interface Window {
     google: any
@@ -166,17 +124,17 @@ function FilterBar({
   onStateChange,
 }: FilterBarProps) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="grid gap-4 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)] md:items-end">
-        <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600" htmlFor="state-filter">
-            Service area
+    <section className="mb-6 border border-slate-200 bg-white px-5 py-4 shadow-sm">
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold tracking-[0.14em] text-slate-700" htmlFor="state-filter">
+            SERVICE AREA
           </label>
           <select
             id="state-filter"
             value={stateFilter}
             onChange={(e) => onStateChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
           >
             {US_STATES.map((s) => (
               <option key={s.code} value={s.code}>
@@ -186,25 +144,22 @@ function FilterBar({
           </select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600" htmlFor="keyword-filter">
-            Search by name or keyword
+        <div className="space-y-1">
+          <label className="text-xs font-semibold tracking-[0.14em] text-slate-700" htmlFor="keyword-filter">
+            NAME / KEYWORD
           </label>
           {isStarter ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <input
                 id="keyword-filter"
                 type="text"
                 disabled
-                placeholder="Search and deep filters unlock on paid plans"
-                className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-inner"
+                placeholder="Search + advanced filters available on paid plans"
+                className="w-full cursor-not-allowed border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-inner"
               />
-              <p className="flex items-center gap-2 text-xs text-amber-800">
-                <span role="img" aria-label="locked">
-                  🔒
-                </span>
-                Upgrade to Pro or higher to search the full directory.
-                <Link href="/membership" className="font-semibold text-orange-600 underline">
+              <p className="text-xs text-amber-800">
+                Upgrade to Pro or higher to search by firm, service type, and region.{' '}
+                <Link href="/membership" className="font-semibold text-amber-900 underline">
                   View plans
                 </Link>
               </p>
@@ -215,18 +170,37 @@ function FilterBar({
               type="text"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              placeholder="Safeguard, mortgage, appraisal, BPO..."
+              className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             />
           )}
         </div>
       </div>
 
       <p className="mt-3 text-xs text-slate-600">
-        Many firms are national or multi state, so a wide search is a smart first pass.
+        Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
       </p>
     </section>
   )
+}
+
+/**
+ * Cheap deterministic accent color so cards don’t all look the same
+ * without going full Skittles.
+ */
+function getAccentColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 32%, 58%)`
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[1][0]).toUpperCase()
 }
 
 type FirmCardProps = {
@@ -236,27 +210,28 @@ type FirmCardProps = {
   onBlur: () => void
 }
 
-function FirmCard({ firm, isHovered, onBlur, onHover }: FirmCardProps) {
-  const payRange = formatPayRange(firm)
-  const { bg, border, accent, accentSoft } = getBrandColors(firm.name)
-
-  const initials = firm.name
-    .split(' ')
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join('')
-    .toUpperCase()
+function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
+  const accent = getAccentColor(firm.name)
+  const payText =
+    firm.pay_min != null || firm.pay_max != null
+      ? [
+          firm.pay_min != null ? `$${firm.pay_min}` : null,
+          firm.pay_max != null ? `$${firm.pay_max}` : null,
+        ]
+          .filter(Boolean)
+          .join(' - ') +
+        (firm.pay_type ? ` ${firm.pay_type}` : '')
+      : firm.pay_type || 'Shared with members inside the hub'
 
   return (
     <article
-      className="group relative flex h-56 flex-col justify-between overflow-hidden rounded-2xl border bg-white p-4 text-sm shadow-[0_14px_26px_rgba(15,23,42,0.18)] transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0"
+      className="flex h-64 flex-col justify-between border border-slate-300 bg-[#fdfbf7] px-5 py-4 shadow-[0_2px_0_rgba(15,23,42,0.16)] transition-transform duration-150 hover:-translate-y-[2px]"
       style={{
-        borderColor: border,
-        backgroundImage: bg,
-        transform: isHovered ? 'translateY(-6px)' : undefined,
+        borderTopWidth: 6,
+        borderTopColor: accent,
         boxShadow: isHovered
-          ? '0 18px 40px rgba(15,23,42,0.28)'
-          : '0 14px 26px rgba(15,23,42,0.18)',
+          ? '0 3px 0 rgba(15,23,42,0.24)'
+          : '0 2px 0 rgba(15,23,42,0.16)',
       }}
       tabIndex={0}
       onMouseEnter={onHover}
@@ -264,75 +239,68 @@ function FirmCard({ firm, isHovered, onBlur, onHover }: FirmCardProps) {
       onFocus={onHover}
       onBlur={onBlur}
     >
-      {/* subtle inner frame */}
-      <div
-        className="pointer-events-none absolute inset-2 rounded-xl border border-white/40 shadow-inner"
-        style={{ background: 'radial-gradient(circle at top left, rgba(255,255,255,0.85), transparent 55%)' }}
-      />
-
-      <div className="relative flex items-start gap-3">
-        <div
-          className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-white/90 shadow-inner ring-1 ring-slate-200"
-          style={{ boxShadow: '0 4px 12px rgba(15,23,42,0.16)' }}
-        >
-          {firm.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={firm.logo_url}
-              alt={firm.name}
-              className="max-h-12 max-w-full object-contain"
-            />
-          ) : (
-            <span className="text-base font-semibold text-slate-800">{initials}</span>
-          )}
+      {/* Top row: logo + name */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center border border-slate-300 bg-white shadow-sm">
+            {firm.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={firm.logo_url}
+                alt={`${firm.name} logo`}
+                className="max-h-12 max-w-[3rem] object-contain"
+              />
+            ) : (
+              <span className="text-xs font-semibold tracking-[0.2em] text-slate-600">
+                {getInitials(firm.name)}
+              </span>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-900">
+              {firm.name}
+            </h3>
+            {firm.geographic_coverage && (
+              <p className="text-[11px] font-medium tracking-[0.16em] text-slate-600">
+                COVERAGE · {firm.geographic_coverage}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex-1 space-y-1">
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-            {firm.name}
-          </h3>
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Coverage
-          </p>
-          <p className="line-clamp-2 text-xs text-slate-800">
-            {firm.geographic_coverage || 'Details available in the firm snapshot'}
-          </p>
-        </div>
+        {firm.url && (
+          <a
+            href={firm.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-slate-900 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-slate-900"
+          >
+            VISIT SITE
+          </a>
+        )}
       </div>
 
-      <div className="relative mt-3 flex items-end justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-600">
-            Pay range
-          </p>
-          <p className="text-sm font-semibold text-emerald-800">
-            {payRange || 'Shared with members inside the hub'}
-          </p>
+      {/* Middle: pay range */}
+      <div className="mt-4 space-y-1">
+        <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-700">
+          PAY RANGE
+        </p>
+        <p className="text-sm font-semibold text-emerald-800">{payText}</p>
+      </div>
+
+      {/* Bottom: actions */}
+      <div className="mt-4 flex items-end justify-between gap-4">
+        <div className="text-[11px] text-slate-500">
+          <p>Snapshot includes tools, requirements,</p>
+          <p>and intel specific to this firm.</p>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          {firm.url && (
-            <a
-              href={firm.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-full border px-3 py-1 text-[0.72rem] font-semibold text-slate-900 shadow-sm transition hover:brightness-105"
-              style={{
-                borderColor: accent,
-                background: accentSoft,
-              }}
-            >
-              Visit website
-            </a>
-          )}
-
-          <Link
-            href={`/firms/${firm.slug ?? firm.id}`}
-            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-[0.72rem] font-semibold text-white shadow-md transition hover:bg-slate-800"
-          >
-            View snapshot
-          </Link>
-        </div>
+        <Link
+          href={`/firms/${firm.slug ?? firm.id}`}
+          className="border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
+        >
+          VIEW SNAPSHOT
+        </Link>
       </div>
     </article>
   )
@@ -344,17 +312,17 @@ type MapPreviewProps = {
 
 function MapPreview({ googleMapsKey }: MapPreviewProps) {
   return (
-    <aside className="h-full rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+    <aside className="sticky top-8 border border-slate-200 bg-slate-50 px-4 py-4 text-sm shadow-sm">
       <h2 className="text-sm font-semibold text-slate-900">Map preview</h2>
-      <p className="mb-4 mt-1 text-xs text-slate-600">
-        Pins show firms under your current filter. Hover a pin to preview, click to jump to the snapshot.
+      <p className="mb-3 mt-1 text-xs text-slate-600">
+        Pins show firms in your current filter. Hover to see details, click for more info.
       </p>
 
       {googleMapsKey ? (
-        <div id="google-map" className="h-[420px] w-full overflow-hidden rounded-xl border border-slate-200" />
+        <div id="google-map" className="h-[480px] w-full border border-slate-200" />
       ) : (
-        <div className="flex h-[420px] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center text-xs text-slate-500">
-          Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable the interactive map.
+        <div className="flex h-[480px] items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-xs text-slate-500">
+          Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable the live map.
         </div>
       )}
     </aside>
@@ -393,6 +361,7 @@ export default function DirectoryPage() {
             'slug',
             'name',
             'url',
+            'logo_url',
             'geographic_coverage',
             'categories',
             'pay_min',
@@ -405,7 +374,6 @@ export default function DirectoryPage() {
             'address_city',
             'address_state',
             'address_postal_code',
-            'logo_url',
           ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -562,13 +530,13 @@ export default function DirectoryPage() {
       <main className="mx-auto max-w-4xl px-6 py-10">
         <h1 className="text-3xl font-bold text-slate-900">Firm directory</h1>
         <p className="mb-6 mt-2 text-base text-slate-700">
-          Log in to browse firms that work with inspectors and field pros.
+          Log in to browse firms hiring field professionals.
         </p>
         <a
           href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-          className="inline-flex items-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-500"
+          className="inline-flex items-center border border-slate-900 bg-slate-900 px-5 py-3 text-sm font-semibold tracking-[0.16em] text-white"
         >
-          Login to view directory
+          LOGIN TO VIEW DIRECTORY
         </a>
       </main>
     )
@@ -585,29 +553,26 @@ export default function DirectoryPage() {
       )}
 
       <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
-        <header className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+        <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Directory
+              DIRECTORY
             </p>
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="mt-1 text-2xl font-semibold text-slate-900 md:text-3xl">
               Firms hiring field inspectors
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-600">
-              Use this as your routes and revenue Rolodex. Preview pay, coverage, and gear expectations before you say yes.
-            </p>
           </div>
-          <div className="flex flex-wrap gap-3 text-sm font-semibold">
-            <Link href="/dashboard" className="text-blue-600 hover:text-blue-700">
-              ← Back to dashboard
+          <div className="flex flex-wrap gap-3 text-xs font-semibold tracking-[0.16em]">
+            <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">
+              ← BACK TO DASHBOARD
             </Link>
-            <Link href="/membership" className="text-slate-600 hover:text-slate-800">
-              Membership and pricing
+            <Link href="/membership" className="text-slate-700 hover:text-slate-900">
+              MEMBERSHIP &amp; PRICING
             </Link>
           </div>
         </header>
 
-        {loadingFirms && <p className="text-slate-700">Loading firms...</p>}
+        {loadingFirms && <p className="text-sm text-slate-700">Loading firms…</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {!loadingFirms && !error && (
@@ -621,65 +586,54 @@ export default function DirectoryPage() {
             />
 
             {isStarter && (
-              <div className="mt-5 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm">
-                <h3 className="text-lg font-semibold text-amber-900">
-                  Starter members see a preview
-                </h3>
-                <p className="mt-2 text-sm text-amber-800">
-                  You are viewing a small sample of matching firms. Upgrade to Pro or Elite to unlock the full directory, richer intel, and upcoming auto assign tools.
+              <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                <h3 className="text-sm font-semibold">Starter members see a preview.</h3>
+                <p className="mt-1 text-xs">
+                  You are viewing a small sample of firms that match your filter. Upgrade to Pro or
+                  higher to unlock the full directory and deeper intel.
                 </p>
                 <Link
                   href="/membership"
-                  className="mt-4 inline-flex items-center rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-amber-600"
+                  className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
                 >
-                  Upgrade for full access
+                  UPGRADE FOR FULL ACCESS
                 </Link>
               </div>
             )}
 
-            <section className="mt-6 flex flex-col gap-6 lg:flex-row">
-              <div className="flex-1">
-                <div className="flex flex-wrap gap-6">
-                  {displayedFirms.map((firm) => (
-                    <div
-                      key={firm.id}
-                      className="w-full md:w-[calc(50%-0.75rem)]"
-                    >
-                      <FirmCard
-                        firm={firm}
-                        isHovered={hoveredFirmId === firm.id}
-                        onHover={() => setHoveredFirmId(firm.id)}
-                        onBlur={() =>
-                          setHoveredFirmId((current) => (current === firm.id ? null : current))
-                        }
-                      />
-                    </div>
-                  ))}
-
-                  {!displayedFirms.length && (
-                    <p className="text-sm text-slate-600">
-                      No firms match this filter yet. Try widening your service area or clearing the search term.
-                    </p>
-                  )}
-                </div>
-
-                {isStarter && filteredFirms.length > displayedFirms.length && (
-                  <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the Starter preview.
-                  </p>
-                )}
-
-                {isProOrHigher && (
-                  <p className="mt-4 text-xs text-slate-600">
-                    You have full directory access. As new vetted firms are added they will appear here automatically.
-                  </p>
-                )}
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+              {/* Cards */}
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {displayedFirms.map((firm) => (
+                  <FirmCard
+                    key={firm.id}
+                    firm={firm}
+                    isHovered={hoveredFirmId === firm.id}
+                    onHover={() => setHoveredFirmId(firm.id)}
+                    onBlur={() =>
+                      setHoveredFirmId((current) => (current === firm.id ? null : current))
+                    }
+                  />
+                ))}
               </div>
 
-              <div className="w-full lg:w-[360px] xl:w-[420px]">
-                <MapPreview googleMapsKey={GOOGLE_MAPS_KEY} />
-              </div>
+              {/* Map */}
+              <MapPreview googleMapsKey={GOOGLE_MAPS_KEY} />
             </section>
+
+            {isStarter && filteredFirms.length > displayedFirms.length && (
+              <p className="mt-4 text-xs text-slate-600">
+                Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
+                Starter preview.
+              </p>
+            )}
+
+            {isProOrHigher && (
+              <p className="mt-4 text-xs text-slate-600">
+                You have full directory access. As new published firms are added, they will appear
+                here automatically.
+              </p>
+            )}
           </>
         )}
       </main>
