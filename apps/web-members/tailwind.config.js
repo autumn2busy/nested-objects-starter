@@ -10,8 +10,8 @@ module.exports = {
         brand: {
           dark: '#0b0f14',
           slate: '#1c252f',
-          copper: '#f97316',
-          copperDark: '#c2410c',
+          copper: '#d87c42',
+          copperDark: '#a94624',
           sand: '#f8fafc',
           mist: '#e5e7eb',
           steel: '#6b7280',
