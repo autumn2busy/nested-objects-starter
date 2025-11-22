@@ -24,7 +24,7 @@ export default function ToolsIndexPage() {
             </div>
             <Link
               href="/tools/ai-chatbot"
-              className="text-sm font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Open AI concierge →
             </Link>
@@ -39,7 +39,7 @@ export default function ToolsIndexPage() {
             </div>
             <Link
               href="/tools/ai-resume"
-              className="text-sm font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Build my resume →
             </Link>
@@ -54,7 +54,7 @@ export default function ToolsIndexPage() {
             </div>
             <Link
               href="/tools/job-tracking"
-              className="text-sm font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Go to job tracker →
             </Link>
@@ -69,7 +69,7 @@ export default function ToolsIndexPage() {
             </div>
             <Link
               href="/tools/weather"
-              className="text-sm font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Open weather tool →
             </Link>
@@ -84,7 +84,7 @@ export default function ToolsIndexPage() {
             </div>
             <Link
               href="/tools/routing"
-              className="text-sm font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Plan my routes →
             </Link>
