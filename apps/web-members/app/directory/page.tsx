@@ -11,6 +11,7 @@ type Firm = {
   slug: string | null
   name: string
   url: string | null
+  logo_url: string | null
   geographic_coverage: string | null
   categories: any
   pay_min: number | null
@@ -23,7 +24,6 @@ type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
-  logo_url: string | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -84,6 +84,23 @@ const US_STATES = [
   { code: 'WY', label: 'Wyoming' },
 ]
 
+const BRAND_ACCENT_PALETTE = [
+  '#0f172a', // slate
+  '#1d4ed8', // blue
+  '#0f766e', // teal
+  '#7c3aed', // violet
+  '#b91c1c', // red
+  '#b45309', // amber
+  '#15803d', // green
+  '#db2777', // pink
+]
+
+function getBrandAccent(name: string) {
+  if (!name) return BRAND_ACCENT_PALETTE[0]
+  const hash = name.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
+  return BRAND_ACCENT_PALETTE[hash % BRAND_ACCENT_PALETTE.length]
+}
+
 function formatCategories(categories: any): string {
   if (!categories) return ''
   if (Array.isArray(categories)) return categories.join(', ')
@@ -100,6 +117,21 @@ function buildAddress(firm: Firm): string {
   ]
     .filter(Boolean)
     .join(', ')
+}
+
+function formatPayRange(firm: Firm): string | null {
+  const hasMin = firm.pay_min != null
+  const hasMax = firm.pay_max != null
+
+  if (!hasMin && !hasMax) return null
+
+  const min = hasMin ? `$${firm.pay_min}` : ''
+  const max = hasMax ? `$${firm.pay_max}` : ''
+
+  const range = min && max ? `${min} - ${max}` : min || max
+  const type = firm.pay_type ? ` ${firm.pay_type}` : ''
+
+  return `${range}${type}`
 }
 
 declare global {
@@ -154,7 +186,7 @@ function FilterBar({
                 id="keyword-filter"
                 type="text"
                 disabled
-                placeholder="Search and filters are available on paid plans"
+                placeholder="Search/filter available on paid plans"
                 className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-inner"
               />
               <p className="flex items-center gap-2 text-xs text-amber-800">
@@ -181,7 +213,7 @@ function FilterBar({
       </div>
 
       <p className="mt-4 text-sm text-slate-600">
-        Tip: many firms are national or multi state, so start here then narrow down if needed.
+        Tip: many firms are national or multi-state, so start here then narrow down if needed.
       </p>
     </section>
   )
@@ -194,88 +226,102 @@ type FirmCardProps = {
   onBlur: () => void
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join('')
-}
-
+/**
+ * Business-card style firm card.
+ * Only shows: logo, name, coverage, pay range, website + snapshot CTA.
+ */
 function FirmCard({ firm, isHovered, onBlur, onHover }: FirmCardProps) {
-  const payRange =
-    firm.pay_min != null
-      ? `$${firm.pay_min}${firm.pay_max != null ? ` - $${firm.pay_max}` : ''}${
-          firm.pay_type ? ` ${firm.pay_type}` : ''
-        }`
-      : null
+  const firmAddress = buildAddress(firm)
+  const payRange = formatPayRange(firm)
+  const accent = getBrandAccent(firm.name)
 
   return (
-    <article
-      className={`relative flex min-h-[140px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:flex-row ${
-        isHovered ? 'ring-2 ring-sky-400 ring-offset-1' : ''
+    <div
+      className={`relative h-full rounded-2xl p-[1px] shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition-transform duration-200 ${
+        isHovered ? 'translate-y-[-6px] shadow-[0_24px_55px_rgba(15,23,42,0.32)]' : ''
       }`}
+      style={{
+        background: `linear-gradient(135deg, ${accent}, #0f172a)`,
+      }}
       tabIndex={0}
       onMouseEnter={onHover}
       onMouseLeave={onBlur}
       onFocus={onHover}
       onBlur={onBlur}
     >
-      {/* Left logo strip */}
-      <div className="flex w-full items-center justify-center border-b border-slate-200 pb-3 sm:w-40 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
-        {firm.logo_url ? (
-          <img
-            src={firm.logo_url}
-            alt={`${firm.name} logo`}
-            className="max-h-16 max-w-[120px] object-contain"
-          />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold uppercase text-slate-50">
-            {getInitials(firm.name)}
+      <article className="flex h-full flex-col justify-between rounded-[1.1rem] bg-white/95 px-4 py-4 backdrop-blur">
+        {/* Top: logo + name */}
+        <div className="flex gap-3">
+          <div className="flex h-20 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">
+            {firm.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={firm.logo_url}
+                alt={`${firm.name} logo`}
+                className="max-h-16 max-w-full object-contain"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="text-sm font-semibold text-slate-500">
+                {firm.name?.charAt(0) ?? '?'}
+              </span>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Right content */}
-      <div className="flex flex-1 flex-col justify-between pt-3 sm:pl-4 sm:pt-0">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">{firm.name}</h3>
+          <div className="flex flex-1 flex-col">
+            <h3 className="text-base font-semibold leading-snug text-slate-900">
+              {firm.name}
+            </h3>
 
-          {firm.geographic_coverage && (
-            <p className="mt-1 text-xs text-slate-600">
-              Coverage area. <span className="font-medium text-slate-800">{firm.geographic_coverage}</span>
-            </p>
-          )}
+            <div className="mt-2 space-y-1 text-xs">
+              <p className="text-slate-600">
+                <span className="font-semibold text-slate-700">Coverage area.</span>{' '}
+                <span className="text-slate-800">
+                  {firm.geographic_coverage || 'Not listed'}
+                </span>
+              </p>
 
-          {payRange && (
-            <p className="mt-1 text-xs text-emerald-700">
-              Pay range. <span className="font-semibold">{payRange}</span>
-            </p>
-          )}
+              {payRange && (
+                <p className="text-emerald-700">
+                  <span className="font-semibold text-emerald-800">Pay range.</span>{' '}
+                  <span>{payRange}</span>
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          {firm.url && (
-            <a
-              href={firm.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-full border border-sky-500 px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+        {/* Bottom: address hint + CTAs */}
+        <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-3 text-xs text-slate-600">
+          {firmAddress ? (
+            <p className="line-clamp-1">{firmAddress}</p>
+          ) : (
+            <p className="italic text-slate-500">Regional or national coverage</p>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {firm.url && (
+              <a
+                href={firm.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+              >
+                Visit website
+              </a>
+            )}
+
+            <Link
+              href={`/firms/${firm.slug ?? firm.id}`}
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800"
             >
-              Visit website
-            </a>
-          )}
-
-          <Link
-            href={`/firms/${firm.slug ?? firm.id}`}
-            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-50 hover:bg-slate-800"
-          >
-            View snapshot
-          </Link>
+              View snapshot
+            </Link>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </div>
   )
 }
 
@@ -288,7 +334,8 @@ function MapPreview({ googleMapsKey }: MapPreviewProps) {
     <aside className="sticky top-8 h-full rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
       <h2 className="text-base font-semibold text-slate-900">Map preview</h2>
       <p className="mb-4 mt-1 text-sm text-slate-600">
-        Pins show firms in your current filter. Hover over pins to see details. Zoom and pan to explore.
+        Pins show firms in your current filter. Hover over pins to see details. Zoom and pan to
+        explore.
       </p>
 
       {googleMapsKey ? (
@@ -297,7 +344,9 @@ function MapPreview({ googleMapsKey }: MapPreviewProps) {
         <div className="flex h-[500px] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center text-sm text-slate-500">
           <div>
             <p className="mb-2 font-medium text-slate-700">Interactive map preview</p>
-            <p className="text-xs text-slate-500">Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable</p>
+            <p className="text-xs text-slate-500">
+              Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable
+            </p>
           </div>
         </div>
       )}
@@ -337,6 +386,7 @@ export default function DirectoryPage() {
             'slug',
             'name',
             'url',
+            'logo_url',
             'geographic_coverage',
             'categories',
             'pay_min',
@@ -349,7 +399,6 @@ export default function DirectoryPage() {
             'address_city',
             'address_state',
             'address_postal_code',
-            'logo_url',
           ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -419,7 +468,7 @@ export default function DirectoryPage() {
   }
 
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-  const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
+  const displayedFirms = isStarter ? filteredFirms.slice(0, 8) : filteredFirms
 
   useEffect(() => {
     if (!mapLoaded || !window.google || displayedFirms.length === 0) return
@@ -531,7 +580,9 @@ export default function DirectoryPage() {
       <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
         <header className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Directory</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              Directory
+            </p>
             <h1 className="text-3xl font-bold text-slate-900">Firms hiring field inspectors</h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm font-semibold">
@@ -560,10 +611,13 @@ export default function DirectoryPage() {
             {/* Starter upgrade banner */}
             {isStarter && (
               <div className="mt-5 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm">
-                <h3 className="text-lg font-semibold text-amber-900">Starter members see a preview</h3>
+                <h3 className="text-lg font-semibold text-amber-900">
+                  Starter members see a preview
+                </h3>
                 <p className="mt-2 text-sm text-amber-800">
-                  You are currently viewing a small sample of firms that match your filter. Upgrade to Pro or Elite to unlock the
-                  full directory, deeper intel, and upcoming auto assign tools.
+                  You are currently viewing a small sample of firms that match your filter. Upgrade
+                  to Pro or Elite to unlock the full directory, deeper intel, and upcoming
+                  auto-assign tools.
                 </p>
                 <Link
                   href="/membership"
@@ -575,7 +629,7 @@ export default function DirectoryPage() {
             )}
 
             <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,_1.4fr)_minmax(0,_1fr)]">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3">
                 {displayedFirms.map((firm) => (
                   <FirmCard
                     key={firm.id}
@@ -594,13 +648,15 @@ export default function DirectoryPage() {
 
             {isStarter && filteredFirms.length > displayedFirms.length && (
               <p className="mt-4 text-sm text-slate-600">
-                Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the Starter preview.
+                Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
+                Starter preview.
               </p>
             )}
 
             {isProOrHigher && (
               <p className="mt-4 text-sm text-slate-600">
-                You have full directory access. As new published firms are added to Supabase, they will appear here automatically.
+                You have full directory access. As new published firms are added to Supabase, they
+                will appear here automatically.
               </p>
             )}
           </>
