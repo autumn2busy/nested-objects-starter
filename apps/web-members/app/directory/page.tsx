@@ -1,28 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
 import Script from 'next/script'
-
-type Firm = {
-  id: string
-  slug: string | null
-  name: string
-  url: string | null
-  geographic_coverage: string | null
-  categories: any
-  pay_min: number | null
-  pay_max: number | null
-  pay_type: string | null
-  company_size: string | null
-  industry_focus: string | null
-  is_published?: boolean | null
-  address_street: string | null
-  address_city: string | null
-  address_state: string | null
-  address_postal_code: string | null
-}
+import FilterBar from '@/components/FilterBar'
+import type { Firm } from '@/lib/directory'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -112,8 +95,14 @@ export default function DirectoryPage() {
   const [firms, setFirms] = useState<Firm[]>([])
   const [loadingFirms, setLoadingFirms] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [stateFilter, setStateFilter] = useState<string>('ALL')
+  const [serviceAreaFilter, setServiceAreaFilter] = useState<string>('ALL')
+  const [addressStateFilter, setAddressStateFilter] = useState<string>('ALL')
+  const [cityFilter, setCityFilter] = useState<string>('')
   const [search, setSearch] = useState<string>('')
+  const [ratingThreshold, setRatingThreshold] = useState<string>('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [payMin, setPayMin] = useState<string>('')
+  const [payMax, setPayMax] = useState<string>('')
   const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   
@@ -150,6 +139,7 @@ export default function DirectoryPage() {
             'address_city',
             'address_state',
             'address_postal_code',
+            'rating',
           ].join(',') +
           '&is_published=eq.true' +
           '&order=name.asc'
@@ -183,12 +173,27 @@ export default function DirectoryPage() {
   const isStarter = planUid === 'L9nbKV9Z'
   const isProOrHigher = !!planUid && !isStarter
 
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>()
+
+    firms.forEach((firm) => {
+      const parts = formatCategories(firm.categories)
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+
+      parts.forEach((part) => set.add(part))
+    })
+
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [firms])
+
   const matchesStateFilter = (firm: Firm) => {
-    if (stateFilter === 'ALL') return true
+    if (serviceAreaFilter === 'ALL') return true
     if (!firm.geographic_coverage) return false
 
     const coverage = firm.geographic_coverage.toLowerCase()
-    const selected = US_STATES.find((s) => s.code === stateFilter)
+    const selected = US_STATES.find((s) => s.code === serviceAreaFilter)
     if (!selected) return true
 
     if (
@@ -220,7 +225,61 @@ export default function DirectoryPage() {
     )
   }
 
-  const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
+  const matchesCity = (firm: Firm) => {
+    if (!cityFilter.trim()) return true
+    const normalizedCity = cityFilter.trim().toLowerCase()
+    return (firm.address_city ?? '').toLowerCase().includes(normalizedCity)
+  }
+
+  const matchesAddressState = (firm: Firm) => {
+    if (addressStateFilter === 'ALL') return true
+    return (firm.address_state ?? '').toLowerCase() === addressStateFilter.toLowerCase()
+  }
+
+  const matchesRating = (firm: Firm) => {
+    if (!ratingThreshold) return true
+    if (firm.rating == null) return false
+    return firm.rating >= Number(ratingThreshold)
+  }
+
+  const matchesCategory = (firm: Firm) => {
+    if (!categoryFilter) return true
+    const categories = formatCategories(firm.categories)
+      .split(',')
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean)
+
+    return categories.includes(categoryFilter.toLowerCase())
+  }
+
+  const matchesPayRange = (firm: Firm) => {
+    const parseBound = (value: string) => {
+      if (!value.trim()) return null
+      const numericValue = Number(value)
+      return Number.isFinite(numericValue) ? numericValue : null
+    }
+
+    const min = parseBound(payMin)
+    const max = parseBound(payMax)
+
+    if (min == null && max == null) return true
+
+    const firmMin = firm.pay_min ?? firm.pay_max ?? null
+    const firmMax = firm.pay_max ?? firm.pay_min ?? null
+
+    if (min != null && firmMax != null && firmMax < min) return false
+    if (max != null && firmMin != null && firmMin > max) return false
+    return true
+  }
+
+  const filteredFirms = firms
+    .filter(matchesStateFilter)
+    .filter(matchesSearch)
+    .filter(matchesCity)
+    .filter(matchesAddressState)
+    .filter(matchesRating)
+    .filter(matchesCategory)
+    .filter(matchesPayRange)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
   // Initialize and update map
@@ -376,55 +435,27 @@ export default function DirectoryPage() {
 
         {!loadingFirms && !error && (
           <>
-            {/* Filters */}
-            <section className="filter-controls">
-              <div className="filter-control">
-                <label className="filter-label">Filter by service area</label>
-                <select
-                  value={stateFilter}
-                  onChange={(e) => setStateFilter(e.target.value)}
-                  className="filter-input"
-                >
-                  {US_STATES.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-control wide">
-                <label className="filter-label">Search by name or keyword</label>
-                {isStarter ? (
-                  <div className="locked-input">
-                    <input
-                      type="text"
-                      disabled
-                      placeholder="Search/filter available on paid plans"
-                      className="filter-input locked"
-                    />
-                    <div className="locked-tooltip">
-                      🔒 Upgrade to Pro or higher to unlock search and advanced filtering.{' '}
-                      <Link href="/membership" className="locked-link">
-                        View plans
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Try Safeguard, SoFi, mortgage, appraisal..."
-                    className="filter-input"
-                  />
-                )}
-              </div>
-
-              <p className="filter-tip">
-                Tip: many firms are national or multi-state, so start here then narrow down if needed.
-              </p>
-            </section>
+            <FilterBar
+              keyword={search}
+              onKeywordChange={setSearch}
+              serviceArea={serviceAreaFilter}
+              onServiceAreaChange={setServiceAreaFilter}
+              city={cityFilter}
+              onCityChange={setCityFilter}
+              addressState={addressStateFilter}
+              onAddressStateChange={setAddressStateFilter}
+              ratingThreshold={ratingThreshold}
+              onRatingThresholdChange={setRatingThreshold}
+              category={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              payMin={payMin}
+              payMax={payMax}
+              onPayMinChange={setPayMin}
+              onPayMaxChange={setPayMax}
+              isStarter={isStarter}
+              categories={categoryOptions}
+              stateOptions={US_STATES}
+            />
 
             {/* Starter upgrade banner */}
             {isStarter && (
@@ -815,79 +846,6 @@ export default function DirectoryPage() {
           background-color: #f9fafb;
         }
 
-        .filter-controls {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 1.5rem;
-          align-items: flex-end;
-          margin-bottom: 1.5rem;
-        }
-
-        .filter-control {
-          flex: 1 1 220px;
-          min-width: 220px;
-        }
-
-        .filter-control.wide {
-          flex: 1 1 320px;
-          min-width: 280px;
-        }
-
-        .filter-label {
-          display: block;
-          font-size: 0.8rem;
-          color: #6b7280;
-          margin-bottom: 0.35rem;
-        }
-
-        .filter-input {
-          width: 100%;
-          padding: 0.6rem 0.75rem;
-          border-radius: 8px;
-          border: 1px solid #d1d5db;
-          font-size: 0.9rem;
-          background-color: white;
-        }
-
-        .filter-input.locked {
-          border: 1px solid #fbbf24;
-          background-color: #fef3c7;
-          cursor: not-allowed;
-          color: #92400e;
-        }
-
-        .locked-input {
-          position: relative;
-          width: 100%;
-        }
-
-        .locked-tooltip {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          margin-top: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          border-radius: 6px;
-          background-color: #fffbeb;
-          border: 1px solid #fbbf24;
-          font-size: 0.75rem;
-          color: #92400e;
-          z-index: 10;
-        }
-
-        .locked-link {
-          color: #ea580c;
-          text-decoration: underline;
-          font-weight: 600;
-        }
-
-        .filter-tip {
-          flex: 1 1 100%;
-          margin: 0;
-          font-size: 0.85rem;
-          color: #6b7280;
-        }
-
         @media (max-width: 1180px) {
           .cards-grid {
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -905,15 +863,6 @@ export default function DirectoryPage() {
         }
 
         @media (max-width: 768px) {
-          .filter-controls {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .filter-tip {
-            order: 3;
-          }
-
           .card-header {
             flex-direction: column;
           }
