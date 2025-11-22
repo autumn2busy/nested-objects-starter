@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
 
 const navLinks = [
@@ -20,6 +20,7 @@ const navLinks = [
 export function SiteHeader() {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
+  const [isNavOpen, setIsNavOpen] = useState(false)
 
   const displayName = useMemo(() => {
     return (
@@ -52,6 +53,10 @@ export function SiteHeader() {
     }
   })()
 
+  useEffect(() => {
+    setIsNavOpen(false)
+  }, [pathname])
+
   return (
     <header className="sticky top-0 z-30 border-b border-brand-slate/30 bg-brand-slate/95 text-white backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -66,13 +71,31 @@ export function SiteHeader() {
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-1 text-sm font-medium md:flex" aria-label="Primary">
-            <div className="flex items-center gap-1 border border-brand-steel/40 bg-brand-slate/60 px-1 py-1">
+          <nav className="relative text-sm font-medium" aria-label="Primary">
+            <button
+              type="button"
+              aria-expanded={isNavOpen}
+              aria-controls="primary-navigation"
+              onClick={() => setIsNavOpen((open) => !open)}
+              className="flex items-center gap-2 rounded border border-brand-steel/50 bg-brand-slate/70 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-slate/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal md:hidden"
+            >
+              <span className="flex flex-col gap-1" aria-hidden>
+                <span className="block h-0.5 w-5 bg-white" />
+                <span className="block h-0.5 w-5 bg-white" />
+                <span className="block h-0.5 w-5 bg-white" />
+              </span>
+              Menu
+            </button>
+
+            <div
+              id="primary-navigation"
+              className={`${isNavOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 border border-brand-steel/40 bg-brand-slate/95 px-1 py-2 shadow-lg md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:bg-brand-slate/60 md:px-1 md:py-1 md:shadow-none`}
+            >
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal ${
+                  className={`block px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal ${
                     activeLink(link.href)
                       ? 'bg-brand-copper text-black'
                       : 'text-white/80 hover:bg-brand-slate/80 hover:text-white'
