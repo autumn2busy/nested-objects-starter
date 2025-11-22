@@ -8,12 +8,15 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          dark: '#0f1f2a',
-          copper: '#1f6f78',
-          copperDark: '#0f4f56',
-          sand: '#f2f4f5',
-          mist: '#e4eaed',
-          steel: '#5f6b73',
+          dark: '#0b0f14',
+          slate: '#1c252f',
+          copper: '#f97316',
+          copperDark: '#c2410c',
+          sand: '#f8fafc',
+          mist: '#e5e7eb',
+          steel: '#6b7280',
+          teal: '#1abc9c',
+          tealDark: '#0f766e',
         },
       },
     },
