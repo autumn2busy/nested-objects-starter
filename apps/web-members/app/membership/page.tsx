@@ -320,43 +320,43 @@ function MembershipContent() {
         <div className="mx-auto mt-6 grid max-w-3xl gap-6 text-sm text-slate-700">
           <div>
             <h3 className="text-base font-semibold text-slate-900">
-              Can I change plans or cancel anytime.
+              Can I change plans or cancel anytime?
             </h3>
             <p className="mt-2">
-              Yes. you can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
-              changes take effect immediately and you keep access until the end of your billing
+              Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
+              Changes take effect immediately and you keep access until the end of your billing
               period.
             </p>
           </div>
 
           <div>
             <h3 className="text-base font-semibold text-slate-900">
-              What payment methods do you accept.
+              What payment methods do you accept?
             </h3>
             <p className="mt-2">
-              All major credit cards are processed securely through Outseta and Stripe. your billing
+              All major credit cards are processed securely through Outseta and Stripe. Your billing
               details never touch the Nested Objects servers.
             </p>
           </div>
 
           <div>
             <h3 className="text-base font-semibold text-slate-900">
-              Is there a free option while I am getting started.
+              Is there a free option while I am getting started?
             </h3>
             <p className="mt-2">
-              Yes. the Starter plan gives you ongoing access to the directory and core hub without a
-              card on file. when you are ready for intel and AI tools you can upgrade into Pro or
+              Yes. The Starter plan gives you ongoing access to the directory and core hub without a
+              card on file. When you are ready for intel and AI tools you can upgrade into Pro or
               higher.
             </p>
           </div>
 
           <div>
             <h3 className="text-base font-semibold text-slate-900">
-              Who is Nested Objects built for.
+              Who is Nested Objects built for?
             </h3>
             <p className="mt-2">
               Field inspectors, mobile notaries, real estate and investor friendly agents, and gig
-              workers adding inspections as a new income lane. if you work outside, drive routes, or
+              workers adding inspections as a new income lane. If you work outside, drive routes, or
               step into other people&apos;s properties, this hub is for you.
             </p>
           </div>
