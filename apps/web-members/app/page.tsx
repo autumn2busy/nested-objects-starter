@@ -2,7 +2,6 @@
 
 import Script from 'next/script'
 import Link from 'next/link'
-import { SiteHeader } from '@/components/SiteHeader'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { SiteFooter } from '@/components/SiteFooter'
 
@@ -37,8 +36,6 @@ export default function HomePage() {
       />
 
       <main className="min-h-screen bg-brand-sand text-brand-dark">
-        <SiteHeader />
-
         <RoleCarousel />
 
         <section className="border-b border-slate-200 bg-white/80">
