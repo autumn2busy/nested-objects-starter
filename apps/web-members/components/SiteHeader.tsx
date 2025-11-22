@@ -19,17 +19,18 @@ export function SiteHeader() {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
 
-  const initials = useMemo(() => {
-    const name =
+  const displayName = useMemo(() => {
+    return (
       (profileDisplayName as string | null) ??
       ((user as any)?.first_name as string | undefined) ??
       ((user as any)?.FirstName as string | undefined) ??
       (user?.name ? user.name.split(' ')[0] : undefined) ??
       (user?.email ? user.email.split('@')[0] : undefined) ??
       'Member'
-
-    return name.charAt(0).toUpperCase()
+    )
   }, [profileDisplayName, user])
+
+  const initials = displayName.charAt(0).toUpperCase()
 
   const activeLink = (href: string) =>
     href === '/' ? pathname === href : pathname?.startsWith(href)
@@ -49,13 +50,20 @@ export function SiteHeader() {
     }
   })()
 
+  const authedLinks = isAuthenticated
+    ? [
+        { href: '/dashboard', label: 'Dashboard' },
+        { href: '/profile', label: 'Profile' },
+      ]
+    : []
+
   return (
-    <header className="sticky top-0 z-30 border-b border-brand-slate/30 bg-brand-dark/95 text-white backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-brand-slate/30 bg-brand-slate/95 text-white backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-10 w-10 items-center justify-center border border-brand-steel/40 bg-brand-slate/60">
-              <Image src="/logo-light.svg" alt="Nested Objects logo" width={28} height={28} priority />
+              <Image src="/logo-slate.svg" alt="Nested Objects logo" width={28} height={28} priority />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-base font-semibold tracking-tight">Nested Objects</span>
@@ -65,7 +73,7 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-1 text-sm font-medium md:flex" aria-label="Primary">
             <div className="flex items-center gap-1 border border-brand-steel/40 bg-brand-slate/60 px-1 py-1">
-              {navLinks.map((link) => (
+              {[...navLinks, ...authedLinks].map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -92,7 +100,7 @@ export function SiteHeader() {
                   {initials}
                 </div>
                 <div className="hidden flex-col text-left text-xs sm:flex">
-                  <span className="font-semibold text-white">{user.name || user.email}</span>
+                  <span className="font-semibold text-white">{profileDisplayName ?? displayName}</span>
                   {planLabel && <span className="text-[11px] uppercase tracking-wide text-brand-steel">{planLabel} plan</span>}
                 </div>
               </div>
