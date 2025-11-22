@@ -1,8 +1,8 @@
 'use client'
 
 import Script from 'next/script'
-import { useAuth } from '@/components/auth-provider'
 import Link from 'next/link'
+import { useAuth } from '@/components/auth-provider'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -12,7 +12,7 @@ const jsonLd = {
   operatingSystem: 'Any',
   url: 'https://nested-objects-starter.vercel.app',
   description:
-    'AI powered member hub for field inspectors, notaries, realtors, and gig pros, helping you find firms, get trained, and land more work.',
+    'Member hub and firm directory for field inspectors, notaries, real estate pros, and gig workers. Compare firms, see requirements, and plan better routes before you leave the driveway.',
   offers: {
     '@type': 'Offer',
     price: '0',
@@ -24,44 +24,36 @@ const jsonLd = {
   },
 }
 
-export default function HomePage() {
-  const {
-    user,
-    planUid,
-    profileDisplayName,
-    isLoading,
-    isAuthenticated,
-    logout,
-  } = useAuth()
-
-  const getPlanName = (uid: string | null) => {
-    switch (uid) {
-      case 'L9nbKV9Z':
-        return 'Starter'
-      case 'rQVqlLm6':
-        return 'Pro'
-      case 'NmdnNO90':
-        return 'Elite'
-      case 'rmk5Xk9g':
-        return 'Agency'
-      default:
-        return 'Unknown'
-    }
+// Map Outseta plan UIDs to plan names for quick display
+const getPlanName = (uid: string | null) => {
+  switch (uid) {
+    case 'L9nbKV9Z':
+      return 'Starter'
+    case 'rQVqlLm6':
+      return 'Pro'
+    case 'NmdnNO90':
+      return 'Elite'
+    case 'rmk5Xk9g':
+      return 'Agency'
+    default:
+      return null
   }
+}
+
+export default function HomePage() {
+  const { user, planUid, isLoading, isAuthenticated, logout, profileDisplayName } = useAuth()
 
   const planName = getPlanName(planUid)
 
-  const displayName =
-    profileDisplayName ??
-    (user as any)?.first_name ??
-    (user as any)?.FirstName ??
+  const firstName =
+    (profileDisplayName as string | null) ??
+    ((user as any)?.first_name as string | undefined) ??
+    ((user as any)?.FirstName as string | undefined) ??
     (user?.name ? user.name.split(' ')[0] : undefined) ??
     (user?.email ? user.email.split('@')[0] : undefined) ??
     'Member'
 
-  const resolvedDisplayName = displayName.trim() || 'Member'
-
-  const initials = resolvedDisplayName.charAt(0).toUpperCase()
+  const initials = firstName.charAt(0).toUpperCase()
 
   return (
     <>
@@ -72,331 +64,429 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main className="mx-auto max-w-screen-xl px-6 py-10 font-sans lg:py-14">
-        {/* Header */}
-        <header className="flex flex-col gap-6 border-b border-slate-200 pb-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-10">
-            <h1 className="text-3xl font-bold text-slate-900">Nested Objects</h1>
-
-            <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-800 lg:gap-6">
-              <Link className="transition hover:text-blue-600" href="/">
-                Home
-              </Link>
-              {isAuthenticated && (
-                <Link className="transition hover:text-blue-600" href="/dashboard">
-                  Dashboard
-                </Link>
-              )}
-              <Link className="transition hover:text-blue-600" href="/directory">
-                Directory
-              </Link>
-              <Link className="transition hover:text-blue-600" href="/membership">
-                Membership
-              </Link>
-              <Link className="transition hover:text-blue-600" href="/tools">
-                Tools
-              </Link>
-              <Link className="transition hover:text-blue-600" href="/resources">
-                Resources
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            {isLoading ? (
-              <span className="text-slate-600">Loading...</span>
-            ) : isAuthenticated && user ? (
-              <>
-                <div className="flex items-center gap-3 rounded-full bg-white/80 px-3 py-2 shadow-sm ring-1 ring-slate-200">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-base font-semibold text-slate-900">
-                    {initials}
-                  </div>
-                  <div className="flex flex-col leading-tight">
-                    <span className="text-sm font-semibold text-slate-900">{resolvedDisplayName}</span>
-                    {planName !== 'Unknown' && (
-                      <span className="text-xs text-slate-500">{planName} plan</span>
-                    )}
-                  </div>
+      <main className="min-h-screen bg-slate-50 text-slate-900">
+        {/* Top bar / header */}
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+            {/* Brand + nav */}
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-600 text-sm font-semibold text-white">
+                  NO
                 </div>
-                <button
-                  onClick={() => logout()}
-                  className="rounded-md bg-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <a
-                  href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                  className="rounded-md border border-blue-500 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50"
-                >
-                  Login
-                </a>
-                <a
-                  href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                  className="rounded-md bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
-                >
-                  Sign Up
-                </a>
-              </>
-            )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold tracking-tight">Nested Objects</span>
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                    Field Inspector Hub
+                  </span>
+                </div>
+              </Link>
+
+              <nav className="hidden items-center gap-4 text-sm font-medium text-slate-700 md:flex">
+                <Link href="/" className="text-sky-700">
+                  Home
+                </Link>
+                {isAuthenticated && (
+                  <Link href="/dashboard" className="hover:text-sky-700">
+                    Dashboard
+                  </Link>
+                )}
+                <Link href="/directory" className="hover:text-sky-700">
+                  Directory
+                </Link>
+                <Link href="/membership" className="hover:text-sky-700">
+                  Membership
+                </Link>
+                <Link href="/tools" className="hover:text-sky-700">
+                  Tools
+                </Link>
+                <Link href="/resources" className="hover:text-sky-700">
+                  Resources
+                </Link>
+              </nav>
+            </div>
+
+            {/* Auth area */}
+            <div className="flex items-center gap-3">
+              {isLoading ? (
+                <span className="text-xs text-slate-500">Checking your hub…</span>
+              ) : isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-xs font-semibold text-sky-800">
+                      {initials}
+                    </div>
+                    <div className="hidden flex-col items-start text-xs sm:flex">
+                      <span className="font-semibold text-slate-900">
+                        {firstName.length > 18 ? `${firstName.slice(0, 16)}…` : firstName}
+                      </span>
+                      {planName && (
+                        <span className="text-[11px] uppercase tracking-wide text-slate-500">
+                          {planName} plan
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => logout()}
+                    className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+                  >
+                    Login
+                  </a>
+                  <a
+                    href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
+                    className="hidden rounded-full bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-700 sm:inline-flex"
+                  >
+                    Join free
+                  </a>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <section className="mb-16 flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-12">
-          <div className="flex-1 space-y-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-600">
-              Uniting inspectors. Protecting neighborhoods. Elevating standards.
-            </p>
-            <h2 className="text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
-              Get hired faster as a field inspector, notary, or realtor.
-            </h2>
-            <p className="max-w-3xl text-lg leading-relaxed text-slate-600">
-              Nested Objects is a verified hub for field pros who are tired of chasing mystery firms and guessing about pay.
-              Find reputable companies, understand requirements, and use AI powered tools to move from applications to actual
-              work.
-            </p>
+        {/* Hero + stat card section */}
+        <section className="border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-12 lg:px-8 lg:py-16">
+            {/* Left hero copy */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-700">
+                Built for people who work in the field
+              </p>
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                Keep routes moving. Keep assets compliant. Keep your time protected.
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-700 sm:text-base">
+                The Nested Objects Member Hub is your command center for inspections. See which firms
+                are onboarding, understand requirements in plain language, and use AI-powered tools to
+                plan your next route before you leave the driveway.
+              </p>
 
-            {isAuthenticated ? (
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/dashboard"
-                  className="rounded-lg bg-blue-500 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-blue-600"
-                >
-                  Go to your dashboard
-                </Link>
+              {/* Primary CTAs */}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
                   href="/directory"
-                  className="rounded-lg border border-blue-500 px-5 py-3 text-base font-semibold text-blue-600 transition hover:bg-blue-50"
+                  className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-700"
                 >
-                  Browse hiring firms
+                  Preview hiring firms
                 </Link>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-wrap gap-3">
-                  <a
-                    href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                    className="rounded-lg bg-emerald-500 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-                  >
-                    Get directory access
-                  </a>
-                  <Link
-                    href="/directory"
-                    className="rounded-lg border border-blue-500 px-5 py-3 text-base font-semibold text-blue-600 transition hover:bg-blue-50"
-                  >
-                    Preview hiring firms
-                  </Link>
-                </div>
-                <p className="text-sm text-slate-500">No spam. You control your membership and notifications at any time.</p>
-              </>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-[260px] max-w-sm space-y-4 rounded-2xl border border-blue-100 bg-gradient-to-br from-indigo-100/60 to-sky-50 p-7 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800">Built for people who work in the field.</h3>
-            <ul className="list-disc space-y-2 pl-4 text-sm text-slate-600">
-              <li>Mortgage and insurance field inspectors</li>
-              <li>Mobile notaries and signing agents</li>
-              <li>Realtors and investor friendly agents</li>
-              <li>Gig pros adding inspections as a new income stream</li>
-            </ul>
-            <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
-              <p className="mb-2 text-sm font-semibold text-slate-900">Inside the member hub.</p>
-              <p className="text-sm text-slate-600">• Verified firm directory with pay and requirements</p>
-              <p className="text-sm text-slate-600">• AI concierge to answer firm and industry questions</p>
-              <p className="text-sm text-slate-600">
-                • Checklists, templates, and starter kits so you can land your first or next contract
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Mission Section */}
-        <section className="mb-16 text-center">
-          <h3 className="mb-4 text-3xl font-bold text-slate-900">Why Nested Objects exists.</h3>
-          <p className="mx-auto max-w-4xl text-lg leading-relaxed text-slate-600">
-            This hub was created for working parents, night shift hustlers, and full time entrepreneurs who deserve clear
-            information, fair pay, and real support. We verify firms, unpack fine print, and give you practical tools so you
-            can build a sustainable inspection business instead of piecing things together from random posts.
-          </p>
-        </section>
-
-        {/* Ways to Plug In Grid */}
-        <section className="mb-16">
-          <h3 className="mb-10 text-center text-3xl font-bold text-slate-900">Three ways to plug into the ecosystem.</h3>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h4 className="mb-3 text-2xl font-semibold text-slate-900">📁 Verified firm directory</h4>
-              <p className="mb-5 text-slate-600">
-                Browse firms by region, service type, and requirements. Skip the guesswork and focus on companies that are
-                actually hiring and paying.
-              </p>
-              <span className="mb-4 inline-flex w-fit items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                Included in all plans
-              </span>
-              <div>
-                <Link className="text-sm font-semibold text-blue-600 underline" href="/directory">
-                  View the directory →
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h4 className="mb-3 text-2xl font-semibold text-slate-900">🎓 Training and starter kits</h4>
-              <p className="mb-5 text-slate-600">
-                Learn how inspections really work before you touch your first order. Use checklists, photo examples, and
-                scripts to move with confidence from day one.
-              </p>
-              <span className="mb-4 inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900">
-                Best for Starter and Pro
-              </span>
-              <div>
-                <Link className="text-sm font-semibold text-blue-600 underline" href="/resources">
-                  Explore resources →
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h4 className="mb-3 text-2xl font-semibold text-slate-900">🤝 Community and office hours</h4>
-              <p className="mb-5 text-slate-600">
-                Join live sessions and conversations about pay, workload, and what firms are really like. Learn from other
-                working pros instead of guessing alone.
-              </p>
-              <span className="mb-4 inline-flex w-fit items-center rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-900">
-                Coming online as we grow
-              </span>
-              <div>
-                <Link className="text-sm font-semibold text-blue-600 underline" href="/membership">
-                  See membership options →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Operations Section */}
-        <section className="mb-16 rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-slate-900">Standards, systems, and shortcuts for field work.</h3>
-              <p className="text-base leading-relaxed text-slate-600">
-                We collect the small details that make or break your routes. From photo checklists to communication
-                templates, Nested Objects helps you stay compliant, protect your score, and keep firms calling you back.
-              </p>
-            </div>
-            <div>
-              <ul className="space-y-3 text-base text-slate-700">
-                <li>
-                  <span className="font-semibold">Compliance and quality.</span> Sample photos, checklists, and guidance so
-                  you know exactly what firms expect on each order.
-                </li>
-                <li>
-                  <span className="font-semibold">Tech that works for you.</span> Recommended apps, simple automations, and
-                  AI helpers that cut your admin time.
-                </li>
-                <li>
-                  <span className="font-semibold">Business minded support.</span> Email templates, rate conversations, and
-                  client communication tips, so you show up as a business owner instead of just a vendor.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="mb-16">
-          <h3 className="mb-8 text-center text-3xl font-bold text-slate-900">Member stories and early wins.</h3>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="mb-3 text-base leading-relaxed text-slate-600">
-                “Instead of scrolling random Facebook threads, I opened the directory, picked three firms, and actually got
-                responses. I stop wasting time on companies that are not even onboarding.”
-              </p>
-              <p className="text-sm text-slate-500">Field inspector. Georgia</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="mb-3 text-base leading-relaxed text-slate-600">
-                “The starter kit helped me understand what a clean photo set looks like and what firms actually care about. I
-                walked into my first orders with way more confidence.”
-              </p>
-              <p className="text-sm text-slate-500">New inspector. North Carolina</p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="mb-3 text-base leading-relaxed text-slate-600">
-                “Having intel on different firms in one place keeps me from saying yes to things that would burn me out. I can
-                aim for work that fits my schedule and family.”
-              </p>
-              <p className="text-sm text-slate-500">Inspector and parent. Nationwide</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Opportunity Section for Firms */}
-        <section className="mb-16 rounded-2xl border border-blue-100 bg-blue-50 p-10 shadow-sm">
-          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-slate-900">For hiring firms. Connect with trained field pros.</h3>
-              <p className="text-base leading-relaxed text-slate-700">
-                If you hire inspectors, notaries, or real estate partners, Nested Objects gives you a way to show up in front
-                of motivated professionals who understand the work. Share your requirements, regions, and expectations
-                clearly, and match with people who want long term relationships, not just one off orders.
-              </p>
-            </div>
-            <div className="space-y-3 rounded-xl bg-white p-6 shadow-sm ring-1 ring-blue-100">
-              <ul className="space-y-3 text-base text-slate-700">
-                <li>• Highlight your pay structure and expectations up front.</li>
-                <li>• Reach inspectors and notaries who treat this like a real business.</li>
-                <li>• Reduce churn by setting clear standards and support from day one.</li>
-              </ul>
-              <div className="flex flex-wrap gap-3 pt-2">
                 <Link
                   href="/membership"
-                  className="rounded-full bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+                  className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-white px-5 py-2.5 text-sm font-semibold text-sky-700 hover:bg-sky-50"
                 >
-                  Explore firm membership
+                  See plans & pricing
                 </Link>
+              </div>
+
+              {/* Who we serve strip */}
+              <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs text-slate-700 shadow-sm sm:text-[13px]">
+                <p className="font-semibold text-slate-900">Who this hub serves</p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                  <span>• Mortgage & insurance field inspectors</span>
+                  <span>• Mobile notaries & signing agents</span>
+                  <span>• Realtors & investor-friendly agents</span>
+                  <span>• Gig pros adding inspections as a new lane</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: daily route preview card */}
+            <div className="flex items-stretch">
+              <div className="relative w-full rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-xl shadow-slate-200 sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Live beta
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                      {isAuthenticated ? `Welcome back, ${firstName}` : 'Your daily route overview'}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Today&apos;s opportunities. filtered by your state.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                    {planName ? `${planName} member` : 'Guest preview'}
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-3 text-xs">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-slate-900">
+                        Exterior occupancy checks · 12 stops
+                      </p>
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                        Priority
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-slate-600">
+                      Local bank portfolio · 45–60 sec per door. ladder not required.
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold text-emerald-700">$180–$240 route est.</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                    <p className="font-semibold text-slate-900">
+                      Insurance loss photos · 6 stops · ladder required
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-600">
+                      Mix of roofs & interiors. pay bump for photo sets and measurements.
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold text-emerald-700">$90 min est.</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-3">
+                    <p className="text-[11px] text-slate-600">
+                      Turn on Pro to see real firms, rates, and requirements mapped to your home base.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                  <div className="text-[11px] text-slate-500">
+                    <span className="font-semibold text-slate-900">3</span> lanes selected ·{' '}
+                    <span className="font-semibold text-slate-900">2</span> firms in onboarding status
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="text-[11px] font-semibold text-sky-600 hover:text-sky-700"
+                  >
+                    Open your hub →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature pillars (Directory / Intel / AI tools) */}
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                  Inside the member hub
+                </h2>
+                <p className="mt-2 max-w-xl text-sm text-slate-600">
+                  One place to see who is hiring, what they pay, and what they expect from you before
+                  you sign up for another portal.
+                </p>
+              </div>
+              <Link
+                href="/membership"
+                className="inline-flex items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+              >
+                Compare Starter vs Pro →
+              </Link>
+            </div>
+
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                <h3 className="text-sm font-semibold text-slate-900">Verified firm directory</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Search firms by region, service lane, tools required, and onboarding status. No
+                  resumes uploaded. you control who sees your info.
+                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  Included with Starter
+                </p>
                 <Link
                   href="/directory"
-                  className="rounded-full border border-blue-200 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
                 >
-                  Preview the directory
+                  Browse active firms →
+                </Link>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                <h3 className="text-sm font-semibold text-slate-900">Transparent firm intel</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  See pay ranges, regions, typical volume, and expectations in plain language so you
+                  can match firms to your schedule and gear.
+                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  Unlocks with Pro
+                </p>
+                <Link
+                  href="/resources/firm-intel"
+                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
+                >
+                  View sample snapshots →
+                </Link>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                <h3 className="text-sm font-semibold text-slate-900">AI concierge for routes</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Ask which firms fit your lane, how to price routes, or what gear to buy first. Get
+                  answers in seconds instead of scrolling random threads.
+                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  Pro · Elite · Agency
+                </p>
+                <Link
+                  href="/tools"
+                  className="mt-3 inline-flex text-xs font-semibold text-sky-600 hover:text-sky-700"
+                >
+                  Explore tools →
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        {!isAuthenticated && (
-          <section className="rounded-2xl bg-slate-100 px-8 py-10 text-center shadow-sm">
-            <h3 className="mb-4 text-3xl font-bold text-slate-900">Ready to treat inspections like a real business.</h3>
-            <p className="mx-auto mb-8 max-w-3xl text-lg leading-relaxed text-slate-600">
-              Join Nested Objects to see verified firms, practical training, and AI powered tools in one place, so you can
-              build income that respects your time and your household.
+        {/* How it works timeline */}
+        <section className="border-b border-slate-200 bg-slate-50">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+            <div className="max-w-3xl">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                How inspectors use Nested Objects in real life
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Whether you are brand new or adding inspections to an existing route, the hub keeps
+                your next steps simple.
+              </p>
+            </div>
+
+            <ol className="mt-8 grid gap-6 text-sm text-slate-700 md:grid-cols-3">
+              <li className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 1</p>
+                <h3 className="mt-2 text-sm font-semibold text-slate-900">Dial in your lane.</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Create your profile, pick your service lanes, and mark your home base. The hub
+                  filters firms and routes around where you actually drive.
+                </p>
+              </li>
+              <li className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 2</p>
+                <h3 className="mt-2 text-sm font-semibold text-slate-900">
+                  Shortlist firms that fit your life.
+                </h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Use intel cards and AI concierge to compare pay ranges, volume, and gear so you
+                  avoid dead-end portals and low-ball routes.
+                </p>
+              </li>
+              <li className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">Step 3</p>
+                <h3 className="mt-2 text-sm font-semibold text-slate-900">
+                  Track applications and routes in one place.
+                </h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Save firms you apply to, jot notes after calls, and use starter kits to prep for day
+                  one on a new client&apos;s route.
+                </p>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        {/* Split section: New vs already in field */}
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+                  Just getting started.
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Use the free Starter plan to explore firms, learn the language, and decide which
+                  lanes make sense for your life, car, and schedule.
+                </p>
+                <ul className="mt-4 space-y-2 text-sm text-slate-700">
+                  <li>• See which firms even work your state.</li>
+                  <li>• Learn what tools and certifications matter first.</li>
+                  <li>• Get checklists for your first inspections.</li>
+                </ul>
+                <Link
+                  href="/membership"
+                  className="mt-4 inline-flex text-sm font-semibold text-sky-600 hover:text-sky-700"
+                >
+                  Start on Starter (free) →
+                </Link>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-900/95 p-6 text-slate-50">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200">
+                  Already in the field.
+                </h2>
+                <p className="mt-2 text-sm text-slate-100">
+                  Switch into Pro or higher to layer intel and AI tools on top of routes you already
+                  run.
+                </p>
+                <ul className="mt-4 space-y-2 text-sm text-slate-100/90">
+                  <li>• Compare what you&apos;re earning to typical ranges in your region.</li>
+                  <li>• Spot firms paying better for the same lanes.</li>
+                  <li>• Plan smarter routes around family, day jobs, or other gigs.</li>
+                </ul>
+                <Link
+                  href="/membership"
+                  className="mt-4 inline-flex text-sm font-semibold text-amber-200 hover:text-amber-100"
+                >
+                  See Pro features →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA banner */}
+        <section className="bg-slate-900">
+          <div className="mx-auto max-w-6xl px-4 py-10 text-center text-slate-50 sm:px-6 lg:px-8 lg:py-14">
+            <h2 className="text-2xl font-semibold sm:text-3xl">
+              Ready to stop guessing and start planning real routes.
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">
+              Join the Nested Objects hub to see firms, intel, and tools in one place instead of
+              chasing scattered posts and rumors.
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                className="rounded-lg bg-blue-500 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-blue-600"
-              >
-                Start free
-              </a>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 href="/membership"
-                className="rounded-lg border border-blue-500 px-5 py-3 text-base font-semibold text-blue-600 transition hover:bg-blue-50"
+                className="inline-flex items-center justify-center rounded-full bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600"
               >
-                View membership plans
+                Explore membership options
+              </Link>
+              <Link
+                href="/directory"
+                className="inline-flex items-center justify-center rounded-full border border-slate-600 px-6 py-2.5 text-sm font-semibold text-slate-100 hover:bg-slate-800"
+              >
+                Preview the firm directory
               </Link>
             </div>
-          </section>
-        )}
+            <p className="mt-3 text-xs text-slate-400">
+              Starter is free. upgrade to Pro or higher only when the hub proves its value on your
+              routes.
+            </p>
+          </div>
+        </section>
 
-        <footer className="mt-16 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
-          <p>© 2025 Nested Objects LLC. All rights reserved.</p>
+        {/* Footer */}
+        <footer className="border-t border-slate-800 bg-slate-950">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 text-[11px] text-slate-400 sm:flex-row sm:px-6 lg:px-8">
+            <p>© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/membership" className="hover:text-slate-200">
+                Membership
+              </Link>
+              <Link href="/directory" className="hover:text-slate-200">
+                Directory
+              </Link>
+              <Link href="/resources" className="hover:text-slate-200">
+                Resources
+              </Link>
+            </div>
+          </div>
         </footer>
       </main>
     </>
