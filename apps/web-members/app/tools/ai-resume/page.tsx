@@ -12,6 +12,33 @@ const navLinks = [
   { href: '/membership', label: 'Membership' },
 ]
 
+const launchTimeline = [
+  {
+    phase: 'Phase 1',
+    label: 'Intake + export',
+    description: 'Collect service area, experience, and gear. Generate clean text and PDF exports.',
+    status: 'In build',
+  },
+  {
+    phase: 'Phase 2',
+    label: 'Versions + portal snippets',
+    description: 'Save multiple resume versions and grab short blurbs for applications and emails.',
+    status: 'Planned',
+  },
+  {
+    phase: 'Phase 3',
+    label: 'Tool integrations',
+    description: 'Send your resume to job tracking, routing, and firm profiles without retyping.',
+    status: 'Planned',
+  },
+]
+
+const starterPrompts = [
+  'Draft a resume summary for hail inspections within a 60-mile radius of Dallas.',
+  'List bullet points for 300+ roof inspections with ladder work and drone photos.',
+  'Write a short portal blurb about 24-hour rush capacity and preferred pay ranges.',
+]
+
 const resumeHighlights = [
   {
     title: 'Inspector-first templates',
@@ -28,6 +55,48 @@ const resumeHighlights = [
   {
     title: 'Privacy aware defaults',
     description: 'Keep PII and client names redacted unless you decide to include them.',
+  },
+]
+
+const workspaceTracks = [
+  {
+    title: 'Profile intake',
+    description:
+      'Guided questions for name, phone, service area, pay preferences, and availability so the AI can format the header.',
+    bullets: ['Default redactions for PII until you opt-in.', 'Capture rural/urban mix, drive radius, and rush capacity.'],
+  },
+  {
+    title: 'Experience + gear',
+    description: 'Log recent vendors, inspection counts, ladder heights, camera gear, drones, and measuring tools.',
+    bullets: ['Quick toggles for interior/exterior specialties.', 'Note safety practices and QA scores for credibility.'],
+  },
+  {
+    title: 'Outputs + export',
+    description: 'Generate copy blocks for email, PDF export, and vendor portal text areas without broken formatting.',
+    bullets: ['One-click copy and PDF.', 'Save versions for different vendors or regions.'],
+  },
+]
+
+const templateSections = [
+  {
+    title: 'Inspector header',
+    points: ['Name, phone, email, service counties, and drive radius.', 'Preferred pay ranges and appointment windows.'],
+  },
+  {
+    title: 'Summary + specialties',
+    points: ['2-3 sentence overview tuned to your target vendors.', 'Top work types, safety practices, and QA stats.'],
+  },
+  {
+    title: 'Experience stories',
+    points: ['Bullet points with volume, turnaround time, and geography.', 'Vendor-safe phrasing with optional redactions.'],
+  },
+  {
+    title: 'Credentials + gear',
+    points: ['Licenses, certifications, and background checks.', 'Ladder heights, cameras, drones, and measuring tools.'],
+  },
+  {
+    title: 'Routes + availability',
+    points: ['Typical counties and seasonal preferences.', 'Rush capacity, weekend work, and weather limitations.'],
   },
 ]
 
@@ -59,59 +128,112 @@ export default function AiResumePage() {
           />
         }
       >
-        <div className="grid gap-6 lg:grid-cols-[1.7fr,1fr]">
-          <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Drafting workspace</p>
-                <h3 className="text-xl font-semibold text-brand-dark">What launches first</h3>
+        <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
+            <section className="space-y-5 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Drafting workspace</p>
+                  <h3 className="text-xl font-semibold text-brand-dark">How the resume builder will work</h3>
+                </div>
+                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Phase 1</span>
               </div>
-              <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Phase 1</span>
-            </div>
-            <p className="text-sm text-slate-700">
-              Phase one will collect your regions, experience, and gear, then send it to an AI backend to generate a
-              ready-to-use resume. Expect copy blocks you can paste into Word, Google Docs, or vendor portals.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-brand-mist/50 p-4">
-                <h4 className="text-sm font-semibold text-brand-dark">Inputs we collect</h4>
-                <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                  <li>• Coverage counties and preferred drive radius.</li>
-                  <li>• Work types, certifications, and gear.</li>
-                  <li>• Turn times, communication preferences, and pay expectations.</li>
-                </ul>
+              <p className="text-sm text-slate-700">
+                We are designing the AI-powered workspace that turns your routes, gear, and experience into recruiter-ready copy.
+                Each track below represents the first UI blocks we are building so you can see exactly what is coming.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                {workspaceTracks.map((track) => (
+                  <div key={track.title} className="space-y-2 rounded-xl bg-brand-mist/60 p-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-brand-dark">{track.title}</h4>
+                      <p className="mt-1 text-sm text-slate-700">{track.description}</p>
+                    </div>
+                    <ul className="space-y-1 text-sm text-slate-700">
+                      {track.bullets.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-xl bg-brand-mist/50 p-4">
-                <h4 className="text-sm font-semibold text-brand-dark">Outputs you get</h4>
-                <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                  <li>• A concise summary tailored to your target vendors.</li>
-                  <li>• Bullet points for experience and safety practices.</li>
-                  <li>• A quick blurb you can reuse in emails or applications.</li>
-                </ul>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-brand-dark">Prep your details</h3>
-            <div className="space-y-3 text-sm text-slate-700">
-              <p className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                List your last five vendors, approximate inspection counts, and any standout QA scores.
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-dark">Launch timeline</h3>
+                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Roadmap</span>
+              </div>
+              <div className="space-y-3 text-sm text-slate-700">
+                {launchTimeline.map((item) => (
+                  <div key={item.phase} className="rounded-xl border border-brand-copper/15 bg-brand-mist/50 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand-copper">{item.phase}</p>
+                        <p className="text-sm font-semibold text-brand-dark">{item.label}</p>
+                      </div>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{item.status}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-700">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2 text-sm text-slate-700">
+                <p className="font-semibold text-brand-dark">What you can prepare now</p>
+                <ul className="space-y-1">
+                  <li>• Your last 5 vendors and approximate inspection counts.</li>
+                  <li>• Ladder heights, camera gear, drones, and measuring tools.</li>
+                  <li>• Coverage preferences like rural routes only, rush capacity, or weekend availability.</li>
+                </ul>
+              </div>
+            </section>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-dark">Template preview</h3>
+                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Built for inspectors</span>
+              </div>
+              <p className="text-sm text-slate-700">
+                The resume builder will output a concise template tailored to field service vendors. These are the sections we
+                will populate automatically from your answers.
               </p>
-              <p className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                Note ladder heights, camera gear, drones, and measuring tools you keep in your kit.
+              <div className="grid gap-3 sm:grid-cols-2">
+                {templateSections.map((section) => (
+                  <div key={section.title} className="rounded-xl bg-brand-mist/50 p-4">
+                    <h4 className="text-sm font-semibold text-brand-dark">{section.title}</h4>
+                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                      {section.points.map((point) => (
+                        <li key={point}>• {point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-brand-dark">Try these prompts soon</h3>
+              <p className="text-sm text-slate-700">
+                When the AI workspace goes live, you will be able to ask for tailored drafts and quick snippets. Start with
+                these prompts or save your own.
               </p>
-              <p className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                Capture coverage preferences like rural routes only, rush capacity, or weekend availability.
-              </p>
-            </div>
-            <Link
-              href="/tools"
-              className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-            >
-              Explore other tools
-            </Link>
-          </section>
+              <ul className="space-y-2 text-sm text-slate-700">
+                {starterPrompts.map((prompt) => (
+                  <li key={prompt} className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
+                    &ldquo;{prompt}&rdquo;
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/tools"
+                className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
+              >
+                Explore other tools
+              </Link>
+            </section>
+          </div>
         </div>
       </Gate>
     </ToolLayout>
