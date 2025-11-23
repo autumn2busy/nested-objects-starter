@@ -8,7 +8,7 @@ export default function ToolsIndexPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Tools</p>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Inspector tools</h1>
           <p className="max-w-3xl text-base text-slate-700">
-            AI powered tools to help you plan routes, watch the weather, and present yourself like the pro you are.
+            AI-powered tools to help you plan routes, watch the weather, and present yourself like the pro you are.
           </p>
         </div>
       </section>
