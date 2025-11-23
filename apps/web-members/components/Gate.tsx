@@ -1,7 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import { ReactNode } from 'react'
 import { useAuth } from './auth-provider'
+import { logoDataUrl } from '../lib/logoData'
 
 interface GateProps {
   feature: string
@@ -16,8 +18,12 @@ export function Gate({ feature, children, fallback, loadingFallback }: GateProps
   // Show loading state
   if (isLoading) {
     return loadingFallback || (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <p>Loading...</p>
+      <div className="mx-auto max-w-2xl rounded-2xl border border-brand-steel/40 bg-white/90 p-8 text-center shadow-brand-card">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-copper/10">
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-brand-copper border-t-transparent" aria-hidden />
+        </div>
+        <p className="mt-4 text-sm font-semibold text-brand-dark">Checking your vendor access…</p>
+        <p className="text-sm text-brand-slate">Hang tight while we secure your workspace.</p>
       </div>
     )
   }
@@ -25,79 +31,54 @@ export function Gate({ feature, children, fallback, loadingFallback }: GateProps
   // User is not authenticated
   if (!isAuthenticated) {
     return fallback || (
-      <div style={{ 
-        padding: '3rem 2rem', 
-        textAlign: 'center',
-        border: '2px solid #e5e7eb',
-        borderRadius: '8px',
-        margin: '2rem 0'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Authentication Required</h2>
-        <p style={{ marginBottom: '2rem', color: '#6b7280' }}>
-          Please log in to access this feature.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button
-            onClick={login}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Log In
-          </button>
-          <button
-            onClick={signup}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: '500'
-            }}
-          >
-            Sign Up
-          </button>
+      <section className="mx-auto mt-8 max-w-3xl rounded-2xl border border-brand-steel/35 bg-white/95 p-8 shadow-brand-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-copper/10">
+              <Image src={logoDataUrl} alt="Nested Objects logo" width={36} height={36} />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-copper">Vendor hub</p>
+              <h2 className="text-xl font-semibold text-brand-dark">You are not a “worker”; you are a Vendor.</h2>
+              <p className="text-sm text-brand-slate">
+                Sign in to access premium intel, secure tools, and payments built for vetted vendors.
+              </p>
+            </div>
+          </div>
+          <div className="hidden h-16 w-px bg-gradient-to-b from-brand-steel/50 via-brand-steel/20 to-transparent sm:block" />
+          <div className="flex flex-col items-stretch gap-3 text-sm sm:w-56">
+            <button
+              onClick={login}
+              className="inline-flex items-center justify-center rounded-full bg-brand-dark px-4 py-2 font-semibold text-white shadow-brand-soft transition hover:bg-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+            >
+              Log in securely
+            </button>
+            <button
+              onClick={signup}
+              className="inline-flex items-center justify-center rounded-full border border-brand-steel/60 bg-white px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+            >
+              Create vendor account
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
     )
   }
 
   // User is authenticated but lacks access
   if (!hasAccess(feature)) {
     return fallback || (
-      <div style={{ 
-        padding: '3rem 2rem', 
-        textAlign: 'center',
-        border: '2px solid #fbbf24',
-        borderRadius: '8px',
-        margin: '2rem 0',
-        backgroundColor: '#fffbeb'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Upgrade Required</h2>
-        <p style={{ marginBottom: '2rem', color: '#92400e' }}>
-          This feature is not available on your current plan.
+      <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-brand-steel/35 bg-brand-sand/90 p-8 text-center shadow-brand-card">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-copper">Premium lane</p>
+        <h2 className="mt-2 text-xl font-semibold text-brand-dark">Upgrade required for this feature.</h2>
+        <p className="mt-2 text-sm text-brand-slate">
+          This workspace unlocks advanced intel, concierge routing, and vendor-only perks.
         </p>
         <a
           href="/upgrade"
-          style={{
-            display: 'inline-block',
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#f59e0b',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '6px',
-            fontWeight: '500'
-          }}
+          className="mt-5 inline-flex items-center justify-center rounded-full bg-brand-copper px-5 py-2 text-sm font-semibold text-white shadow-brand-soft transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
         >
-          View Plans
+          View plans
         </a>
       </div>
     )

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { logoDataUrl } from '../lib/logoData'
 
 const footerSections = [
   {
@@ -30,13 +31,13 @@ const footerSections = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/5 bg-brand-slate text-slate-100">
+    <footer className="border-t border-brand-steel/40 bg-brand-dark text-brand-sand">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-[1.1fr_repeat(3,minmax(0,1fr))]">
-          <div className="space-y-3 text-sm text-slate-200">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Member hub</p>
+          <div className="space-y-3 text-sm text-brand-sand/90">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Vendor hub</p>
             <p className="text-base font-semibold text-white">Nested Objects</p>
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-brand-sand/80">
               Compare firms, prep for routes, and get tools that help inspectors, notaries, and real
               estate pros plan smarter days on the road.
             </p>
@@ -44,10 +45,10 @@ export function SiteFooter() {
 
           {footerSections.map((section) => (
             <div key={section.title} className="space-y-3 text-sm">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-sand/70">
                 {section.title}
               </h3>
-              <ul className="space-y-2 text-slate-200">
+              <ul className="space-y-2 text-brand-sand/90">
                 {section.links.map((link) => (
                   <li key={link.label}>
                     <Link
@@ -63,15 +64,15 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3 border-t border-white/10 pt-6">
+        <div className="mt-8 flex flex-col items-center gap-3 border-t border-brand-steel/40 pt-6">
           <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 shadow-sm shadow-slate-900/20">
-            <Image src="/logo-light.svg" alt="Nested Objects logo" width={28} height={28} />
+            <Image src={logoDataUrl} alt="Nested Objects logo" width={28} height={28} />
             <div className="flex flex-col leading-tight">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Nested Objects</span>
-              <span className="text-sm font-semibold text-white">Member Hub</span>
+              <span className="text-sm font-semibold text-white">Vendor Hub</span>
             </div>
           </div>
-          <p className="text-[11px] text-slate-400">© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
+          <p className="text-[11px] text-brand-sand/70">© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
         </div>
       </div>
     </footer>
