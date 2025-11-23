@@ -96,13 +96,13 @@ export default function AiChatbotPage() {
             <h3 className="text-lg font-semibold text-brand-dark">Try these starter prompts</h3>
             <ul className="space-y-2 text-sm text-slate-700">
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                "What ladder and roof shots does XYZ appraisal vendor require for hail claims in Colorado?"
+                &ldquo;What ladder and roof shots does XYZ appraisal vendor require for hail claims in Colorado?&rdquo;
               </li>
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                "List the pay range and coverage counties for inspectors in northern Georgia."
+                &ldquo;List the pay range and coverage counties for inspectors in northern Georgia.&rdquo;
               </li>
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                "Draft an email explaining why weather delays will push back my photos by 24 hours."
+                &ldquo;Draft an email explaining why weather delays will push back my photos by 24 hours.&rdquo;
               </li>
             </ul>
             <Link
