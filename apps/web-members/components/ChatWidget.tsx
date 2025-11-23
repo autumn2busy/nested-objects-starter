@@ -1,7 +1,5 @@
 // React Component: ChatWidget.tsx
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function ChatWidget() {
   const [messages, setMessages] = useState([]);
@@ -27,28 +25,32 @@ export default function ChatWidget() {
   };
 
   return (
-    <Card className="w-full max-w-lg p-4 shadow-xl">
-      <CardContent>
-        <div className="space-y-2">
-          <div className="h-64 overflow-y-auto bg-gray-100 p-2 rounded">
-            {messages.map((msg, i) => (
-              <p key={i} className={msg.role === 'user' ? 'text-right' : 'text-left'}>
-                <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-              </p>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-1 p-2 border rounded"
-              placeholder="Ask about field inspections..."
-            />
-            <Button onClick={sendMessage} disabled={loading}>Send</Button>
-          </div>
+    <div className="w-full max-w-lg p-4 shadow-xl border rounded bg-white">
+      <div className="space-y-2">
+        <div className="h-64 overflow-y-auto bg-gray-100 p-2 rounded">
+          {messages.map((msg, i) => (
+            <p key={i} className={msg.role === 'user' ? 'text-right' : 'text-left'}>
+              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+            </p>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="flex-1 p-2 border rounded"
+            placeholder="Ask about field inspections..."
+          />
+          <button
+            onClick={sendMessage}
+            disabled={loading}
+            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
