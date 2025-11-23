@@ -1,37 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { Gate } from '@/components/Gate'
-import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
-import { ToolLayout } from '../_components/ToolLayout'
-import ChatWidget from "@/components/ChatWidget";
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/membership', label: 'Membership' },
-]
-
-const highlights = [
-  {
-    title: 'Field-service trained responses',
-    description: 'Answers stay focused on appraisal, inspection, and routing workflows instead of generic chat guidance.',
-  },
-  {
-    title: 'Immediate firm research',
-    description: 'Summaries of coverage regions, credentials, and pay ranges so you can filter firms faster.',
-  },
-  {
-    title: 'Workflow checklists',
-    description: 'Step-by-step prompts that cover client paperwork, photo sets, and safety requirements.',
-  },
-  {
-    title: 'Shareable answers',
-    description: 'Copy and share vetted responses with teammates or clients without leaving the tool.',
-  },
-]
-export default function HomePage() {
+export function HomePage() {
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold">Welcome</h1>
@@ -39,6 +6,7 @@ export default function HomePage() {
     </main>
   );
 }
+
 export default function AiChatbotPage() {
   return (
     <ToolLayout
@@ -46,15 +14,6 @@ export default function AiChatbotPage() {
       description="Ask questions about firms, requirements, and inspection workflows in plain language."
       navLinks={navLinks}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        {highlights.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-brand-copper/25 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-brand-dark">{item.title}</h2>
-            <p className="mt-2 text-sm text-slate-700">{item.description}</p>
-          </div>
-        ))}
-      </div>
-
       <Gate
         feature="ai_concierge"
         loadingFallback={<ToolAccessMessage title="Loading access" description="Checking your account..." loading />}
@@ -104,13 +63,13 @@ export default function AiChatbotPage() {
             <h3 className="text-lg font-semibold text-brand-dark">Try these starter prompts</h3>
             <ul className="space-y-2 text-sm text-slate-700">
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                &ldquo;What ladder and roof shots does XYZ appraisal vendor require for hail claims in Colorado?&rdquo;
+                “What ladder and roof shots does XYZ appraisal vendor require for hail claims in Colorado?”
               </li>
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                &ldquo;List the pay range and coverage counties for inspectors in northern Georgia.&rdquo;
+                “List the pay range and coverage counties for inspectors in northern Georgia.”
               </li>
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                &ldquo;Draft an email explaining why weather delays will push back my photos by 24 hours.&rdquo;
+                “Draft an email explaining why weather delays will push back my photos by 24 hours.”
               </li>
             </ul>
             <Link
@@ -123,5 +82,5 @@ export default function AiChatbotPage() {
         </div>
       </Gate>
     </ToolLayout>
-  )
+  );
 }
