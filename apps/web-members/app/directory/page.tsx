@@ -225,13 +225,17 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
   return (
     <article
-      className="flex h-64 flex-col justify-between border border-slate-300 bg-[#fdfbf7] px-5 py-4 shadow-[0_2px_0_rgba(15,23,42,0.16)] transition-transform duration-150 hover:-translate-y-[2px]"
+      className="flex h-64 flex-col justify-between rounded-md border-2 border-slate-300 px-5 py-4 transition-transform duration-150 hover:-translate-y-[2px]"
       style={{
-        borderTopWidth: 6,
+        backgroundColor: '#f5efe1',
+        backgroundImage:
+          'linear-gradient(135deg, rgba(255,255,255,0.94), rgba(244,236,222,0.92)), radial-gradient(circle at 14% 18%, rgba(255,255,255,0.35), rgba(233,222,202,0)), radial-gradient(circle at 86% 6%, rgba(255,255,255,0.28), rgba(233,222,202,0))',
+        backgroundBlendMode: 'overlay',
+        borderTopWidth: 8,
         borderTopColor: accent,
         boxShadow: isHovered
-          ? '0 3px 0 rgba(15,23,42,0.24)'
-          : '0 2px 0 rgba(15,23,42,0.16)',
+          ? '0 10px 24px rgba(15,23,42,0.28)'
+          : '0 8px 18px rgba(15,23,42,0.22)',
       }}
       tabIndex={0}
       onMouseEnter={onHover}
@@ -242,13 +246,13 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
       {/* Top row: logo + name */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center border border-slate-300 bg-white shadow-sm">
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-transparent">
             {firm.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={firm.logo_url}
                 alt={`${firm.name} logo`}
-                className="max-h-12 max-w-[3rem] object-contain"
+                className="h-full w-full object-contain mix-blend-multiply"
               />
             ) : (
               <span className="text-xs font-semibold tracking-[0.2em] text-slate-600">
