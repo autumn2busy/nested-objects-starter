@@ -11,7 +11,7 @@ export const Card = React.forwardRef<HTMLDivElement, BaseProps>(
     <div
       ref={ref}
       className={mergeClasses(
-        'rounded-none border border-slate-300 bg-white text-slate-900 shadow-lg',
+        'rounded-2xl border border-brand-steel/40 bg-white text-brand-dark shadow-brand-card backdrop-blur',
         className,
       )}
       {...props}

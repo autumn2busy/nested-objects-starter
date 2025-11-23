@@ -8,16 +8,21 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          dark: '#0f172a',
-          slate: '#1f2937',
-          copper: '#b8794a',
-          copperDark: '#8a5a35',
-          sand: '#f5f6f8',
-          mist: '#e6e8ec',
-          steel: '#5b6474',
-          teal: '#4f7c77',
-          tealDark: '#3a5f5a',
+          // Metropolitan Fintech palette
+          dark: '#343A40',
+          slate: '#474747',
+          copper: '#2A7166',
+          copperDark: '#225C53',
+          sand: '#FAFAFA',
+          mist: '#FFFFFF',
+          steel: '#A9A9A9',
+          teal: '#2A7166',
+          tealDark: '#1E5249',
         },
+      },
+      boxShadow: {
+        'brand-card': '0 18px 48px rgba(52, 58, 64, 0.12)',
+        'brand-soft': '0 10px 30px rgba(42, 113, 102, 0.16)',
       },
     },
   },
