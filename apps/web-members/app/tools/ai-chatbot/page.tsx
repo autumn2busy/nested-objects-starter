@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Gate } from '@/components/Gate'
 import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
 import { ToolLayout } from '../_components/ToolLayout'
+import ChatWidget from "@/components/ChatWidget";
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -30,7 +31,14 @@ const highlights = [
     description: 'Copy and share vetted responses with teammates or clients without leaving the tool.',
   },
 ]
-
+export default function HomePage() {
+  return (
+    <main className="p-6">
+      <h1 className="text-2xl font-bold">Welcome</h1>
+      <ChatWidget />
+    </main>
+  );
+}
 export default function AiChatbotPage() {
   return (
     <ToolLayout
