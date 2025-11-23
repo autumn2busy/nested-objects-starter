@@ -1,3 +1,10 @@
+import ChatWidget from "@/components/ChatWidget";
+import ToolLayout from "@/app/tools/_components/ToolLayout";
+import ToolAccessMessage from "@/app/tools/_components/ToolAccessMessage";
+import Gate from "@/components/Gate";
+import UpgradeActions from "@/components/UpgradeActions";
+import Link from "next/link";
+
 export function HomePage() {
   return (
     <main className="p-6">
