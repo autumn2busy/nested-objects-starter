@@ -240,8 +240,8 @@ export default function AiResumePage() {
                   ))}
                 </ul>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
           <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
             <section className="space-y-5 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
