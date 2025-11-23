@@ -1,7 +1,7 @@
 // React Component: ChatWidget.tsx
 import { useState } from 'react';
 
-export default function ChatWidget() {
+function ChatWidget() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,6 +53,8 @@ export default function ChatWidget() {
     </div>
   );
 }
+
+export default ChatWidget;
 
 // API Route: /api/fieldchat.ts
 import { NextRequest, NextResponse } from 'next/server';
