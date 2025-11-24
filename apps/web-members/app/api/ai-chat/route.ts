@@ -45,13 +45,6 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!messages.every(isValidMessage)) {
-      return NextResponse.json(
-        { error: "messages must include role and content strings" },
-        { status: 400 }
-      );
-    }
-
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -65,18 +58,19 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => null);
-      const errorMessage =
-        errorBody?.error?.message || "OpenAI API request failed";
-
+      const errorBody = await response.text();
+      console.error("[AI_CHAT_ERROR_RESPONSE]", response.status, errorBody);
       return NextResponse.json(
-        { error: errorMessage },
-        { status: response.status }
+        { error: "Failed to get a response from OpenAI" },
+        { status: 502 },
       );
     }
 
-    const completion = await response.json();
-    const reply = completion?.choices?.[0]?.message;
+    const completion = (await response.json()) as {
+      choices?: { message?: ChatMessage }[];
+    };
+
+    const reply = completion.choices?.[0]?.message;
 
     if (!reply) {
       return NextResponse.json(
