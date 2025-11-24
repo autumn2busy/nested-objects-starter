@@ -231,7 +231,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!feature) return true
 
     const minPlan = FEATURE_MIN_PLAN[feature]
-    if (!minPlan) return true
+    // Default to "deny" for unknown features so new feature flags are opt-in secure
+    if (minPlan === undefined) return false
+    if (minPlan === null) return true
     if (!planUid) return false
 
     const currentIndex = PLAN_ORDER.indexOf(planUid as PlanUid)
