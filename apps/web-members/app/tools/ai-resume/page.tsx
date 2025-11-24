@@ -1,9 +1,10 @@
 'use client'
 
-import Link from 'next/link'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Gate } from '@/components/Gate'
-import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
+import { useAuth } from '@/components/auth-provider'
 import { ToolLayout } from '../_components/ToolLayout'
+import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -12,156 +13,363 @@ const navLinks = [
   { href: '/membership', label: 'Membership' },
 ]
 
-const launchTimeline = [
-  {
-    phase: 'Phase 1',
-    label: 'Intake + export',
-    description: 'Collect service area, experience, and gear. Generate clean text and PDF exports.',
-    status: 'In build',
-    focus: 'Start capturing the core data and outputting clean resumes.',
-  },
-  {
-    phase: 'Phase 2',
-    label: 'Versions + portal snippets',
-    description: 'Save multiple resume versions and grab short blurbs for applications and emails.',
-    status: 'Planned',
-    focus: 'Swap between vendor profiles and paste-ready portal blurbs.',
-  },
-  {
-    phase: 'Phase 3',
-    label: 'Tool integrations',
-    description: 'Send your resume to job tracking, routing, and firm profiles without retyping.',
-    status: 'Planned',
-    focus: 'Push updates directly into routing, ATS, and firm profiles.',
-  },
+const ladderOptions = ['10 ft', '16 ft', '24 ft', '32 ft', '40 ft']
+const specialtyOptions = [
+  'Roof inspections',
+  'Exterior only',
+  'Interior walkthroughs',
+  'Agricultural',
+  'Disaster response',
+  'Small commercial',
+  'Large loss support',
 ]
 
-const starterPrompts = [
-  'Draft a resume summary for hail inspections within a 60-mile radius of Dallas.',
-  'List bullet points for 300+ roof inspections with ladder work and drone photos.',
-  'Write a short portal blurb about 24-hour rush capacity and preferred pay ranges.',
-]
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-const resumeHighlights = [
-  {
-    title: 'Inspector-first templates',
-    description: 'Layouts built for field service work: coverage regions, work types, pay ranges, and certifications.',
-  },
-  {
-    title: 'Narratives that sell your strengths',
-    description: 'Describe gear, response times, and inspection volume in the language vendors expect.',
-  },
-  {
-    title: 'Ready-to-send formats',
-    description: 'Export to PDF or copy the text into vendor portals without extra formatting clean up.',
-  },
-  {
-    title: 'Privacy aware defaults',
-    description: 'Keep PII and client names redacted unless you decide to include them.',
-  },
-]
+type ProfileIntake = {
+  fullName: string
+  phone: string
+  serviceArea: string
+  counties: string
+  payPreferences: string
+  availability: string
+  ruralUrbanMix: string
+  driveRadius: string
+  rushCapacity: string
+  piiRedaction: boolean
+}
 
-const workspaceTracks = [
-  {
-    title: 'Profile intake',
-    description:
-      'Guided questions for name, phone, service area, pay preferences, and availability so the AI can format the header.',
-    bullets: [
-      'Default redactions for PII until you opt-in.',
-      'Capture rural/urban mix, drive radius, rush capacity, and preferred appointment windows.',
-      'Keep contact, service counties, and pay preferences aligned to the header format.',
-    ],
-  },
-  {
-    title: 'Experience + gear',
-    description: 'Log recent vendors, inspection counts, ladder heights, camera gear, drones, and measuring tools.',
-    bullets: [
-      'Quick toggles for interior/exterior specialties and weather constraints.',
-      'Note safety practices, QA scores, and turnaround time for credibility.',
-      'Summarize ladder heights, camera gear, drones, and measuring tools in one pass.',
-    ],
-  },
-  {
-    title: 'Outputs + export',
-    description: 'Generate copy blocks for email, PDF export, and vendor portal text areas without broken formatting.',
-    bullets: [
-      'One-click copy and PDF for clean, vendor-safe formatting.',
-      'Save versions for different vendors or regions without retyping.',
-      'Short portal blurbs ready for application text boxes.',
-    ],
-  },
-]
+type ExperienceGear = {
+  vendors: string
+  ladderHeights: string[]
+  cameraGear: string
+  droneModel: string
+  hasDrone: boolean
+  measuringTools: string
+  specialties: string[]
+  weatherConstraints: string
+  safetyNotes: string
+  turnaroundTime: string
+}
 
-const prepChecklist = [
-  'Your last 5 vendors and approximate inspection counts.',
-  'Ladder heights, camera gear, drones, and measuring tools.',
-  'Coverage preferences like rural routes only, rush capacity, or weekend availability.',
-]
+type ResumeOutputs = {
+  summary: string
+  experienceBullets: string[]
+  skillsBullets: string[]
+  portalBlurb: string
+  updatedAt?: string
+}
 
-const intakeBlocks = [
-  {
-    label: 'Header & service area',
-    details: [
-      'Name, phone, email, service counties, and drive radius formatted for vendor portals.',
-      'Preferred pay ranges, appointment windows, and rural/urban mix.',
-      'PII is redacted by default until you explicitly opt-in.',
-    ],
-  },
-  {
-    label: 'Availability & routes',
-    details: [
-      'Rush capacity, weekend availability, and weather limitations captured as toggles.',
-      'Seasonal preferences and typical coverage counties.',
-    ],
-  },
-  {
-    label: 'Gear & safety',
-    details: [
-      'Ladder heights, cameras, drones, and measuring tools logged alongside licenses.',
-      'Safety practices and QA stats to boost credibility.',
-    ],
-  },
-]
+type ResumeWorkspaceState = {
+  profile: ProfileIntake
+  experience: ExperienceGear
+  outputs: ResumeOutputs
+}
 
-const templateSections = [
-  {
-    title: 'Inspector header',
-    points: ['Name, phone, email, service counties, and drive radius.', 'Preferred pay ranges and appointment windows.'],
+const defaultWorkspace: ResumeWorkspaceState = {
+  profile: {
+    fullName: '',
+    phone: '',
+    serviceArea: '',
+    counties: '',
+    payPreferences: '',
+    availability: '',
+    ruralUrbanMix: '',
+    driveRadius: '',
+    rushCapacity: '',
+    piiRedaction: true,
   },
-  {
-    title: 'Summary + specialties',
-    points: ['2-3 sentence overview tuned to your target vendors.', 'Top work types, safety practices, and QA stats.'],
+  experience: {
+    vendors: '',
+    ladderHeights: ['16 ft', '24 ft'],
+    cameraGear: '',
+    droneModel: '',
+    hasDrone: false,
+    measuringTools: '',
+    specialties: ['Exterior only', 'Roof inspections'],
+    weatherConstraints: '',
+    safetyNotes: '',
+    turnaroundTime: '24-48 hours',
   },
-  {
-    title: 'Experience stories',
-    points: ['Bullet points with volume, turnaround time, and geography.', 'Vendor-safe phrasing with optional redactions.'],
+  outputs: {
+    summary: 'Click Generate copy to draft a summary tailored to your routes, gear, and availability.',
+    experienceBullets: [
+      'Add your recent vendor mix with inspection counts so we can quantify your experience.',
+      'Call out travel radius, rush capacity, and any weekend or evening availability.',
+    ],
+    skillsBullets: ['List ladder heights, camera gear, drones, and measurement tools for quick scanning.'],
+    portalBlurb: 'We will format a short paragraph for vendor portals without PII until you opt-in.',
+    updatedAt: undefined,
   },
-  {
-    title: 'Credentials + gear',
-    points: ['Licenses, certifications, and background checks.', 'Ladder heights, cameras, drones, and measuring tools.'],
-  },
-  {
-    title: 'Routes + availability',
-    points: ['Typical counties and seasonal preferences.', 'Rush capacity, weekend work, and weather limitations.'],
-  },
-]
+}
+
+function mergeWorkspace(partial?: Partial<ResumeWorkspaceState>): ResumeWorkspaceState {
+  return {
+    profile: { ...defaultWorkspace.profile, ...(partial?.profile ?? {}) },
+    experience: { ...defaultWorkspace.experience, ...(partial?.experience ?? {}) },
+    outputs: { ...defaultWorkspace.outputs, ...(partial?.outputs ?? {}) },
+  }
+}
+
+function formatTimestamp(value?: string | null) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    day: 'numeric',
+  })
+}
 
 export default function AiResumePage() {
+  const auth = useAuth() as any
+  const userEmail: string | null =
+    (auth?.user?.email as string | undefined) ??
+    (auth?.user?.Email as string | undefined) ??
+    null
+
+  const [workspace, setWorkspace] = useState<ResumeWorkspaceState>(defaultWorkspace)
+  const [loading, setLoading] = useState(true)
+  const [hasExistingRecord, setHasExistingRecord] = useState(false)
+  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [autosaveError, setAutosaveError] = useState<string | null>(null)
+  const [lastSaved, setLastSaved] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null)
+  const hasHydratedRef = useRef(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadWorkspace() {
+      if (!userEmail) {
+        setLoading(false)
+        return
+      }
+
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setAutosaveError('Workspace storage is unavailable. Add your details and keep them open locally for now.')
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        const encodedEmail = encodeURIComponent(userEmail)
+        const url = `${SUPABASE_URL}/rest/v1/ai_resume_workspaces?user_email=eq.${encodedEmail}&select=*`
+
+        const res = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        })
+
+        if (!res.ok) {
+          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
+        }
+
+        const rows = (await res.json()) as { data?: ResumeWorkspaceState; updated_at?: string; generated_at?: string }[]
+        const row = rows[0]
+
+        if (row?.data) {
+          setWorkspace(mergeWorkspace(row.data))
+          setHasExistingRecord(true)
+          setLastSaved(row.updated_at ?? null)
+          setGeneratedAt(row.generated_at ?? row.data.outputs?.updatedAt ?? null)
+        } else {
+          setWorkspace(defaultWorkspace)
+        }
+      } catch (error) {
+        console.error('Error loading AI resume workspace', error)
+        setAutosaveError('Could not load your saved workspace. We will keep changes local until the service recovers.')
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+          hasHydratedRef.current = true
+        }
+      }
+    }
+
+    loadWorkspace()
+
+    return () => {
+      cancelled = true
+    }
+  }, [userEmail])
+
+  useEffect(() => {
+    if (!hasHydratedRef.current) return
+    if (!userEmail) return
+
+    setAutosaveStatus('saving')
+    setAutosaveError(null)
+
+    const timeout = window.setTimeout(async () => {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        setAutosaveStatus('error')
+        setAutosaveError('Missing Supabase configuration. Updates are not synced yet.')
+        return
+      }
+
+      try {
+        const encodedEmail = encodeURIComponent(userEmail)
+        const baseUrl = `${SUPABASE_URL}/rest/v1/ai_resume_workspaces`
+        const url = hasExistingRecord
+          ? `${baseUrl}?user_email=eq.${encodedEmail}`
+          : baseUrl
+
+        const res = await fetch(url, {
+          method: hasExistingRecord ? 'PATCH' : 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify({
+            user_email: userEmail,
+            data: workspace,
+            generated_at: generatedAt ?? workspace.outputs.updatedAt ?? null,
+          }),
+        })
+
+        if (!res.ok) {
+          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
+        }
+
+        setHasExistingRecord(true)
+        const rows = (await res.json()) as { updated_at?: string }[]
+        const updated = rows[0]?.updated_at ?? new Date().toISOString()
+        setLastSaved(updated)
+        setAutosaveStatus('saved')
+      } catch (error) {
+        console.error('Error autosaving AI resume workspace', error)
+        setAutosaveStatus('error')
+        setAutosaveError('Autosave failed. We will retry when you continue editing.')
+      }
+    }, 900)
+
+    return () => window.clearTimeout(timeout)
+  }, [workspace, userEmail, hasExistingRecord, generatedAt])
+
+  const lastSavedLabel = useMemo(() => formatTimestamp(lastSaved), [lastSaved])
+  const generatedLabel = useMemo(() => formatTimestamp(generatedAt ?? workspace.outputs.updatedAt ?? null), [generatedAt, workspace.outputs.updatedAt])
+
+  const handleToggle = (list: string[], value: string) => {
+    if (list.includes(value)) {
+      return list.filter((item) => item !== value)
+    }
+    return [...list, value]
+  }
+
+  const handleGenerate = async () => {
+    setIsGenerating(true)
+    try {
+      const res = await fetch('/api/ai-resume/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile: workspace.profile, experience: workspace.experience }),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Generation failed with status ${res.status}`)
+      }
+
+      const data = (await res.json()) as { summary: string; experienceBullets: string[]; skillsBullets: string[]; portalBlurb: string; updatedAt?: string }
+      const timestamp = data.updatedAt ?? new Date().toISOString()
+
+      setWorkspace((prev) => ({
+        ...prev,
+        outputs: {
+          summary: data.summary,
+          experienceBullets: data.experienceBullets,
+          skillsBullets: data.skillsBullets,
+          portalBlurb: data.portalBlurb,
+          updatedAt: timestamp,
+        },
+      }))
+      setGeneratedAt(timestamp)
+    } catch (error) {
+      console.error('Error generating resume copy', error)
+      setWorkspace((prev) => ({
+        ...prev,
+        outputs: {
+          summary:
+            'We could not reach the AI right now. Try again shortly or continue editing these fields for a manual export.',
+          experienceBullets: prev.outputs.experienceBullets,
+          skillsBullets: prev.outputs.skillsBullets,
+          portalBlurb: prev.outputs.portalBlurb,
+          updatedAt: prev.outputs.updatedAt,
+        },
+      }))
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleCopyAll = async () => {
+    const combined = [
+      workspace.outputs.summary,
+      '',
+      'Experience bullets:',
+      ...workspace.outputs.experienceBullets.map((item) => `• ${item}`),
+      '',
+      'Skills:',
+      ...workspace.outputs.skillsBullets.map((item) => `• ${item}`),
+      '',
+      'Portal blurb:',
+      workspace.outputs.portalBlurb,
+    ].join('\n')
+
+    try {
+      await navigator.clipboard.writeText(combined)
+    } catch (error) {
+      console.error('Clipboard copy failed', error)
+    }
+  }
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true)
+    try {
+      const res = await fetch('/api/ai-resume/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile: workspace.profile,
+          experience: workspace.experience,
+          outputs: workspace.outputs,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error(`PDF export failed with status ${res.status}`)
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'ai-resume.pdf'
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading resume PDF', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   return (
     <ToolLayout
       title="AI-powered inspector resume builder"
-      description="Turn your experience, routes, and gear into a clean resume tailored for field service firms."
+      description="Capture routes, pay preferences, and gear in one workspace. Autosave, generate copy, and export when ready."
       navLinks={navLinks}
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        {resumeHighlights.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-brand-copper/25 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-brand-dark">{item.title}</h2>
-            <p className="mt-2 text-sm text-slate-700">{item.description}</p>
-          </div>
-        ))}
-      </div>
-
       <Gate
         feature="ai_resume"
         loadingFallback={<ToolAccessMessage title="Loading access" description="Checking your account..." loading />}
@@ -175,150 +383,397 @@ export default function AiResumePage() {
         }
       >
         <div className="space-y-6">
-          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
-            <section className="space-y-5 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Resume workspace</p>
+              <h2 className="text-xl font-semibold text-brand-dark">Profile, experience, and outputs stay synced</h2>
+              <p className="text-sm text-slate-700">
+                We autosave to Supabase and regenerate copy whenever you adjust your intake. Download a PDF or copy the vendor-safe text blocks.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700">
+              <div className="flex items-center gap-2 rounded-full bg-brand-mist px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+                <span>{autosaveStatus === 'saving' ? 'Saving draft…' : autosaveStatus === 'saved' ? 'Saved' : autosaveStatus === 'error' ? 'Save paused' : 'Autosave ready'}</span>
+                {lastSavedLabel && <span className="text-xs text-slate-500">{lastSavedLabel}</span>}
+              </div>
+              <div className="flex items-center gap-2 rounded-full bg-brand-mist px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-brand-copper" aria-hidden />
+                <span>AI outputs</span>
+                {generatedLabel && <span className="text-xs text-slate-500">Updated {generatedLabel}</span>}
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-dashed border-brand-copper/50 px-3 py-1 text-brand-copper">
+                <span>Versions</span>
+                <span className="text-xs">Coming soon</span>
+              </div>
+            </div>
+          </div>
+
+          {autosaveError && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {autosaveError}
+            </div>
+          )}
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <header className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Drafting workspace</p>
-                  <h3 className="text-xl font-semibold text-brand-dark">How the resume builder will work</h3>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Profile intake</p>
+                  <h3 className="text-lg font-semibold text-brand-dark">Contact, service area, and preferences</h3>
+                  <p className="text-sm text-slate-700">Name, phone, counties, and pay expectations feed the resume header.</p>
                 </div>
-                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Phase 1</span>
-              </div>
-              <p className="text-sm text-slate-700">
-                We are designing the AI-powered workspace that turns your routes, gear, and experience into recruiter-ready copy.
-                Each track below represents the first UI blocks we are building so you can see exactly what is coming.
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                {workspaceTracks.map((track) => (
-                  <div key={track.title} className="space-y-2 rounded-xl bg-brand-mist/60 p-4">
-                    <div>
-                      <h4 className="text-sm font-semibold text-brand-dark">{track.title}</h4>
-                      <p className="mt-1 text-sm text-slate-700">{track.description}</p>
-                    </div>
-                    <ul className="space-y-1 text-sm text-slate-700">
-                      {track.bullets.map((item) => (
-                        <li key={item}>• {item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </section>
+                <div className="text-xs font-semibold text-brand-copper">PII redaction</div>
+              </header>
 
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-brand-dark">Launch timeline</h3>
-                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Roadmap</span>
-              </div>
-              <div className="space-y-3 text-sm text-slate-700">
-                {launchTimeline.map((item) => (
-                  <div key={item.phase} className="rounded-xl border border-brand-copper/15 bg-brand-mist/50 p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-brand-copper">{item.phase}</p>
-                        <p className="text-sm font-semibold text-brand-dark">{item.label}</p>
-                      </div>
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{item.status}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-slate-700">{item.description}</p>
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-copper/90">{item.focus}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-2 rounded-xl bg-brand-mist/60 p-4 text-sm text-slate-700">
-                <p className="font-semibold text-brand-dark">What you can prepare now</p>
-                <ul className="space-y-1">
-                  {prepChecklist.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-brand-dark">Intake foundation</h3>
-                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Profile intake</span>
-              </div>
-              <p className="text-sm text-slate-700">
-                Guided questions keep the intake consistent across vendors. We collect the details once so the AI can format the
-                header and route details without copy/paste errors.
-              </p>
               <div className="space-y-3">
-                {intakeBlocks.map((block) => (
-                  <div key={block.label} className="rounded-xl border border-brand-copper/15 bg-brand-mist/50 p-4">
-                    <p className="text-sm font-semibold text-brand-dark">{block.label}</p>
-                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                      {block.details.map((detail) => (
-                        <li key={detail}>• {detail}</li>
-                      ))}
-                    </ul>
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Full name</span>
+                  <input
+                    value={workspace.profile.fullName}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
+                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="First and last name"
+                  />
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Phone</span>
+                    <input
+                      value={workspace.profile.phone}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, phone: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="(555) 123-4567"
+                    />
+                  </label>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Service area</span>
+                    <input
+                      value={workspace.profile.serviceArea}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, serviceArea: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Dallas / Fort Worth, TX"
+                    />
+                  </label>
+                </div>
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Counties covered</span>
+                  <textarea
+                    value={workspace.profile.counties}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, counties: e.target.value } }))}
+                    className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Add county names or zips separated by commas"
+                  />
+                </label>
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Pay preferences</span>
+                  <textarea
+                    value={workspace.profile.payPreferences}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, payPreferences: e.target.value } }))}
+                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Flat fees, per inspection minimums, or travel rates"
+                  />
+                </label>
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Availability windows</span>
+                  <textarea
+                    value={workspace.profile.availability}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, availability: e.target.value } }))}
+                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Weekdays 8a-6p, Saturdays 9a-1p, 24-hour rush slots"
+                  />
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Rural / urban mix</span>
+                    <input
+                      value={workspace.profile.ruralUrbanMix}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, ruralUrbanMix: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="70% suburban, 30% rural"
+                    />
+                  </label>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Drive radius</span>
+                    <input
+                      value={workspace.profile.driveRadius}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, driveRadius: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Up to 60 miles"
+                    />
+                  </label>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Rush capacity</span>
+                    <input
+                      value={workspace.profile.rushCapacity}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, rushCapacity: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Same-day: 2 slots; 24-hour: 3 slots"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
+                    <span>Redact PII until export</span>
+                    <input
+                      type="checkbox"
+                      checked={workspace.profile.piiRedaction}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, piiRedaction: e.target.checked } }))}
+                      className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
+                    />
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <header className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Experience + gear</p>
+                  <h3 className="text-lg font-semibold text-brand-dark">Recent vendors and equipment</h3>
+                  <p className="text-sm text-slate-700">Include inspection counts, ladder heights, drones, and safety notes.</p>
+                </div>
+                <div className="text-xs font-semibold text-brand-copper">Field proof</div>
+              </header>
+
+              <div className="space-y-3">
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Vendors + counts</span>
+                  <textarea
+                    value={workspace.experience.vendors}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, vendors: e.target.value } }))}
+                    className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Example: WonderClaim (310 roof/ladder), Acme IA (180 exterior), Aurora Desk (QA partner)"
+                  />
+                </label>
+
+                <div className="space-y-2 text-sm">
+                  <p className="font-semibold text-brand-dark">Ladder heights</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ladderOptions.map((option) => {
+                      const active = workspace.experience.ladderHeights.includes(option)
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() =>
+                            setWorkspace((prev) => ({
+                              ...prev,
+                              experience: {
+                                ...prev.experience,
+                                ladderHeights: handleToggle(prev.experience.ladderHeights, option),
+                              },
+                            }))
+                          }
+                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                            active
+                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
 
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-brand-dark">Template preview</h3>
-                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Built for inspectors</span>
-              </div>
-              <p className="text-sm text-slate-700">
-                The resume builder will output a concise template tailored to field service vendors. These are the sections we
-                will populate automatically from your answers.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {templateSections.map((section) => (
-                  <div key={section.title} className="rounded-xl bg-brand-mist/50 p-4">
-                    <h4 className="text-sm font-semibold text-brand-dark">{section.title}</h4>
-                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                      {section.points.map((point) => (
-                        <li key={point}>• {point}</li>
-                      ))}
-                    </ul>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Camera gear</span>
+                    <input
+                      value={workspace.experience.cameraGear}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, cameraGear: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="DSLR, 20MP+, wide angle lens"
+                    />
+                  </label>
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Measuring tools</span>
+                    <input
+                      value={workspace.experience.measuringTools}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, measuringTools: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Leica Disto D2, pitch gauge, moisture meter"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-[1.2fr,0.8fr]">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Drone model</span>
+                    <input
+                      value={workspace.experience.droneModel}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, droneModel: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="DJI Mini 4 Pro, FAA Part 107"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
+                    <span>Drone on hand</span>
+                    <input
+                      type="checkbox"
+                      checked={workspace.experience.hasDrone}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, hasDrone: e.target.checked } }))}
+                      className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <p className="font-semibold text-brand-dark">Specialties</p>
+                  <div className="flex flex-wrap gap-2">
+                    {specialtyOptions.map((option) => {
+                      const active = workspace.experience.specialties.includes(option)
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() =>
+                            setWorkspace((prev) => ({
+                              ...prev,
+                              experience: {
+                                ...prev.experience,
+                                specialties: handleToggle(prev.experience.specialties, option),
+                              },
+                            }))
+                          }
+                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                            active
+                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      )
+                    })}
                   </div>
-                ))}
+                </div>
+
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Weather constraints</span>
+                  <input
+                    value={workspace.experience.weatherConstraints}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, weatherConstraints: e.target.value } }))}
+                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="No steep ladder work above 20mph winds"
+                  />
+                </label>
+
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Safety notes</span>
+                  <textarea
+                    value={workspace.experience.safetyNotes}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, safetyNotes: e.target.value } }))}
+                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Harnessed for 6/12+, PPE list, QA scores, background check status"
+                  />
+                </label>
+
+                <label className="block space-y-1 text-sm">
+                  <span className="font-semibold text-brand-dark">Turnaround time</span>
+                  <input
+                    value={workspace.experience.turnaroundTime}
+                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, turnaroundTime: e.target.value } }))}
+                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                    placeholder="Standard 24-48 hours; rush same-day when requested"
+                  />
+                </label>
               </div>
             </section>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-brand-dark">Try these prompts soon</h3>
-              <p className="text-sm text-slate-700">
-                When the AI workspace goes live, you will be able to ask for tailored drafts and quick snippets. Start with these
-                prompts or save your own.
-              </p>
-              <ul className="space-y-2 text-sm text-slate-700">
-                {starterPrompts.map((prompt) => (
-                  <li key={prompt} className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
-                    &ldquo;{prompt}&rdquo;
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/tools"
-                className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-              >
-                Explore other tools
-              </Link>
-            </section>
 
             <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-brand-dark">Outputs + export</h3>
-              <p className="text-sm text-slate-700">
-                The output layer will generate copy blocks ready for email, PDF export, and portal text areas without broken formatting.
-              </p>
-              <ul className="space-y-2 text-sm text-slate-700">
-                <li>• One-click copy and PDF for a recruiter-ready handoff.</li>
-                <li>• Saved versions for different vendors or regions.</li>
-                <li>• Email-ready paragraphs plus short portal snippets.</li>
-              </ul>
-              <div className="rounded-xl bg-brand-mist/60 p-4 text-sm text-slate-700">
-                <p className="font-semibold text-brand-dark">Launch timeline</p>
-                <p className="mt-1">Phase 1 is focused on intake + export so you can start sending a clean resume immediately.</p>
+              <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Outputs + export</p>
+                  <h3 className="text-lg font-semibold text-brand-dark">Generate, copy, or download</h3>
+                  <p className="text-sm text-slate-700">AI drafts are timestamped. Copy everything or export to PDF with your current details.</p>
+                </div>
+                <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:cursor-not-allowed disabled:opacity-70"
+                    disabled={isGenerating || loading}
+                  >
+                    {isGenerating ? 'Generating…' : 'Generate copy'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyAll}
+                    className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-4 py-2 font-semibold text-brand-copper transition hover:border-brand-copper hover:bg-brand-copper/10"
+                  >
+                    Copy all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloading}
+                    className="inline-flex items-center justify-center rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isDownloading ? 'Preparing PDF…' : 'Download PDF'}
+                  </button>
+                </div>
+              </header>
+
+              <div className="space-y-3 rounded-xl border border-brand-steel/30 bg-brand-mist/50 p-4 text-sm text-slate-700">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Versions</span>
+                  <select className="rounded-full border border-brand-steel/40 bg-white px-3 py-1 text-sm text-slate-700" disabled>
+                    <option>Current draft (saving)</option>
+                  </select>
+                  <span className="text-xs text-slate-500">Multi-version management ships next.</span>
+                </div>
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center justify-center rounded-full border border-dashed border-brand-copper/70 px-3 py-1 text-xs font-semibold text-brand-copper opacity-60"
+                >
+                  Send to vendor portal / routing tools (coming soon)
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+                  <header className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-brand-dark">Summary</p>
+                    {generatedLabel && <p className="text-xs text-slate-500">Updated {generatedLabel}</p>}
+                  </header>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.summary}</p>
+                </article>
+
+                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+                  <header className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-brand-dark">Experience bullets</p>
+                    <p className="text-xs text-slate-500">Counts, geographies, and speed</p>
+                  </header>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                    {workspace.outputs.experienceBullets.map((item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+                  <header className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-brand-dark">Skills + gear bullets</p>
+                    <p className="text-xs text-slate-500">Ladders, drones, cameras, and tools</p>
+                  </header>
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                    {workspace.outputs.skillsBullets.map((item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+                  <header className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-brand-dark">Portal blurb</p>
+                    <p className="text-xs text-slate-500">Short paragraph for vendor portals</p>
+                  </header>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.portalBlurb}</p>
+                </article>
               </div>
             </section>
           </div>
