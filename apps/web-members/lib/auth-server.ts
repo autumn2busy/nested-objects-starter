@@ -72,7 +72,7 @@ export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPaylo
  * Get the current user from the request cookies
  */
 export async function getCurrentUser(): Promise<OutsetaJWTPayload | null> {
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
   const token = cookieStore.get('outseta_access_token')?.value
 
   if (!token) {

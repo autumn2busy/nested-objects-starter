@@ -46,7 +46,7 @@ export default function AiChatbotPage() {
               <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
                 “List the pay range and coverage counties for inspectors in northern Georgia.”
               </li>
-              <li className="rounded-xl border border-brand-copper/15 bg-brand-copper/15 bg-brand-mist/60 px-4 py-3">
+              <li className="rounded-xl border border-brand-copper/15 bg-brand-mist/60 px-4 py-3">
                 “Draft an email explaining why weather delays will push back my photos by 24 hours.”
               </li>
             </ul>

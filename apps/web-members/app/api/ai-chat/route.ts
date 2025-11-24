@@ -1,14 +1,21 @@
-import OpenAI from "openai";
 import { NextResponse } from "next/server";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
 };
+
+function isValidMessage(message: unknown): message is ChatMessage {
+  if (!message || typeof message !== "object") return false;
+
+  const { role, content } = message as Partial<ChatMessage>;
+
+  return (
+    (role === "system" || role === "user" || role === "assistant") &&
+    typeof content === "string" &&
+    content.length > 0
+  );
+}
 
 export async function POST(req: Request) {
   try {
@@ -16,10 +23,18 @@ export async function POST(req: Request) {
 
     const messages = body?.messages as ChatMessage[] | undefined;
 
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey =
+      process.env.OPENAI_API_KEY ??
+      process.env.OPENAI_KEY ??
+      process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "OpenAI API key is not configured" },
-        { status: 500 }
+        {
+          error:
+            "The AI concierge is temporarily unavailable. Please try again shortly or contact support.",
+        },
+        { status: 503 }
       );
     }
 
@@ -30,12 +45,38 @@ export async function POST(req: Request) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
+    if (!messages.every(isValidMessage)) {
+      return NextResponse.json(
+        { error: "messages must include role and content strings" },
+        { status: 400 }
+      );
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+      }),
     });
 
-    const reply = completion.choices[0]?.message;
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null);
+      const errorMessage =
+        errorBody?.error?.message || "OpenAI API request failed";
+
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: response.status }
+      );
+    }
+
+    const completion = await response.json();
+    const reply = completion?.choices?.[0]?.message;
 
     if (!reply) {
       return NextResponse.json(
