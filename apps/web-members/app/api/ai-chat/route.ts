@@ -1,9 +1,4 @@
-import OpenAI from "openai";
 import { NextResponse } from "next/server";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -30,12 +25,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+      }),
     });
 
-    const reply = completion.choices[0]?.message;
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("[AI_CHAT_ERROR_RESPONSE]", response.status, errorBody);
+      return NextResponse.json(
+        { error: "Failed to get a response from OpenAI" },
+        { status: 502 },
+      );
+    }
+
+    const completion = (await response.json()) as {
+      choices?: { message?: ChatMessage }[];
+    };
+
+    const reply = completion.choices?.[0]?.message;
 
     if (!reply) {
       return NextResponse.json(
