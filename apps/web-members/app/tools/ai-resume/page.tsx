@@ -101,6 +101,48 @@ const exportOptions = [
   },
 ];
 
+const workspaceTracks = [
+  {
+    title: 'Profile intake',
+    description:
+      'Guided questions for name, phone, service area, pay preferences, and availability so the AI can format the header.',
+    bullets: ['Default redactions for PII until you opt-in.', 'Capture rural/urban mix, drive radius, and rush capacity.'],
+  },
+  {
+    title: 'Experience + gear',
+    description: 'Log recent vendors, inspection counts, ladder heights, camera gear, drones, and measuring tools.',
+    bullets: ['Quick toggles for interior/exterior specialties.', 'Note safety practices and QA scores for credibility.'],
+  },
+  {
+    title: 'Outputs + export',
+    description: 'Generate copy blocks for email, PDF export, and vendor portal text areas without broken formatting.',
+    bullets: ['One-click copy and PDF.', 'Save versions for different vendors or regions.'],
+  },
+]
+
+const templateSections = [
+  {
+    title: 'Inspector header',
+    points: ['Name, phone, email, service counties, and drive radius.', 'Preferred pay ranges and appointment windows.'],
+  },
+  {
+    title: 'Summary + specialties',
+    points: ['2-3 sentence overview tuned to your target vendors.', 'Top work types, safety practices, and QA stats.'],
+  },
+  {
+    title: 'Experience stories',
+    points: ['Bullet points with volume, turnaround time, and geography.', 'Vendor-safe phrasing with optional redactions.'],
+  },
+  {
+    title: 'Credentials + gear',
+    points: ['Licenses, certifications, and background checks.', 'Ladder heights, cameras, drones, and measuring tools.'],
+  },
+  {
+    title: 'Routes + availability',
+    points: ['Typical counties and seasonal preferences.', 'Rush capacity, weekend work, and weather limitations.'],
+  },
+]
+
 export default function AiResumePage() {
   return (
     <ToolLayout
@@ -168,8 +210,8 @@ export default function AiResumePage() {
                   </div>
                 ))}
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
           <section className="grid gap-6 xl:grid-cols-[1.45fr,1fr]">
             <div className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
