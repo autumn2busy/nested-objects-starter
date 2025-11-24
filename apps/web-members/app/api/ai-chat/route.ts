@@ -23,10 +23,18 @@ export async function POST(req: Request) {
 
     const messages = body?.messages as ChatMessage[] | undefined;
 
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey =
+      process.env.OPENAI_API_KEY ??
+      process.env.OPENAI_KEY ??
+      process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "OpenAI API key is not configured" },
-        { status: 500 }
+        {
+          error:
+            "The AI concierge is temporarily unavailable. Please try again shortly or contact support.",
+        },
+        { status: 503 }
       );
     }
 
