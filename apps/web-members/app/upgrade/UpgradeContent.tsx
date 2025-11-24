@@ -22,6 +22,17 @@ const plans: Plan[] = [
     ],
   },
   {
+    name: 'Directory',
+    uid: 'zWZD0rQp',
+    price: '$99 / 3mo',
+    features: [
+      'Full Firm Directory access for 90 days',
+      'Automatically expires after three months',
+      'Renew for $49 once the pass ends',
+      'No hub tools or AI features included',
+    ],
+  },
+  {
     name: 'Pro',
     uid: 'rQVqlLm6',
     price: '$37/mo',

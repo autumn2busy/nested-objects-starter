@@ -17,6 +17,7 @@ interface OutsetaJWTPayload {
 // Plan UID mapping (same as client-side)
 export const PLAN_UIDS = {
   STARTER: 'L9nbKV9Z',
+  DIRECTORY: 'zWZD0rQp',
   PRO: 'rQVqlLm6',
   ELITE: 'NmdnNO90',
   AGENCY: 'rmk5Xk9g'
@@ -24,7 +25,13 @@ export const PLAN_UIDS = {
 
 // Feature access rules (same as client-side)
 export const FEATURE_ACCESS: Record<string, string[]> = {
-  directory_access: [PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  directory_access: [
+    PLAN_UIDS.STARTER,
+    PLAN_UIDS.DIRECTORY,
+    PLAN_UIDS.PRO,
+    PLAN_UIDS.ELITE,
+    PLAN_UIDS.AGENCY,
+  ],
   ai_chatbot: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   job_intel: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   priority_support: [PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
@@ -117,6 +124,8 @@ export function getPlanName(planUid: string): string {
       return 'Starter'
     case PLAN_UIDS.PRO:
       return 'Pro'
+    case PLAN_UIDS.DIRECTORY:
+      return 'Directory'
     case PLAN_UIDS.ELITE:
       return 'Elite'
     case PLAN_UIDS.AGENCY:

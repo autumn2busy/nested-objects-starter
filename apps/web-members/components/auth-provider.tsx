@@ -44,9 +44,11 @@ const deriveDisplayName = (payload: JwtPayload | null): string | null => {
   return fallback ? fallback.trim() || null : null
 }
 
-// Plan ordering. Starter < Pro < Elite < Agency
-const PLAN_ORDER = ['L9nbKV9Z', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
+// Plan ordering. Starter < Directory pass < Pro < Elite < Agency
+const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
 type PlanUid = (typeof PLAN_ORDER)[number]
+
+const DIRECTORY_ONLY_PLAN_UID = 'zWZD0rQp'
 
 // Minimum plan required for each feature
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
@@ -229,6 +231,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
+
+    if (planUid === DIRECTORY_ONLY_PLAN_UID) {
+      return feature === 'directory_access'
+    }
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     if (!minPlan) return true

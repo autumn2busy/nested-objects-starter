@@ -43,6 +43,8 @@ export function SiteHeader() {
     switch (planUid) {
       case 'L9nbKV9Z':
         return 'Starter'
+      case 'zWZD0rQp':
+        return 'Directory'
       case 'rQVqlLm6':
         return 'Pro'
       case 'NmdnNO90':
