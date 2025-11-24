@@ -18,18 +18,21 @@ const launchTimeline = [
     label: 'Intake + export',
     description: 'Collect service area, experience, and gear. Generate clean text and PDF exports.',
     status: 'In build',
+    focus: 'Start capturing the core data and outputting clean resumes.',
   },
   {
     phase: 'Phase 2',
     label: 'Versions + portal snippets',
     description: 'Save multiple resume versions and grab short blurbs for applications and emails.',
     status: 'Planned',
+    focus: 'Swap between vendor profiles and paste-ready portal blurbs.',
   },
   {
     phase: 'Phase 3',
     label: 'Tool integrations',
     description: 'Send your resume to job tracking, routing, and firm profiles without retyping.',
     status: 'Planned',
+    focus: 'Push updates directly into routing, ATS, and firm profiles.',
   },
 ]
 
@@ -63,17 +66,60 @@ const workspaceTracks = [
     title: 'Profile intake',
     description:
       'Guided questions for name, phone, service area, pay preferences, and availability so the AI can format the header.',
-    bullets: ['Default redactions for PII until you opt-in.', 'Capture rural/urban mix, drive radius, and rush capacity.'],
+    bullets: [
+      'Default redactions for PII until you opt-in.',
+      'Capture rural/urban mix, drive radius, rush capacity, and preferred appointment windows.',
+      'Keep contact, service counties, and pay preferences aligned to the header format.',
+    ],
   },
   {
     title: 'Experience + gear',
     description: 'Log recent vendors, inspection counts, ladder heights, camera gear, drones, and measuring tools.',
-    bullets: ['Quick toggles for interior/exterior specialties.', 'Note safety practices and QA scores for credibility.'],
+    bullets: [
+      'Quick toggles for interior/exterior specialties and weather constraints.',
+      'Note safety practices, QA scores, and turnaround time for credibility.',
+      'Summarize ladder heights, camera gear, drones, and measuring tools in one pass.',
+    ],
   },
   {
     title: 'Outputs + export',
     description: 'Generate copy blocks for email, PDF export, and vendor portal text areas without broken formatting.',
-    bullets: ['One-click copy and PDF.', 'Save versions for different vendors or regions.'],
+    bullets: [
+      'One-click copy and PDF for clean, vendor-safe formatting.',
+      'Save versions for different vendors or regions without retyping.',
+      'Short portal blurbs ready for application text boxes.',
+    ],
+  },
+]
+
+const prepChecklist = [
+  'Your last 5 vendors and approximate inspection counts.',
+  'Ladder heights, camera gear, drones, and measuring tools.',
+  'Coverage preferences like rural routes only, rush capacity, or weekend availability.',
+]
+
+const intakeBlocks = [
+  {
+    label: 'Header & service area',
+    details: [
+      'Name, phone, email, service counties, and drive radius formatted for vendor portals.',
+      'Preferred pay ranges, appointment windows, and rural/urban mix.',
+      'PII is redacted by default until you explicitly opt-in.',
+    ],
+  },
+  {
+    label: 'Availability & routes',
+    details: [
+      'Rush capacity, weekend availability, and weather limitations captured as toggles.',
+      'Seasonal preferences and typical coverage counties.',
+    ],
+  },
+  {
+    label: 'Gear & safety',
+    details: [
+      'Ladder heights, cameras, drones, and measuring tools logged alongside licenses.',
+      'Safety practices and QA stats to boost credibility.',
+    ],
   },
 ]
 
@@ -175,21 +221,45 @@ export default function AiResumePage() {
                       <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{item.status}</span>
                     </div>
                     <p className="mt-2 text-sm text-slate-700">{item.description}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-copper/90">{item.focus}</p>
                   </div>
                 ))}
               </div>
-              <div className="space-y-2 text-sm text-slate-700">
+              <div className="space-y-2 rounded-xl bg-brand-mist/60 p-4 text-sm text-slate-700">
                 <p className="font-semibold text-brand-dark">What you can prepare now</p>
                 <ul className="space-y-1">
-                  <li>• Your last 5 vendors and approximate inspection counts.</li>
-                  <li>• Ladder heights, camera gear, drones, and measuring tools.</li>
-                  <li>• Coverage preferences like rural routes only, rush capacity, or weekend availability.</li>
+                  {prepChecklist.map((item) => (
+                    <li key={item}>• {item}</li>
+                  ))}
                 </ul>
               </div>
             </section>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
+          <div className="grid gap-6 xl:grid-cols-[1.6fr,1fr]">
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-brand-dark">Intake foundation</h3>
+                <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-xs font-semibold text-brand-copper">Profile intake</span>
+              </div>
+              <p className="text-sm text-slate-700">
+                Guided questions keep the intake consistent across vendors. We collect the details once so the AI can format the
+                header and route details without copy/paste errors.
+              </p>
+              <div className="space-y-3">
+                {intakeBlocks.map((block) => (
+                  <div key={block.label} className="rounded-xl border border-brand-copper/15 bg-brand-mist/50 p-4">
+                    <p className="text-sm font-semibold text-brand-dark">{block.label}</p>
+                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                      {block.details.map((detail) => (
+                        <li key={detail}>• {detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-brand-dark">Template preview</h3>
@@ -212,12 +282,14 @@ export default function AiResumePage() {
                 ))}
               </div>
             </section>
+          </div>
 
+          <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
             <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-brand-dark">Try these prompts soon</h3>
               <p className="text-sm text-slate-700">
-                When the AI workspace goes live, you will be able to ask for tailored drafts and quick snippets. Start with
-                these prompts or save your own.
+                When the AI workspace goes live, you will be able to ask for tailored drafts and quick snippets. Start with these
+                prompts or save your own.
               </p>
               <ul className="space-y-2 text-sm text-slate-700">
                 {starterPrompts.map((prompt) => (
@@ -232,6 +304,22 @@ export default function AiResumePage() {
               >
                 Explore other tools
               </Link>
+            </section>
+
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-brand-dark">Outputs + export</h3>
+              <p className="text-sm text-slate-700">
+                The output layer will generate copy blocks ready for email, PDF export, and portal text areas without broken formatting.
+              </p>
+              <ul className="space-y-2 text-sm text-slate-700">
+                <li>• One-click copy and PDF for a recruiter-ready handoff.</li>
+                <li>• Saved versions for different vendors or regions.</li>
+                <li>• Email-ready paragraphs plus short portal snippets.</li>
+              </ul>
+              <div className="rounded-xl bg-brand-mist/60 p-4 text-sm text-slate-700">
+                <p className="font-semibold text-brand-dark">Launch timeline</p>
+                <p className="mt-1">Phase 1 is focused on intake + export so you can start sending a clean resume immediately.</p>
+              </div>
             </section>
           </div>
         </div>
