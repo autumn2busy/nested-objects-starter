@@ -126,9 +126,12 @@ function formatTimestamp(value?: string | null) {
 
 export default function AiResumePage() {
   const auth = useAuth() as any
-  const userEmail: string | null =
-    (auth?.user?.email as string | undefined) ??
-    (auth?.user?.Email as string | undefined) ??
+  const userId: string | null =
+    (auth?.user?.sub as string | undefined) ??
+    (auth?.user?.user_id as string | undefined) ??
+    (auth?.user?.uid as string | undefined) ??
+    (auth?.user?.id as string | undefined) ??
+    (auth?.user?.UserAccountUid as string | undefined) ??
     null
 
   const [workspace, setWorkspace] = useState<ResumeWorkspaceState>(defaultWorkspace)
@@ -146,7 +149,7 @@ export default function AiResumePage() {
     let cancelled = false
 
     async function loadWorkspace() {
-      if (!userEmail) {
+      if (!userId) {
         setLoading(false)
         return
       }
@@ -159,8 +162,11 @@ export default function AiResumePage() {
 
       try {
         setLoading(true)
-        const encodedEmail = encodeURIComponent(userEmail)
-        const url = `${SUPABASE_URL}/rest/v1/ai_resume_workspaces?user_email=eq.${encodedEmail}&select=*`
+        const encodedUserId = encodeURIComponent(userId)
+        const url =
+          `${SUPABASE_URL}/rest/v1/resume_workspace` +
+          `?user_id=eq.${encodedUserId}` +
+          `&select=profile,experience,outputs,created_at,updated_at`
 
         const res = await fetch(url, {
           headers: {
@@ -173,14 +179,25 @@ export default function AiResumePage() {
           throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
         }
 
-        const rows = (await res.json()) as { data?: ResumeWorkspaceState; updated_at?: string; generated_at?: string }[]
+        const rows = (await res.json()) as {
+          profile?: ResumeWorkspaceState['profile'] | null
+          experience?: ResumeWorkspaceState['experience'] | null
+          outputs?: ResumeWorkspaceState['outputs'] | null
+          updated_at?: string
+        }[]
         const row = rows[0]
 
-        if (row?.data) {
-          setWorkspace(mergeWorkspace(row.data))
+        if (row) {
+          setWorkspace(
+            mergeWorkspace({
+              profile: row.profile ?? undefined,
+              experience: row.experience ?? undefined,
+              outputs: row.outputs ?? undefined,
+            })
+          )
           setHasExistingRecord(true)
           setLastSaved(row.updated_at ?? null)
-          setGeneratedAt(row.generated_at ?? row.data.outputs?.updatedAt ?? null)
+          setGeneratedAt(row.outputs?.updatedAt ?? null)
         } else {
           setWorkspace(defaultWorkspace)
         }
@@ -200,11 +217,11 @@ export default function AiResumePage() {
     return () => {
       cancelled = true
     }
-  }, [userEmail])
+  }, [userId])
 
   useEffect(() => {
     if (!hasHydratedRef.current) return
-    if (!userEmail) return
+    if (!userId) return
 
     setAutosaveStatus('saving')
     setAutosaveError(null)
@@ -217,11 +234,9 @@ export default function AiResumePage() {
       }
 
       try {
-        const encodedEmail = encodeURIComponent(userEmail)
-        const baseUrl = `${SUPABASE_URL}/rest/v1/ai_resume_workspaces`
-        const url = hasExistingRecord
-          ? `${baseUrl}?user_email=eq.${encodedEmail}`
-          : baseUrl
+        const encodedUserId = encodeURIComponent(userId)
+        const baseUrl = `${SUPABASE_URL}/rest/v1/resume_workspace`
+        const url = hasExistingRecord ? `${baseUrl}?user_id=eq.${encodedUserId}` : baseUrl
 
         const res = await fetch(url, {
           method: hasExistingRecord ? 'PATCH' : 'POST',
@@ -232,9 +247,10 @@ export default function AiResumePage() {
             Prefer: 'return=representation',
           },
           body: JSON.stringify({
-            user_email: userEmail,
-            data: workspace,
-            generated_at: generatedAt ?? workspace.outputs.updatedAt ?? null,
+            user_id: userId,
+            profile: workspace.profile,
+            experience: workspace.experience,
+            outputs: workspace.outputs,
           }),
         })
 
@@ -243,9 +259,24 @@ export default function AiResumePage() {
         }
 
         setHasExistingRecord(true)
-        const rows = (await res.json()) as { updated_at?: string }[]
-        const updated = rows[0]?.updated_at ?? new Date().toISOString()
+        const rows = (await res.json()) as {
+          profile?: ResumeWorkspaceState['profile'] | null
+          experience?: ResumeWorkspaceState['experience'] | null
+          outputs?: ResumeWorkspaceState['outputs'] | null
+          updated_at?: string
+        }[]
+
+        const updatedRow = rows[0]
+        setWorkspace((prev) =>
+          mergeWorkspace({
+            profile: updatedRow?.profile ?? prev.profile,
+            experience: updatedRow?.experience ?? prev.experience,
+            outputs: updatedRow?.outputs ?? prev.outputs,
+          })
+        )
+        const updated = updatedRow?.updated_at ?? new Date().toISOString()
         setLastSaved(updated)
+        setGeneratedAt((updatedRow?.outputs ?? workspace.outputs)?.updatedAt ?? generatedAt)
         setAutosaveStatus('saved')
       } catch (error) {
         console.error('Error autosaving AI resume workspace', error)
@@ -255,7 +286,7 @@ export default function AiResumePage() {
     }, 900)
 
     return () => window.clearTimeout(timeout)
-  }, [workspace, userEmail, hasExistingRecord, generatedAt])
+  }, [workspace, userId, hasExistingRecord, generatedAt])
 
   const lastSavedLabel = useMemo(() => formatTimestamp(lastSaved), [lastSaved])
   const generatedLabel = useMemo(() => formatTimestamp(generatedAt ?? workspace.outputs.updatedAt ?? null), [generatedAt, workspace.outputs.updatedAt])
