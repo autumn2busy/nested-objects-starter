@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { getCurrentUser, hasAccess } from '@/lib/auth-server'
-import { createClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 
 type ProfileIntake = {
   fullName?: string
@@ -69,6 +69,15 @@ function buildPrompt(profile?: ProfileIntake, experience?: ExperienceGear) {
   }, ${profile?.serviceArea || 'service area unknown'}. ${counties} ${pay} ${availability} ${ruralUrban} ${drive} ${rush}\nExperience: ${vendors}\nGear: ${ladderHeights} ${gear} ${drone} ${measuring}\nSpecialties: ${specialties}\nLimits: ${weather}\nSafety: ${safety}\nTurnaround: ${turnaround}\nRedaction guidance: ${redaction}`
 }
 
+function getOutsetaUserId(user: Awaited<ReturnType<typeof getCurrentUser>>) {
+  return (
+    user?.sub ||
+    (user as Record<string, string | undefined>)['outseta:accountUid'] ||
+    (user as Record<string, string | undefined>)['outseta:subscriptionUid'] ||
+    null
+  )
+}
+
 export async function POST(req: Request) {
   try {
     const outsetaUser = await getCurrentUser()
@@ -81,15 +90,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Upgrade required for AI resume.' }, { status: 403 })
     }
 
-    const supabase = createClient()
-    const {
-      data: { user: supabaseUser },
-      error: supabaseUserError,
-    } = await supabase.auth.getUser()
-
-    if (supabaseUserError || !supabaseUser) {
-      return NextResponse.json({ error: 'Could not verify Supabase session for workspace storage.' }, { status: 401 })
+    const userId = getOutsetaUserId(outsetaUser)
+    if (!userId) {
+      return NextResponse.json({ error: 'Could not resolve user identity for workspace storage.' }, { status: 400 })
     }
+
+    const supabase = createServiceRoleClient()
 
     const body = await req.json().catch(() => ({}))
     const profile = body?.profile as ProfileIntake | undefined
@@ -175,7 +181,7 @@ export async function POST(req: Request) {
     const { error: upsertError } = await supabase
       .from('resume_workspace')
       .upsert(
-        { user_id: supabaseUser.id, profile: profile ?? null, experience: experience ?? null, outputs },
+        { user_id: userId, profile: profile ?? null, experience: experience ?? null, outputs },
         { onConflict: 'user_id' }
       )
       .single()
