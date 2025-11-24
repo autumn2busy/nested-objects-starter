@@ -33,7 +33,7 @@ export function UpgradeActions() {
   return (
     <div className="flex flex-wrap gap-3">
       <Link
-        href="/auth/login"
+        href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
         className="inline-flex items-center justify-center rounded-full border border-brand-copper/40 px-4 py-2 text-sm font-semibold text-brand-dark transition hover:border-brand-copper"
       >
         Log in
