@@ -15,6 +15,7 @@ import {
   InspectorGadgetShopSection,
   InspectorNewsSection,
   JobBoardSection,
+  JobTrackerSection,
   MarketingMaterialsSection,
   OnlineTrainingSection,
   ResumeBuilderSection,
@@ -74,6 +75,7 @@ export default function DashboardClientPage() {
           </div>
           <div className="space-y-6 xl:col-span-4">
             <GettingPaidSection />
+            <JobTrackerSection />
             <BlogManagementSection />
             <InspectorNewsSection />
             <InspectorGadgetShopSection />

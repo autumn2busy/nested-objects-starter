@@ -53,7 +53,7 @@ export default function ToolsIndexPage() {
               </p>
             </div>
             <Link
-              href="/tools/job-tracking"
+              href="/tools/job-tracker"
               className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
             >
               Go to job tracker →
