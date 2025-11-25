@@ -36,7 +36,49 @@ export default function HomePage() {
       />
 
       <main className="min-h-screen bg-brand-sand text-brand-dark">
-        <RoleCarousel />
+        <section className="w-full bg-gradient-to-r from-[#F7F5F2] via-[#E7F1F2] to-[#F7F5F2]">
+          <div className="mx-auto max-w-5xl px-4 py-12 lg:py-16 lg:grid lg:grid-cols-[1.2fr,1fr] lg:gap-10">
+            <div className="space-y-4 lg:space-y-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Nested Objects vendor hub</p>
+              <h1 className="text-3xl font-semibold leading-tight text-brand-dark sm:text-4xl">
+                Plan routes and vendor signups with one clean workspace
+              </h1>
+              <p className="text-sm leading-relaxed text-slate-700 sm:text-base">
+                Compare firms, understand what they expect, and keep your applications organized before you drive to the next
+                stop. Built for inspectors, notaries, and gig pros who want predictable work.
+              </p>
+              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
+                  • Field inspections & REO
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
+                  • Mobile notary & signings
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
+                  • Insurance loss control
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm">
+                <Link
+                  href="/membership"
+                  className="inline-flex items-center justify-center rounded-none border border-brand-copper bg-brand-copper px-5 py-2 font-semibold text-white transition hover:bg-brand-copperDark"
+                >
+                  Explore membership options
+                </Link>
+                <Link
+                  href="/directory"
+                  className="inline-flex items-center justify-center rounded-none border border-slate-300 bg-white px-5 py-2 font-semibold text-brand-dark transition hover:bg-slate-50"
+                >
+                  Preview the firm directory
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-10 lg:mt-0">
+              <RoleCarousel />
+            </div>
+          </div>
+        </section>
 
         <section className="border-b border-slate-200 bg-white/80">
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">

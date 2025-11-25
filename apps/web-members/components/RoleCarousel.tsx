@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
@@ -10,6 +9,7 @@ type RoleCard = {
   value: string
   image: string
   alt: string
+  gradient: string
 }
 
 const roles: RoleCard[] = [
@@ -20,6 +20,7 @@ const roles: RoleCard[] = [
     image:
       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
     alt: 'Inspector photographing a front porch during a mortgage field visit',
+    gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
   },
   {
     title: 'Insurance loss control surveyor',
@@ -28,6 +29,7 @@ const roles: RoleCard[] = [
     image:
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
     alt: 'Surveyor reviewing insurance paperwork on the hood of a car',
+    gradient: 'from-[#F7F5F2] to-[#EDE6FA]',
   },
   {
     title: 'Mobile notary & signing agent',
@@ -36,6 +38,7 @@ const roles: RoleCard[] = [
     image:
       'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80',
     alt: 'Notary presenting documents to a client at a kitchen table',
+    gradient: 'from-[#F7F5F2] to-[#FBEAD6]',
   },
   {
     title: 'Asset preservation / REO specialist',
@@ -44,6 +47,7 @@ const roles: RoleCard[] = [
     image:
       'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
     alt: 'Contractor walking through a vacant property with a flashlight',
+    gradient: 'from-[#F7F5F2] to-[#E8F5E9]',
   },
   {
     title: 'Gig pros adding inspections',
@@ -52,6 +56,7 @@ const roles: RoleCard[] = [
     image:
       'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80',
     alt: 'Driver loading a small ladder and tablet into a hatchback',
+    gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
   },
 ]
 
@@ -107,116 +112,90 @@ export function RoleCarousel() {
   }
 
   return (
-    <section
-      aria-labelledby="roles-heading"
-      className="relative overflow-hidden border-b border-brand-copper/15 bg-gradient-to-b from-brand-steel/10 via-brand-sand to-brand-mist"
-    >
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.6),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.55),transparent_40%)]" />
-      <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-copper">Role spotlight</p>
-            <h1 id="roles-heading" className="mt-1 text-3xl font-bold tracking-tight text-brand-dark sm:text-4xl">
-              See how the hub adapts to your path
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-700 sm:text-base">
-              Swipe through the top roles our members work today. Each card shows what the hub unlocks and links to
-              the dedicated lane page.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="View previous role"
-              onClick={() => scrollToCard(Math.max(activeIndex - 1, 0))}
-              disabled={activeIndex === 0}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-copper/30 bg-white text-brand-dark shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-mist disabled:cursor-not-allowed disabled:opacity-40"
+    <section aria-labelledby="roles-heading" className="w-full">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Roles we support</p>
+          <h2 id="roles-heading" className="mt-1 text-2xl font-semibold tracking-tight text-brand-dark sm:text-3xl">
+            Match the hub to your daily route
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-700 sm:text-base">
+            Scroll through the top roles members work today. Each card shows how Nested Objects helps you run a steadier
+            book of business.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="View previous role"
+            onClick={() => scrollToCard(Math.max(activeIndex - 1, 0))}
+            disabled={activeIndex === 0}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-none border border-slate-200 bg-white text-brand-dark transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="View next role"
+            onClick={() => scrollToCard(Math.min(activeIndex + 1, roles.length - 1))}
+            disabled={activeIndex === roles.length - 1}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-none border border-slate-200 bg-white text-brand-dark transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      <div className="relative mt-6">
+        <div
+          ref={scrollRef}
+          role="list"
+          aria-label="Scrollable list of roles we support"
+          tabIndex={0}
+          onKeyDown={handleArrowKey}
+          className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 pt-1 text-left focus:outline-none"
+        >
+          {roles.map((role, index) => (
+            <article
+              key={role.slug}
+              role="listitem"
+              className={`min-w-[260px] snap-start border border-slate-200 bg-gradient-to-br ${role.gradient} p-5 shadow-sm transition hover:-translate-y-1`}
             >
-              ‹
-            </button>
-            <button
-              type="button"
-              aria-label="View next role"
-              onClick={() => scrollToCard(Math.min(activeIndex + 1, roles.length - 1))}
-              disabled={activeIndex === roles.length - 1}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-copper/30 bg-white text-brand-dark shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-mist disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              ›
-            </button>
-          </div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{index + 1} of {roles.length}</p>
+                  <h3 className="text-lg font-semibold text-brand-dark">{role.title}</h3>
+                  <p className="text-sm text-slate-700">{role.value}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                <Link
+                  href={`/roles/${role.slug}`}
+                  className="inline-flex items-center gap-2 rounded-none border border-slate-300 bg-white px-4 py-2 font-semibold text-brand-dark transition hover:bg-slate-50"
+                  aria-label={`Read more about the ${role.title} role`}
+                >
+                  Explore this path
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">/roles/{role.slug}</span>
+              </div>
+            </article>
+          ))}
         </div>
 
-        <div className="relative mt-8">
-          <div
-            ref={scrollRef}
-            role="list"
-            aria-label="Scrollable list of roles we support"
-            tabIndex={0}
-            onKeyDown={handleArrowKey}
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-6 pt-1 text-left focus:outline-none"
-          >
-            {roles.map((role, index) => (
-              <article
-                key={role.slug}
-                role="listitem"
-                className="group relative min-w-full snap-center overflow-hidden rounded-3xl bg-brand-dark text-white shadow-2xl shadow-brand-steel/30 sm:min-w-[min(100%,720px)] lg:min-w-[min(100%,820px)]"
-              >
-                <div className="absolute inset-0">
-                  <Image
-                    src={role.image}
-                    alt={role.alt}
-                    fill
-                    sizes="(min-width: 1024px) 900px, 100vw"
-                    className="object-cover transition duration-700 ease-out group-hover:scale-105"
-                    priority={index === 0}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-black/65 via-black/45 to-brand-copper/30" />
-                </div>
-
-                <div className="relative grid gap-4 p-6 sm:p-10 lg:p-12">
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-sand">
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-white">{index + 1} of {roles.length}</span>
-                    <span className="rounded-full bg-brand-teal/80 px-3 py-1 text-white">Route ready</span>
-                  </div>
-
-                  <div className="max-w-2xl space-y-3">
-                    <h3 className="text-2xl font-semibold leading-tight sm:text-3xl">{role.title}</h3>
-                    <p className="text-base text-brand-sand sm:text-lg">{role.value}</p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 text-sm">
-                    <Link
-                      href={`/roles/${role.slug}`}
-                      className="inline-flex items-center gap-2 rounded-full bg-brand-copper px-5 py-2 font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-brand-copperDark"
-                      aria-label={`Read more about the ${role.title} role`}
-                    >
-                      Explore this path
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand-sand">
-                      /roles/{role.slug}
-                    </span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-2">
-            {roles.map((role, index) => (
-              <button
-                key={role.slug}
-                type="button"
-                aria-label={`Jump to ${role.title}`}
-                onClick={() => scrollToCard(index)}
-                className={`h-2.5 rounded-full transition ${
-                  activeIndex === index
-                    ? 'w-10 bg-brand-copper shadow-sm'
-                    : 'w-2.5 bg-brand-steel/40 hover:bg-brand-steel/70'
-                }`}
-              />
-            ))}
-          </div>
+        <div className="mt-3 flex items-center justify-center gap-2">
+          {roles.map((role, index) => (
+            <button
+              key={role.slug}
+              type="button"
+              aria-label={`Jump to ${role.title}`}
+              onClick={() => scrollToCard(index)}
+              className={`h-2 rounded-none transition ${
+                activeIndex === index ? 'w-8 bg-brand-copper' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>
