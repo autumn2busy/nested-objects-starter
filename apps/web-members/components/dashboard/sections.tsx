@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 
 import { useDashboardLayout } from './dashboard-layout-context'
+import type { Job } from '@/types/jobs'
 
 interface DashboardSectionCardProps {
   title: string
@@ -112,6 +113,98 @@ export function GettingPaidSection() {
           </li>
         ))}
       </ul>
+    </DashboardSectionCard>
+  )
+}
+
+export function JobTrackerSection() {
+  const [loading, setLoading] = useState(true)
+  const [jobsThisWeek, setJobsThisWeek] = useState(0)
+  const [payoutTotal, setPayoutTotal] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+
+  const startOfWeek = (date = new Date()) => {
+    const copy = new Date(date)
+    const day = copy.getDay()
+    const diff = copy.getDate() - day
+    copy.setDate(diff)
+    copy.setHours(0, 0, 0, 0)
+    return copy
+  }
+
+  const endOfWeek = (date = new Date()) => {
+    const start = startOfWeek(date)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    end.setHours(23, 59, 59, 999)
+    return end
+  }
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const now = new Date()
+        const weekStart = startOfWeek(now).toISOString().slice(0, 10)
+        const weekEnd = endOfWeek(now).toISOString().slice(0, 10)
+        const params = new URLSearchParams({ date_from: weekStart, date_to: weekEnd })
+
+        const res = await fetch(`/api/jobs?${params.toString()}`)
+        const payload = await res.json().catch(() => ({}))
+
+        if (!res.ok) {
+          throw new Error(payload?.error || 'Unable to load job tracker stats')
+        }
+
+        const jobs: Job[] = payload.jobs ?? []
+        setJobsThisWeek(jobs.length)
+        setPayoutTotal(jobs.reduce((sum, job) => sum + (job.payout ?? 0), 0))
+        setError(null)
+      } catch (err) {
+        console.error(err)
+        setError('Unable to load job tracker stats right now.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void loadStats()
+  }, [])
+
+  return (
+    <DashboardSectionCard
+      title="Job tracker"
+      subtitle="This week’s workload overview"
+      actions={
+        <Link
+          href="/tools/job-tracker"
+          className="rounded-lg border border-brand-mist bg-white px-3 py-2 text-xs font-semibold text-brand-copper hover:border-brand-copper hover:text-brand-copperDark"
+        >
+          Open job tracker →
+        </Link>
+      }
+    >
+      {loading ? (
+        <p className="text-sm text-brand-steel">Loading job stats…</p>
+      ) : error ? (
+        <p className="text-sm text-brand-steel">{error}</p>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Jobs scheduled</p>
+              <p className="text-xl font-semibold text-brand-slate">{jobsThisWeek}</p>
+            </div>
+            <span className="text-xs font-semibold text-brand-copper">This week</span>
+          </div>
+          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-white px-4 py-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Expected payout</p>
+              <p className="text-xl font-semibold text-brand-slate">${payoutTotal.toFixed(0)}</p>
+            </div>
+            <span className="text-xs text-brand-steel">Refreshed on load</span>
+          </div>
+        </div>
+      )}
     </DashboardSectionCard>
   )
 }

@@ -34,6 +34,7 @@ export const FEATURE_ACCESS: Record<string, string[]> = {
   ],
   ai_chatbot: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   job_intel: [PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
+  job_tracker: [PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   priority_support: [PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY],
   white_label: [PLAN_UIDS.AGENCY]
 }

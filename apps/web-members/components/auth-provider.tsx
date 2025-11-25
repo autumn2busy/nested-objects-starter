@@ -63,7 +63,8 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   // Tools
   ai_concierge: 'rQVqlLm6',       // Pro+
   firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'rQVqlLm6',       // Pro+
+  job_tracking: 'L9nbKV9Z',       // Starter+
+  job_tracker: 'L9nbKV9Z',        // Starter+
   job_routing: 'NmdnNO90',        // Elite+
   weather_tool: 'L9nbKV9Z',       // Starter+
   ai_resume: 'rQVqlLm6',          // Pro+

@@ -44,14 +44,23 @@ create table if not exists public.firm_contacts (
 
 create table if not exists public.jobs (
   id uuid primary key default gen_random_uuid(),
-  firm_id uuid references public.firms(id) on delete set null,
-  title text not null,
-  location text,
-  compensation_meta jsonb,
-  apply_url text,
-  source text,
-  scraped_at timestamptz,
-  created_at timestamptz default now()
+  user_id text not null,
+  firm_id uuid,
+  title text,
+  firm_name text,
+  region text,
+  address text,
+  appointment_date date,
+  appointment_time text,
+  status text not null default 'scheduled',
+  payout numeric(10,2),
+  payout_status text default 'unpaid',
+  mileage numeric(10,2),
+  sla_target_hours integer,
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint fk_jobs_firm foreign key (firm_id) references public.firms(id) on delete set null
 );
 
 create table if not exists public.resources (
@@ -108,3 +117,38 @@ drop trigger if exists trg_firms_updated_at on public.firms;
 create trigger trg_firms_updated_at
 before update on public.firms
 for each row execute procedure public.set_updated_at();
+
+-- Timestamps trigger for updated_at on jobs
+drop trigger if exists trg_jobs_updated_at on public.jobs;
+create trigger trg_jobs_updated_at
+before update on public.jobs
+for each row execute procedure public.set_updated_at();
+
+-- Row level security for jobs
+alter table public.jobs enable row level security;
+
+drop policy if exists "jobs_own_select" on public.jobs;
+create policy "jobs_own_select"
+  on public.jobs for select
+  to authenticated
+  using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
+
+drop policy if exists "jobs_own_modify" on public.jobs;
+drop policy if exists "jobs_own_insert" on public.jobs;
+create policy "jobs_own_insert"
+  on public.jobs for insert
+  to authenticated
+  with check ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
+
+drop policy if exists "jobs_own_update" on public.jobs;
+create policy "jobs_own_update"
+  on public.jobs for update
+  to authenticated
+  using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' )
+  with check ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
+
+drop policy if exists "jobs_own_delete" on public.jobs;
+create policy "jobs_own_delete"
+  on public.jobs for delete
+  to authenticated
+  using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
