@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import Link from 'next/link'
+import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { SiteFooter } from '@/components/SiteFooter'
 
@@ -26,6 +27,8 @@ const jsonLd = {
 }
 
 export default function HomePage() {
+  const heroImage = '/hero.jpg'
+
   return (
     <>
       {/* Structured data for SEO */}
@@ -35,47 +38,44 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <main className="min-h-screen bg-brand-sand text-brand-dark">
-        <section className="w-full bg-gradient-to-r from-[#F7F5F2] via-[#E7F1F2] to-[#F7F5F2]">
-          <div className="mx-auto max-w-5xl px-4 py-12 lg:py-16 lg:grid lg:grid-cols-[1.2fr,1fr] lg:gap-10">
-            <div className="space-y-4 lg:space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Nested Objects vendor hub</p>
-              <h1 className="text-3xl font-semibold leading-tight text-brand-dark sm:text-4xl">
-                Plan routes and vendor signups with one clean workspace
-              </h1>
-              <p className="text-sm leading-relaxed text-slate-700 sm:text-base">
-                Compare firms, understand what they expect, and keep your applications organized before you drive to the next
-                stop. Built for inspectors, notaries, and gig pros who want predictable work.
-              </p>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
-                  • Field inspections & REO
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
-                  • Mobile notary & signings
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-none border border-slate-200 bg-white px-3 py-2 font-semibold">
-                  • Insurance loss control
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-3 text-sm">
-                <Link
-                  href="/membership"
-                  className="inline-flex items-center justify-center rounded-none border border-brand-copper bg-brand-copper px-5 py-2 font-semibold text-white transition hover:bg-brand-copperDark"
-                >
-                  Explore membership options
-                </Link>
-                <Link
-                  href="/directory"
-                  className="inline-flex items-center justify-center rounded-none border border-slate-300 bg-white px-5 py-2 font-semibold text-brand-dark transition hover:bg-slate-50"
-                >
-                  Preview the firm directory
-                </Link>
-              </div>
-            </div>
+      <main className="min-h-screen bg-brand-background text-brand-text">
+        <section className="relative w-full overflow-hidden bg-brand-background">
+          <div className="absolute inset-0">
+            <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-background/70 to-brand-background/20" />
+          </div>
 
-            <div className="mt-10 lg:mt-0">
-              <RoleCarousel />
+          <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
+            <div className="flex flex-col items-center gap-10 lg:grid lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:gap-12 lg:text-left">
+              <div className="space-y-4">
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-brand-text">
+                  The AI-powered vendor hub for field pros
+                </h1>
+                <p className="mt-4 text-brand-muted text-sm leading-relaxed max-w-lg">
+                  Tools, insights, and transparent data to help inspectors, notaries, and field vendors get paid faster and
+                  protect their time.
+                </p>
+                <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:justify-start lg:text-left">
+                  <Link
+                    href="/membership"
+                    className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
+                  >
+                    Explore membership options
+                  </Link>
+                  <Link
+                    href="/directory"
+                    className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-brand-text rounded-none hover:bg-brand-soft"
+                  >
+                    Preview the firm directory
+                  </Link>
+                </div>
+              </div>
+
+              <div className="flex justify-center lg:justify-end">
+                <div className="w-full max-w-md lg:max-w-full">
+                  <RoleCarousel />
+                </div>
+              </div>
             </div>
           </div>
         </section>
