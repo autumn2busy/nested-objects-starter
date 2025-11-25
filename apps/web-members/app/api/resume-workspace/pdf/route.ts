@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getCurrentUser, hasAccess } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
 import { htmlToPdfBuffer } from '@/lib/pdf'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
@@ -41,10 +41,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Upgrade required for AI resume.' }, { status: 403 })
     }
 
-    const userId =
-      outsetaUser.sub ||
-      (outsetaUser as Record<string, string | undefined>)['outseta:accountUid'] ||
-      (outsetaUser as Record<string, string | undefined>)['outseta:subscriptionUid']
+    const userId = getOutsetaUserId(outsetaUser)
 
     if (!userId) {
       return NextResponse.json({ error: 'Could not resolve user identity for workspace storage.' }, { status: 400 })

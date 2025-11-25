@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getCurrentUser, hasAccess } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
 type ProfileIntake = {
@@ -67,12 +67,6 @@ function buildPrompt(profile?: ProfileIntake, experience?: ExperienceGear) {
   return `Use the following intake to write vendor-safe resume blocks for an insurance field vendor. Keep PII redacted unless explicitly provided and keep any addresses or phone numbers generic if redaction is requested. Summaries and bullets should be concise, quantify work completed, and emphasize reliability. Return JSON with keys summary (string), experienceBullets (array of short bullet strings), skillsBullets (array of short bullet strings), portalBlurb (short paragraph for text boxes).\n\nProfile: ${
     profile?.fullName && profile.piiRedaction === false ? profile.fullName : 'Inspector'
   }, ${profile?.serviceArea || 'service area unknown'}. ${counties} ${pay} ${availability} ${ruralUrban} ${drive} ${rush}\nExperience: ${vendors}\nGear: ${ladderHeights} ${gear} ${drone} ${measuring}\nSpecialties: ${specialties}\nLimits: ${weather}\nSafety: ${safety}\nTurnaround: ${turnaround}\nRedaction guidance: ${redaction}`
-}
-
-function getOutsetaUserId(user: Awaited<ReturnType<typeof getCurrentUser>>) {
-  if (!user) return null
-
-  return user.sub || user['outseta:accountUid'] || user['outseta:subscriptionUid'] || null
 }
 
 export async function POST(req: Request) {
