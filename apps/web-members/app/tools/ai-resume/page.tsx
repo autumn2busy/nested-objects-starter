@@ -413,7 +413,7 @@ export default function AiResumePage() {
           />
         }
       >
-        <div className="space-y-6">
+        <section className="space-y-6">
           <div className="flex flex-col gap-3 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Resume workspace</p>
@@ -446,282 +446,283 @@ export default function AiResumePage() {
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <header className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Profile intake</p>
-                  <h3 className="text-lg font-semibold text-brand-dark">Contact, service area, and preferences</h3>
-                  <p className="text-sm text-slate-700">Name, phone, counties, and pay expectations feed the resume header.</p>
-                </div>
-                <div className="text-xs font-semibold text-brand-copper">PII redaction</div>
-              </header>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            <div className="space-y-6 lg:col-span-2">
+              <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+                <header className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Profile intake</p>
+                    <h3 className="text-lg font-semibold text-brand-dark">Contact, service area, and preferences</h3>
+                    <p className="text-sm text-slate-700">Name, phone, counties, and pay expectations feed the resume header.</p>
+                  </div>
+                  <div className="text-xs font-semibold text-brand-copper">PII redaction</div>
+                </header>
 
-              <div className="space-y-3">
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Full name</span>
-                  <input
-                    value={workspace.profile.fullName}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
-                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="First and last name"
-                  />
-                </label>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-3">
                   <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Phone</span>
+                    <span className="font-semibold text-brand-dark">Full name</span>
                     <input
-                      value={workspace.profile.phone}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, phone: e.target.value } }))}
+                      value={workspace.profile.fullName}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
                       className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="(555) 123-4567"
+                      placeholder="First and last name"
                     />
                   </label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Phone</span>
+                      <input
+                        value={workspace.profile.phone}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, phone: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="(555) 123-4567"
+                      />
+                    </label>
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Service area</span>
+                      <input
+                        value={workspace.profile.serviceArea}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, serviceArea: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="Dallas / Fort Worth, TX"
+                      />
+                    </label>
+                  </div>
                   <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Service area</span>
-                    <input
-                      value={workspace.profile.serviceArea}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, serviceArea: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Dallas / Fort Worth, TX"
-                    />
-                  </label>
-                </div>
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Counties covered</span>
-                  <textarea
-                    value={workspace.profile.counties}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, counties: e.target.value } }))}
-                    className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Add county names or zips separated by commas"
-                  />
-                </label>
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Pay preferences</span>
-                  <textarea
-                    value={workspace.profile.payPreferences}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, payPreferences: e.target.value } }))}
-                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Flat fees, per inspection minimums, or travel rates"
-                  />
-                </label>
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Availability windows</span>
-                  <textarea
-                    value={workspace.profile.availability}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, availability: e.target.value } }))}
-                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Weekdays 8a-6p, Saturdays 9a-1p, 24-hour rush slots"
-                  />
-                </label>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Rural / urban mix</span>
-                    <input
-                      value={workspace.profile.ruralUrbanMix}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, ruralUrbanMix: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="70% suburban, 30% rural"
+                    <span className="font-semibold text-brand-dark">Counties covered</span>
+                    <textarea
+                      value={workspace.profile.counties}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, counties: e.target.value } }))}
+                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Add county names or zips separated by commas"
                     />
                   </label>
                   <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Drive radius</span>
-                    <input
-                      value={workspace.profile.driveRadius}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, driveRadius: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Up to 60 miles"
+                    <span className="font-semibold text-brand-dark">Pay preferences</span>
+                    <textarea
+                      value={workspace.profile.payPreferences}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, payPreferences: e.target.value } }))}
+                      className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Flat fees, per inspection minimums, or travel rates"
                     />
                   </label>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Rush capacity</span>
-                    <input
-                      value={workspace.profile.rushCapacity}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, rushCapacity: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Same-day: 2 slots; 24-hour: 3 slots"
+                    <span className="font-semibold text-brand-dark">Availability windows</span>
+                    <textarea
+                      value={workspace.profile.availability}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, availability: e.target.value } }))}
+                      className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Weekdays 8a-6p, Saturdays 9a-1p, 24-hour rush slots"
                     />
                   </label>
-                  <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
-                    <span>Redact PII until export</span>
-                    <input
-                      type="checkbox"
-                      checked={workspace.profile.piiRedaction}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, piiRedaction: e.target.checked } }))}
-                      className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
-                    />
-                  </label>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <header className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Experience + gear</p>
-                  <h3 className="text-lg font-semibold text-brand-dark">Recent vendors and equipment</h3>
-                  <p className="text-sm text-slate-700">Include inspection counts, ladder heights, drones, and safety notes.</p>
-                </div>
-                <div className="text-xs font-semibold text-brand-copper">Field proof</div>
-              </header>
-
-              <div className="space-y-3">
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Vendors + counts</span>
-                  <textarea
-                    value={workspace.experience.vendors}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, vendors: e.target.value } }))}
-                    className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Example: WonderClaim (310 roof/ladder), Acme IA (180 exterior), Aurora Desk (QA partner)"
-                  />
-                </label>
-
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold text-brand-dark">Ladder heights</p>
-                  <div className="flex flex-wrap gap-2">
-                    {ladderOptions.map((option) => {
-                      const active = workspace.experience.ladderHeights.includes(option)
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() =>
-                            setWorkspace((prev) => ({
-                              ...prev,
-                              experience: {
-                                ...prev.experience,
-                                ladderHeights: handleToggle(prev.experience.ladderHeights, option),
-                              },
-                            }))
-                          }
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
-                            active
-                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      )
-                    })}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Rural / urban mix</span>
+                      <input
+                        value={workspace.profile.ruralUrbanMix}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, ruralUrbanMix: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="70% suburban, 30% rural"
+                      />
+                    </label>
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Drive radius</span>
+                      <input
+                        value={workspace.profile.driveRadius}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, driveRadius: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="Up to 60 miles"
+                      />
+                    </label>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Rush capacity</span>
+                      <input
+                        value={workspace.profile.rushCapacity}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, rushCapacity: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="Same-day: 2 slots; 24-hour: 3 slots"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
+                      <span>Redact PII until export</span>
+                      <input
+                        type="checkbox"
+                        checked={workspace.profile.piiRedaction}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, piiRedaction: e.target.checked } }))}
+                        className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
+                      />
+                    </label>
                   </div>
                 </div>
+              </section>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Camera gear</span>
-                    <input
-                      value={workspace.experience.cameraGear}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, cameraGear: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="DSLR, 20MP+, wide angle lens"
-                    />
-                  </label>
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Measuring tools</span>
-                    <input
-                      value={workspace.experience.measuringTools}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, measuringTools: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Leica Disto D2, pitch gauge, moisture meter"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-[1.2fr,0.8fr]">
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Drone model</span>
-                    <input
-                      value={workspace.experience.droneModel}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, droneModel: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="DJI Mini 4 Pro, FAA Part 107"
-                    />
-                  </label>
-                  <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
-                    <span>Drone on hand</span>
-                    <input
-                      type="checkbox"
-                      checked={workspace.experience.hasDrone}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, hasDrone: e.target.checked } }))}
-                      className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
-                    />
-                  </label>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <p className="font-semibold text-brand-dark">Specialties</p>
-                  <div className="flex flex-wrap gap-2">
-                    {specialtyOptions.map((option) => {
-                      const active = workspace.experience.specialties.includes(option)
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() =>
-                            setWorkspace((prev) => ({
-                              ...prev,
-                              experience: {
-                                ...prev.experience,
-                                specialties: handleToggle(prev.experience.specialties, option),
-                              },
-                            }))
-                          }
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
-                            active
-                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      )
-                    })}
+              <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
+                <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Experience + gear</p>
+                    <h3 className="text-lg font-semibold text-brand-dark">Recent vendors and equipment</h3>
+                    <p className="text-sm text-slate-700">Include inspection counts, ladder heights, drones, and safety notes.</p>
                   </div>
+                  <div className="text-xs font-semibold text-brand-copper">Field proof</div>
+                </header>
+
+                <div className="space-y-3">
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Vendors + counts</span>
+                    <textarea
+                      value={workspace.experience.vendors}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, vendors: e.target.value } }))}
+                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Example: WonderClaim (310 roof/ladder), Acme IA (180 exterior), Aurora Desk (QA partner)"
+                    />
+                  </label>
+
+                  <div className="space-y-2 text-sm">
+                    <p className="font-semibold text-brand-dark">Ladder heights</p>
+                    <div className="flex flex-wrap gap-2">
+                      {ladderOptions.map((option) => {
+                        const active = workspace.experience.ladderHeights.includes(option)
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() =>
+                              setWorkspace((prev) => ({
+                                ...prev,
+                                experience: {
+                                  ...prev.experience,
+                                  ladderHeights: handleToggle(prev.experience.ladderHeights, option),
+                                },
+                              }))
+                            }
+                            className={`rounded-full border px-3 py-1 text-sm transition ${
+                              active
+                                ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                                : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Camera gear</span>
+                      <input
+                        value={workspace.experience.cameraGear}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, cameraGear: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="DSLR, 20MP+, wide angle lens"
+                      />
+                    </label>
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Measuring tools</span>
+                      <input
+                        value={workspace.experience.measuringTools}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, measuringTools: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="Leica Disto D2, pitch gauge, moisture meter"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-[1.2fr,0.8fr]">
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-semibold text-brand-dark">Drone model</span>
+                      <input
+                        value={workspace.experience.droneModel}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, droneModel: e.target.value } }))}
+                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                        placeholder="DJI Mini 4 Pro, FAA Part 107"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
+                      <span>Drone on hand</span>
+                      <input
+                        type="checkbox"
+                        checked={workspace.experience.hasDrone}
+                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, hasDrone: e.target.checked } }))}
+                        className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <p className="font-semibold text-brand-dark">Specialties</p>
+                    <div className="flex flex-wrap gap-2">
+                      {specialtyOptions.map((option) => {
+                        const active = workspace.experience.specialties.includes(option)
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() =>
+                              setWorkspace((prev) => ({
+                                ...prev,
+                                experience: {
+                                  ...prev.experience,
+                                  specialties: handleToggle(prev.experience.specialties, option),
+                                },
+                              }))
+                            }
+                            className={`rounded-full border px-3 py-1 text-sm transition ${
+                              active
+                                ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                                : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Weather constraints</span>
+                    <input
+                      value={workspace.experience.weatherConstraints}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, weatherConstraints: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="No steep ladder work above 20mph winds"
+                    />
+                  </label>
+
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Safety notes</span>
+                    <textarea
+                      value={workspace.experience.safetyNotes}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, safetyNotes: e.target.value } }))}
+                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Harnessed for 6/12+, PPE list, QA scores, background check status"
+                    />
+                  </label>
+
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-semibold text-brand-dark">Turnaround time</span>
+                    <input
+                      value={workspace.experience.turnaroundTime}
+                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, turnaroundTime: e.target.value } }))}
+                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
+                      placeholder="Standard 24-48 hours; rush same-day when requested"
+                    />
+                  </label>
                 </div>
+              </section>
+            </div>
 
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Weather constraints</span>
-                  <input
-                    value={workspace.experience.weatherConstraints}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, weatherConstraints: e.target.value } }))}
-                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="No steep ladder work above 20mph winds"
-                  />
-                </label>
-
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Safety notes</span>
-                  <textarea
-                    value={workspace.experience.safetyNotes}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, safetyNotes: e.target.value } }))}
-                    className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Harnessed for 6/12+, PPE list, QA scores, background check status"
-                  />
-                </label>
-
-                <label className="block space-y-1 text-sm">
-                  <span className="font-semibold text-brand-dark">Turnaround time</span>
-                  <input
-                    value={workspace.experience.turnaroundTime}
-                    onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, turnaroundTime: e.target.value } }))}
-                    className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                    placeholder="Standard 24-48 hours; rush same-day when requested"
-                  />
-                </label>
-              </div>
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-              <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:col-span-1">                    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Outputs + export</p>
                   <h3 className="text-lg font-semibold text-brand-dark">Generate, copy, or download</h3>
                   <p className="text-sm text-slate-700">AI drafts are timestamped. Copy everything or export to PDF with your current details.</p>
                 </div>
-                <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row">
+                <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
                     onClick={handleGenerate}
@@ -808,7 +809,7 @@ export default function AiResumePage() {
               </div>
             </section>
           </div>
-        </div>
+        </section>
       </Gate>
     </ToolLayout>
   )
