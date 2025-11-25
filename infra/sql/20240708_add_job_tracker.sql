@@ -49,12 +49,28 @@ drop function public.ensure_jobs_updated_at();
 
 alter table public.jobs enable row level security;
 
+drop policy if exists "jobs_own_select" on public.jobs;
 create policy "jobs_own_select"
   on public.jobs for select
   to authenticated
   using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
 
-create policy "jobs_own_modify"
-  on public.jobs for insert, update, delete
+drop policy if exists "jobs_own_modify" on public.jobs;
+drop policy if exists "jobs_own_insert" on public.jobs;
+create policy "jobs_own_insert"
+  on public.jobs for insert
   to authenticated
   with check ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
+
+drop policy if exists "jobs_own_update" on public.jobs;
+create policy "jobs_own_update"
+  on public.jobs for update
+  to authenticated
+  using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' )
+  with check ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
+
+drop policy if exists "jobs_own_delete" on public.jobs;
+create policy "jobs_own_delete"
+  on public.jobs for delete
+  to authenticated
+  using ( user_id = current_setting('request.jwt.claims', true)::jsonb->>'sub' );
