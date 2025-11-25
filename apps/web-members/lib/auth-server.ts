@@ -75,6 +75,12 @@ export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPaylo
   }
 }
 
+export function getOutsetaUserId(user: OutsetaJWTPayload | null) {
+  if (!user) return null
+
+  return user.sub || user['outseta:accountUid'] || user['outseta:subscriptionUid'] || null
+}
+
 /**
  * Get the current user from the request cookies
  */

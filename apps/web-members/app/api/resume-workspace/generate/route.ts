@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
-import { getCurrentUser, hasAccess } from '@/lib/auth-server'
-import { createClient } from '@/lib/supabase-server'
+import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 
 type ProfileIntake = {
   fullName?: string
@@ -81,15 +81,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Upgrade required for AI resume.' }, { status: 403 })
     }
 
-    const supabase = createClient()
-    const {
-      data: { user: supabaseUser },
-      error: supabaseUserError,
-    } = await supabase.auth.getUser()
-
-    if (supabaseUserError || !supabaseUser) {
-      return NextResponse.json({ error: 'Could not verify Supabase session for workspace storage.' }, { status: 401 })
+    const userId = getOutsetaUserId(outsetaUser)
+    if (!userId) {
+      return NextResponse.json({ error: 'Could not resolve user identity for workspace storage.' }, { status: 400 })
     }
+
+    const supabase = createServiceRoleClient()
 
     const body = await req.json().catch(() => ({}))
     const profile = body?.profile as ProfileIntake | undefined
@@ -175,7 +172,7 @@ export async function POST(req: Request) {
     const { error: upsertError } = await supabase
       .from('resume_workspace')
       .upsert(
-        { user_id: supabaseUser.id, profile: profile ?? null, experience: experience ?? null, outputs },
+        { user_id: userId, profile: profile ?? null, experience: experience ?? null, outputs },
         { onConflict: 'user_id' }
       )
       .single()

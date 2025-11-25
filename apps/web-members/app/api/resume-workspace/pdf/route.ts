@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
-import { getCurrentUser, hasAccess } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
 import { htmlToPdfBuffer } from '@/lib/pdf'
-import { createClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 
 type ResumeWorkspaceRow = {
   profile?: {
@@ -41,20 +41,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Upgrade required for AI resume.' }, { status: 403 })
     }
 
-    const supabase = createClient()
-    const {
-      data: { user: supabaseUser },
-      error: supabaseUserError,
-    } = await supabase.auth.getUser()
+    const userId = getOutsetaUserId(outsetaUser)
 
-    if (supabaseUserError || !supabaseUser) {
-      return NextResponse.json({ error: 'Could not verify Supabase session for workspace storage.' }, { status: 401 })
+    if (!userId) {
+      return NextResponse.json({ error: 'Could not resolve user identity for workspace storage.' }, { status: 400 })
     }
+
+    const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
       .from('resume_workspace')
       .select('profile, outputs, updated_at')
-      .eq('user_id', supabaseUser.id)
+      .eq('user_id', userId)
       .order('updated_at', { ascending: false })
       .limit(1)
       .single<ResumeWorkspaceRow>()
