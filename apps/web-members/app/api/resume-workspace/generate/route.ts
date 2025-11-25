@@ -70,12 +70,9 @@ function buildPrompt(profile?: ProfileIntake, experience?: ExperienceGear) {
 }
 
 function getOutsetaUserId(user: Awaited<ReturnType<typeof getCurrentUser>>) {
-  return (
-    user?.sub ||
-    (user as Record<string, string | undefined>)['outseta:accountUid'] ||
-    (user as Record<string, string | undefined>)['outseta:subscriptionUid'] ||
-    null
-  )
+  if (!user) return null
+
+  return user.sub || user['outseta:accountUid'] || user['outseta:subscriptionUid'] || null
 }
 
 export async function POST(req: Request) {
