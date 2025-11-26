@@ -14,6 +14,7 @@ type Firm = {
   slug: string | null
   name: string
   url: string | null
+  vendor_page_url: string | null
   logo_url: string | null
   geographic_coverage: string | null
   categories: any
@@ -23,6 +24,9 @@ type Firm = {
   company_size: string | null
   industry_focus: string | null
   is_published?: boolean | null
+  rating: number | null
+  phone?: string | null
+  email?: string | null
   address_street: string | null
   address_city: string | null
   address_state: string | null
@@ -221,19 +225,27 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
         (firm.pay_type ? ` ${firm.pay_type}` : '')
       : firm.pay_type || 'Shared with members inside the hub'
 
+  const categories = formatCategories(firm.categories) || 'General field services'
+  const serviceRegion = firm.geographic_coverage || 'Service region not specified'
+  const rating =
+    typeof firm.rating === 'number' ? `${firm.rating.toFixed(1)} out of 5` : 'Not yet rated'
+
+  const contactMethod = (() => {
+    if (firm.email) return `Email · ${firm.email}`
+    if (firm.phone) return `Call · ${firm.phone}`
+    if (firm.vendor_page_url || firm.url)
+      return `Website · ${firm.vendor_page_url ?? firm.url}`
+    return 'Contact info shared on profile'
+  })()
+
   return (
     <article
-      className="flex h-64 flex-col justify-between rounded-md border-2 border-slate-300 px-5 py-4 transition-transform duration-150 hover:-translate-y-[2px]"
+      className="flex h-full flex-col justify-between border border-slate-200 bg-white px-6 py-5 shadow-[0_6px_0_rgba(15,23,42,0.06),0_16px_32px_rgba(15,23,42,0.08)] transition-transform duration-150 hover:-translate-y-[3px]"
       style={{
-        backgroundColor: '#f5efe1',
-        backgroundImage:
-          'linear-gradient(135deg, rgba(255,255,255,0.94), rgba(244,236,222,0.92)), radial-gradient(circle at 14% 18%, rgba(255,255,255,0.35), rgba(233,222,202,0)), radial-gradient(circle at 86% 6%, rgba(255,255,255,0.28), rgba(233,222,202,0))',
-        backgroundBlendMode: 'overlay',
-        borderTopWidth: 8,
-        borderTopColor: accent,
+        borderTop: `6px solid ${accent}`,
         boxShadow: isHovered
-          ? '0 10px 24px rgba(15,23,42,0.28)'
-          : '0 8px 18px rgba(15,23,42,0.22)',
+          ? '0 8px 0 rgba(15,23,42,0.07), 0 18px 36px rgba(15,23,42,0.16)'
+          : '0 6px 0 rgba(15,23,42,0.06), 0 16px 32px rgba(15,23,42,0.12)',
       }}
       tabIndex={0}
       onMouseEnter={onHover}
@@ -243,8 +255,8 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
     >
       {/* Top row: logo + name */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-transparent">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50">
             {firm.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -253,46 +265,44 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                 className="h-full w-full object-contain mix-blend-multiply"
               />
             ) : (
-              <span className="text-xs font-semibold tracking-[0.2em] text-slate-600">
+              <span className="text-xs font-semibold tracking-[0.18em] text-slate-600">
                 {getInitials(firm.name)}
               </span>
             )}
           </div>
           <div className="space-y-0.5">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-900">
-              {firm.name}
-            </h3>
-            {firm.geographic_coverage && (
-              <p className="text-[11px] font-medium tracking-[0.16em] text-slate-600">
-                COVERAGE · {firm.geographic_coverage}
-              </p>
-            )}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Field services firm
+            </p>
+            <h3 className="text-lg font-semibold text-slate-900">{firm.name}</h3>
+            <p className="text-xs font-medium text-slate-600">{categories}</p>
           </div>
         </div>
 
-        {firm.url && (
-          <a
-            href={firm.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-slate-900 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-slate-900"
-          >
-            VISIT SITE
-          </a>
-        )}
+        <div className="text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+          <p className="text-slate-900">Service region</p>
+          <p className="mt-0.5 text-xs normal-case text-slate-700">{serviceRegion}</p>
+          <p className="mt-2 text-slate-900">Rating</p>
+          <p className="mt-0.5 text-xs normal-case text-slate-700">{rating}</p>
+        </div>
       </div>
 
-      {/* Middle: pay range */}
-      <div className="mt-4 space-y-1">
-        <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-700">
-          PAY RANGE
-        </p>
-        <p className="text-sm font-semibold text-emerald-800">{payText}</p>
+      {/* Middle: pay + contact */}
+      <div className="mt-5 grid grid-cols-1 gap-4 border-y border-dashed border-slate-200 py-4 sm:grid-cols-2">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">Compensation</p>
+          <p className="text-sm font-semibold text-emerald-800">{payText}</p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">Primary contact</p>
+          <p className="text-sm font-semibold text-slate-900">{contactMethod}</p>
+        </div>
       </div>
 
       {/* Bottom: actions */}
-      <div className="mt-4 flex items-end justify-between gap-4">
-        <div className="text-[11px] text-slate-500">
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <div className="space-y-1 text-xs text-slate-600">
           <p>Snapshot includes tools, requirements,</p>
           <p>and intel specific to this firm.</p>
         </div>
@@ -301,7 +311,7 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           href={`/firms/${firm.slug ?? firm.id}`}
           className="border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
         >
-          VIEW SNAPSHOT
+          VIEW PROFILE
         </Link>
       </div>
     </article>
@@ -363,6 +373,7 @@ export default function DirectoryPage() {
             'slug',
             'name',
             'url',
+            'vendor_page_url',
             'logo_url',
             'geographic_coverage',
             'categories',
@@ -371,6 +382,9 @@ export default function DirectoryPage() {
             'pay_type',
             'company_size',
             'industry_focus',
+            'rating',
+            'phone',
+            'email',
             'is_published',
             'address_street',
             'address_city',
