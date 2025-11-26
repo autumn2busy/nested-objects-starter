@@ -77,7 +77,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-slate-200 bg-white/80">
+        {/* subtle gray background for separation */}
+        <section className="border-b border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
             <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
               <p className="font-semibold text-slate-900">Who this hub serves</p>
@@ -167,7 +168,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How it works timeline */}
+        {/* How it works timeline, already has a distinct soft tint */}
         <section className="border-b border-brand-copper/15 bg-brand-mist">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="max-w-3xl">
@@ -213,8 +214,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Split section: New vs already in field */}
-        <section className="border-b border-slate-200 bg-white">
+        {/* Split section, now on a subtle gray */}
+        <section className="border-b border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="grid gap-8 md:grid-cols-2">
               <div className="rounded-2xl border border-brand-copper/20 bg-white p-6">
