@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const stats = [
@@ -43,7 +44,7 @@ export default function MortgageFieldInspectorPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Mortgage field inspector</p>
                 <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Consistency lenders expect, built in.</h1>
@@ -53,50 +54,56 @@ export default function MortgageFieldInspectorPage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link
-                    href="/membership"
+                    href="/directory"
                     className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                   >
-                    View membership
+                    See lender directory
                   </Link>
                   <Link
-                    href="/directory"
+                    href="/resources"
                     className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                   >
-                    See lender partners
+                    Open mortgage resources
                   </Link>
-                  <Link
-                    href="/"
-                    className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 underline-offset-4 transition hover:text-slate-900"
-                  >
-                    Home
+                </div>
+                <div className="flex flex-wrap gap-3 text-sm text-slate-700">
+                  <Link href="/directory" className="underline-offset-4 hover:underline">
+                    Directory
+                  </Link>
+                  <span aria-hidden="true">•</span>
+                  <Link href="/membership" className="underline-offset-4 hover:underline">
+                    Membership
                   </Link>
                 </div>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
-                <p className="text-sm font-semibold text-slate-900">Performance snapshot</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
-                  {stats.map((item) => (
-                    <div key={item.label} className="rounded-md bg-white p-4 shadow-sm">
-                      <p className="text-2xl font-bold text-slate-900">{item.value}</p>
-                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-steel">{item.label}</p>
-                    </div>
-                  ))}
+              <div className="space-y-4">
+                <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
+                  <Image
+                    src="/mortgage-field-inspector.png"
+                    alt="Mortgage field inspector reviewing property details"
+                    className="h-full w-full object-cover"
+                    width={880}
+                    height={620}
+                    priority
+                  />
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-steel">
-                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">Stat strip</span>
-                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">Lender links</span>
-                  <span className="rounded-full bg-white px-3 py-1 shadow-sm">Submission clarity</span>
+                <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-900">Performance snapshot</p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
+                    {stats.map((item) => (
+                      <div key={item.label} className="rounded-md bg-white p-4 shadow-sm">
+                        <p className="text-2xl font-bold text-slate-900">{item.value}</p>
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-steel">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-steel">
+                    <span className="rounded-full bg-white px-3 py-1 shadow-sm">Stat strip</span>
+                    <span className="rounded-full bg-white px-3 py-1 shadow-sm">Lender links</span>
+                    <span className="rounded-full bg-white px-3 py-1 shadow-sm">Submission clarity</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-              <Link href="/membership" className="underline-offset-4 hover:underline">
-                Start membership
-              </Link>
-              <span aria-hidden="true">•</span>
-              <Link href="/directory" className="underline-offset-4 hover:underline">
-                Directory
-              </Link>
             </div>
           </div>
         </div>

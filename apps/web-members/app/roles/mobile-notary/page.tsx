@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const scenarios = [
@@ -42,22 +43,16 @@ export default function MobileNotaryPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/membership"
+                  href="/directory"
                   className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
-                  Membership plans
+                  View lender directory
                 </Link>
                 <Link
-                  href="/directory"
+                  href="/resources"
                   className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
-                  Directory
-                </Link>
-                <Link
-                  href="/"
-                  className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 underline-offset-4 transition hover:text-slate-900"
-                >
-                  Home
+                  Notary resources
                 </Link>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-700">
@@ -75,15 +70,27 @@ export default function MobileNotaryPage() {
                 </li>
               </ul>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
-              <p className="text-sm font-semibold text-slate-900">Scheduling scenarios</p>
-              <div className="mt-4 space-y-4">
-                {scenarios.map((scenario) => (
-                  <div key={scenario.title} className="rounded-md bg-white p-4 shadow-sm">
-                    <p className="text-sm font-semibold text-slate-900">{scenario.title}</p>
-                    <p className="mt-1 text-sm text-slate-700">{scenario.detail}</p>
-                  </div>
-                ))}
+            <div className="space-y-4">
+              <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
+                <Image
+                  src="/mobile-notary.png"
+                  alt="Mobile notary preparing documents and inspection materials"
+                  className="h-full w-full object-cover"
+                  width={880}
+                  height={620}
+                  priority
+                />
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+                <p className="text-sm font-semibold text-slate-900">Scheduling scenarios</p>
+                <div className="mt-4 space-y-4">
+                  {scenarios.map((scenario) => (
+                    <div key={scenario.title} className="rounded-md bg-white p-4 shadow-sm">
+                      <p className="text-sm font-semibold text-slate-900">{scenario.title}</p>
+                      <p className="mt-1 text-sm text-slate-700">{scenario.detail}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

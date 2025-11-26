@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const comparison = [
@@ -43,34 +44,40 @@ export default function AssetPreservationPage() {
     <main className="bg-brand-sand text-slate-900">
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Asset preservation</p>
-              <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Industrial-ready workflows for every property.</h1>
-              <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
-                Keep vacant, occupied, and distressed assets protected with clear expectations, comparison transparency, and
-                roles that scale.
-              </p>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Asset preservation</p>
+                <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Industrial-ready workflows for every property.</h1>
+                <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
+                  Keep vacant, occupied, and distressed assets protected with clear expectations, comparison transparency, and
+                  roles that scale.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/resources"
+                  className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                >
+                  Preservation resources
+                </Link>
+                <Link
+                  href="/directory"
+                  className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                >
+                  Vendor directory
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/membership"
-                className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-              >
-                Membership plans
-              </Link>
-              <Link
-                href="/directory"
-                className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-              >
-                Directory
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 underline-offset-4 transition hover:text-slate-900"
-              >
-                Home
-              </Link>
+            <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
+              <Image
+                src="/asset-preservation.png"
+                alt="Asset preservation crew coordinating property upkeep"
+                className="h-full w-full object-cover"
+                width={880}
+                height={620}
+                priority
+              />
             </div>
           </div>
         </div>
