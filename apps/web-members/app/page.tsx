@@ -28,10 +28,13 @@ const jsonLd = {
 
 export default function HomePage() {
   const heroImage = '/hero.jpg'
-  const [carouselLoaded, setCarouselLoaded] = useState(false)
+  // reuse hero for now. you can swap this to another image later
+  const rolesHeroImage = '/hero.jpg'
+
+  const [roleHeroLoaded, setRoleHeroLoaded] = useState(false)
 
   useEffect(() => {
-    setCarouselLoaded(true)
+    setRoleHeroLoaded(true)
   }, [])
 
   return (
@@ -44,6 +47,7 @@ export default function HomePage() {
       />
 
       <main className="min-h-screen bg-brand-background text-brand-text">
+        {/* TOP HERO */}
         <section className="relative w-full overflow-hidden bg-brand-background">
           <div className="absolute inset-0">
             <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
@@ -56,8 +60,8 @@ export default function HomePage() {
                 The AI-powered vendor hub for field pros
               </h1>
               <p className="mt-2 text-brand-muted text-sm leading-relaxed sm:text-base">
-                Tools, insights, and transparent data to help inspectors, notaries, and field vendors get paid faster and
-                protect their time.
+                Tools, insights, and transparent data to help inspectors, notaries, and field vendors
+                get paid faster and protect their time.
               </p>
               <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
                 <Link
@@ -77,16 +81,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Roles carousel hero band with gradient + zoom on load */}
-        <section className="border-b border-slate-200 bg-gradient-to-r from-brand-mist/80 via-white to-brand-mist/80">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
-            <div
-              className={`rounded-3xl border border-slate-200 bg-white/90 shadow-xl transition-all duration-700 ease-out ${
-                carouselLoaded ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-3'
-              }`}
-            >
-              <RoleCarousel />
-            </div>
+        {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
+        <section className="relative border-b border-slate-200 overflow-hidden">
+          {/* background image sits directly under the section. spans full width */}
+          <div
+            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-[900ms] ease-out ${
+              roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
+            }`}
+          >
+            <Image
+              src={rolesHeroImage}
+              alt=""
+              fill
+              priority
+              className="object-cover object-center"
+            />
+            {/* gradient fade from solid hub color into the image. like oracle */}
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-background/92 via-brand-background/70 to-transparent" />
+          </div>
+
+          {/* content lives on top of the gradient/image */}
+          <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <RoleCarousel />
           </div>
         </section>
 
@@ -96,9 +112,9 @@ export default function HomePage() {
             <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
               <p className="font-semibold text-slate-900">Who this hub serves</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                <span>• Mortgage & insurance field inspectors</span>
-                <span>• Mobile notaries & signing agents</span>
-                <span>• Realtors & investor-friendly agents</span>
+                <span>• Mortgage &amp; insurance field inspectors</span>
+                <span>• Mobile notaries &amp; signing agents</span>
+                <span>• Realtors &amp; investor-friendly agents</span>
                 <span>• Gig pros adding inspections as a new lane</span>
               </div>
             </div>
@@ -181,7 +197,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How it works timeline, already has a distinct soft tint */}
+        {/* How it works timeline */}
         <section className="border-b border-brand-copper/15 bg-brand-mist">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="max-w-3xl">
@@ -196,7 +212,9 @@ export default function HomePage() {
 
             <ol className="mt-8 grid gap-6 text-sm text-slate-700 md:grid-cols-3">
               <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 1</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">
+                  Step 1
+                </p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">Dial in your lane.</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   Create your profile, pick your service lanes, and mark your home base. The hub
@@ -204,7 +222,9 @@ export default function HomePage() {
                 </p>
               </li>
               <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 2</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">
+                  Step 2
+                </p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
                   Shortlist firms that fit your life.
                 </h3>
@@ -214,20 +234,22 @@ export default function HomePage() {
                 </p>
               </li>
               <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 3</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">
+                  Step 3
+                </p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
                   Track applications and routes in one place.
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Save firms you apply to, jot notes after calls, and use starter kits to prep for day
-                  one on a new client&apos;s route.
+                  Save firms you apply to, jot notes after calls, and use starter kits to prep for
+                  day one on a new client&apos;s route.
                 </p>
               </li>
             </ol>
           </div>
         </section>
 
-        {/* Split section, subtle gray band */}
+        {/* Split section */}
         <section className="border-b border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="grid gap-8 md:grid-cols-2">
