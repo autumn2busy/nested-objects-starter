@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
-import { logoDataUrl } from '../lib/logoData'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -66,7 +65,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-steel/50 bg-brand-sand shadow-brand-soft">
-              <Image src={logoDataUrl} alt="Nested Objects logo" width={36} height={36} priority />
+              <Image src="/logo-light.png" alt="Nested Objects logo" width={36} height={36} priority />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-base font-semibold tracking-tight text-brand-dark">Nested Objects</span>
