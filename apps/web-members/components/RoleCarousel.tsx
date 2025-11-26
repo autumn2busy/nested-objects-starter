@@ -11,6 +11,7 @@ type RoleCard = {
   image: string
   alt: string
   gradient: string
+  accent: string
 }
 
 const roles: RoleCard[] = [
@@ -21,6 +22,7 @@ const roles: RoleCard[] = [
     image: '/mortgage-field-inspector.png',
     alt: 'Mortgage field inspector photographing the exterior of a property',
     gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
+    accent: 'text-emerald-700',
   },
   {
     title: 'Insurance loss control surveyor',
@@ -29,6 +31,7 @@ const roles: RoleCard[] = [
     image: '/insurance-loss-control.png',
     alt: 'Insurance loss control surveyor reviewing risks outside a building',
     gradient: 'from-[#F7F5F2] to-[#EDE6FA]',
+    accent: 'text-indigo-700',
   },
   {
     title: 'Mobile notary & signing agent',
@@ -37,6 +40,7 @@ const roles: RoleCard[] = [
     image: '/mobile-notary.png',
     alt: 'Mobile notary guiding a borrower through documents at their kitchen table',
     gradient: 'from-[#F7F5F2] to-[#FBEAD6]',
+    accent: 'text-amber-700',
   },
   {
     title: 'Asset preservation / REO specialist',
@@ -45,6 +49,7 @@ const roles: RoleCard[] = [
     image: '/asset-preservation.png',
     alt: 'REO specialist inspecting a vacant property interior',
     gradient: 'from-[#F7F5F2] to-[#E8F5E9]',
+    accent: 'text-emerald-800',
   },
   {
     title: 'Gig pros adding inspections',
@@ -53,6 +58,7 @@ const roles: RoleCard[] = [
     image: '/gig-pro-inspector.png',
     alt: 'Gig worker loading inspection gear into a hatchback',
     gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
+    accent: 'text-sky-700',
   },
 ]
 
@@ -149,46 +155,54 @@ export function RoleCarousel() {
           aria-label="Scrollable list of roles we support"
           tabIndex={0}
           onKeyDown={handleArrowKey}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 pt-1 text-left focus:outline-none"
+          className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-6 pt-1 text-left focus:outline-none"
         >
           {roles.map((role, index) => (
             <article
               key={role.slug}
               role="listitem"
-              className={`flex min-w-[260px] snap-start flex-col border border-slate-200 bg-gradient-to-br ${role.gradient} p-5 shadow-sm transition hover:-translate-y-1`}
+              className={`relative flex min-w-[92vw] snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r ${role.gradient} shadow-[0_25px_60px_rgba(15,23,42,0.12)] transition hover:-translate-y-1 sm:min-w-[75vw] lg:min-w-[70vw]`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-2">
+              <div className="relative z-10 grid gap-6 p-6 sm:grid-cols-[1.1fr_0.9fr] sm:items-center sm:p-8 lg:p-10">
+                <div className="space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{index + 1} of {roles.length}</p>
-                  <h3 className="text-lg font-semibold text-brand-dark">{role.title}</h3>
-                  <p className="text-sm text-slate-700">{role.value}</p>
+                  <div className="flex items-baseline gap-3">
+                    <h3 className="text-2xl font-semibold text-brand-dark sm:text-3xl">{role.title}</h3>
+                    <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${role.accent}`}>Role path</span>
+                  </div>
+                  <p className="text-sm text-slate-700 sm:text-base">{role.value}</p>
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <Link
+                      href={`/roles/${role.slug}`}
+                      className="inline-flex items-center gap-2 rounded-md bg-brand-dark px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                      aria-label={`Read more about the ${role.title} role`}
+                    >
+                      Explore this path
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                    <Link
+                      href="/directory"
+                      className="inline-flex items-center gap-2 rounded-md bg-white/80 px-4 py-2 text-sm font-semibold text-brand-dark shadow-sm transition hover:bg-white"
+                    >
+                      Browse firms
+                    </Link>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-4 overflow-hidden rounded-lg border border-white/60 bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
-                <div className="relative aspect-[4/3] w-full">
+                <div className="relative h-[260px] w-full overflow-hidden rounded-xl border border-white/60 bg-white/70 shadow-[0_20px_40px_rgba(0,0,0,0.12)] sm:h-[320px]">
                   <Image
                     src={role.image}
                     alt={role.alt}
                     fill
-                    sizes="(min-width: 1024px) 320px, (min-width: 768px) 45vw, 80vw"
-                    className="object-cover"
+                    sizes="(min-width: 1024px) 520px, (min-width: 768px) 55vw, 82vw"
+                    className="object-cover object-center"
                     priority={index === 0}
                   />
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-white via-white/60 to-transparent" aria-hidden="true" />
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                <Link
-                  href={`/roles/${role.slug}`}
-                  className="inline-flex items-center gap-2 rounded-none border border-slate-300 bg-white px-4 py-2 font-semibold text-brand-dark transition hover:bg-slate-50"
-                  aria-label={`Read more about the ${role.title} role`}
-                >
-                  Explore this path
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">/roles/{role.slug}</span>
-              </div>
+              <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-white/30 via-white/10 to-transparent sm:block" aria-hidden="true" />
             </article>
           ))}
         </div>
@@ -204,6 +218,38 @@ export function RoleCarousel() {
                 activeIndex === index ? 'w-8 bg-brand-copper' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
               }`}
             />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Choose your role</p>
+            <h3 className="mt-1 text-xl font-semibold text-brand-dark">Jump to the playbook that fits your day</h3>
+            <p className="mt-1 text-sm text-slate-700">Pick a path to see the checklists, scripts, and firm links tailored to that lane.</p>
+          </div>
+          <Link
+            href="/directory"
+            className="inline-flex items-center justify-center rounded-md bg-brand-dark px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          >
+            Compare firms →
+          </Link>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {roles.map((role) => (
+            <Link
+              key={role.slug}
+              href={`/roles/${role.slug}`}
+              className="group flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-r from-white to-brand-mist/40 px-4 py-3 text-sm font-semibold text-brand-dark transition hover:-translate-y-0.5 hover:border-brand-copper/50 hover:bg-brand-mist/70"
+            >
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Role</span>
+                <span className="text-sm font-semibold text-brand-dark">{role.title}</span>
+              </div>
+              <span className="text-lg text-brand-copper transition group-hover:translate-x-1">→</span>
+            </Link>
           ))}
         </div>
       </div>
