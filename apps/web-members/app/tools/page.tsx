@@ -1,6 +1,42 @@
 import Link from 'next/link'
 
+import { buttonVariants } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+
 export default function ToolsIndexPage() {
+  const tools = [
+    {
+      title: '🤖 AI concierge',
+      description: 'Ask questions about firms, requirements, and inspection workflows in plain language.',
+      href: '/tools/ai-chatbot',
+      cta: 'Open AI concierge →',
+    },
+    {
+      title: '📝 AI resume builder',
+      description: 'Turn your experience, routes, and gear into a clean resume for field service firms.',
+      href: '/tools/ai-resume',
+      cta: 'Build my resume →',
+    },
+    {
+      title: '📍 Job tracking',
+      description: 'Track inspections, due dates, and pay so nothing slips through the cracks.',
+      href: '/tools/job-tracker',
+      cta: 'Go to job tracker →',
+    },
+    {
+      title: '🌤 Weather',
+      description: 'Plan around storms and daylight so your routes are safer and more profitable.',
+      href: '/tools/weather',
+      cta: 'Open weather tool →',
+    },
+    {
+      title: '🗺 Route planning',
+      description: 'Stack inspections into efficient routes so you burn less gas and make more per mile.',
+      href: '/tools/routing',
+      cta: 'Plan my routes →',
+    },
+  ]
+
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
       <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
@@ -15,80 +51,20 @@ export default function ToolsIndexPage() {
 
       <section className="bg-white">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8 lg:py-16">
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-brand-copper/20 bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-xl font-semibold text-brand-dark">🤖 AI concierge</h2>
-              <p className="mt-2 text-sm text-slate-700">
-                Ask questions about firms, requirements, and inspection workflows in plain language.
-              </p>
-            </div>
-            <Link
-              href="/tools/ai-chatbot"
-              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
-            >
-              Open AI concierge →
-            </Link>
-          </div>
-
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-brand-copper/20 bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-xl font-semibold text-brand-dark">📝 AI resume builder</h2>
-              <p className="mt-2 text-sm text-slate-700">
-                Turn your experience, routes, and gear into a clean resume for field service firms.
-              </p>
-            </div>
-            <Link
-              href="/tools/ai-resume"
-              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
-            >
-              Build my resume →
-            </Link>
-          </div>
-
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-brand-copper/20 bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-xl font-semibold text-brand-dark">📍 Job tracking</h2>
-              <p className="mt-2 text-sm text-slate-700">
-                Track inspections, due dates, and pay so nothing slips through the cracks.
-              </p>
-            </div>
-            <Link
-              href="/tools/job-tracker"
-              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
-            >
-              Go to job tracker →
-            </Link>
-          </div>
-
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-brand-copper/20 bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-xl font-semibold text-brand-dark">🌤 Weather</h2>
-              <p className="mt-2 text-sm text-slate-700">
-                Plan around storms and daylight so your routes are safer and more profitable.
-              </p>
-            </div>
-            <Link
-              href="/tools/weather"
-              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
-            >
-              Open weather tool →
-            </Link>
-          </div>
-
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-brand-copper/20 bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-xl font-semibold text-brand-dark">🗺 Route planning</h2>
-              <p className="mt-2 text-sm text-slate-700">
-                Stack inspections into efficient routes so you burn less gas and make more per mile.
-              </p>
-            </div>
-            <Link
-              href="/tools/routing"
-              className="text-sm font-semibold text-brand-copper decoration-brand-copper/70 underline underline-offset-4 transition hover:text-brand-copperDark hover:decoration-brand-copper"
-            >
-              Plan my routes →
-            </Link>
-          </div>
+          {tools.map((tool) => (
+            <Card key={tool.title} className="flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm">
+              <div>
+                <h2 className="text-xl font-semibold text-text-primary">{tool.title}</h2>
+                <p className="mt-2 text-sm text-text-secondary">{tool.description}</p>
+              </div>
+              <Link
+                href={tool.href}
+                className={buttonVariants({ variant: 'link', size: 'sm', className: 'text-sm font-semibold' })}
+              >
+                {tool.cta}
+              </Link>
+            </Card>
+          ))}
         </div>
       </section>
     </main>

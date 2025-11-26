@@ -5,6 +5,9 @@ import Link from 'next/link'
 import Script from 'next/script'
 
 import { useAuth } from '@/components/auth-provider'
+import { Card } from '@/components/ui/card'
+import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 
 type Firm = {
   id: string
@@ -124,63 +127,58 @@ function FilterBar({
   onStateChange,
 }: FilterBarProps) {
   return (
-    <section className="mb-6 border border-slate-200 bg-white px-5 py-4 shadow-sm">
+    <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
         <div className="space-y-1">
-          <label className="text-xs font-semibold tracking-[0.14em] text-slate-700" htmlFor="state-filter">
-            SERVICE AREA
-          </label>
-          <select
+          <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
+          <Select
             id="state-filter"
             value={stateFilter}
             onChange={(e) => onStateChange(e.target.value)}
-            className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
           >
             {US_STATES.map((s) => (
               <option key={s.code} value={s.code}>
                 {s.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold tracking-[0.14em] text-slate-700" htmlFor="keyword-filter">
-            NAME / KEYWORD
-          </label>
+          <FieldLabel htmlFor="keyword-filter">NAME / KEYWORD</FieldLabel>
           {isStarter ? (
             <div className="space-y-1">
-              <input
+              <Input
                 id="keyword-filter"
                 type="text"
                 disabled
+                tone="warning"
                 placeholder="Search + advanced filters available on paid plans"
-                className="w-full cursor-not-allowed border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-inner"
+                className="cursor-not-allowed"
               />
-              <p className="text-xs text-amber-800">
+              <FieldHelperText className="text-amber-800">
                 Upgrade to Pro or higher to search by firm, service type, and region.{' '}
                 <Link href="/membership" className="font-semibold text-amber-900 underline">
                   View plans
                 </Link>
-              </p>
+              </FieldHelperText>
             </div>
           ) : (
-            <input
+            <Input
               id="keyword-filter"
               type="text"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Safeguard, mortgage, appraisal, BPO..."
-              className="w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
             />
           )}
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-slate-600">
+      <FieldHelperText className="mt-3">
         Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
-      </p>
-    </section>
+      </FieldHelperText>
+    </Card>
   )
 }
 

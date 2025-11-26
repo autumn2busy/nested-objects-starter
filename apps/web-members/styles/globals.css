@@ -3,16 +3,13 @@
 @tailwind utilities;
 
 :root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --space-gutter: 1.25rem;
+  --space-card: 1.5rem;
+  --space-section: 3.5rem;
+
   color: #343a40;
   background-color: #f6f6f6;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at 10% 20%, #ffffff 0, #ffffff 25%, #fafafa 45%, #f6f6f6 80%);
-  color: #343a40;
-  font-feature-settings: 'lnum' 1, 'tnum' 0;
 }
 
 a {
@@ -21,6 +18,18 @@ a {
 }
 
 @layer base {
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 20%, #ffffff 0, #ffffff 25%, #fafafa 45%, #f6f6f6 80%);
+    @apply bg-surface-subtle font-sans text-text-primary;
+    font-feature-settings: 'lnum' 1, 'tnum' 0;
+  }
+
   h1,
   h2,
   h3,
@@ -28,11 +37,11 @@ a {
   h5,
   h6 {
     letter-spacing: -0.01em;
-    color: #343a40;
+    @apply text-text-primary;
   }
 
   p {
-    color: #474747;
+    @apply text-text-secondary;
   }
 
   ::selection {

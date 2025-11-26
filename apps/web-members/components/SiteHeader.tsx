@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
+import { Button, buttonVariants } from './ui/button'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -60,34 +61,37 @@ export function SiteHeader() {
   }, [pathname])
 
   return (
-    <header className="sticky top-0 z-30 border-b border-brand-steel/30 bg-white/85 text-brand-dark backdrop-blur-md shadow-sm">
+    <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/85 text-text-primary backdrop-blur-md shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-steel/50 bg-brand-sand shadow-brand-soft">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
               <Image src="/logo-light.png" alt="Nested Objects logo" width={36} height={36} priority />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-base font-semibold tracking-tight text-brand-dark">Nested Objects</span>
+              <span className="text-base font-semibold tracking-tight text-text-primary">Nested Objects</span>
               <span className="text-[11px] uppercase tracking-[0.2em] text-brand-copper">Vendor hub</span>
             </div>
           </Link>
 
           <nav className="relative text-sm font-medium" aria-label="Primary">
-            <button
+            <Button
               type="button"
               aria-expanded={isNavOpen}
               aria-controls="primary-navigation"
               onClick={() => setIsNavOpen((open) => !open)}
-              className="flex items-center gap-2 rounded-lg border border-brand-steel/70 bg-white px-3 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:border-brand-copper hover:text-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper md:hidden"
+              variant="secondary"
+              size="sm"
+              shape="rounded"
+              className="gap-2 md:hidden"
             >
               <span className="flex flex-col gap-1" aria-hidden>
-                <span className="block h-0.5 w-5 bg-brand-dark" />
-                <span className="block h-0.5 w-5 bg-brand-dark" />
-                <span className="block h-0.5 w-5 bg-brand-dark" />
+                <span className="block h-0.5 w-5 bg-text-primary" />
+                <span className="block h-0.5 w-5 bg-text-primary" />
+                <span className="block h-0.5 w-5 bg-text-primary" />
               </span>
               Menu
-            </button>
+            </Button>
 
             <div
               id="primary-navigation"
@@ -97,11 +101,13 @@ export function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`block rounded-lg px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper ${
-                    activeLink(link.href)
-                      ? 'bg-brand-copper text-white shadow-sm'
-                      : 'text-brand-slate hover:bg-brand-sand hover:text-brand-dark'
-                  }`}
+                  className={buttonVariants({
+                    variant: activeLink(link.href) ? 'primary' : 'ghost',
+                    size: 'sm',
+                    shape: 'rounded',
+                    active: activeLink(link.href),
+                    className: 'w-full justify-start md:w-auto md:justify-center',
+                  })}
                 >
                   {link.label}
                 </Link>
@@ -112,36 +118,33 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3 text-sm font-semibold">
           {isLoading ? (
-            <span className="text-xs text-brand-slate">Checking your hub…</span>
+            <span className="text-xs text-text-secondary">Checking your hub…</span>
           ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-brand-steel/60 bg-white/90 px-3 py-2 shadow-brand-card">
+              <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/90 px-3 py-2 shadow-brand-card">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
                   {initials}
                 </div>
                 <div className="hidden flex-col text-left text-xs sm:flex">
-                  <span className="font-semibold text-brand-dark">{profileDisplayName ?? displayName}</span>
+                  <span className="font-semibold text-text-primary">{profileDisplayName ?? displayName}</span>
                   {planLabel && <span className="text-[11px] uppercase tracking-wide text-brand-copper">{planLabel} plan</span>}
                 </div>
               </div>
-              <button
-                onClick={() => logout()}
-                className="rounded-full border border-brand-steel/70 px-3 py-2 text-xs font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
-              >
+              <Button variant="secondary" size="sm" onClick={() => logout()}>
                 Logout
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                className="rounded-full border border-brand-steel/70 bg-white/70 px-3 py-2 text-xs font-semibold text-brand-dark shadow-sm transition hover:border-brand-copper hover:text-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+                className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'bg-white/80 backdrop-blur' })}
               >
                 Login
               </a>
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                className="hidden rounded-full border border-brand-copper bg-brand-copper px-4 py-2 text-xs font-semibold text-white shadow-brand-soft transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper sm:inline-flex"
+                className={buttonVariants({ variant: 'primary', size: 'sm', className: 'hidden sm:inline-flex' })}
               >
                 Join free
               </a>
