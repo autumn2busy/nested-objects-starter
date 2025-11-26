@@ -7,6 +7,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
 import { Button, buttonVariants } from './ui/button'
 
+type SiteHeaderProps = {
+  containerClassName?: string
+}
+
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
@@ -18,10 +22,11 @@ const navLinks = [
   { href: '/contact', label: 'Contact' },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
   const displayName = useMemo(() => {
     return (
@@ -36,8 +41,15 @@ export function SiteHeader() {
 
   const initials = displayName.charAt(0).toUpperCase()
 
-  const activeLink = (href: string) =>
-    href === '/' ? pathname === href : pathname?.startsWith(href)
+  const activeLink = (href: string) => {
+    if (!pathname) return false
+    if (href === '/') return pathname === '/'
+
+    const activeRoot = pathname.replace(/^\/+/, '').split('/')[0]
+    const hrefRoot = href.replace(/^\/+/, '').split('/')[0]
+
+    return activeRoot === hrefRoot
+  }
 
   const planLabel = (() => {
     switch (planUid) {
