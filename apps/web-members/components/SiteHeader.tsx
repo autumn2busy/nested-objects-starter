@@ -6,6 +6,10 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
 
+type SiteHeaderProps = {
+  containerClassName?: string
+}
+
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
@@ -17,10 +21,11 @@ const navLinks = [
   { href: '/contact', label: 'Contact' },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
   const displayName = useMemo(() => {
     return (
@@ -35,8 +40,15 @@ export function SiteHeader() {
 
   const initials = displayName.charAt(0).toUpperCase()
 
-  const activeLink = (href: string) =>
-    href === '/' ? pathname === href : pathname?.startsWith(href)
+  const activeLink = (href: string) => {
+    if (!pathname) return false
+    if (href === '/') return pathname === '/'
+
+    const activeRoot = pathname.replace(/^\/+/, '').split('/')[0]
+    const hrefRoot = href.replace(/^\/+/, '').split('/')[0]
+
+    return activeRoot === hrefRoot
+  }
 
   const planLabel = (() => {
     switch (planUid) {
@@ -60,12 +72,12 @@ export function SiteHeader() {
   }, [pathname])
 
   return (
-    <header className="sticky top-0 z-30 border-b border-brand-steel/30 bg-white/85 text-brand-dark backdrop-blur-md shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-brand-steel/30 bg-white/90 text-brand-dark backdrop-blur-xl shadow-sm">
+      <div className={`flex items-center justify-between py-3 ${containerClass}`}>
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-steel/50 bg-brand-sand shadow-brand-soft">
-              <Image src="/logo-light.png" alt="Nested Objects logo" width={36} height={36} priority />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-brand-steel/40 bg-brand-sand shadow-brand-soft">
+              <Image src="/logo-copper-charcoal.svg" alt="Nested Objects logo" width={36} height={36} priority />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-base font-semibold tracking-tight text-brand-dark">Nested Objects</span>
@@ -97,9 +109,10 @@ export function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  aria-current={activeLink(link.href) ? 'page' : undefined}
                   className={`block rounded-lg px-3 py-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper ${
                     activeLink(link.href)
-                      ? 'bg-brand-copper text-white shadow-sm'
+                      ? 'bg-brand-copper text-white shadow-sm md:bg-brand-sand/80 md:text-brand-copper md:shadow-none'
                       : 'text-brand-slate hover:bg-brand-sand hover:text-brand-dark'
                   }`}
                 >
