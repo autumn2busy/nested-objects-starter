@@ -4,7 +4,9 @@ import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
-import { SiteFooter } from '@/components/SiteFooter'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Container } from '@/components/ui/container'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -39,49 +41,44 @@ export default function HomePage() {
       />
 
       <main className="min-h-screen bg-brand-background text-brand-text">
-        <section className="relative w-full overflow-hidden bg-brand-background">
+        <section className="relative overflow-hidden bg-brand-background">
           <div className="absolute inset-0">
             <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-background/70 to-brand-background/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-background/80 via-brand-background/60 to-brand-background/20" />
           </div>
 
-          <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
+          <Container className="relative py-24 text-center lg:py-32">
             <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-brand-text">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-muted">Vendor hub for field pros</p>
+              <h1 className="text-3xl font-semibold tracking-tight text-brand-heading sm:text-4xl">
                 The AI-powered vendor hub for field pros
               </h1>
-              <p className="mt-2 text-brand-muted text-sm leading-relaxed sm:text-base">
-                Tools, insights, and transparent data to help inspectors, notaries, and field vendors get paid faster and
-                protect their time.
+              <p className="mt-2 text-sm leading-relaxed text-brand-muted sm:text-base">
+                Tools, insights, and transparent data to help inspectors, notaries, and field vendors get paid faster and protect
+                their time.
               </p>
               <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
-                <Link
-                  href="/membership"
-                  className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
-                >
+                <Button as={Link} href="/membership" className="w-full sm:w-auto">
                   Explore membership options
-                </Link>
-                <Link
-                  href="/directory"
-                  className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-brand-text rounded-none hover:bg-brand-soft"
-                >
+                </Button>
+                <Button as={Link} href="/directory" variant="secondary" className="w-full sm:w-auto">
                   Preview the firm directory
-                </Link>
+                </Button>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
 
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <section className="border-b border-brand-border bg-brand-surface">
+          <Container className="py-10 lg:py-14">
             <RoleCarousel />
-          </div>
+          </Container>
         </section>
 
-        <section className="border-b border-slate-200 bg-white/80">
-          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
-              <p className="font-semibold text-slate-900">Who this hub serves</p>
+        <section className="border-b border-brand-border bg-brand-surface/80">
+          <Container className="py-8 sm:py-10 lg:py-12">
+            <div className="rounded-2xl border border-brand-border bg-brand-surface/90 p-5 text-xs text-brand-muted shadow-sm sm:text-[13px]">
+              <p className="font-semibold text-brand-heading">Who this hub serves</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                 <span>• Mortgage & insurance field inspectors</span>
                 <span>• Mobile notaries & signing agents</span>
@@ -89,212 +86,206 @@ export default function HomePage() {
                 <span>• Gig pros adding inspections as a new lane</span>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
 
-        {/* Feature pillars (Directory / Intel / AI tools) */}
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+        <section className="border-b border-brand-border bg-brand-surface">
+          <Container className="py-10 sm:py-12 lg:py-14">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  Inside the member hub
-                </h2>
-                <p className="mt-2 max-w-xl text-sm text-slate-600">
-                  One place to see who is hiring, what they pay, and what they expect from you before
-                  you sign up for another portal.
+                <h2 className="text-xl font-bold tracking-tight text-brand-heading sm:text-2xl">Inside the member hub</h2>
+                <p className="mt-2 max-w-xl text-sm text-brand-muted">
+                  One place to see who is hiring, what they pay, and what they expect from you before you sign up for another
+                  portal.
                 </p>
               </div>
-              <Link
-                href="/membership"
-                className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-brand-mist px-4 py-2 text-xs font-semibold text-brand-dark hover:bg-white"
-              >
+              <Button as={Link} href="/membership" variant="secondary" className="text-xs">
                 Compare Starter vs Pro →
-              </Link>
+              </Button>
             </div>
 
             <div className="mt-8 grid gap-6 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">Verified firm directory</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Search firms by region, service lane, tools required, and onboarding status. No
-                  resumes uploaded. you control who sees your info.
+              <Card className="border-brand-border/80 bg-brand-soft/70">
+                <h3 className="text-sm font-semibold text-brand-heading">Verified firm directory</h3>
+                <p className="mt-2 text-sm text-brand-muted">
+                  Search firms by region, service lane, tools required, and onboarding status. No resumes uploaded. You control
+                  who sees your info.
                 </p>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                  Included with Starter
-                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-primary">Included with Starter</p>
                 <Link
                   href="/directory"
-                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-primary underline underline-offset-4 transition hover:text-brand-primaryDark"
                 >
                   Browse active firms →
                 </Link>
-              </div>
+              </Card>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">Transparent firm intel</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  See pay ranges, regions, typical volume, and expectations in plain language so you
-                  can match firms to your schedule and gear.
+              <Card className="border-brand-border/80 bg-brand-soft/70">
+                <h3 className="text-sm font-semibold text-brand-heading">Transparent firm intel</h3>
+                <p className="mt-2 text-sm text-brand-muted">
+                  See pay ranges, regions, typical volume, and expectations in plain language so you can match firms to your
+                  schedule and gear.
                 </p>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Unlocks with Pro
-                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-accent">Unlocks with Pro</p>
                 <Link
                   href="/resources/firm-intel"
-                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-primary underline underline-offset-4 transition hover:text-brand-primaryDark"
                 >
                   View sample snapshots →
                 </Link>
-              </div>
+              </Card>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">AI concierge for routes</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Ask which firms fit your lane, how to price routes, or what gear to buy first. Get
-                  answers in seconds instead of scrolling random threads.
+              <Card className="border-brand-border/80 bg-brand-soft/70">
+                <h3 className="text-sm font-semibold text-brand-heading">AI concierge for routes</h3>
+                <p className="mt-2 text-sm text-brand-muted">
+                  Ask which firms fit your lane, how to price routes, or what gear to buy first. Get answers in seconds instead
+                  of scrolling random threads.
                 </p>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Pro · Elite · Agency
-                </p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-accent">Pro · Elite · Agency</p>
                 <Link
                   href="/tools"
-                  className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
+                  className="mt-3 inline-flex text-xs font-semibold text-brand-primary underline underline-offset-4 transition hover:text-brand-primaryDark"
                 >
                   Explore tools →
                 </Link>
-              </div>
+              </Card>
             </div>
-          </div>
+          </Container>
         </section>
 
-        {/* How it works timeline */}
-        <section className="border-b border-brand-copper/15 bg-brand-mist">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
+        <section className="border-b border-brand-primary/15 bg-brand-soft">
+          <Container className="py-10 sm:py-12 lg:py-14">
             <div className="max-w-3xl">
-              <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              <h2 className="text-xl font-bold tracking-tight text-brand-heading sm:text-2xl">
                 How inspectors use Nested Objects in real life
               </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Whether you are brand new or adding inspections to an existing route, the hub keeps
-                your next steps simple.
+              <p className="mt-2 text-sm text-brand-muted">
+                Whether you are brand new or adding inspections to an existing route, the hub keeps your next steps simple.
               </p>
             </div>
 
-            <ol className="mt-8 grid gap-6 text-sm text-slate-700 md:grid-cols-3">
-              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 1</p>
-                <h3 className="mt-2 text-sm font-semibold text-slate-900">Dial in your lane.</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Create your profile, pick your service lanes, and mark your home base. The hub
-                  filters firms and routes around where you actually drive.
-                </p>
-              </li>
-              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 2</p>
-                <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                  Shortlist firms that fit your life.
-                </h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Use intel cards and AI concierge to compare pay ranges, volume, and gear so you
-                  avoid dead-end portals and low-ball routes.
-                </p>
-              </li>
-              <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Step 3</p>
-                <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                  Track applications and routes in one place.
-                </h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Save firms you apply to, jot notes after calls, and use starter kits to prep for day
-                  one on a new client&apos;s route.
-                </p>
-              </li>
+            <ol className="mt-8 grid gap-6 text-sm text-brand-muted md:grid-cols-3">
+              {[
+                {
+                  step: 'Step 1',
+                  title: 'Dial in your lane.',
+                  copy:
+                    'Create your profile, pick your service lanes, and mark your home base. The hub filters firms and routes around where you actually drive.',
+                },
+                {
+                  step: 'Step 2',
+                  title: 'Shortlist firms that fit your life.',
+                  copy:
+                    'Use intel cards and AI concierge to compare pay ranges, volume, and gear so you avoid dead-end portals and low-ball routes.',
+                },
+                {
+                  step: 'Step 3',
+                  title: 'Plan better routes.',
+                  copy:
+                    'Forecast weather, stack appointments, and get reminder nudges so you spend less time driving and more time earning.',
+                },
+              ].map((item) => (
+                <li key={item.step} className="rounded-2xl border border-brand-primary/20 bg-brand-surface p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-primary">{item.step}</p>
+                  <h3 className="mt-2 text-sm font-semibold text-brand-heading">{item.title}</h3>
+                  <p className="mt-2 text-sm text-brand-muted">{item.copy}</p>
+                </li>
+              ))}
             </ol>
-          </div>
+          </Container>
         </section>
 
-        {/* Split section: New vs already in field */}
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-            <div className="grid gap-8 md:grid-cols-2">
-              <div className="rounded-2xl border border-brand-copper/20 bg-white p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
-                  Just getting started.
+        <section className="border-b border-brand-border bg-brand-surface">
+          <Container className="py-10 sm:py-12 lg:py-14">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+              <div className="space-y-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-primary">Why members join</p>
+                <h2 className="text-xl font-bold tracking-tight text-brand-heading sm:text-2xl">
+                  Ship more jobs without guessing which firms are a fit.
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">
-                  Use the free Starter plan to explore firms, learn the language, and decide which
-                  lanes make sense for your life, car, and schedule.
+                <p className="text-sm text-brand-muted">
+                  Nested Objects surfaces firm intel, requirements, and communication preferences so you can match the right work
+                  to your schedule.
                 </p>
-                <ul className="mt-4 space-y-2 text-sm text-slate-700">
-                  <li>• See which firms even work your state.</li>
-                  <li>• Learn what tools and certifications matter first.</li>
-                  <li>• Get checklists for your first inspections.</li>
-                </ul>
-                <Link
-                  href="/membership"
-                  className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
-                >
-                  Start on Starter (free) →
-                </Link>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    'See current pay ranges and turnaround expectations.',
+                    'Filter by service lanes, gear, and onboarding status.',
+                    'Watch weather and daylight to keep routes safe.',
+                    'Use AI concierge to prep for interviews and calls.',
+                  ].map((item) => (
+                    <div key={item} className="rounded-xl border border-brand-border bg-brand-soft px-4 py-3 text-sm text-brand-heading shadow-sm">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-3 text-sm font-semibold">
+                  <Button as={Link} href="/directory">
+                    Browse directory
+                  </Button>
+                  <Button as={Link} href="/membership" variant="secondary">
+                    View plans
+                  </Button>
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-brand-copper/30 bg-brand-dark p-6 text-slate-50">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200">
-                  Already in the field.
-                </h2>
-                <p className="mt-2 text-sm text-slate-100">
-                  Switch into Pro or higher to layer intel and AI tools on top of routes you already
-                  run.
-                </p>
-                <ul className="mt-4 space-y-2 text-sm text-slate-100/90">
-                  <li>• Compare what you&apos;re earning to typical ranges in your region.</li>
-                  <li>• Spot firms paying better for the same lanes.</li>
-                  <li>• Plan smarter routes around family, day jobs, or other gigs.</li>
-                </ul>
-                <Link
-                  href="/membership"
-                  className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
-                >
-                  See Pro features →
-                </Link>
+              <div className="rounded-2xl border border-brand-border bg-brand-soft/60 p-6 shadow-brand-card">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-primary">Route snapshot</p>
+                    <h3 className="text-lg font-semibold text-brand-heading">Example call with firm</h3>
+                  </div>
+                  <span className="rounded-full bg-brand-highlight px-3 py-1 text-xs font-semibold text-brand-primary">Pro</span>
+                </div>
+                <div className="mt-4 space-y-3 text-sm text-brand-muted">
+                  <div className="flex items-start justify-between gap-4 rounded-xl border border-brand-border bg-brand-surface px-4 py-3 shadow-sm">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-muted">Pay range</p>
+                      <p className="text-base font-semibold text-brand-heading">$45–$65 per inspection</p>
+                    </div>
+                    <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-semibold text-brand-primary">Midwest</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4 rounded-xl border border-brand-border bg-brand-surface px-4 py-3 shadow-sm">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-muted">Volume</p>
+                      <p className="text-base font-semibold text-brand-heading">12–20 per week</p>
+                    </div>
+                    <span className="rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-semibold text-brand-accent">Suburbs</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4 rounded-xl border border-brand-border bg-brand-surface px-4 py-3 shadow-sm">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-muted">Gear</p>
+                      <p className="text-base font-semibold text-brand-heading">Ladder, camera, apps installed</p>
+                    </div>
+                    <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-semibold text-brand-primary">Ready</span>
+                  </div>
+                  <p className="pt-2 text-xs text-brand-muted">
+                    See real examples of what firms expect so you can position yourself as the right fit before you take the
+                    call.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
 
-        {/* Final CTA banner */}
-        <section className="bg-brand-dark">
-          <div className="mx-auto max-w-6xl px-4 py-10 text-center text-slate-50 sm:px-6 lg:px-8 lg:py-14">
-            <h2 className="text-2xl font-semibold sm:text-3xl">
-              Ready to stop guessing and start planning real routes.
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">
-              Join the Nested Objects hub to see firms, intel, and tools in one place instead of
-              chasing scattered posts and rumors.
+        <section className="bg-brand-primary text-slate-50">
+          <Container className="py-10 text-center sm:py-12 lg:py-14">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-sand/80">Stay in the loop</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Get the directory + intel in one hub</h2>
+            <p className="mt-3 text-sm text-brand-sand/90 sm:text-base">
+              Join free to browse firms or upgrade for deeper intel, route prep, and AI concierge.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/membership"
-                className="inline-flex items-center justify-center rounded-full bg-brand-copper px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-              >
-                Explore membership options
-              </Link>
-              <Link
-                href="/directory"
-                className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Preview the firm directory
-              </Link>
+              <Button as={Link} href="/membership" className="bg-white text-brand-primary hover:bg-brand-sand">
+                Get started
+              </Button>
+              <Button as={Link} href="/tools" variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
+                Explore tools
+              </Button>
             </div>
-            <p className="mt-3 text-xs text-slate-400">
-              Starter is free. upgrade to Pro or higher only when the hub proves its value on your
-              routes.
-            </p>
-          </div>
+          </Container>
         </section>
-
-        <SiteFooter />
       </main>
     </>
   )

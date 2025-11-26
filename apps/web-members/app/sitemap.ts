@@ -4,30 +4,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://nested-objects-starter.vercel.app'
   const now = new Date()
 
-  return [
-    {
-      url: `${baseUrl}/`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/dashboard`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/directory`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/membership`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
+  const routes = [
+    '/',
+    '/dashboard',
+    '/directory',
+    '/membership',
+    '/resources',
+    '/resources/firm-intel',
+    '/resources/checklists',
+    '/tools',
+    '/about',
+    '/contact',
+    '/privacy',
   ]
+
+  return routes.map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: route === '/' ? 1 : 0.8,
+  }))
 }

@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
-import { AuthProvider } from '@/components/auth-provider'
-import { SiteHeader } from '@/components/SiteHeader'
 import '../styles/globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
+import { AuthProvider } from '@/components/auth-provider'
+import { SiteFooter } from '@/components/SiteFooter'
+import { SiteHeader } from '@/components/SiteHeader'
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-plus-jakarta',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nested-objects-starter.vercel.app'),
@@ -62,11 +68,14 @@ export default function RootLayout({
           data-options="o_options"
         />
       </head>
-      <body className={plusJakarta.className}>
+      <body className={`${plusJakarta.variable} font-sans`}>
         {/* Wrap the entire app in the AuthProvider */}
         <AuthProvider>
-          <SiteHeader />
-          {children}
+          <div className="flex min-h-screen flex-col bg-brand-background text-brand-text">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </div>
         </AuthProvider>
       </body>
     </html>
