@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const timeline = [
@@ -69,22 +70,16 @@ export default function GigProInspectorPage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/membership"
+                href="/directory"
                 className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
               >
-                View membership options
+                Browse lender directory
               </Link>
               <Link
-                href="/directory"
+                href="/resources"
                 className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
               >
-                Browse active lenders
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 underline-offset-4 transition hover:text-slate-900"
-              >
-                Back to home
+                Open inspection resources
               </Link>
             </div>
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-700">
@@ -93,29 +88,41 @@ export default function GigProInspectorPage() {
               <span className="rounded-full bg-white px-3 py-2 shadow-sm">Safety & escalation steps</span>
             </div>
           </div>
-          <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <p className="text-sm font-semibold text-slate-900">Your day at a glance</p>
-              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">Route ready</span>
+          <div className="space-y-4">
+            <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+              <Image
+                src="/gig-pro-inspector.png"
+                alt="Gig pro inspector preparing for the next route"
+                className="h-full w-full object-cover"
+                width={880}
+                height={620}
+                priority
+              />
             </div>
-            <ol className="space-y-4">
-              {timeline.map((item) => (
-                <li key={item.label} className="flex gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                    <p className="mt-1 text-sm text-slate-700">{item.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <div className="pt-2">
-              <Link
-                href="/membership"
-                className="inline-flex items-center justify-center rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-              >
-                See the 7-day starter
-              </Link>
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <p className="text-sm font-semibold text-slate-900">Your day at a glance</p>
+                <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">Route ready</span>
+              </div>
+              <ol className="space-y-4">
+                {timeline.map((item) => (
+                  <li key={item.label} className="flex gap-3">
+                    <div className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                      <p className="mt-1 text-sm text-slate-700">{item.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="pt-2">
+                <Link
+                  href="/membership"
+                  className="inline-flex items-center justify-center rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                >
+                  See the 7-day starter
+                </Link>
+              </div>
             </div>
           </div>
         </div>

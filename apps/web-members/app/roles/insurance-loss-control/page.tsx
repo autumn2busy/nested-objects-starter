@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const segments = [
@@ -72,41 +73,47 @@ export default function InsuranceLossControlPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/membership"
+                  href="/directory"
                   className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
-                  Membership plans
+                  View carrier directory
                 </Link>
                 <Link
-                  href="/directory"
+                  href="/resources"
                   className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
-                  Directory
-                </Link>
-                <Link
-                  href="/"
-                  className="inline-flex items-center justify-center text-sm font-semibold text-slate-700 underline-offset-4 transition hover:text-slate-900"
-                >
-                  Home
+                  Loss control resources
                 </Link>
               </div>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
-              <p className="text-sm font-semibold text-slate-900">Use cases you can toggle</p>
-              <ul className="mt-4 space-y-3 text-sm text-slate-700">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
-                  Fast scheduling scripts for occupants and facilities managers.
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
-                  Capture order lists built for underwriting.
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
-                  Submission bundles that keep reviewers moving.
-                </li>
-              </ul>
+            <div className="space-y-4">
+              <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
+                <Image
+                  src="/insurance-loss-control.png"
+                  alt="Insurance loss control inspector reviewing underwriting checklist"
+                  className="h-full w-full object-cover"
+                  width={880}
+                  height={620}
+                  priority
+                />
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+                <p className="text-sm font-semibold text-slate-900">Use cases you can toggle</p>
+                <ul className="mt-4 space-y-3 text-sm text-slate-700">
+                  <li className="flex gap-2">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
+                    Fast scheduling scripts for occupants and facilities managers.
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
+                    Capture order lists built for underwriting.
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-slate-900" aria-hidden="true" />
+                    Submission bundles that keep reviewers moving.
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
