@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -27,6 +28,11 @@ const jsonLd = {
 
 export default function HomePage() {
   const heroImage = '/hero.jpg'
+  const [carouselLoaded, setCarouselLoaded] = useState(false)
+
+  useEffect(() => {
+    setCarouselLoaded(true)
+  }, [])
 
   return (
     <>
@@ -71,9 +77,16 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <RoleCarousel />
+        {/* Roles carousel hero band with gradient + zoom on load */}
+        <section className="border-b border-slate-200 bg-gradient-to-r from-brand-mist/80 via-white to-brand-mist/80">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+            <div
+              className={`rounded-3xl border border-slate-200 bg-white/90 shadow-xl transition-all duration-700 ease-out ${
+                carouselLoaded ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-3'
+              }`}
+            >
+              <RoleCarousel />
+            </div>
           </div>
         </section>
 
@@ -214,7 +227,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Split section, now on a subtle gray */}
+        {/* Split section, subtle gray band */}
         <section className="border-b border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="grid gap-8 md:grid-cols-2">
