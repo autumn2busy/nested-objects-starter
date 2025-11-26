@@ -463,7 +463,7 @@ export default function DirectoryPage() {
         }
 
         const { data, error: supabaseError } = await query
-          .order('rating', { ascending: false, nullsLast: true })
+          .order('rating', { ascending: false, nullsFirst: false })
           .order('name', { ascending: true })
 
         if (!isMounted) return
