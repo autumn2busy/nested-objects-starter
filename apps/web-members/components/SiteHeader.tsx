@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+
 import { useAuth } from './auth-provider'
 import { Button, buttonVariants } from './ui/button'
 
@@ -26,7 +27,8 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
-  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
+  const containerClass =
+    containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
   const displayName = useMemo(() => {
     return (
@@ -74,15 +76,25 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/85 text-text-primary backdrop-blur-md shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className={containerClass + ' flex items-center justify-between py-3'}>
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
-              <Image src="/logo-light.png" alt="Nested Objects logo" width={36} height={36} priority />
+              <Image
+                src="/logo-light.png"
+                alt="Nested Objects logo"
+                width={36}
+                height={36}
+                priority
+              />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-base font-semibold tracking-tight text-text-primary">Nested Objects</span>
-              <span className="text-[11px] uppercase tracking-[0.2em] text-brand-copper">Vendor hub</span>
+              <span className="text-base font-semibold tracking-tight text-text-primary">
+                Nested Objects
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.2em] text-brand-copper">
+                Vendor hub
+              </span>
             </div>
           </Link>
 
@@ -107,7 +119,9 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
 
             <div
               id="primary-navigation"
-              className={`${isNavOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
+              className={`${
+                isNavOpen ? 'flex' : 'hidden'
+              } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
             >
               {navLinks.map((link) => (
                 <Link
@@ -138,8 +152,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                   {initials}
                 </div>
                 <div className="hidden flex-col text-left text-xs sm:flex">
-                  <span className="font-semibold text-text-primary">{profileDisplayName ?? displayName}</span>
-                  {planLabel && <span className="text-[11px] uppercase tracking-wide text-brand-copper">{planLabel} plan</span>}
+                  <span className="font-semibold text-text-primary">
+                    {profileDisplayName ?? displayName}
+                  </span>
+                  {planLabel && (
+                    <span className="text-[11px] uppercase tracking-wide text-brand-copper">
+                      {planLabel} plan
+                    </span>
+                  )}
                 </div>
               </div>
               <Button variant="secondary" size="sm" onClick={() => logout()}>
@@ -150,13 +170,21 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
             <div className="flex items-center gap-2">
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'bg-white/80 backdrop-blur' })}
+                className={buttonVariants({
+                  variant: 'secondary',
+                  size: 'sm',
+                  className: 'bg-white/80 backdrop-blur',
+                })}
               >
                 Login
               </a>
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                className={buttonVariants({ variant: 'primary', size: 'sm', className: 'hidden sm:inline-flex' })}
+                className={buttonVariants({
+                  variant: 'primary',
+                  size: 'sm',
+                  className: 'hidden sm:inline-flex',
+                })}
               >
                 Join free
               </a>
