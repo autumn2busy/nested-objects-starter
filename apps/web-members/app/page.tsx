@@ -96,13 +96,7 @@ export default function HomePage() {
               roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
             }`}
           >
-            <Image
-              src={rolesHeroImage}
-              alt=""
-              fill
-              priority
-              className="object-cover object-center"
-            />
+
             {/* gradient fade from solid hub color into the image. like oracle */}
             <div className="absolute inset-0 bg-gradient-to-r from-brand-background/92 via-brand-background/70 to-transparent" />
           </div>
