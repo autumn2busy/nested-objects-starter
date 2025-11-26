@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
+import { createClient } from '@supabase/supabase-js'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -27,6 +28,7 @@ type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
+  rating: number | null
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -87,13 +89,6 @@ const US_STATES = [
   { code: 'WY', label: 'Wyoming' },
 ]
 
-function formatCategories(categories: any): string {
-  if (!categories) return ''
-  if (Array.isArray(categories)) return categories.join(', ')
-  if (typeof categories === 'string') return categories
-  return String(categories)
-}
-
 function buildAddress(firm: Firm): string {
   return [
     firm.address_street,
@@ -113,22 +108,30 @@ declare global {
 
 type FilterBarProps = {
   stateFilter: string
+  categoryFilter: string
+  ratingFilter: string
   search: string
   isStarter: boolean
   onStateChange: (value: string) => void
+  onCategoryChange: (value: string) => void
+  onRatingChange: (value: string) => void
   onSearchChange: (value: string) => void
 }
 
 function FilterBar({
   stateFilter,
+  categoryFilter,
+  ratingFilter,
   search,
   isStarter,
   onSearchChange,
   onStateChange,
+  onCategoryChange,
+  onRatingChange,
 }: FilterBarProps) {
   return (
     <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 md:items-end">
         <div className="space-y-1">
           <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
           <Select
@@ -141,6 +144,32 @@ function FilterBar({
                 {s.label}
               </option>
             ))}
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <FieldLabel htmlFor="category-filter">CATEGORY</FieldLabel>
+          <Input
+            id="category-filter"
+            type="text"
+            value={categoryFilter}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            placeholder="Property preservation, mortgage, insurance…"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <FieldLabel htmlFor="rating-filter">RATING</FieldLabel>
+          <Select
+            id="rating-filter"
+            value={ratingFilter}
+            onChange={(e) => onRatingChange(e.target.value)}
+          >
+            <option value="ALL">All ratings</option>
+            <option value="4.5">4.5 stars and up</option>
+            <option value="4">4.0 stars and up</option>
+            <option value="3.5">3.5 stars and up</option>
+            <option value="3">3.0 stars and up</option>
           </Select>
         </div>
 
@@ -338,114 +367,137 @@ export default function DirectoryPage() {
   const [loadingFirms, setLoadingFirms] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string>('ALL')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [ratingFilter, setRatingFilter] = useState<string>('ALL')
   const [search, setSearch] = useState<string>('')
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('')
   const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
+
+  const isStarter = planUid === 'L9nbKV9Z'
+  const isProOrHigher = !!planUid && !isStarter
 
   const mapRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
 
   useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timeout)
+  }, [search])
+
+  useEffect(() => {
+    let isMounted = true
+
     async function fetchFirms() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error('Missing Supabase env vars')
-        setError('Directory is temporarily unavailable.')
-        setLoadingFirms(false)
+        if (isMounted) {
+          setError('Directory is temporarily unavailable.')
+          setLoadingFirms(false)
+        }
         return
       }
 
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      const effectiveSearch = isStarter ? '' : debouncedSearch
+
       try {
-        const url =
-          `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=' +
-          [
-            'id',
-            'slug',
-            'name',
-            'url',
-            'logo_url',
-            'geographic_coverage',
-            'categories',
-            'pay_min',
-            'pay_max',
-            'pay_type',
-            'company_size',
-            'industry_focus',
-            'is_published',
-            'address_street',
-            'address_city',
-            'address_state',
-            'address_postal_code',
-          ].join(',') +
-          '&is_published=eq.true' +
-          '&order=name.asc'
+        setLoadingFirms(true)
 
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
+        let query = supabase
+          .from('firms')
+          .select(
+            [
+              'id',
+              'slug',
+              'name',
+              'url',
+              'logo_url',
+              'geographic_coverage',
+              'categories',
+              'pay_min',
+              'pay_max',
+              'pay_type',
+              'company_size',
+              'industry_focus',
+              'is_published',
+              'address_street',
+              'address_city',
+              'address_state',
+              'address_postal_code',
+              'rating',
+            ].join(',')
+          )
+          .eq('is_published', true)
 
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
+        const filterGroups: string[] = []
+
+        if (stateFilter !== 'ALL') {
+          const selected = US_STATES.find((s) => s.code === stateFilter)
+          if (selected) {
+            filterGroups.push(
+              `or(geographic_coverage.ilike.%${selected.label}%,geographic_coverage.ilike.%${selected.code}%,address_state.eq.${selected.code})`
+            )
+          }
         }
 
-        const data = (await res.json()) as Firm[]
-        setFirms(data)
+        if (categoryFilter.trim()) {
+          query = query.ilike('categories', `%${categoryFilter.trim()}%`)
+        }
+
+        if (ratingFilter !== 'ALL') {
+          query = query.gte('rating', Number(ratingFilter))
+        }
+
+        if (effectiveSearch.trim()) {
+          const term = effectiveSearch.trim()
+          filterGroups.push(
+            `or(name.ilike.%${term}%,geographic_coverage.ilike.%${term}%,industry_focus.ilike.%${term}%,categories.ilike.%${term}%)`
+          )
+        }
+
+        if (filterGroups.length === 1) {
+          query = query.or(filterGroups[0])
+        } else if (filterGroups.length > 1) {
+          query = query.or(`and(${filterGroups.join(',')})`)
+        }
+
+        const { data, error: supabaseError } = await query
+          .order('rating', { ascending: false, nullsLast: true })
+          .order('name', { ascending: true })
+
+        if (!isMounted) return
+
+        if (supabaseError) {
+          console.error('Error loading firms', supabaseError)
+          setError(
+            supabaseError instanceof Error
+              ? supabaseError.message
+              : 'Unknown error while loading firms'
+          )
+          setFirms([])
+        } else {
+          setError(null)
+          setFirms((data as Firm[]) ?? [])
+        }
       } catch (err) {
         console.error('Error loading firms', err)
-        setError(err instanceof Error ? err.message : 'Unknown error while loading firms')
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error while loading firms')
+        }
       } finally {
-        setLoadingFirms(false)
+        if (isMounted) setLoadingFirms(false)
       }
     }
 
     fetchFirms()
-  }, [])
 
-  const isStarter = planUid === 'L9nbKV9Z'
-  const isProOrHigher = !!planUid && !isStarter
-
-  const matchesStateFilter = (firm: Firm) => {
-    if (stateFilter === 'ALL') return true
-    if (!firm.geographic_coverage) return false
-
-    const coverage = firm.geographic_coverage.toLowerCase()
-    const selected = US_STATES.find((s) => s.code === stateFilter)
-    if (!selected) return true
-
-    if (
-      coverage.includes('nationwide') ||
-      coverage.includes('national') ||
-      coverage.includes('all 50')
-    ) {
-      return true
+    return () => {
+      isMounted = false
     }
+  }, [stateFilter, categoryFilter, ratingFilter, debouncedSearch, isStarter])
 
-    const label = selected.label.toLowerCase()
-    const code = selected.code.toLowerCase()
-
-    if (coverage.includes(label)) return true
-    if (coverage.includes(` ${code} `) || coverage.endsWith(` ${code}`)) return true
-    if (coverage.includes(`(${code})`)) return true
-
-    return false
-  }
-
-  const matchesSearch = (firm: Firm) => {
-    if (!search.trim()) return true
-    const q = search.toLowerCase()
-    return (
-      firm.name.toLowerCase().includes(q) ||
-      (firm.geographic_coverage ?? '').toLowerCase().includes(q) ||
-      (firm.industry_focus ?? '').toLowerCase().includes(q) ||
-      formatCategories(firm.categories).toLowerCase().includes(q)
-    )
-  }
-
-  const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-  const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
+  const displayedFirms = isStarter ? firms.slice(0, 6) : firms
 
   useEffect(() => {
     if (!mapLoaded || !window.google || displayedFirms.length === 0) return
@@ -581,8 +633,12 @@ export default function DirectoryPage() {
           <>
             <FilterBar
               stateFilter={stateFilter}
+              categoryFilter={categoryFilter}
+              ratingFilter={ratingFilter}
               search={search}
               isStarter={isStarter}
+              onCategoryChange={setCategoryFilter}
+              onRatingChange={setRatingFilter}
               onSearchChange={setSearch}
               onStateChange={setStateFilter}
             />
@@ -623,9 +679,9 @@ export default function DirectoryPage() {
               <MapPreview googleMapsKey={GOOGLE_MAPS_KEY} />
             </section>
 
-            {isStarter && filteredFirms.length > displayedFirms.length && (
+            {isStarter && firms.length > displayedFirms.length && (
               <p className="mt-4 text-xs text-slate-600">
-                Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
+                Showing {displayedFirms.length} of {firms.length} matching firms on the
                 Starter preview.
               </p>
             )}
