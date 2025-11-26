@@ -4,7 +4,6 @@ import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
-import { SiteFooter } from '@/components/SiteFooter'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -293,8 +292,6 @@ export default function HomePage() {
             </p>
           </div>
         </section>
-
-        <SiteFooter />
       </main>
     </>
   )
