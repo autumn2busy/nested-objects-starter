@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-type BaseProps = React.HTMLAttributes<HTMLDivElement>
+import { cn } from '@/lib/utils'
 
 export const Card = React.forwardRef<HTMLDivElement, BaseProps>(
   ({ className, ...props }, ref) => (

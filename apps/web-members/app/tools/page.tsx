@@ -36,7 +36,43 @@ const tools = [
   },
 ]
 
+import { buttonVariants } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+
 export default function ToolsIndexPage() {
+  const tools = [
+    {
+      title: '🤖 AI concierge',
+      description: 'Ask questions about firms, requirements, and inspection workflows in plain language.',
+      href: '/tools/ai-chatbot',
+      cta: 'Open AI concierge →',
+    },
+    {
+      title: '📝 AI resume builder',
+      description: 'Turn your experience, routes, and gear into a clean resume for field service firms.',
+      href: '/tools/ai-resume',
+      cta: 'Build my resume →',
+    },
+    {
+      title: '📍 Job tracking',
+      description: 'Track inspections, due dates, and pay so nothing slips through the cracks.',
+      href: '/tools/job-tracker',
+      cta: 'Go to job tracker →',
+    },
+    {
+      title: '🌤 Weather',
+      description: 'Plan around storms and daylight so your routes are safer and more profitable.',
+      href: '/tools/weather',
+      cta: 'Open weather tool →',
+    },
+    {
+      title: '🗺 Route planning',
+      description: 'Stack inspections into efficient routes so you burn less gas and make more per mile.',
+      href: '/tools/routing',
+      cta: 'Plan my routes →',
+    },
+  ]
+
   return (
     <main className="min-h-screen bg-brand-background text-brand-heading">
       <section className="border-b border-brand-primary/15 bg-gradient-to-b from-brand-soft via-brand-surface to-brand-background">

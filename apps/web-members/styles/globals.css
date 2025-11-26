@@ -21,6 +21,18 @@ a {
 }
 
 @layer base {
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 20%, #ffffff 0, #ffffff 25%, #fafafa 45%, #f6f6f6 80%);
+    @apply bg-surface-subtle font-sans text-text-primary;
+    font-feature-settings: 'lnum' 1, 'tnum' 0;
+  }
+
   h1,
   h2,
   h3,
@@ -32,7 +44,7 @@ a {
   }
 
   p {
-    color: #474747;
+    @apply text-text-secondary;
   }
 
   ::selection {

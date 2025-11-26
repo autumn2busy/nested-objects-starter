@@ -7,6 +7,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Container } from './ui/container'
 import { useAuth } from './auth-provider'
+import { Button, buttonVariants } from './ui/button'
+
+type SiteHeaderProps = {
+  containerClassName?: string
+}
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -19,10 +24,11 @@ const navLinks = [
   { href: '/contact', label: 'Contact' },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
   const displayName = useMemo(() => {
     return (
@@ -88,7 +94,7 @@ export function SiteHeader() {
                 <span className="block h-0.5 w-5 bg-brand-heading" />
               </span>
               Menu
-            </button>
+            </Button>
 
             <div
               id="primary-navigation"
@@ -135,7 +141,7 @@ export function SiteHeader() {
                 className="rounded-full border border-brand-border px-3 py-2 text-xs font-semibold text-brand-heading transition hover:border-brand-primary hover:text-brand-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
               >
                 Logout
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">

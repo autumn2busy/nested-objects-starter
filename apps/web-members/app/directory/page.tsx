@@ -8,6 +8,8 @@ import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
 import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 
 type Firm = {
@@ -158,15 +160,16 @@ function FilterBar({
                 id="keyword-filter"
                 type="text"
                 disabled
+                tone="warning"
                 placeholder="Search + advanced filters available on paid plans"
                 className="cursor-not-allowed border-amber-200 bg-amber-50 text-amber-900"
               />
-              <p className="text-xs text-amber-800">
+              <FieldHelperText className="text-amber-800">
                 Upgrade to Pro or higher to search by firm, service type, and region.{' '}
                 <Link href="/membership" className="font-semibold text-amber-900 underline">
                   View plans
                 </Link>
-              </p>
+              </FieldHelperText>
             </div>
           ) : (
             <Input
@@ -182,8 +185,8 @@ function FilterBar({
 
       <p className="mt-3 text-xs text-brand-muted">
         Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
-      </p>
-    </section>
+      </FieldHelperText>
+    </Card>
   )
 }
 
