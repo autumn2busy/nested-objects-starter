@@ -8,6 +8,10 @@ import { cn } from '@/lib/utils'
 import { Container } from './ui/container'
 import { useAuth } from './auth-provider'
 
+type SiteHeaderProps = {
+  containerClassName?: string
+}
+
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
@@ -19,10 +23,11 @@ const navLinks = [
   { href: '/contact', label: 'Contact' },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
   const displayName = useMemo(() => {
     return (

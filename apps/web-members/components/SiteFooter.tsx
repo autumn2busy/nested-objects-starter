@@ -30,7 +30,9 @@ const footerSections = [
   },
 ]
 
-export function SiteFooter() {
+export function SiteFooter({ containerClassName }: SiteFooterProps) {
+  const containerClass = containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
+
   return (
     <footer className="mt-auto border-t border-brand-border bg-brand-dark text-brand-sand">
       <Container className="py-10">
@@ -71,7 +73,7 @@ export function SiteFooter() {
               <span className="text-sm font-semibold text-white">Vendor Hub</span>
             </div>
           </div>
-          <p className="text-[11px] text-brand-sand/70">© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
+          <p className="text-[11px] text-brand-slate">© {new Date().getFullYear()} Nested Objects LLC. All rights reserved.</p>
         </div>
       </Container>
     </footer>

@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
 import { SiteFooter } from '@/components/SiteFooter'
 import { SiteHeader } from '@/components/SiteHeader'
+import { SiteFooter } from '@/components/SiteFooter'
 import '../styles/globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
