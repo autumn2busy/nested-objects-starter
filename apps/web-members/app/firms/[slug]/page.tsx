@@ -142,6 +142,10 @@ export default async function FirmDetailPage({
   }
 
   const pay = formatPay(firm)
+  const contactHref =
+    firm.vendor_page_url ||
+    (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry for ${firm.name}`)}` : null) ||
+    (firm.phone ? `tel:${firm.phone}` : null)
   const fullAddress = buildAddress(firm)
 
   const jsonLd = {
@@ -206,11 +210,12 @@ export default async function FirmDetailPage({
           color: '#6b7280',
         }}
       >
-        <div>
-          <Link href="/directory" style={{ color: '#3b82f6', textDecoration: 'none' }}>
-            ← Back to directory
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Link href="/directory" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600 }}>
+            Field services directory
           </Link>
-          <span style={{ marginLeft: '0.5rem' }}>/ Firm snapshot</span>
+          <span style={{ color: '#9ca3af' }}>→</span>
+          <span style={{ color: '#6b7280' }}>{firm.name}</span>
         </div>
 
         <Link
@@ -355,6 +360,21 @@ export default async function FirmDetailPage({
                 Typical pay. {pay}
               </span>
             )}
+
+            {firm.pay_type && (
+              <span
+                style={{
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: '999px',
+                  backgroundColor: '#eef2ff',
+                  color: '#4338ca',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                }}
+              >
+                Pay model. {firm.pay_type}
+              </span>
+            )}
           </div>
 
           {firm.description && (
@@ -405,6 +425,30 @@ export default async function FirmDetailPage({
                 gap: '0.6rem',
               }}
             >
+              {contactHref && (
+                <a
+                  href={contactHref}
+                  target={contactHref.startsWith('http') ? '_blank' : undefined}
+                  rel={contactHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '999px',
+                    border: 'none',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    fontSize: '0.98rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.18)',
+                  }}
+                >
+                  Contact / Apply
+                </a>
+              )}
+
               {firm.vendor_page_url && (
                 <a
                   href={firm.vendor_page_url}
@@ -643,10 +687,28 @@ export default async function FirmDetailPage({
                       color: '#9ca3af',
                     }}
                   >
-                    Company type
+                  Company type
                   </dt>
                   <dd style={{ margin: 0, fontSize: '0.9rem' }}>
                     {firm.company_type}
+                  </dd>
+                </div>
+              )}
+
+              {firm.geographic_coverage && (
+                <div>
+                  <dt
+                    style={{
+                      fontSize: '0.75rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#9ca3af',
+                    }}
+                  >
+                    Coverage / territory
+                  </dt>
+                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
+                    {firm.geographic_coverage}
                   </dd>
                 </div>
               )}
@@ -733,6 +795,8 @@ export default async function FirmDetailPage({
               {firm.payment_frequency && (
                 <li>Payment frequency. {firm.payment_frequency}</li>
               )}
+
+              {firm.pay_type && <li>Pay model. {firm.pay_type}</li>}
 
               {firm.job_volume && <li>Job volume. {firm.job_volume}</li>}
             </ul>
