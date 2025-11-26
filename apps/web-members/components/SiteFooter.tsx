@@ -70,7 +70,7 @@ export function SiteFooter({ containerClassName }: SiteFooterProps) {
 
         <div className="mt-10 flex flex-col items-center gap-3 border-t border-brand-steel/30 pt-6">
           <div className="flex items-center gap-3 rounded-full border border-brand-steel/40 bg-brand-sand px-4 py-2 shadow-brand-soft">
-            <Image src="/logo-copper-charcoal.svg" alt="Nested Objects logo" width={28} height={28} />
+            <Image src="/logo-light.png" alt="Nested Objects logo" width={28} height={28} />
             <div className="flex flex-col leading-tight">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Nested Objects</span>
               <span className="text-sm font-semibold text-brand-dark">Vendor Hub</span>
