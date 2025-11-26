@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 type RoleCard = {
@@ -17,45 +18,40 @@ const roles: RoleCard[] = [
     title: 'Mortgage field inspector',
     slug: 'mortgage-field-inspector',
     value: 'Verify occupancy, capture photo sets, and keep lenders informed without surprises.',
-    image:
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Inspector photographing a front porch during a mortgage field visit',
+    image: '/mortgage-field-inspector.png',
+    alt: 'Mortgage field inspector photographing the exterior of a property',
     gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
   },
   {
     title: 'Insurance loss control surveyor',
     slug: 'insurance-loss-control',
     value: 'Document risk factors, measurements, and mitigations so underwriters can move faster.',
-    image:
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Surveyor reviewing insurance paperwork on the hood of a car',
+    image: '/insurance-loss-control.png',
+    alt: 'Insurance loss control surveyor reviewing risks outside a building',
     gradient: 'from-[#F7F5F2] to-[#EDE6FA]',
   },
   {
     title: 'Mobile notary & signing agent',
     slug: 'mobile-notary',
     value: 'Route signings with confidence, track ID requirements, and keep borrowers at ease.',
-    image:
-      'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Notary presenting documents to a client at a kitchen table',
+    image: '/mobile-notary.png',
+    alt: 'Mobile notary guiding a borrower through documents at their kitchen table',
     gradient: 'from-[#F7F5F2] to-[#FBEAD6]',
   },
   {
     title: 'Asset preservation / REO specialist',
     slug: 'asset-preservation',
     value: 'Combine before/after sets, vendor contacts, and material lists for REO turnarounds.',
-    image:
-      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Contractor walking through a vacant property with a flashlight',
+    image: '/asset-preservation.png',
+    alt: 'REO specialist inspecting a vacant property interior',
     gradient: 'from-[#F7F5F2] to-[#E8F5E9]',
   },
   {
     title: 'Gig pros adding inspections',
     slug: 'gig-pro-inspector',
     value: 'Blend rides, deliveries, and property checks with light gear and predictable rates.',
-    image:
-      'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80',
-    alt: 'Driver loading a small ladder and tablet into a hatchback',
+    image: '/gig-pro-inspector.png',
+    alt: 'Gig worker loading inspection gear into a hatchback',
     gradient: 'from-[#F7F5F2] to-[#E7F1F2]',
   },
 ]
@@ -159,13 +155,26 @@ export function RoleCarousel() {
             <article
               key={role.slug}
               role="listitem"
-              className={`min-w-[260px] snap-start border border-slate-200 bg-gradient-to-br ${role.gradient} p-5 shadow-sm transition hover:-translate-y-1`}
+              className={`flex min-w-[260px] snap-start flex-col border border-slate-200 bg-gradient-to-br ${role.gradient} p-5 shadow-sm transition hover:-translate-y-1`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-2">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{index + 1} of {roles.length}</p>
                   <h3 className="text-lg font-semibold text-brand-dark">{role.title}</h3>
                   <p className="text-sm text-slate-700">{role.value}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-lg border border-white/60 bg-white/70 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+                <div className="relative aspect-[4/3] w-full">
+                  <Image
+                    src={role.image}
+                    alt={role.alt}
+                    fill
+                    sizes="(min-width: 1024px) 320px, (min-width: 768px) 45vw, 80vw"
+                    className="object-cover"
+                    priority={index === 0}
+                  />
                 </div>
               </div>
 
