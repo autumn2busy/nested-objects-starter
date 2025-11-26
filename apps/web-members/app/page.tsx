@@ -48,38 +48,45 @@ export default function HomePage() {
 
       <main className="min-h-screen bg-brand-background text-brand-text">
         {/* TOP HERO */}
-        <section className="relative w-full overflow-hidden bg-brand-background">
-          <div className="absolute inset-0">
-            <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-background/70 to-brand-background/20" />
-          </div>
+<section className="relative w-full overflow-hidden bg-brand-background">
+  <div className="absolute inset-0">
+    <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
 
-          <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
-            <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-brand-text">
-                The AI-powered vendor hub for field pros
-              </h1>
-              <p className="mt-2 text-brand-muted text-sm leading-relaxed sm:text-base">
-                Tools, insights, and transparent data to help inspectors, notaries, and field vendors
-                get paid faster and protect their time.
-              </p>
-              <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
-                <Link
-                  href="/membership"
-                  className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
-                >
-                  Explore membership options
-                </Link>
-                <Link
-                  href="/directory"
-                  className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-brand-text rounded-none hover:bg-brand-soft"
-                >
-                  Preview the firm directory
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+    {/* Gradient tint to improve text visibility */}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+  </div>
+
+  <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
+    <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
+
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-[rgb(229,231,235)]">
+        The AI-powered vendor hub for field pros
+      </h1>
+
+      <p className="mt-2 text-[rgb(229,231,235)] text-sm leading-relaxed sm:text-base">
+        Tools, insights, and transparent data to help inspectors, notaries, and field vendors
+        get paid faster and protect their time.
+      </p>
+
+      <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
+        <Link
+          href="/membership"
+          className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
+        >
+          Explore membership options
+        </Link>
+
+        <Link
+          href="/directory"
+          className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-[rgb(229,231,235)] rounded-none hover:bg-brand-soft"
+        >
+          Preview the firm directory
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
+
 
         {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
         <section className="relative border-b border-slate-200 overflow-hidden">
