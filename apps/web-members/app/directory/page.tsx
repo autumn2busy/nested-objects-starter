@@ -254,8 +254,8 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
       onBlur={onBlur}
     >
       {/* Top row: logo + name */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-4 sm:flex-nowrap">
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50">
             {firm.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -270,20 +270,20 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
               </span>
             )}
           </div>
-          <div className="space-y-0.5">
+          <div className="min-w-0 space-y-0.5 break-words">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               Field services firm
             </p>
-            <h3 className="text-lg font-semibold text-slate-900">{firm.name}</h3>
+            <h3 className="text-lg font-semibold text-slate-900 leading-tight">{firm.name}</h3>
             <p className="text-xs font-medium text-slate-600">{categories}</p>
           </div>
         </div>
 
-        <div className="text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+        <div className="min-w-0 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:min-w-[180px]">
           <p className="text-slate-900">Service region</p>
-          <p className="mt-0.5 text-xs normal-case text-slate-700">{serviceRegion}</p>
+          <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">{serviceRegion}</p>
           <p className="mt-2 text-slate-900">Rating</p>
-          <p className="mt-0.5 text-xs normal-case text-slate-700">{rating}</p>
+          <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">{rating}</p>
         </div>
       </div>
 
@@ -296,7 +296,7 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
         <div className="space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">Primary contact</p>
-          <p className="text-sm font-semibold text-slate-900">{contactMethod}</p>
+          <p className="text-sm font-semibold text-slate-900 break-words">{contactMethod}</p>
         </div>
       </div>
 
