@@ -271,9 +271,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
             )}
           </div>
           <div className="min-w-0 space-y-0.5 break-words">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Field services firm
-            </p>
             <h3 className="text-lg font-semibold text-slate-900 leading-tight">{firm.name}</h3>
             <p className="text-xs font-medium text-slate-600">{categories}</p>
           </div>
@@ -299,13 +296,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           <p className="text-sm font-semibold text-slate-900 break-words">{contactMethod}</p>
         </div>
       </div>
-
-      {/* Bottom: actions */}
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <div className="space-y-1 text-xs text-slate-600">
-          <p>Snapshot includes tools, requirements,</p>
-          <p>and intel specific to this firm.</p>
-        </div>
 
         <Link
           href={`/firms/${firm.slug ?? firm.id}`}
