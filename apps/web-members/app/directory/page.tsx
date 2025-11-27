@@ -283,27 +283,37 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           </div>
         </div>
 
-        <div className="min-w-0 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:min-w-[180px]">
-          <p className="text-slate-900">Service region</p>
-          <p className="mt-0.5 break-words text-xs normal-case text-slate-700">
-            {serviceRegion}
-          </p>
+  {/* SERVICE REGION + RATING — TWO COLUMNS, CLEAN, NO NUMBERS */}
+<div className="grid grid-cols-2 w-full text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 gap-4 mt-2">
 
-          <p className="mt-2 text-slate-900">Rating</p>
-          {/* Stars aligned directly under "Rating" */}
-          <div className="mt-0.5 flex justify-end">
-            {numericRating ? (
-              <div className="flex text-[11px] text-amber-500">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <span key={index}>{index < numericRating ? '★' : '☆'}</span>
-                ))}
-              </div>
-            ) : (
-              <span className="text-[11px] normal-case text-slate-500">Not yet rated</span>
-            )}
-          </div>
+  {/* LEFT COL — SERVICE REGION */}
+  <div className="text-left">
+    <p className="text-slate-900">Service region</p>
+    <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">
+      {serviceRegion}
+    </p>
+  </div>
+
+  {/* RIGHT COL — RATING ONLY STARS */}
+  <div className="text-right">
+    <p className="text-slate-900">Rating</p>
+
+    <div className="mt-0.5 flex justify-end">
+      {numericRating ? (
+        <div className="flex text-[13px] text-amber-500">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <span key={index}>{index < numericRating ? '★' : '☆'}</span>
+          ))}
         </div>
-      </div>
+      ) : (
+        <span className="text-[11px] normal-case text-slate-500">
+          Not yet rated
+        </span>
+      )}
+    </div>
+  </div>
+</div>
+
 
       {/* middle: pay + contact */}
       <div className="mt-5 grid grid-cols-1 gap-4 border-y border-dashed border-slate-200 py-4 sm:grid-cols-2">
