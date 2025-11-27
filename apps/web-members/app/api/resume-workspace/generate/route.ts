@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
+const OPENAI_TIMEOUT_MS = 30_000
+
 type ProfileIntake = {
   fullName?: string
   phone?: string
@@ -108,6 +110,9 @@ export async function POST(req: Request) {
 
     const prompt = buildPrompt(profile, experience)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(new Error('OpenAI request timed out')), OPENAI_TIMEOUT_MS)
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -126,12 +131,15 @@ export async function POST(req: Request) {
           { role: 'user', content: prompt },
         ],
       }),
-    })
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) {
-      console.error('[RESUME_WORKSPACE_GENERATE_ERROR_RESPONSE]', response.status, await response.text())
+      const errorBody = await response.text()
+      const errorDetail = errorBody.trim()
+      console.error('[RESUME_WORKSPACE_GENERATE_ERROR_RESPONSE]', response.status, errorBody)
       return NextResponse.json(
-        { error: 'Could not reach the AI service. Try again shortly.' },
+        { error: `Could not reach the AI service (status ${response.status}).${errorDetail ? ` Details: ${errorDetail.slice(0, 240)}` : ' Try again shortly.'}` },
         { status: 502 }
       )
     }
@@ -187,6 +195,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(outputs)
   } catch (error) {
+    if ((error as Error | undefined)?.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'OpenAI request timed out. Please retry or simplify your inputs.' },
+        { status: 504 }
+      )
+    }
+
     console.error('[RESUME_WORKSPACE_GENERATE_ERROR]', error)
     return NextResponse.json({ error: 'Unexpected error while generating.' }, { status: 500 })
   }

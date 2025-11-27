@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { toolDefinitions, toolHandlers } from "./tools";
+const OPENAI_TIMEOUT_MS = 30_000;
 
 type ToolCall = {
   id: string;
   type: "function";
-  function: { name: string; arguments: string };
+  function: {
+    name: string;
+    arguments: string;
+  };
 };
 
 type ChatMessage = {
@@ -19,13 +22,50 @@ type ChatMessage = {
 function isValidMessage(message: unknown): message is ChatMessage {
   if (!message || typeof message !== "object") return false;
 
-  const { role, content } = message as Partial<ChatMessage>;
+  const { role, content, tool_calls } = message as Partial<ChatMessage>;
 
   return (
     (role === "system" || role === "user" || role === "assistant" || role === "tool") &&
     typeof content === "string" &&
-    content.length > 0
+    content.length > 0 &&
+    (tool_calls === undefined || Array.isArray(tool_calls))
   );
+}
+
+function startOpenAITimeout() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(new Error("OpenAI request timed out")), OPENAI_TIMEOUT_MS);
+
+  return {
+    controller,
+    clearTimeout: () => clearTimeout(timeoutId),
+  };
+}
+
+function mapOpenAIError(status: number, body: string) {
+  console.error("[AI_CHAT_ERROR_RESPONSE]", status, body);
+
+  const detail = body.trim();
+  const safeDetail = detail ? ` Details: ${detail.slice(0, 240)}` : "";
+
+  return NextResponse.json(
+    { error: `OpenAI request failed (status ${status}). Please retry shortly.${safeDetail}` },
+    { status: 502 }
+  );
+}
+
+function handleAbortError(error: unknown) {
+  if ((error as Error | undefined)?.name === "AbortError") {
+    return NextResponse.json(
+      {
+        error:
+          "The OpenAI request timed out. Please retry or shorten your message so we can respond faster.",
+      },
+      { status: 504 }
+    );
+  }
+
+  return null;
 }
 
 export async function POST(req: Request) {
@@ -87,121 +127,98 @@ export async function POST(req: Request) {
       );
     }
 
-    const initial = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages,
-        tools: toolDefinitions,
-        tool_choice: "auto",
-      }),
-    });
-
-    if (!initial.ok) {
-      const errorBody = await initial.text();
-      console.error("[AI_CHAT_ERROR_RESPONSE]", initial.status, errorBody);
-      return NextResponse.json(
-        { error: "Failed to get a response from OpenAI" },
-        { status: 502 },
-      );
-    }
-
-    const firstCompletion = (await initial.json()) as {
-      choices?: { message?: ChatMessage }[];
+    const streamingPayload = {
+      model: "gpt-4o-mini",
+      messages,
+      stream: true,
     };
 
-    const assistantMessage = firstCompletion.choices?.[0]?.message;
+    const streamingTimeout = startOpenAITimeout();
 
-    if (!assistantMessage) {
-      return NextResponse.json(
-        { error: "No response from model" },
-        { status: 500 }
-      );
-    }
+    try {
+      const streamingResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify(streamingPayload),
+        signal: streamingTimeout.controller.signal,
+      });
 
-    const toolCalls = assistantMessage.tool_calls ?? [];
+      streamingTimeout.clearTimeout();
 
-    if (!toolCalls.length) {
-      return NextResponse.json({ message: assistantMessage });
-    }
-
-    const toolMessages: ChatMessage[] = [];
-
-    for (const call of toolCalls) {
-      const handler = toolHandlers[call.function.name];
-      if (!handler) continue;
-
-      let parsedArgs: Record<string, unknown> = {};
-      try {
-        parsedArgs = JSON.parse(call.function.arguments || "{}") as Record<
-          string,
-          unknown
-        >;
-      } catch (error) {
-        console.warn("[AI_CHAT_TOOL_ARG_PARSE_WARNING]", error);
+      if (streamingResponse.ok && streamingResponse.body) {
+        return new Response(streamingResponse.body, {
+          status: 200,
+          headers: {
+            "Content-Type": streamingResponse.headers.get("content-type") ?? "text/event-stream",
+          },
+        });
       }
 
-      const result = await handler(parsedArgs);
+      const errorBody = await streamingResponse.text();
+      console.error("[AI_CHAT_STREAM_ERROR_RESPONSE]", streamingResponse.status, errorBody);
+    } catch (error) {
+      streamingTimeout.clearTimeout();
 
-      toolMessages.push({
-        role: "tool",
-        tool_call_id: call.id,
-        name: call.function.name,
-        content: JSON.stringify(result),
+      const abortResponse = handleAbortError(error);
+      if (abortResponse) return abortResponse;
+
+      console.error("[AI_CHAT_STREAM_ERROR]", error);
+    }
+
+    const bufferedTimeout = startOpenAITimeout();
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages,
+        }),
+        signal: bufferedTimeout.controller.signal,
       });
-    }
 
-    const followUpMessages: ChatMessage[] = [
-      ...messages,
-      {
-        role: "assistant",
-        content: assistantMessage.content ?? "",
-        tool_calls: toolCalls,
-      },
-      ...toolMessages,
-    ];
+      bufferedTimeout.clearTimeout();
 
-    const final = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: followUpMessages,
-        tools: toolDefinitions,
-        tool_choice: "auto",
-      }),
-    });
+      if (!response.ok) {
+        return mapOpenAIError(response.status, await response.text());
+      }
 
-    if (!final.ok) {
-      const errorBody = await final.text();
-      console.error("[AI_CHAT_FINAL_ERROR_RESPONSE]", final.status, errorBody);
+      const completion = (await response.json()) as {
+        choices?: { message?: ChatMessage }[];
+      };
+
+      const reply = completion.choices?.[0]?.message;
+
+      if (!reply) {
+        return NextResponse.json(
+          { error: "No response from model" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        message: reply,
+      });
+    } catch (error) {
+      bufferedTimeout.clearTimeout();
+
+      const abortResponse = handleAbortError(error);
+      if (abortResponse) return abortResponse;
+
+      console.error("[AI_CHAT_ERROR]", error);
       return NextResponse.json(
-        { error: "Failed to get a response from OpenAI" },
-        { status: 502 }
-      );
-    }
-
-    const finalCompletion = (await final.json()) as {
-      choices?: { message?: ChatMessage }[];
-    };
-
-    const reply = finalCompletion.choices?.[0]?.message;
-
-    if (!reply) {
-      return NextResponse.json(
-        { error: "No response from model" },
+        { error: "Something went wrong talking to OpenAI" },
         { status: 500 }
       );
     }
-
-    return NextResponse.json({ message: reply });
   } catch (error) {
     console.error("[AI_CHAT_ERROR]", error);
     return NextResponse.json(
