@@ -3,19 +3,20 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+type SearchParamsLike = {
+  get: (name: string) => string | null
+}
+
 function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<string>('Processing...')
 
   useEffect(() => {
-    const params: ReadonlyURLSearchParams | URLSearchParams | null =
+    const params: SearchParamsLike | null =
       searchParams ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null)
 
-    const proceedWithToken = (
-      accessToken: string,
-      redirectParams: ReadonlyURLSearchParams | URLSearchParams
-    ) => {
+    const proceedWithToken = (accessToken: string, redirectParams: SearchParamsLike) => {
       console.log('🟢 Processing token...')
 
       // Store the token in a cookie (accessible by server-side code)
