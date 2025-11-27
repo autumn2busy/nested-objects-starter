@@ -226,8 +226,12 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
       : firm.pay_type || 'Shared with members inside the hub'
 
   const serviceRegion = firm.geographic_coverage || 'Service region not specified'
+
+  // numeric rating 0–5 for stars (rounded, clamped)
   const numericRating =
-    typeof firm.rating === 'number' && firm.rating > 0 ? Math.round(firm.rating) : null
+    typeof firm.rating === 'number'
+      ? Math.min(5, Math.max(0, Math.round(firm.rating)))
+      : null
 
   const contactMethod = (() => {
     if (firm.email) return `Email · ${firm.email}`
@@ -279,41 +283,39 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           </div>
           <div className="min-w-0 space-y-0.5 break-words">
             <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
-            {/* category label removed */}
+            {/* category label intentionally omitted */}
           </div>
         </div>
+      </div>
 
-  {/* SERVICE REGION + RATING — TWO COLUMNS, CLEAN, NO NUMBERS */}
-<div className="grid grid-cols-2 w-full text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 gap-4 mt-2">
-
-  {/* LEFT COL — SERVICE REGION */}
-  <div className="text-left">
-    <p className="text-slate-900">Service region</p>
-    <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">
-      {serviceRegion}
-    </p>
-  </div>
-
-  {/* RIGHT COL — RATING ONLY STARS */}
-  <div className="text-right">
-    <p className="text-slate-900">Rating</p>
-
-    <div className="mt-0.5 flex justify-end">
-      {numericRating ? (
-        <div className="flex text-[13px] text-amber-500">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <span key={index}>{index < numericRating ? '★' : '☆'}</span>
-          ))}
+      {/* SERVICE REGION + RATING — TWO COLUMNS */}
+      <div className="mt-4 grid grid-cols-2 gap-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+        {/* LEFT: Service region */}
+        <div className="text-left">
+          <p className="text-slate-900">Service region</p>
+          <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">
+            {serviceRegion}
+          </p>
         </div>
-      ) : (
-        <span className="text-[11px] normal-case text-slate-500">
-          Not yet rated
-        </span>
-      )}
-    </div>
-  </div>
-</div>
 
+        {/* RIGHT: Rating with stars only */}
+        <div className="text-right">
+          <p className="text-slate-900">Rating</p>
+          <div className="mt-0.5 flex justify-end">
+            {numericRating !== null ? (
+              <div className="flex text-[13px] text-amber-500">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <span key={index}>{index < numericRating ? '★' : '☆'}</span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-[11px] normal-case text-slate-500">
+                Not yet rated
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* middle: pay + contact */}
       <div className="mt-5 grid grid-cols-1 gap-4 border-y border-dashed border-slate-200 py-4 sm:grid-cols-2">
@@ -327,13 +329,15 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
             Primary contact
           </p>
-          <p className="break-words text-sm font-semibold text-slate-900">{contactMethod}</p>
+          <p className="break-words text-sm font-semibold text-slate-900">
+            {contactMethod}
+          </p>
         </div>
       </div>
 
       <Link
         href={`/firms/${firm.slug ?? firm.id}`}
-        className="border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
+        className="mt-4 border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
       >
         VIEW PROFILE
       </Link>
