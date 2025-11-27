@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 const OPENAI_TIMEOUT_MS = 30_000;
 
 type ChatMessage = {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
+  tool_calls?: ToolCall[];
+  tool_call_id?: string;
+  name?: string;
 };
 
 function isValidMessage(message: unknown): message is ChatMessage {
@@ -13,7 +16,7 @@ function isValidMessage(message: unknown): message is ChatMessage {
   const { role, content } = message as Partial<ChatMessage>;
 
   return (
-    (role === "system" || role === "user" || role === "assistant") &&
+    (role === "system" || role === "user" || role === "assistant" || role === "tool") &&
     typeof content === "string" &&
     content.length > 0
   );

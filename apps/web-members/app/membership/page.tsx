@@ -2,112 +2,22 @@
 
 import { Suspense } from 'react'
 import { useAuth } from '@/components/auth-provider'
-
-type Plan = {
-  name: string
-  planUid: string
-  price: string
-  period: string
-  description: string
-  highlight: boolean
-  features: string[]
-}
-
-const plans: Plan[] = [
-  {
-    name: 'Starter',
-    planUid: 'L9nbKV9Z',
-    price: '$0',
-    period: 'forever',
-    description: 'Perfect for testing the waters and browsing firms at your own pace.',
-    highlight: false,
-    features: [
-      'Access to the verified Firm Directory',
-      'Basic search by state and service lane',
-      'Member hub dashboard access',
-      'Community updates and announcements',
-      'Access to starter resources and checklists',
-    ],
-  },
-  {
-    name: 'Directory',
-    planUid: 'zWZD0rQp',
-    price: '$99',
-    period: '3 months',
-    description:
-      'Full Firm Directory access for 3 months. No hub tools or AI—just the listings you need.',
-    highlight: false,
-    features: [
-      'Unlimited Firm Directory access for 90 days',
-      'Expires automatically three months after purchase',
-      'Renew for $49 after your pass expires',
-      'Directory-only access without hub tools or resources',
-    ],
-  },
-  {
-    name: 'Pro',
-    planUid: 'rQVqlLm6',
-    price: '$37',
-    period: 'month',
-    description: 'For working pros who want pay intel, better routing, and less guesswork.',
-    highlight: true,
-    features: [
-      'Everything in Starter',
-      'AI Concierge to answer firm and industry questions',
-      'Firm intel snapshots, rates, and requirements',
-      'Advanced filters by region, tools, and experience level',
-      'Weekly market and route-planning insights',
-      'Export options for firm lists and notes',
-    ],
-  },
-  {
-    name: 'Elite',
-    planUid: 'NmdnNO90',
-    price: '$97',
-    period: 'month',
-    description: 'For high volume inspectors and team leads who treat routes like a business.',
-    highlight: false,
-    features: [
-      'Everything in Pro',
-      'Priority support with faster response times',
-      'Deeper intel on volume, gear, and regional demand',
-      'Workflow templates for multi-market routes',
-      'Early access to new tools and features',
-      'Reserved slots for beta programs and pilots',
-    ],
-  },
-  {
-    name: 'Agency',
-    planUid: 'rmk5Xk9g',
-    price: '$297',
-    period: 'month',
-    description: 'For agencies and coordinators managing crews across multiple markets.',
-    highlight: false,
-    features: [
-      'Everything in Elite',
-      'Multi-user accounts for coordinators and staff',
-      'Agency-level analytics and reporting',
-      'White label options and custom views',
-      'Onboarding and training for your team',
-      'Quarterly strategy review sessions',
-    ],
-  },
-]
+import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 
 function MembershipContent() {
   const { isAuthenticated, planUid } = useAuth()
 
   const currentPlanName =
-    plans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
+    membershipPlans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
 
   const isProOrHigher =
     planUid === 'rQVqlLm6' || planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g'
 
-  const proPlan = plans.find((p) => p.planUid === 'rQVqlLm6')!
+  const proPlan = membershipPlans.find((p) => p.planUid === 'rQVqlLm6')!
 
   const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
 
-  const openPlanWidget = (plan: Plan, isCurrentPlan: boolean) => {
+  const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
     if (isCurrentPlan) return
     if (typeof window === 'undefined') return
 
@@ -203,7 +113,7 @@ function MembershipContent() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
           {/* Plan cards */}
           <div className="grid gap-6 md:grid-cols-2">
-            {plans.map((plan) => {
+            {membershipPlans.map((plan) => {
               const isCurrentPlan = planUid === plan.planUid
 
               const buttonBase =
