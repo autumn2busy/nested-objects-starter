@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ReactNode, useEffect, useState } from 'react'
 
 import { useDashboardLayout } from './dashboard-layout-context'
-import type { Job } from '@/types/jobs'
+import type { MemberJob } from '@/types/member-jobs'
 
 interface DashboardSectionCardProps {
   title: string
@@ -119,8 +119,9 @@ export function GettingPaidSection() {
 
 export function JobTrackerSection() {
   const [loading, setLoading] = useState(true)
-  const [jobsThisWeek, setJobsThisWeek] = useState(0)
-  const [payoutTotal, setPayoutTotal] = useState(0)
+  const [activeJobs, setActiveJobs] = useState(0)
+  const [offers, setOffers] = useState(0)
+  const [addedThisWeek, setAddedThisWeek] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const startOfWeek = (date = new Date()) => {
@@ -144,20 +145,25 @@ export function JobTrackerSection() {
     const loadStats = async () => {
       try {
         const now = new Date()
-        const weekStart = startOfWeek(now).toISOString().slice(0, 10)
-        const weekEnd = endOfWeek(now).toISOString().slice(0, 10)
-        const params = new URLSearchParams({ date_from: weekStart, date_to: weekEnd })
+        const weekStart = startOfWeek(now)
+        const weekEnd = endOfWeek(now)
 
-        const res = await fetch(`/api/jobs?${params.toString()}`)
+        const res = await fetch('/api/member-jobs')
         const payload = await res.json().catch(() => ({}))
 
         if (!res.ok) {
           throw new Error(payload?.error || 'Unable to load job tracker stats')
         }
 
-        const jobs: Job[] = payload.jobs ?? []
-        setJobsThisWeek(jobs.length)
-        setPayoutTotal(jobs.reduce((sum, job) => sum + (job.payout ?? 0), 0))
+        const jobs: MemberJob[] = payload.jobs ?? []
+        setActiveJobs(jobs.filter((job) => job.status !== 'closed').length)
+        setOffers(jobs.filter((job) => job.status === 'offer').length)
+        setAddedThisWeek(
+          jobs.filter((job) => {
+            const createdAt = new Date(job.created_at)
+            return createdAt >= weekStart && createdAt <= weekEnd
+          }).length
+        )
         setError(null)
       } catch (err) {
         console.error(err)
@@ -173,7 +179,7 @@ export function JobTrackerSection() {
   return (
     <DashboardSectionCard
       title="Job tracker"
-      subtitle="This week’s workload overview"
+      subtitle="Application pipeline overview"
       actions={
         <Link
           href="/dashboard/job-tracker"
@@ -191,17 +197,24 @@ export function JobTrackerSection() {
         <div className="space-y-3">
           <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Jobs scheduled</p>
-              <p className="text-xl font-semibold text-brand-slate">{jobsThisWeek}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Active searches</p>
+              <p className="text-xl font-semibold text-brand-slate">{activeJobs}</p>
             </div>
-            <span className="text-xs font-semibold text-brand-copper">This week</span>
+            <span className="text-xs font-semibold text-brand-copper">Open or in progress</span>
           </div>
           <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-white px-4 py-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Expected payout</p>
-              <p className="text-xl font-semibold text-brand-slate">${payoutTotal.toFixed(0)}</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Offers</p>
+              <p className="text-xl font-semibold text-brand-slate">{offers}</p>
             </div>
             <span className="text-xs text-brand-steel">Refreshed on load</span>
+          </div>
+          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-white px-4 py-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Added this week</p>
+              <p className="text-xl font-semibold text-brand-slate">{addedThisWeek}</p>
+            </div>
+            <span className="text-xs text-brand-steel">Newly saved roles</span>
           </div>
         </div>
       )}

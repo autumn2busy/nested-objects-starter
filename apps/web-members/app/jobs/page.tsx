@@ -1,82 +1,89 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
 
 import { Gate } from '@/components/Gate'
 
-type JobRow = {
+interface JobBoardEntry {
   id: string
-  company: string | null
-  job_title: string | null
-  location: string | null
-  pay_salary: string | null
-  posted_date: string | null
-  job_summary: string | null
-  requirements_qualifications: string | null
-  apply_link: string | null
+  title: string
+  company: string
+  location: string
+  pay: string
+  description: string
+  link: string
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const jobBoard: JobBoardEntry[] = [
+  {
+    id: 'atl-inspection-241',
+    title: 'Residential property inspector',
+    company: 'Peachtree Field Services',
+    location: 'Atlanta, GA (local travel)',
+    pay: '$240 per completed inspection',
+    description:
+      'Route-based inspections focused on photos, occupancy checks, and short reports. Expect 6–10 stops per day.',
+    link: 'https://example.com/jobs/atl-inspection-241',
+  },
+  {
+    id: 'remote-data-118',
+    title: 'Remote property data collector',
+    company: 'Seaboard Analytics',
+    location: 'Remote (US-based)',
+    pay: '$30/hr contract',
+    description: 'Desk research to validate addresses, call occupants, and schedule follow-up photos with field partners.',
+    link: 'https://example.com/jobs/remote-data-118',
+  },
+  {
+    id: 'reo-bpo-019',
+    title: 'BPO/REO photographer',
+    company: 'Riverview Valuations',
+    location: 'Charlotte, NC and surrounding counties',
+    pay: '$275 per property (rush bonus available)',
+    description: 'Photo-heavy assignments with strict shot lists. Weekend availability preferred; mileage reimbursed above 50 miles.',
+    link: 'https://example.com/jobs/reo-bpo-019',
+  },
+]
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<JobRow[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [titleFilter, setTitleFilter] = useState('')
-  const [locationFilter, setLocationFilter] = useState('')
+  const [savingId, setSavingId] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    const loadJobs = async () => {
-      if (!supabaseUrl || !supabaseAnonKey) {
-        setError('Supabase environment variables are missing.')
-        setIsLoading(false)
-        return
+  const saveJobToTracker = async (job: JobBoardEntry) => {
+    try {
+      setSavingId(job.id)
+      setMessage(null)
+
+      const res = await fetch('/api/member-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: job.id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          pay: job.pay,
+          source_url: job.link,
+          status: 'interested',
+          notes: `Saved from /jobs on ${new Date().toLocaleDateString()}`,
+        }),
+      })
+
+      const payload = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        throw new Error(payload?.error || 'Unable to save job to tracker')
       }
 
-      const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-      const { data, error: queryError } = await supabase
-        .from('jobs')
-        .select(
-          'id, company, job_title, location, pay_salary, posted_date, job_summary, requirements_qualifications, apply_link'
-        )
-        .order('posted_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(200)
-
-      if (queryError) {
-        console.error('Failed to load jobs', queryError)
-        setError('Could not load jobs right now. Please try again later.')
-        setIsLoading(false)
-        return
-      }
-
-      setJobs(data ?? [])
-      setIsLoading(false)
+      setMessage(`Saved “${job.title}” to your tracker.`)
+    } catch (error: any) {
+      console.error(error)
+      setMessage(error?.message || 'Could not save this job right now.')
+    } finally {
+      setSavingId(null)
     }
-
-    loadJobs()
-  }, [])
-
-  const filteredJobs = useMemo(() => {
-    const titleTerm = titleFilter.trim().toLowerCase()
-    const locationTerm = locationFilter.trim().toLowerCase()
-
-    return jobs.filter((job) => {
-      const matchesTitle = titleTerm
-        ? (job.job_title || '').toLowerCase().includes(titleTerm) || (job.company || '').toLowerCase().includes(titleTerm)
-        : true
-
-      const matchesLocation = locationTerm
-        ? (job.location || '').toLowerCase().includes(locationTerm)
-        : true
-
-      return matchesTitle && matchesLocation
-    })
-  }, [jobs, titleFilter, locationFilter])
+  }
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8 md:px-8 lg:py-12">
@@ -99,128 +106,90 @@ export default function JobsPage() {
           <Link href="/" className="hover:text-brand-copper">
             Home
           </Link>
-          <Link href="/dashboard" className="hover:text-brand-copper">
+          <Link href="/dashboard" style={{ textDecoration: 'none', color: '#111827' }}>
             Dashboard
           </Link>
-          <Link href="/directory" className="hover:text-brand-copper">
+          <Link href="/directory" style={{ textDecoration: 'none', color: '#111827' }}>
             Directory
           </Link>
-          <Link href="/membership" className="hover:text-brand-copper">
+          <Link href="/membership" style={{ textDecoration: 'none', color: '#111827' }}>
             Membership
           </Link>
         </nav>
       </header>
 
       <Gate feature="job_board">
-        <section className="rounded-2xl border border-slate-200/70 bg-white/95 p-5 shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-1 md:w-1/2">
-              <label className="text-[11px] font-semibold tracking-[0.22em] text-brand-slate" htmlFor="title-filter">
-                JOB TITLE OR COMPANY
-              </label>
-              <input
-                id="title-filter"
-                type="text"
-                value={titleFilter}
-                onChange={(event) => setTitleFilter(event.target.value)}
-                placeholder="Mortgage inspections, occupancy, BPO, notary…"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-inner outline-none transition focus:border-brand-copper focus:ring-2 focus:ring-brand-copper/20"
-              />
+        <section style={{ display: 'grid', gap: '1rem' }}>
+          {message && (
+            <div
+              style={{
+                border: '1px solid #f3d9d0',
+                background: '#fdf5f3',
+                color: '#9a3412',
+                padding: '0.75rem 1rem',
+                borderRadius: 4,
+                fontSize: '0.9rem',
+              }}
+            >
+              {message}
             </div>
+          )}
 
-            <div className="space-y-1 md:w-1/2">
-              <label className="text-[11px] font-semibold tracking-[0.22em] text-brand-slate" htmlFor="location-filter">
-                LOCATION
-              </label>
-              <input
-                id="location-filter"
-                type="text"
-                value={locationFilter}
-                onChange={(event) => setLocationFilter(event.target.value)}
-                placeholder="City, state, or region"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-inner outline-none transition focus:border-brand-copper focus:ring-2 focus:ring-brand-copper/20"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-5 text-sm text-brand-slate">
-            <p className="text-brand-dark">
-              Showing {filteredJobs.length} job{filteredJobs.length === 1 ? '' : 's'} from Supabase.
-            </p>
-            {error && (
-              <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
-                {error}
+          {jobBoard.map((job) => (
+            <article
+              key={job.id}
+              style={{
+                border: '1px solid #e5e7eb',
+                padding: '1.25rem',
+                background: 'white',
+                borderRadius: 8,
+                boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#111827' }}>{job.title}</h2>
+                  <p style={{ margin: '0.2rem 0', color: '#4b5563' }}>
+                    {job.company} • {job.location}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right', color: '#b45309', fontWeight: 700 }}>{job.pay}</div>
               </div>
-            )}
-            {isLoading ? (
-              <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-brand-dark">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-copper border-t-transparent" aria-hidden />
-                Loading the latest inspection leads…
+              <p style={{ marginTop: '0.5rem', color: '#374151', lineHeight: 1.5 }}>{job.description}</p>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                <Link
+                  href={job.link}
+                  target="_blank"
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    border: '1px solid #f97316',
+                    color: '#c2410c',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    borderRadius: 6,
+                  }}
+                >
+                  View posting
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => void saveJobToTracker(job)}
+                  disabled={savingId === job.id}
+                  style={{
+                    padding: '0.5rem 0.75rem',
+                    border: '1px solid #9ca3af',
+                    color: '#111827',
+                    background: savingId === job.id ? '#e5e7eb' : '#f9fafb',
+                    fontWeight: 700,
+                    borderRadius: 6,
+                    cursor: savingId === job.id ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {savingId === job.id ? 'Saving…' : 'Save/Track'}
+                </button>
               </div>
-            ) : filteredJobs.length === 0 ? (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-center text-brand-dark">
-                <p className="font-semibold">No matches yet.</p>
-                <p className="text-sm text-brand-slate">Try adjusting your title or location filters.</p>
-              </div>
-            ) : (
-              <ul className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <li
-                    key={job.id}
-                    className="group rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_6px_32px_-20px_rgba(0,0,0,0.35)] transition hover:border-brand-copper/70 hover:shadow-[0_18px_42px_-28px_rgba(231,122,61,0.55)]"
-                  >
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
-                          {job.company || 'Untitled vendor'}
-                        </p>
-                        <h2 className="text-xl font-semibold text-brand-dark">{job.job_title || 'Open role'}</h2>
-                      </div>
-                      <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-slate">
-                        {job.location && (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-brand-dark">{job.location}</span>
-                        )}
-                        {job.pay_salary && (
-                          <span className="rounded-full bg-brand-copper/10 px-3 py-1 text-brand-copper">{job.pay_salary}</span>
-                        )}
-                        {job.posted_date && (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-brand-dark">
-                            Posted {job.posted_date}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {job.job_summary && <p className="mt-3 text-sm text-brand-dark">{job.job_summary}</p>}
-
-                    {job.requirements_qualifications && (
-                      <p className="mt-2 text-sm text-brand-slate">
-                        <span className="font-semibold text-brand-dark">Requirements:</span> {job.requirements_qualifications}
-                      </p>
-                    )}
-
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="text-xs text-brand-slate">
-                        {job.location ? 'Onsite/territory specific' : 'Remote or varied locations'} · Updated weekly
-                      </div>
-                      {job.apply_link ? (
-                        <a
-                          href={job.apply_link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-full bg-brand-dark px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
-                        >
-                          View / apply
-                        </a>
-                      ) : (
-                        <span className="text-sm font-semibold text-brand-slate">No application link provided</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+            </article>
+          ))}
         </section>
       </Gate>
     </main>
