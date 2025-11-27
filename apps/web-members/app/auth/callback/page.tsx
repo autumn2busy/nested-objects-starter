@@ -9,52 +9,15 @@ function CallbackContent() {
   const [status, setStatus] = useState<string>('Processing...')
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        console.log('🟢 Callback page loaded')
-        console.log('🟢 Full URL:', window.location.href)
-        console.log('🟢 Search params:', window.location.search)
-        
-        // Get the access token from URL query params
-        if (!searchParams) {
-          setStatus('Waiting for search parameters...')
-          return
-        }
+    const params: ReadonlyURLSearchParams | URLSearchParams | null =
+      searchParams ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null)
 
-        const accessToken = searchParams.get('access_token')
-        
-        console.log('🟢 Access token found?', !!accessToken)
-        
-        if (!accessToken) {
-          setStatus('No access token received. Checking Outseta...')
-          
-          // Wait a moment for Outseta to load
-          setTimeout(() => {
-            if (window.Outseta) {
-              const token = window.Outseta.getAccessToken()
-              if (token) {
-                console.log('🟢 Got token from Outseta directly')
-                proceedWithToken(token)
-              } else {
-                setStatus('Error: No access token found. Please try logging in again.')
-                setTimeout(() => router.push('/'), 3000)
-              }
-            }
-          }, 1000)
-          return
-        }
-
-        proceedWithToken(accessToken)
-        
-      } catch (err) {
-        console.error('🔴 Auth callback error:', err)
-        setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    const proceedWithToken = (accessToken: string) => {
+    const proceedWithToken = (
+      accessToken: string,
+      redirectParams: ReadonlyURLSearchParams | URLSearchParams
+    ) => {
       console.log('🟢 Processing token...')
-      
+
       // Store the token in a cookie (accessible by server-side code)
       document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
       console.log('🟢 Token stored in cookie')
@@ -68,15 +31,58 @@ function CallbackContent() {
       setStatus('Success! Redirecting...')
 
       // Redirect to directory
-      const redirectTo = searchParams?.get('redirect') || '/dashboard'
-      
+      const redirectTo = redirectParams.get('redirect') || '/dashboard'
+
       console.log('🟢 Redirecting to:', redirectTo)
-      
-// Small delay to ensure cookie + Outseta token are fully set
+
+      // Small delay to ensure cookie + Outseta token are fully set
       setTimeout(() => {
         window.location.href = redirectTo
         // or: window.location.assign(redirectTo)
       }, 500)
+    }
+
+    const handleCallback = async () => {
+      try {
+        console.log('🟢 Callback page loaded')
+        console.log('🟢 Full URL:', window.location.href)
+        console.log('🟢 Search params:', window.location.search)
+
+        // Get the access token from URL query params
+        if (!params) {
+          setStatus('Waiting for search parameters...')
+          return
+        }
+
+        const accessToken = params.get('access_token')
+
+        console.log('🟢 Access token found?', !!accessToken)
+        
+        if (!accessToken) {
+          setStatus('No access token received. Checking Outseta...')
+          
+          // Wait a moment for Outseta to load
+          setTimeout(() => {
+            if (window.Outseta) {
+              const token = window.Outseta.getAccessToken()
+              if (token) {
+                console.log('🟢 Got token from Outseta directly')
+                proceedWithToken(token, params)
+              } else {
+                setStatus('Error: No access token found. Please try logging in again.')
+                setTimeout(() => router.push('/'), 3000)
+              }
+            }
+          }, 1000)
+          return
+        }
+
+        proceedWithToken(accessToken, params)
+
+      } catch (err) {
+        console.error('🔴 Auth callback error:', err)
+        setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
     }
 
     handleCallback()
