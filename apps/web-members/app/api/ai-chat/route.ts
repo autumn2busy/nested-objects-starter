@@ -19,7 +19,32 @@ function isValidMessage(message: unknown): message is ChatMessage {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const contentType = req.headers.get("content-type")?.toLowerCase() ?? "";
+    if (!contentType.includes("application/json")) {
+      console.warn("[AI_CHAT_VALIDATION]", {
+        reason: "invalid_content_type",
+        contentType,
+      });
+      return NextResponse.json(
+        { error: "Content-Type must be application/json" },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json().catch((error: unknown) => {
+      console.warn("[AI_CHAT_VALIDATION]", {
+        reason: "invalid_json",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return undefined;
+    });
+
+    if (!body) {
+      return NextResponse.json(
+        { error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
 
     const messages = body?.messages as ChatMessage[] | undefined;
 
@@ -39,8 +64,26 @@ export async function POST(req: Request) {
     }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      console.warn("[AI_CHAT_VALIDATION]", {
+        reason: "missing_messages",
+        hasMessages: Boolean(messages),
+        isArray: Array.isArray(messages),
+        length: messages?.length,
+      });
       return NextResponse.json(
         { error: "messages array is required" },
+        { status: 400 }
+      );
+    }
+
+    const invalidMessageIndex = messages.findIndex((message) => !isValidMessage(message));
+    if (invalidMessageIndex !== -1) {
+      console.warn("[AI_CHAT_VALIDATION]", {
+        reason: "invalid_message",
+        index: invalidMessageIndex,
+      });
+      return NextResponse.json(
+        { error: `messages[${invalidMessageIndex}] is invalid` },
         { status: 400 }
       );
     }
