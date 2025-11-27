@@ -81,20 +81,20 @@ export default function JobsPage() {
         </nav>
       </header>
 
-      <Gate feature="job_board">
-        {/* Placeholder content for now */}
-        <section>
-          <p style={{ marginBottom: '1rem' }}>
-            This is where your weekly job board will live. In the next phase we will connect this
-            to a Supabase table of jobs and optionally external feeds like Indeed or vendor APIs.
-          </p>
-          <ul style={{ listStyle: 'disc', paddingLeft: '1.25rem', fontSize: '0.95rem' }}>
-            <li>Show new jobs for the last 7 days first.</li>
-            <li>Tag jobs by type. mortgage inspection, PDC, notary, REO, BPO.</li>
-            <li>Later. filter by state, pay range, and vendor.</li>
-          </ul>
-        </section>
-      </Gate>
-    </main>
+        <Gate feature="job_board">
+          {/* Placeholder content for now */}
+          <section>
+            <p style={{ marginBottom: '1rem' }}>
+              This is where your weekly job board will live. In the next phase we will connect this
+              to a Supabase table of jobs and optionally external feeds like Indeed or vendor APIs.
+            </p>
+            <ul style={{ listStyle: 'disc', paddingLeft: '1.25rem', fontSize: '0.95rem' }}>
+              <li>Show new jobs for the last 7 days first.</li>
+              <li>Tag jobs by type: mortgage inspection, PDC, notary, REO, or BPO.</li>
+              <li>Later, filter by state, pay range, and vendor.</li>
+            </ul>
+          </section>
+        </Gate>
+      </main>
   )
 }

@@ -13,8 +13,7 @@ const jsonLd = {
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Any',
   url: 'https://nested-objects-starter.vercel.app',
-  description:
-    'Member hub and firm directory for field inspectors, notaries, real estate pros, and gig workers. Compare firms, see requirements, and plan better routes before you leave the driveway.',
+  description: 'Member hub and firm directory for field inspectors, notaries, real estate pros, and gig workers. Compare firms, see requirements, and plan better routes before you leave the driveway.',
   offers: {
     '@type': 'Offer',
     price: '0',
@@ -28,8 +27,6 @@ const jsonLd = {
 
 export default function HomePage() {
   const heroImage = '/hero.jpg'
-  // reuse hero for now. you can swap this to another image later
-  const rolesHeroImage = '/hero.jpg'
 
   const [roleHeroLoaded, setRoleHeroLoaded] = useState(false)
 
