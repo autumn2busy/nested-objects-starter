@@ -23,8 +23,8 @@ export default function ToolsIndexPage() {
       title: '📍 Job tracking',
       description:
         'Track inspections, due dates, and pay so nothing slips through the cracks.',
-      href: '/tools/job-tracker',
-      cta: 'Go to job tracker →',
+      href: '/dashboard/job-tracker',
+      cta: 'Open job tracker →',
     },
     {
       title: '🌤 Weather',

@@ -11,6 +11,7 @@ const navigation = [
   { href: '/blog', label: 'Blog', icon: PencilIcon },
   { href: '/resources', label: 'Resources', icon: LibraryIcon },
   { href: '/jobs', label: 'Job board', icon: BriefcaseIcon },
+  { href: '/dashboard/job-tracker', label: 'Job tracker', icon: ClipboardIcon },
   { href: '/tools', label: 'Tools', icon: SparkIcon },
   { href: '/profile', label: 'Profile', icon: UserIcon },
 ]
@@ -103,6 +104,15 @@ function BriefcaseIcon() {
     <svg aria-hidden className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
       <path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1" strokeLinecap="round" />
       <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Zm9 3h9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function ClipboardIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
+      <path d="M9 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" strokeLinecap="round" />
+      <path d="M9 4.5a1.5 1.5 0 1 0 0 3h6a1.5 1.5 0 1 0 0-3" strokeLinecap="round" />
     </svg>
   )
 }

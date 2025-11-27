@@ -86,59 +86,24 @@ export default function JobsPage() {
   }
 
   return (
-    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
-      {/* Header with back link and nav */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '1rem',
-          marginBottom: '1.75rem',
-        }}
-      >
-        <div>
-          <Link
-            href="/dashboard"
-            style={{
-              fontSize: '0.9rem',
-              textDecoration: 'none',
-              color: '#4b5563',
-              display: 'inline-block',
-              marginBottom: '0.5rem',
-            }}
-          >
+    <main className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8 md:px-8 lg:py-12">
+      <header className="flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-2">
+          <Link href="/dashboard" className="text-sm font-semibold text-brand-dark hover:text-brand-copper">
             ← Back to dashboard
           </Link>
-          <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              margin: 0,
-            }}
-          >
-            Weekly field inspection job board
-          </h1>
-          <p
-            style={{
-              marginTop: '0.4rem',
-              fontSize: '0.95rem',
-              color: '#6b7280',
-            }}
-          >
-            Fresh opportunities for mortgage field inspections, occupancy checks, and property data collection.
-          </p>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-copper">Directory style</p>
+            <h1 className="text-3xl font-semibold text-brand-dark md:text-[32px]">Weekly field inspection jobs</h1>
+            <p className="mt-2 max-w-2xl text-sm text-brand-slate">
+              Fresh vendor opportunities inspired by Indeed’s clean directory layout. Filter by title or location, scan the pay,
+              and click through to apply directly.
+            </p>
+          </div>
         </div>
 
-        <nav
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            fontSize: '0.9rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
+        <nav className="flex flex-wrap gap-3 text-sm font-semibold text-brand-dark">
+          <Link href="/" className="hover:text-brand-copper">
             Home
           </Link>
           <Link href="/dashboard" style={{ textDecoration: 'none', color: '#111827' }}>
