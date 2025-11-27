@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 
 import { useDashboardLayout } from './dashboard-layout-context'
 import type { MemberJob } from '@/types/member-jobs'
@@ -124,22 +124,25 @@ export function JobTrackerSection() {
   const [addedThisWeek, setAddedThisWeek] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
-  const startOfWeek = (date = new Date()) => {
+  const startOfWeek = useCallback((date = new Date()) => {
     const copy = new Date(date)
     const day = copy.getDay()
     const diff = copy.getDate() - day
     copy.setDate(diff)
     copy.setHours(0, 0, 0, 0)
     return copy
-  }
+  }, [])
 
-  const endOfWeek = (date = new Date()) => {
-    const start = startOfWeek(date)
-    const end = new Date(start)
-    end.setDate(start.getDate() + 6)
-    end.setHours(23, 59, 59, 999)
-    return end
-  }
+  const endOfWeek = useCallback(
+    (date = new Date()) => {
+      const start = startOfWeek(date)
+      const end = new Date(start)
+      end.setDate(start.getDate() + 6)
+      end.setHours(23, 59, 59, 999)
+      return end
+    },
+    [startOfWeek]
+  )
 
   useEffect(() => {
     const loadStats = async () => {
@@ -174,7 +177,7 @@ export function JobTrackerSection() {
     }
 
     void loadStats()
-  }, [])
+  }, [endOfWeek, startOfWeek])
 
   return (
     <DashboardSectionCard

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 const roles = ["Notary", "Existing Inspector", "Gig Worker", "Realtor"] as const;
@@ -417,11 +418,13 @@ const mediaRenderer = (media: Module["media"][number]) => {
       );
     case "infographic":
       return (
-        <img
+        <Image
           key={media.label}
           src={media.url}
           alt={media.label}
-          className="w-full rounded-xl border border-slate-200 shadow-sm"
+          width={900}
+          height={400}
+          className="h-auto w-full rounded-xl border border-slate-200 shadow-sm"
         />
       );
     default:
@@ -479,8 +482,8 @@ export default function TrainingPage() {
 
   const handleCheckpoint = (moduleId: string) => {
     setModuleState((prev) => {
-      const module = track.modules.find((m) => m.id === moduleId);
-      const total = module?.checkpoints.length ?? 0;
+      const moduleEntry = track.modules.find((m) => m.id === moduleId);
+      const total = moduleEntry?.checkpoints.length ?? 0;
       const current = prev[moduleId]?.checkpointsCompleted ?? 0;
       const nextCount = Math.min(current + 1, total);
       const completed = nextCount === total && (prev[moduleId]?.completed ?? false);
@@ -508,10 +511,10 @@ export default function TrainingPage() {
   };
 
   const handleQuizSubmit = (moduleId: string, selectedOption: string) => {
-    const module = track.modules.find((item) => item.id === moduleId);
-    if (!module) return;
+    const moduleEntry = track.modules.find((item) => item.id === moduleId);
+    if (!moduleEntry) return;
 
-    const score = selectedOption === module.quiz.answer ? 100 : 50;
+    const score = selectedOption === moduleEntry.quiz.answer ? 100 : 50;
     setModuleState((prev) => ({
       ...prev,
       [moduleId]: {
