@@ -28,6 +28,9 @@ const footerSections = [
       { href: '/about', label: 'About Nested Objects' },
       { href: '/contact', label: 'Contact' },
       { href: '/privacy', label: 'Privacy' },
+      { href: '/terms-conditions', label: 'Terms & conditions' },
+      { href: '/refund-policy', label: 'Refund policy' },
+      { href: '/faqs', label: 'FAQs' },
     ],
   },
 ]
