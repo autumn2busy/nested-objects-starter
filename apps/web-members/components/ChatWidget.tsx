@@ -23,7 +23,18 @@ export default function ChatWidget() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
+
+  function getMessageStyles(role: Role) {
+    switch (role) {
+      case "user":
+        return "bg-brand-copper text-white";
+      case "system":
+        return "bg-slate-100 text-slate-700 border border-slate-200";
+      default:
+        return "bg-brand-mist/70 text-slate-800 border border-brand-mist/60";
+    }
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -101,8 +112,8 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="flex h-[480px] flex-col rounded-2xl border border-brand-copper/25 bg-white">
-      <div className="flex-1 space-y-3 overflow-y-auto p-4 text-sm">
+    <div className="flex min-h-[360px] max-h-[80vh] flex-col rounded-2xl border border-brand-copper/25 bg-white sm:min-h-[480px] sm:max-h-[720px]">
+      <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 text-sm sm:p-6">
         {messages.map((m, idx) => (
           <div
             key={idx}
@@ -111,16 +122,25 @@ export default function ChatWidget() {
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-3 py-2 ${
-                m.role === "user"
-                  ? "bg-brand-copper text-white"
-                  : "bg-brand-mist/70 text-slate-800"
-              }`}
+              className={`max-w-[80%] rounded-2xl px-3 py-2 shadow-sm ${getMessageStyles(
+                m.role
+              )}`}
             >
               {m.content}
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="max-w-[70%] rounded-2xl border border-brand-mist/60 bg-brand-mist/70 px-3 py-2 text-slate-800 shadow-sm">
+              <span className="flex items-center gap-1">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-500 [animation-delay:-0.2s]"></span>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-500 [animation-delay:-0.05s]"></span>
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-500"></span>
+              </span>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -130,11 +150,13 @@ export default function ChatWidget() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about firms, pay ranges, or inspection steps..."
+            aria-label="Chat message input"
             className="flex-1 rounded-full border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-copper focus:ring-1 focus:ring-brand-copper"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
+            aria-label="Send message"
             className="rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading ? "Thinking" : "Send"}
