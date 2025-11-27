@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+const OPENAI_TIMEOUT_MS = 30_000
+
 type ProfileIntake = {
   fullName?: string
   phone?: string
@@ -26,8 +28,11 @@ type ExperienceGear = {
   turnaroundTime?: string
 }
 
-function fallbackResponse(body: { summary: string; experienceBullets: string[]; skillsBullets: string[]; portalBlurb: string }) {
-  return NextResponse.json({ ...body, updatedAt: new Date().toISOString() })
+function fallbackResponse(
+  body: { summary: string; experienceBullets: string[]; skillsBullets: string[]; portalBlurb: string },
+  status = 200,
+) {
+  return NextResponse.json({ ...body, updatedAt: new Date().toISOString() }, { status })
 }
 
 function buildPrompt(profile?: ProfileIntake, experience?: ExperienceGear) {
@@ -79,6 +84,9 @@ export async function POST(req: Request) {
 
     const prompt = buildPrompt(profile, experience)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(new Error('OpenAI request timed out')), OPENAI_TIMEOUT_MS)
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -96,16 +104,19 @@ export async function POST(req: Request) {
           { role: 'user', content: prompt },
         ],
       }),
-    })
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) {
-      console.error('[AI_RESUME_GENERATE_ERROR_RESPONSE]', response.status, await response.text())
+      const errorBody = await response.text()
+      const errorDetail = errorBody.trim()
+      console.error('[AI_RESUME_GENERATE_ERROR_RESPONSE]', response.status, errorBody)
       return fallbackResponse({
-        summary: 'Could not reach the AI service. Re-run generate or keep editing manually.',
+        summary: `Could not reach the AI service (status ${response.status}). ${errorDetail ? `Details: ${errorDetail.slice(0, 240)}` : 'Re-run generate or keep editing manually.'}`,
         experienceBullets: ['List the vendors, counts, and geographies you service.'],
         skillsBullets: ['Ladders, cameras, drones, and measurement tools make QA checks easier.'],
         portalBlurb: 'Available for your region with documented safety practices and reliable turnaround.',
-      })
+      }, 502)
     }
 
     const completion = (await response.json()) as {
@@ -119,7 +130,7 @@ export async function POST(req: Request) {
         experienceBullets: ['Share more about your volume and routes.'],
         skillsBullets: ['Note equipment, safety practices, and turnaround times.'],
         portalBlurb: 'Inspector ready for assignments in your counties.',
-      })
+      }, 500)
     }
 
     let parsed: { summary?: string; experienceBullets?: string[]; skillsBullets?: string[]; portalBlurb?: string } = {}
@@ -144,12 +155,21 @@ export async function POST(req: Request) {
       updatedAt,
     })
   } catch (error) {
+    if ((error as Error | undefined)?.name === 'AbortError') {
+      return fallbackResponse({
+        summary: 'OpenAI timed out. Retry generation or simplify the intake to speed up responses.',
+        experienceBullets: ['Share your vendor mix and inspection counts to tighten results.'],
+        skillsBullets: ['Add equipment and safety notes for clearer capability summaries.'],
+        portalBlurb: 'Inspector coverage held temporarily; refresh to retry.',
+      }, 504)
+    }
+
     console.error('[AI_RESUME_GENERATE_ERROR]', error)
     return fallbackResponse({
       summary: 'Unexpected error while generating. Please try again shortly.',
       experienceBullets: ['Share your vendor mix and inspection counts to tighten results.'],
       skillsBullets: ['Add equipment and safety notes for clearer capability summaries.'],
       portalBlurb: 'Inspector coverage held temporarily; refresh to retry.',
-    })
+    }, 500)
   }
 }
