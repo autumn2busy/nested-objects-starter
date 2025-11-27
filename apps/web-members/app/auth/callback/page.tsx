@@ -16,6 +16,11 @@ function CallbackContent() {
         console.log('🟢 Search params:', window.location.search)
         
         // Get the access token from URL query params
+        if (!searchParams) {
+          setStatus('Waiting for search parameters...')
+          return
+        }
+
         const accessToken = searchParams.get('access_token')
         
         console.log('🟢 Access token found?', !!accessToken)
@@ -63,7 +68,7 @@ function CallbackContent() {
       setStatus('Success! Redirecting...')
 
       // Redirect to directory
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
+      const redirectTo = searchParams?.get('redirect') || '/dashboard'
       
       console.log('🟢 Redirecting to:', redirectTo)
       
