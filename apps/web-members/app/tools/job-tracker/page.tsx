@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 
 import { Gate } from '@/components/Gate'
-import type { Job, JobStatus, PayoutStatus } from '@/types/jobs'
+import type { MemberJob, MemberJobStatus } from '@/types/member-jobs'
 
 import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
 import { ToolLayout } from '../_components/ToolLayout'
@@ -16,134 +16,75 @@ const navLinks = [
   { href: '/membership', label: 'Membership' },
 ]
 
-const statusOptions: { value: JobStatus; label: string }[] = [
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'invoiced', label: 'Invoiced' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'cancelled', label: 'Cancelled' },
-]
-
-const payoutStatusOptions: { value: PayoutStatus; label: string }[] = [
-  { value: 'unpaid', label: 'Unpaid' },
-  { value: 'partial', label: 'Partial' },
-  { value: 'paid', label: 'Paid' },
+const statusOptions: { value: MemberJobStatus; label: string; description?: string }[] = [
+  { value: 'interested', label: 'Interested', description: 'Saved to review later' },
+  { value: 'applied', label: 'Applied', description: 'Application submitted' },
+  { value: 'interviewing', label: 'Interviewing', description: 'In conversation with the firm' },
+  { value: 'offer', label: 'Offer', description: 'Offer received or pending acceptance' },
+  { value: 'closed', label: 'Closed', description: 'No longer pursuing' },
 ]
 
 type JobFormState = {
   title: string
-  firm_name: string
-  firm_id: string
-  region: string
-  address: string
-  appointment_date: string
-  appointment_time: string
-  status: JobStatus
-  payout: string
-  payout_status: PayoutStatus
-  mileage: string
-  sla_target_hours: string
+  company: string
+  location: string
+  source_url: string
+  job_id: string
+  pay: string
+  status: MemberJobStatus
   notes: string
 }
 
 const defaultForm: JobFormState = {
   title: '',
-  firm_name: '',
-  firm_id: '',
-  region: '',
-  address: '',
-  appointment_date: '',
-  appointment_time: '',
-  status: 'scheduled',
-  payout: '',
-  payout_status: 'unpaid',
-  mileage: '',
-  sla_target_hours: '',
+  company: '',
+  location: '',
+  source_url: '',
+  job_id: '',
+  pay: '',
+  status: 'interested',
   notes: '',
 }
 
-function parseDate(value: string | null) {
-  if (!value) return null
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? null : date
-}
-
-function startOfWeek(date = new Date()) {
-  const copy = new Date(date)
-  const day = copy.getDay()
-  const diff = copy.getDate() - day
-  copy.setDate(diff)
-  copy.setHours(0, 0, 0, 0)
-  return copy
-}
-
-function endOfWeek(date = new Date()) {
-  const start = startOfWeek(date)
-  const end = new Date(start)
-  end.setDate(start.getDate() + 6)
-  end.setHours(23, 59, 59, 999)
-  return end
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
-
-function statusBadgeClasses(status: JobStatus) {
+function statusBadgeClasses(status: MemberJobStatus) {
   switch (status) {
-    case 'completed':
-      return 'bg-brand-teal text-white'
-    case 'paid':
-      return 'bg-brand-teal/80 text-white'
-    case 'in_progress':
+    case 'applied':
       return 'bg-brand-copper/10 text-brand-dark border border-brand-copper/40'
-    case 'invoiced':
-      return 'bg-white text-brand-dark border border-brand-steel/40'
-    case 'cancelled':
-      return 'bg-brand-steel/10 text-brand-dark border border-brand-steel/40'
+    case 'interviewing':
+      return 'bg-brand-teal text-white'
+    case 'offer':
+      return 'bg-brand-teal/80 text-white'
+    case 'closed':
+      return 'bg-brand-steel/15 text-brand-dark border border-brand-steel/40'
     default:
       return 'bg-brand-sand text-brand-dark border border-brand-steel/30'
   }
 }
 
-function payoutBadgeClasses(status: PayoutStatus) {
-  switch (status) {
-    case 'paid':
-      return 'bg-brand-teal text-white'
-    case 'partial':
-      return 'bg-brand-copper/10 text-brand-dark border border-brand-copper/40'
-    default:
-      return 'bg-white text-brand-dark border border-brand-steel/40'
-  }
-}
-
 export default function JobTrackerPage() {
-  const [jobs, setJobs] = useState<Job[]>([])
+  const [jobs, setJobs] = useState<MemberJob[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<'all' | JobStatus>('all')
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'next7'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | MemberJobStatus>('all')
   const [formState, setFormState] = useState<JobFormState>(defaultForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [actionId, setActionId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [limitMessage, setLimitMessage] = useState<string | null>(null)
 
   const fetchJobs = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/jobs')
+      const res = await fetch('/api/member-jobs')
       const payload = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        throw new Error(payload?.error || 'Could not load jobs')
+        throw new Error(payload?.error || 'Could not load saved jobs')
       }
 
       setJobs(Array.isArray(payload) ? payload : payload.jobs ?? [])
     } catch (err) {
       console.error(err)
-      setError('Could not load your jobs just yet. Please refresh.')
+      setError('Could not load your tracked jobs yet. Please refresh.')
     } finally {
       setLoading(false)
     }
@@ -153,80 +94,41 @@ export default function JobTrackerPage() {
     void fetchJobs()
   }, [])
 
-  const weeklySummary = useMemo(() => {
-    const now = new Date()
-    const weekStart = startOfWeek(now)
-    const weekEnd = endOfWeek(now)
+  const summary = useMemo(() => {
+    const active = jobs.filter((job) => job.status !== 'closed').length
+    const interviewing = jobs.filter((job) => job.status === 'interviewing').length
+    const offers = jobs.filter((job) => job.status === 'offer').length
 
-    const weeklyJobs = jobs.filter((job) => {
-      const date = parseDate(job.appointment_date)
-      return date && date >= weekStart && date <= weekEnd
-    })
+    const weekStart = (() => {
+      const now = new Date()
+      const copy = new Date(now)
+      const day = copy.getDay()
+      const diff = copy.getDate() - day
+      copy.setDate(diff)
+      copy.setHours(0, 0, 0, 0)
+      return copy
+    })()
 
-    const payoutTotal = weeklyJobs.reduce((sum, job) => sum + (job.payout ?? 0), 0)
+    const weekEnd = (() => {
+      const start = new Date(weekStart)
+      start.setDate(start.getDate() + 6)
+      start.setHours(23, 59, 59, 999)
+      return start
+    })()
 
-    const dueByNow = jobs.filter((job) => {
-      const apptDate = parseDate(job.appointment_date)
-      if (!apptDate) return false
-      const deadline = new Date(apptDate)
-      const hours = job.sla_target_hours ?? 0
-      deadline.setHours(deadline.getHours() + hours)
-      return deadline <= now
-    })
+    const createdThisWeek = jobs.filter((job) => {
+      const createdAt = new Date(job.created_at)
+      return createdAt >= weekStart && createdAt <= weekEnd
+    }).length
 
-    const completedOnTime = dueByNow.filter((job) => job.status === 'completed' || job.status === 'paid')
-    const slaScore = dueByNow.length ? Math.round((completedOnTime.length / dueByNow.length) * 100) : 100
-
-    return {
-      weeklyJobs: weeklyJobs.length,
-      payoutTotal,
-      slaScore,
-    }
+    return { active, interviewing, offers, createdThisWeek }
   }, [jobs])
 
   const filteredJobs = useMemo(() => {
-    const today = new Date()
-    const weekStart = startOfWeek(today)
-    const weekEnd = endOfWeek(today)
-    const nextWeek = new Date(today)
-    nextWeek.setDate(today.getDate() + 7)
+    const list = statusFilter === 'all' ? jobs : jobs.filter((job) => job.status === statusFilter)
 
-    const matchesFilters = (job: Job) => {
-      if (statusFilter !== 'all' && job.status !== statusFilter) return false
-
-      const apptDate = parseDate(job.appointment_date)
-
-      if (dateFilter === 'today') {
-        if (!apptDate) return false
-        return apptDate.toDateString() === today.toDateString()
-      }
-
-      if (dateFilter === 'week') {
-        if (!apptDate) return false
-        return apptDate >= weekStart && apptDate <= weekEnd
-      }
-
-      if (dateFilter === 'next7') {
-        if (!apptDate) return false
-        return apptDate >= today && apptDate <= nextWeek
-      }
-
-      return true
-    }
-
-    return [...jobs]
-      .filter(matchesFilters)
-      .sort((a, b) => {
-        const aDate = parseDate(a.appointment_date)
-        const bDate = parseDate(b.appointment_date)
-
-        if (aDate && bDate) return bDate.getTime() - aDate.getTime()
-        if (aDate && !bDate) return -1
-        if (!aDate && bDate) return 1
-
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      })
-  }, [dateFilter, jobs, statusFilter])
+    return [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+  }, [jobs, statusFilter])
 
   const updateForm = (field: keyof JobFormState, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }))
@@ -241,26 +143,20 @@ export default function JobTrackerPage() {
     event.preventDefault()
     setSaving(true)
     setError(null)
-    setLimitMessage(null)
 
     const payload = {
-      firm_id: formState.firm_id || null,
+      job_id: formState.job_id || null,
       title: formState.title || null,
-      firm_name: formState.firm_name || null,
-      region: formState.region || null,
-      address: formState.address || null,
-      appointment_date: formState.appointment_date || null,
-      appointment_time: formState.appointment_time || null,
+      company: formState.company || null,
+      location: formState.location || null,
+      source_url: formState.source_url || null,
+      pay: formState.pay || null,
       status: formState.status,
-      payout: formState.payout ? Number(formState.payout) : null,
-      payout_status: formState.payout_status,
-      mileage: formState.mileage ? Number(formState.mileage) : null,
-      sla_target_hours: formState.sla_target_hours ? Number(formState.sla_target_hours) : null,
       notes: formState.notes || null,
     }
 
     try {
-      const res = await fetch(editingId ? `/api/jobs/${editingId}` : '/api/jobs', {
+      const res = await fetch(editingId ? `/api/member-jobs/${editingId}` : '/api/member-jobs', {
         method: editingId ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -271,11 +167,7 @@ export default function JobTrackerPage() {
       const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        if (res.status === 403 && data?.error) {
-          setLimitMessage(data.error)
-        } else {
-          setError(data?.error || 'Could not save this job just yet.')
-        }
+        setError(data?.error || 'Could not save this job entry yet.')
         return
       }
 
@@ -289,11 +181,11 @@ export default function JobTrackerPage() {
     }
   }
 
-  const handleUpdate = async (id: string, updates: Partial<Job>) => {
+  const handleUpdate = async (id: string, updates: Partial<MemberJob>) => {
     try {
       setActionId(id)
       setError(null)
-      const res = await fetch(`/api/jobs/${id}`, {
+      const res = await fetch(`/api/member-jobs/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -302,34 +194,50 @@ export default function JobTrackerPage() {
       const payload = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        setError(payload?.error || 'Could not update job.')
+        setError(payload?.error || 'Could not update job entry.')
         return
       }
 
       await fetchJobs()
     } catch (err) {
       console.error(err)
-      setError('Could not update job.')
+      setError('Could not update job entry.')
     } finally {
       setActionId(null)
     }
   }
 
-  const beginEdit = (job: Job) => {
+  const handleDelete = async (id: string) => {
+    try {
+      setActionId(id)
+      setError(null)
+      const res = await fetch(`/api/member-jobs/${id}`, { method: 'DELETE' })
+      const payload = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setError(payload?.error || 'Could not delete job entry.')
+        return
+      }
+
+      await fetchJobs()
+    } catch (err) {
+      console.error(err)
+      setError('Could not delete job entry.')
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  const beginEdit = (job: MemberJob) => {
     setEditingId(job.id)
     setFormState({
       title: job.title || '',
-      firm_name: job.firm_name || '',
-      firm_id: job.firm_id || '',
-      region: job.region || '',
-      address: job.address || '',
-      appointment_date: job.appointment_date || '',
-      appointment_time: job.appointment_time || '',
+      company: job.company || '',
+      location: job.location || '',
+      source_url: job.source_url || '',
+      job_id: job.job_id || '',
+      pay: job.pay || '',
       status: job.status,
-      payout: job.payout ? String(job.payout) : '',
-      payout_status: job.payout_status,
-      mileage: job.mileage ? String(job.mileage) : '',
-      sla_target_hours: job.sla_target_hours ? String(job.sla_target_hours) : '',
       notes: job.notes || '',
     })
   }
@@ -337,7 +245,7 @@ export default function JobTrackerPage() {
   return (
     <ToolLayout
       title="Job tracker"
-      description="Log inspections, status, and payouts in one place. Filter by status and see this week’s workload at a glance."
+      description="Save jobs, log where you applied, and track interviews and offers with notes in one place."
       navLinks={navLinks}
     >
       <Gate
@@ -346,62 +254,54 @@ export default function JobTrackerPage() {
         fallback={
           <ToolAccessMessage
             title="Authentication required"
-            description="Log in or upgrade to start tracking inspections and payouts."
+            description="Log in or upgrade to start tracking applications and offers."
             tone="warning"
             actions={<UpgradeActions />}
           />
         }
       >
         <div className="space-y-6">
-          {limitMessage && (
-            <ToolAccessMessage
-              title="Upgrade for unlimited job tracking"
-              description={limitMessage}
-              tone="warning"
-              actions={
-                <Link
-                  href="/upgrade"
-                  className="rounded-none bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-                >
-                  Upgrade to Pro
-                </Link>
-              }
-            />
-          )}
+          <section className="rounded-none border border-brand-steel/30 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Job tracker</p>
+                <h2 className="text-xl font-semibold text-brand-dark">Pipeline at a glance</h2>
+              </div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
+                  Active: <span className="font-semibold text-brand-dark">{summary.active}</span>
+                </div>
+                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
+                  Interviews: <span className="font-semibold text-brand-dark">{summary.interviewing}</span>
+                </div>
+                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
+                  Offers: <span className="font-semibold text-brand-dark">{summary.offers}</span>
+                </div>
+                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
+                  Added this week: <span className="font-semibold text-brand-dark">{summary.createdThisWeek}</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-none border border-brand-steel/25 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">This week</p>
-              <p className="mt-2 text-3xl font-bold text-brand-dark">{weeklySummary.weeklyJobs}</p>
-              <p className="text-sm text-brand-steel">Jobs scheduled</p>
-            </div>
-            <div className="rounded-none border border-brand-steel/25 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Expected payout</p>
-              <p className="mt-2 text-3xl font-bold text-brand-dark">{formatCurrency(weeklySummary.payoutTotal)}</p>
-              <p className="text-sm text-brand-steel">Projected this week</p>
-            </div>
-            <div className="rounded-none border border-brand-steel/25 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">SLA score</p>
-              <p className="mt-2 text-3xl font-bold text-brand-dark">{weeklySummary.slaScore}%</p>
-              <p className="text-sm text-brand-steel">Completed on time</p>
-            </div>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[0.95fr,1.6fr]">
+          <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-none border border-brand-steel/30 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">New job</p>
-                  <h2 className="text-xl font-semibold text-brand-dark">Quick add</h2>
-                  <p className="text-sm text-brand-steel">Create a new inspection with status, payout, and notes.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
+                    {editingId ? 'Edit job' : 'Add a job'}
+                  </p>
+                  <h2 className="text-xl font-semibold text-brand-dark">
+                    {editingId ? 'Update tracked job' : 'Save a new job'}
+                  </h2>
                 </div>
                 {editingId && (
                   <button
                     type="button"
+                    className="text-xs font-semibold text-brand-steel underline"
                     onClick={resetForm}
-                    className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
                   >
-                    Cancel edit
+                    Cancel
                   </button>
                 )}
               </div>
@@ -409,51 +309,51 @@ export default function JobTrackerPage() {
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div className="space-y-3">
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Title</span>
+                    <span className="block font-semibold">Job title</span>
                     <input
                       value={formState.title}
                       onChange={(e) => updateForm('title', e.target.value)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Roof inspection - Atlanta"
+                      placeholder="Property inspector - Atlanta"
                     />
                   </label>
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Firm</span>
+                    <span className="block font-semibold">Company</span>
                     <input
-                      value={formState.firm_name}
-                      onChange={(e) => updateForm('firm_name', e.target.value)}
+                      value={formState.company}
+                      onChange={(e) => updateForm('company', e.target.value)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Acme Insurance"
+                      placeholder="Acme Field Services"
                     />
                   </label>
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Region</span>
+                    <span className="block font-semibold">Location</span>
                     <input
-                      value={formState.region}
-                      onChange={(e) => updateForm('region', e.target.value)}
+                      value={formState.location}
+                      onChange={(e) => updateForm('location', e.target.value)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Atlanta metro or Route 4"
+                      placeholder="Atlanta, GA (Remote friendly)"
                     />
                   </label>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Appointment date</span>
+                    <span className="block font-semibold">Job link</span>
                     <input
-                      type="date"
-                      value={formState.appointment_date}
-                      onChange={(e) => updateForm('appointment_date', e.target.value)}
+                      value={formState.source_url}
+                      onChange={(e) => updateForm('source_url', e.target.value)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
+                      placeholder="https://example.com/job/123"
                     />
                   </label>
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Appointment time</span>
+                    <span className="block font-semibold">Job ID or reference</span>
                     <input
-                      value={formState.appointment_time}
-                      onChange={(e) => updateForm('appointment_time', e.target.value)}
-                      placeholder="9am–12pm"
+                      value={formState.job_id}
+                      onChange={(e) => updateForm('job_id', e.target.value)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
+                      placeholder="REQ-9481"
                     />
                   </label>
                 </div>
@@ -463,7 +363,7 @@ export default function JobTrackerPage() {
                     <span className="block font-semibold">Status</span>
                     <select
                       value={formState.status}
-                      onChange={(e) => updateForm('status', e.target.value as JobStatus)}
+                      onChange={(e) => updateForm('status', e.target.value as MemberJobStatus)}
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
                     >
                       {statusOptions.map((option) => (
@@ -474,40 +374,11 @@ export default function JobTrackerPage() {
                     </select>
                   </label>
                   <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Payout</span>
+                    <span className="block font-semibold">Pay or rate</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      value={formState.payout}
-                      onChange={(e) => updateForm('payout', e.target.value)}
-                      placeholder="250"
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Payout status</span>
-                    <select
-                      value={formState.payout_status}
-                      onChange={(e) => updateForm('payout_status', e.target.value as PayoutStatus)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    >
-                      {payoutStatusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">SLA target (hours)</span>
-                    <input
-                      type="number"
-                      value={formState.sla_target_hours}
-                      onChange={(e) => updateForm('sla_target_hours', e.target.value)}
-                      placeholder="24"
+                      value={formState.pay}
+                      onChange={(e) => updateForm('pay', e.target.value)}
+                      placeholder="$250 per inspection"
                       className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
                     />
                   </label>
@@ -520,7 +391,7 @@ export default function JobTrackerPage() {
                     onChange={(e) => updateForm('notes', e.target.value)}
                     rows={4}
                     className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    placeholder="Access codes, photo requests, or special handling"
+                    placeholder="Scripts, contacts, follow-up dates, or interview prep"
                   />
                 </label>
 
@@ -553,7 +424,7 @@ export default function JobTrackerPage() {
                 <div className="flex flex-wrap gap-2 text-sm">
                   <select
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as JobStatus | 'all')}
+                    onChange={(e) => setStatusFilter(e.target.value as MemberJobStatus | 'all')}
                     className="rounded-none border border-brand-steel/40 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
                   >
                     <option value="all">All statuses</option>
@@ -563,27 +434,6 @@ export default function JobTrackerPage() {
                       </option>
                     ))}
                   </select>
-                  <div className="flex gap-1">
-                    {[
-                      { value: 'all', label: 'All dates' },
-                      { value: 'today', label: 'Today' },
-                      { value: 'week', label: 'This week' },
-                      { value: 'next7', label: 'Next 7 days' },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setDateFilter(option.value as typeof dateFilter)}
-                        className={`rounded-none border px-3 py-2 text-sm font-semibold transition ${
-                          dateFilter === option.value
-                            ? 'border-brand-copper bg-brand-copper text-white'
-                            : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
 
@@ -598,51 +448,62 @@ export default function JobTrackerPage() {
                       <table className="min-w-full text-sm text-brand-dark">
                         <thead>
                           <tr className="border-b border-brand-steel/20 text-left text-xs uppercase tracking-[0.12em] text-brand-steel">
-                            <th className="px-3 py-2">Date</th>
                             <th className="px-3 py-2">Title</th>
-                            <th className="px-3 py-2">Firm</th>
+                            <th className="px-3 py-2">Company</th>
                             <th className="px-3 py-2">Status</th>
-                            <th className="px-3 py-2">Payout</th>
-                            <th className="px-3 py-2">Payout status</th>
+                            <th className="px-3 py-2">Location</th>
+                            <th className="px-3 py-2">Pay</th>
+                            <th className="px-3 py-2">Source</th>
+                            <th className="px-3 py-2">Notes</th>
                             <th className="px-3 py-2">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-steel/15">
                           {filteredJobs.map((job) => (
                             <tr key={job.id}>
-                              <td className="px-3 py-3 text-brand-steel">{job.appointment_date || 'TBD'}</td>
                               <td className="px-3 py-3 font-semibold">{job.title || 'Untitled job'}</td>
-                              <td className="px-3 py-3 text-brand-steel">{job.firm_name || '—'}</td>
+                              <td className="px-3 py-3 text-brand-steel">{job.company || '—'}</td>
                               <td className="px-3 py-3">
                                 <span className={`inline-flex rounded-none px-3 py-1 text-xs font-semibold ${statusBadgeClasses(job.status)}`}>
                                   {statusOptions.find((s) => s.value === job.status)?.label || job.status}
                                 </span>
                               </td>
-                              <td className="px-3 py-3">{job.payout ? `$${job.payout.toFixed(2)}` : '—'}</td>
-                              <td className="px-3 py-3">
-                                <span
-                                  className={`inline-flex rounded-none px-3 py-1 text-xs font-semibold ${payoutBadgeClasses(job.payout_status)}`}
-                                >
-                                  {job.payout_status}
-                                </span>
+                              <td className="px-3 py-3 text-brand-steel">{job.location || '—'}</td>
+                              <td className="px-3 py-3 text-brand-steel">{job.pay || '—'}</td>
+                              <td className="px-3 py-3 text-brand-steel">
+                                {job.source_url ? (
+                                  <a
+                                    href={job.source_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-brand-copper underline"
+                                  >
+                                    View job
+                                  </a>
+                                ) : (
+                                  '—'
+                                )}
+                              </td>
+                              <td className="px-3 py-3 text-brand-steel">
+                                {job.notes ? job.notes.slice(0, 60) + (job.notes.length > 60 ? '…' : '') : '—'}
                               </td>
                               <td className="px-3 py-3">
                                 <div className="flex flex-wrap gap-2">
                                   <button
                                     type="button"
-                                    onClick={() => handleUpdate(job.id, { status: 'completed' })}
+                                    onClick={() => handleUpdate(job.id, { status: 'applied' })}
                                     className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
                                     disabled={actionId === job.id}
                                   >
-                                    Mark completed
+                                    Mark applied
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleUpdate(job.id, { status: 'paid', payout_status: 'paid' })}
+                                    onClick={() => handleUpdate(job.id, { status: 'offer' })}
                                     className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
                                     disabled={actionId === job.id}
                                   >
-                                    Mark paid
+                                    Log offer
                                   </button>
                                   <button
                                     type="button"
@@ -650,6 +511,14 @@ export default function JobTrackerPage() {
                                     className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
                                   >
                                     Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(job.id)}
+                                    className="rounded-none border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:border-red-400"
+                                    disabled={actionId === job.id}
+                                  >
+                                    Remove
                                   </button>
                                 </div>
                               </td>
@@ -666,39 +535,44 @@ export default function JobTrackerPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-sm font-semibold text-brand-dark">{job.title || 'Untitled job'}</p>
-                            <p className="text-xs text-brand-steel">{job.firm_name || 'No firm listed'}</p>
+                            <p className="text-xs text-brand-steel">{job.company || 'No company listed'}</p>
                           </div>
                           <span className={`inline-flex rounded-none px-3 py-1 text-[11px] font-semibold ${statusBadgeClasses(job.status)}`}>
                             {statusOptions.find((s) => s.value === job.status)?.label || job.status}
                           </span>
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-brand-steel">
-                          <span>Date: {job.appointment_date || 'TBD'}</span>
-                          <span>Payout: {job.payout ? `$${job.payout.toFixed(2)}` : '—'}</span>
-                          <span>Time: {job.appointment_time || '—'}</span>
+                          <span>Location: {job.location || '—'}</span>
+                          <span>Pay: {job.pay || '—'}</span>
+                          <span>Job ID: {job.job_id || '—'}</span>
                           <span>
-                            Payout status:{' '}
-                            <span className={`inline-flex rounded-none px-2 py-1 text-[11px] font-semibold ${payoutBadgeClasses(job.payout_status)}`}>
-                              {job.payout_status}
-                            </span>
+                            Link: {' '}
+                            {job.source_url ? (
+                              <a href={job.source_url} target="_blank" rel="noreferrer" className="text-brand-copper underline">
+                                Open
+                              </a>
+                            ) : (
+                              '—'
+                            )}
                           </span>
                         </div>
+                        {job.notes && <p className="mt-2 text-xs text-brand-dark">{job.notes}</p>}
                         <div className="mt-3 flex flex-wrap gap-2 text-xs">
                           <button
                             type="button"
-                            onClick={() => handleUpdate(job.id, { status: 'completed' })}
+                            onClick={() => handleUpdate(job.id, { status: 'applied' })}
                             className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
                             disabled={actionId === job.id}
                           >
-                            Mark completed
+                            Mark applied
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleUpdate(job.id, { status: 'paid', payout_status: 'paid' })}
+                            onClick={() => handleUpdate(job.id, { status: 'offer' })}
                             className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
                             disabled={actionId === job.id}
                           >
-                            Mark paid
+                            Log offer
                           </button>
                           <button
                             type="button"
@@ -706,6 +580,14 @@ export default function JobTrackerPage() {
                             className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
                           >
                             Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(job.id)}
+                            className="rounded-none border border-red-200 bg-red-50 px-3 py-1 font-semibold text-red-700 transition hover:border-red-400"
+                            disabled={actionId === job.id}
+                          >
+                            Remove
                           </button>
                         </div>
                       </div>
