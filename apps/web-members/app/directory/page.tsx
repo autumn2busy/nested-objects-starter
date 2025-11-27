@@ -428,6 +428,7 @@ export default function DirectoryPage() {
               'rating',
             ].join(',')
           )
+          .returns<Firm[]>()
           .eq('is_published', true)
 
         const filterGroups: string[] = []
@@ -478,7 +479,7 @@ export default function DirectoryPage() {
           setFirms([])
         } else {
           setError(null)
-          setFirms((data as Firm[]) ?? [])
+          setFirms(data ?? [])
         }
       } catch (err) {
         console.error('Error loading firms', err)
