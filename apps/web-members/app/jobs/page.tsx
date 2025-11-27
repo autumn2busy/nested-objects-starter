@@ -4,47 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { Gate } from '@/components/Gate'
-
-interface JobBoardEntry {
-  id: string
-  title: string
-  company: string
-  location: string
-  pay: string
-  description: string
-  link: string
-}
-
-const jobBoard: JobBoardEntry[] = [
-  {
-    id: 'atl-inspection-241',
-    title: 'Residential property inspector',
-    company: 'Peachtree Field Services',
-    location: 'Atlanta, GA (local travel)',
-    pay: '$240 per completed inspection',
-    description:
-      'Route-based inspections focused on photos, occupancy checks, and short reports. Expect 6–10 stops per day.',
-    link: 'https://example.com/jobs/atl-inspection-241',
-  },
-  {
-    id: 'remote-data-118',
-    title: 'Remote property data collector',
-    company: 'Seaboard Analytics',
-    location: 'Remote (US-based)',
-    pay: '$30/hr contract',
-    description: 'Desk research to validate addresses, call occupants, and schedule follow-up photos with field partners.',
-    link: 'https://example.com/jobs/remote-data-118',
-  },
-  {
-    id: 'reo-bpo-019',
-    title: 'BPO/REO photographer',
-    company: 'Riverview Valuations',
-    location: 'Charlotte, NC and surrounding counties',
-    pay: '$275 per property (rush bonus available)',
-    description: 'Photo-heavy assignments with strict shot lists. Weekend availability preferred; mileage reimbursed above 50 miles.',
-    link: 'https://example.com/jobs/reo-bpo-019',
-  },
-]
+import { jobBoardEntries, type JobBoardEntry } from '@/lib/ai-datasets'
 
 export default function JobsPage() {
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -135,7 +95,7 @@ export default function JobsPage() {
             </div>
           )}
 
-          {jobBoard.map((job) => (
+          {jobBoardEntries.map((job) => (
             <article
               key={job.id}
               style={{
