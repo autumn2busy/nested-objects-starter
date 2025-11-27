@@ -176,7 +176,7 @@ export function JobTrackerSection() {
       subtitle="This week’s workload overview"
       actions={
         <Link
-          href="/tools/job-tracker"
+          href="/dashboard/job-tracker"
           className="rounded-lg border border-brand-mist bg-white px-3 py-2 text-xs font-semibold text-brand-copper hover:border-brand-copper hover:text-brand-copperDark"
         >
           Open job tracker →
