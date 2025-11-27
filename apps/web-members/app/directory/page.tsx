@@ -225,10 +225,9 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
         (firm.pay_type ? ` ${firm.pay_type}` : '')
       : firm.pay_type || 'Shared with members inside the hub'
 
-  const categories = formatCategories(firm.categories) || 'General field services'
   const serviceRegion = firm.geographic_coverage || 'Service region not specified'
-  const rating =
-    typeof firm.rating === 'number' ? `${firm.rating.toFixed(1)} out of 5` : 'Not yet rated'
+  const numericRating =
+    typeof firm.rating === 'number' && firm.rating > 0 ? Math.round(firm.rating) : null
 
   const contactMethod = (() => {
     if (firm.email) return `Email · ${firm.email}`
@@ -240,12 +239,20 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
   return (
     <article
-      className="flex h-full flex-col justify-between border border-slate-200 bg-white px-6 py-5 shadow-[0_6px_0_rgba(15,23,42,0.06),0_16px_32px_rgba(15,23,42,0.08)] transition-transform duration-150 hover:-translate-y-[3px]"
+      className="flex h-full flex-col justify-between rounded-md border border-slate-300 px-6 py-5 transition-transform duration-150 hover:-translate-y-1"
       style={{
-        borderTop: `6px solid ${accent}`,
+        // paper-like background: layered gradients + noise texture
+        backgroundColor: '#f5efe1',
+        backgroundImage:
+          `linear-gradient(135deg, rgba(255,255,255,0.94), rgba(244,236,222,0.92)),` +
+          ` radial-gradient(circle at 14% 18%, rgba(255,255,255,0.35), rgba(233,222,202,0)),` +
+          ` radial-gradient(circle at 86% 6%, rgba(255,255,255,0.28), rgba(233,222,202,0)),` +
+          ` url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='noise'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0.3 0 0 0 0 0 0.3 0 0 0 0 0 0.3 0 0 0 0 0 0.5 0'/></filter><rect width='200' height='200' filter='url(%23noise)' opacity='0.05'/></svg>")`,
+        backgroundBlendMode: 'overlay',
+        // deeper, tighter shadow: looks like a card lifting off a surface
         boxShadow: isHovered
-          ? '0 8px 0 rgba(15,23,42,0.07), 0 18px 36px rgba(15,23,42,0.16)'
-          : '0 6px 0 rgba(15,23,42,0.06), 0 16px 32px rgba(15,23,42,0.12)',
+          ? '0 12px 20px rgba(15,23,42,0.25)'
+          : '0 6px 12px rgba(15,23,42,0.15)',
       }}
       tabIndex={0}
       onMouseEnter={onHover}
@@ -271,39 +278,55 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
             )}
           </div>
           <div className="min-w-0 space-y-0.5 break-words">
-            <h3 className="text-lg font-semibold text-slate-900 leading-tight">{firm.name}</h3>
-            <p className="text-xs font-medium text-slate-600">{categories}</p>
+            <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
+            {/* category label removed */}
           </div>
         </div>
 
         <div className="min-w-0 text-right text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 sm:min-w-[180px]">
           <p className="text-slate-900">Service region</p>
-          <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">{serviceRegion}</p>
+          <p className="mt-0.5 break-words text-xs normal-case text-slate-700">
+            {serviceRegion}
+          </p>
+
           <p className="mt-2 text-slate-900">Rating</p>
-          <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">{rating}</p>
+          {/* Stars aligned directly under "Rating" */}
+          <div className="mt-0.5 flex justify-end">
+            {numericRating ? (
+              <div className="flex text-[11px] text-amber-500">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <span key={index}>{index < numericRating ? '★' : '☆'}</span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-[11px] normal-case text-slate-500">Not yet rated</span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Middle: pay + contact */}
+      {/* middle: pay + contact */}
       <div className="mt-5 grid grid-cols-1 gap-4 border-y border-dashed border-slate-200 py-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">Compensation</p>
-          <p className="text-sm font-semibold text-emerald-800">{payText}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+            Compensation
+          </p>
+          <p className="break-words text-sm font-semibold text-emerald-800">{payText}</p>
         </div>
-
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">Primary contact</p>
-          <p className="text-sm font-semibold text-slate-900 break-words">{contactMethod}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+            Primary contact
+          </p>
+          <p className="break-words text-sm font-semibold text-slate-900">{contactMethod}</p>
         </div>
       </div>
 
-        <Link
-          href={`/firms/${firm.slug ?? firm.id}`}
-          className="border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
-        >
-          VIEW PROFILE
-        </Link>
-      </div>
+      <Link
+        href={`/firms/${firm.slug ?? firm.id}`}
+        className="border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
+      >
+        VIEW PROFILE
+      </Link>
     </article>
   )
 }
