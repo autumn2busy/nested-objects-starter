@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth-provider'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 
 type Profile = {
   id?: string
@@ -107,6 +108,16 @@ export default function ProfilePage() {
   const [linkedin, setLinkedin] = useState('')
   const [notes, setNotes] = useState('')
 
+  const [billingSummary, setBillingSummary] = useState<{
+    planName: string | null
+    renewalTerm: string | null
+    nextBillingDate: string | number | Date | null
+    name: string | null
+    phone: string | null
+  } | null>(null)
+  const [billingError, setBillingError] = useState<string | null>(null)
+  const [billingLoading, setBillingLoading] = useState(false)
+
   // Derive a label and initials for the avatar
   const emailLabel = userEmail ?? 'Your profile'
   const fallbackName = useMemo(
@@ -210,7 +221,95 @@ export default function ProfilePage() {
     if (!isLoading && isAuthenticated) {
       loadProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, fallbackName, auth])
+  }, [isLoading, isAuthenticated, userEmail])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadBilling = async () => {
+      try {
+        setBillingLoading(true)
+        setBillingError(null)
+
+        if (typeof window === 'undefined') return
+
+        const Outseta = window.Outseta
+
+        if (!Outseta) {
+          setBillingError('Billing tools are still warming up. Try again in a moment.')
+          return
+        }
+
+        const userDetails = await (Outseta.getCurrentUser?.() ?? Outseta.getUser?.())
+
+        if (cancelled) return
+
+        if (!userDetails) {
+          setBillingError('We could not load your billing profile yet.')
+          return
+        }
+
+        const subscriptions =
+          userDetails?.Subscriptions ??
+          userDetails?.Account?.Subscriptions ??
+          userDetails?.Account?.subscriptions ??
+          []
+
+        const activeSubscription =
+          subscriptions?.find((sub: any) => sub?.Status === 'Active') ?? subscriptions?.[0]
+
+        const planName =
+          activeSubscription?.Plan?.Name ??
+          activeSubscription?.PlanName ??
+          userDetails?.PlanName ??
+          null
+
+        const renewalTerm =
+          activeSubscription?.BillingRenewalTerm ??
+          activeSubscription?.PlanPaymentTerm ??
+          activeSubscription?.Plan?.BillingRenewalTerm ??
+          null
+
+        const nextBillingDate =
+          activeSubscription?.NextBillingDate ??
+          activeSubscription?.CurrentBillingTermEndDate ??
+          activeSubscription?.BillingRenewalDate ??
+          null
+
+        const billingProfile =
+          userDetails?.BillingProfile ?? userDetails?.BillingAddress ?? userDetails?.Account ?? {}
+
+        const nameFromOutseta =
+          billingProfile?.FirstName && billingProfile?.LastName
+            ? `${billingProfile.FirstName} ${billingProfile.LastName}`
+            : billingProfile?.Name || userDetails?.Name || null
+
+        const phoneFromOutseta =
+          billingProfile?.Phone || billingProfile?.PhoneNumber || userDetails?.Phone || null
+
+        setBillingSummary({
+          planName,
+          renewalTerm,
+          nextBillingDate,
+          name: nameFromOutseta,
+          phone: phoneFromOutseta,
+        })
+      } catch (err) {
+        console.error('Error loading billing profile', err)
+        setBillingError('Unable to reach billing right now. Please try again shortly.')
+      } finally {
+        setBillingLoading(false)
+      }
+    }
+
+    if (!isLoading && isAuthenticated) {
+      void loadBilling()
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, isLoading])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -305,6 +404,56 @@ export default function ProfilePage() {
       setSaving(false)
     }
   }
+
+  const openManageBilling = () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+    const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+
+    try {
+      if (Outseta?.auth?.open) {
+        Outseta.auth.open({ widgetMode: 'updateSubscription' })
+        return
+      }
+
+      window.open(`${hostedBaseUrl}?widgetMode=updateSubscription`, '_blank')
+    } catch (err) {
+      console.error('Error opening billing portal', err)
+    }
+  }
+
+  const openUpgrade = () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+    const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+    const proPlanUid = 'rQVqlLm6'
+
+    try {
+      if (Outseta?.auth?.open) {
+        Outseta.auth.open({
+          widgetMode: isAuthenticated ? 'updateSubscription' : 'register',
+          planUid: proPlanUid,
+          planPaymentTerm: 'month',
+          skipPlanOptions: true,
+        })
+        return
+      }
+
+      const params = new URLSearchParams({
+        widgetMode: isAuthenticated ? 'updateSubscription' : 'register',
+        planUid: proPlanUid,
+        planPaymentTerm: 'month',
+        skipPlanOptions: 'true',
+      })
+
+      window.open(`${hostedBaseUrl}?${params.toString()}`, '_blank')
+    } catch (err) {
+      console.error('Error opening upgrade flow', err)
+    }
+  }
+
+  const hasPaidSubscription =
+    !!auth?.planUid && auth.planUid !== 'L9nbKV9Z' && auth.planUid !== 'zWZD0rQp'
 
   // Not logged in
   if (!isLoading && !isAuthenticated) {
@@ -434,6 +583,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
+
         {/* Top layout. avatar summary + form */}
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.95fr)]">
           {/* Left. avatar + summary */}
@@ -476,237 +626,318 @@ export default function ProfilePage() {
             </div>
           </aside>
 
-          {/* Right. editable form */}
-          <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg ring-1 ring-slate-200 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:ring-slate-800">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Profile details
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Firms never see your email unless you share it directly.
-                </p>
-              </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                {saving ? 'Saving…' : 'Autosave-ready'}
-              </span>
-            </div>
-
-            {loadingProfile && (
-              <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-                Loading your profile…
-              </p>
-            )}
-
-            {!loadingProfile && (
-              <form className="mt-6 space-y-5" onSubmit={handleSave}>
-                {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100">
-                    {error}
-                  </div>
-                )}
-
-                {success && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100">
-                    {success}
-                  </div>
-                )}
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="displayName"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Name or display name
-                    </label>
-                    <input
-                      id="displayName"
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="e.g. Autumn Williams"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="headline"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Headline
-                    </label>
-                    <input
-                      id="headline"
-                      type="text"
-                      value={headline}
-                      onChange={(e) => setHeadline(e.target.value)}
-                      placeholder="e.g. Insurance and mortgage inspections"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="city"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      City
-                    </label>
-                    <input
-                      id="city"
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Atlanta"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="state"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      State
-                    </label>
-                    <input
-                      id="state"
-                      type="text"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      placeholder="e.g. GA"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <label
-                      htmlFor="primaryInterest"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Primary lanes or interests
-                    </label>
-                    <input
-                      id="primaryInterest"
-                      type="text"
-                      value={primaryInterest}
-                      onChange={(e) => setPrimaryInterest(e.target.value)}
-                      placeholder="e.g. Mortgage occupancy inspections, insurance loss, REO"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <label
-                      htmlFor="tools"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Tools and platforms you already use
-                    </label>
-                    <input
-                      id="tools"
-                      type="text"
-                      value={tools}
-                      onChange={(e) => setTools(e.target.value)}
-                      placeholder="e.g. Aspen iAgent, EZInspections, Spectora, FieldCom"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <label
-                      htmlFor="bio"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Bio & availability
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      rows={3}
-                      placeholder="Short summary of your experience and the type of work you want next."
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="phone"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Phone
-                    </label>
-                    <input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. +1 (555) 000-1234"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="linkedin"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      LinkedIn
-                    </label>
-                    <input
-                      id="linkedin"
-                      type="url"
-                      value={linkedin}
-                      onChange={(e) => setLinkedin(e.target.value)}
-                      placeholder="https://www.linkedin.com/in/your-handle"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <label
-                      htmlFor="notes"
-                      className="text-sm font-medium text-slate-800 dark:text-slate-200"
-                    >
-                      Notes, goals, or certifications
-                    </label>
-                    <textarea
-                      id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={3}
-                      placeholder="e.g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
-                    >
-                      {saving ? 'Saving…' : 'Update profile'}
-                    </button>
-                    <Link
-                      href="/dashboard"
-                      className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:text-blue-200"
-                    >
-                      View dashboard
-                    </Link>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    As we roll out more tools, this profile will help auto match you to firms, training, and routes.
+          {/* Right. billing + editable form */}
+          <div className="space-y-6">
+            <Card className="border-slate-200 bg-white/90 shadow-lg ring-1 ring-slate-200 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:ring-slate-800">
+              <CardHeader className="flex flex-row items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Billing and subscriptions</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Managed securely by Outseta. Edit billing contact details in the portal.
                   </p>
                 </div>
-              </form>
-            )}
-          </section>
+                <button
+                  type="button"
+                  onClick={openManageBilling}
+                  className="inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                >
+                  Manage billing
+                </button>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-slate-700 dark:text-slate-200">
+                {billingLoading && <p className="text-slate-600 dark:text-slate-300">Loading billing…</p>}
+
+                {billingError && !billingLoading && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+                    {billingError}
+                  </div>
+                )}
+
+                {!billingLoading && !billingError && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                      <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Plan</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {billingSummary?.planName || 'Starter / free'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                      <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Renewal</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">
+                        {billingSummary?.renewalTerm ? billingSummary.renewalTerm : 'Not set'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                      <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Next billing</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">
+                        {billingSummary?.nextBillingDate
+                          ? formatDate(billingSummary.nextBillingDate)
+                          : 'Included in free access'}
+                      </span>
+                    </div>
+
+                    {(billingSummary?.name || billingSummary?.phone) && (
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-relaxed dark:border-slate-700 dark:bg-slate-800/60">
+                        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Billing contact</p>
+                        {billingSummary?.name && <p className="font-semibold text-slate-900 dark:text-white">{billingSummary.name}</p>}
+                        {billingSummary?.phone && (
+                          <p className="text-slate-700 dark:text-slate-200">{billingSummary.phone}</p>
+                        )}
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                          Update contact info directly in the Outseta overlay so it stays in sync everywhere.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="flex flex-col gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                {!hasPaidSubscription && (
+                  <button
+                    type="button"
+                    onClick={openUpgrade}
+                    className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+                  >
+                    Upgrade to Pro
+                  </button>
+                )}
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Billing, subscription renewals, and payment methods are handled in Outseta to avoid duplicate data.
+                </p>
+              </CardFooter>
+            </Card>
+
+            <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-lg ring-1 ring-slate-200 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:ring-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Profile details
+                  </h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Firms never see your email unless you share it directly.
+                  </p>
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  {saving ? 'Saving…' : 'Autosave-ready'}
+                </span>
+              </div>
+
+              {loadingProfile && (
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+                  Loading your profile…
+                </p>
+              )}
+
+              {!loadingProfile && (
+                <form className="mt-6 space-y-5" onSubmit={handleSave}>
+                  {error && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100">
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100">
+                      {success}
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="displayName"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Display name
+                      </label>
+                      <input
+                        id="displayName"
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="What firms and the dashboard will call you"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="headline"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Headline
+                      </label>
+                      <input
+                        id="headline"
+                        type="text"
+                        value={headline}
+                        onChange={(e) => setHeadline(e.target.value)}
+                        placeholder="e.g. Mortgage field inspector | Rural Midwest"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="city"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        City
+                      </label>
+                      <input
+                        id="city"
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="e.g. Columbus"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="state"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        State
+                      </label>
+                      <input
+                        id="state"
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="e.g. OH"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="primaryInterest"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Primary interest
+                      </label>
+                      <input
+                        id="primaryInterest"
+                        type="text"
+                        value={primaryInterest}
+                        onChange={(e) => setPrimaryInterest(e.target.value)}
+                        placeholder="e.g. Mortgage field services, occupancy checks"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="tools"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Tools already use
+                      </label>
+                      <input
+                        id="tools"
+                        type="text"
+                        value={tools}
+                        onChange={(e) => setTools(e.target.value)}
+                        placeholder="e.g. Aspen iAgent, EZInspections, Spectora, FieldCom"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <label
+                        htmlFor="bio"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Bio & availability
+                      </label>
+                      <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        rows={3}
+                        placeholder="Short summary of your experience and the type of work you want next."
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="phone"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Phone
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="e.g. +1 (555) 000-1234"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="linkedin"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        LinkedIn
+                      </label>
+                      <input
+                        id="linkedin"
+                        type="url"
+                        value={linkedin}
+                        onChange={(e) => setLinkedin(e.target.value)}
+                        placeholder="https://www.linkedin.com/in/your-handle"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <label
+                        htmlFor="notes"
+                        className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                      >
+                        Notes, goals, or certifications
+                      </label>
+                      <textarea
+                        id="notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        rows={3}
+                        placeholder="e.g. Aiming for 3 steady firms this year. Licensed adjuster in GA, TX. Comfortable with rural routes."
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
+                      >
+                        {saving ? 'Saving…' : 'Update profile'}
+                      </button>
+                      <Link
+                        href="/dashboard"
+                        className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:text-blue-200"
+                      >
+                        View dashboard
+                      </Link>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      As we roll out more tools, this profile will help auto match you to firms, training, and routes.
+                    </p>
+                  </div>
+                </form>
+              )}
+            </section>
+          </div>
         </section>
       </div>
     </main>
