@@ -2,57 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+
 import { useAuth } from '@/components/auth-provider'
-
-type Profile = {
-  id?: string
-  user_email: string
-  display_name: string | null
-  headline: string | null
-  city: string | null
-  state: string | null
-  primary_interest: string | null
-  tools: string | null
-  notes: string | null
-}
-
-type StructuredNotes = {
-  bio: string
-  phone: string
-  linkedin: string
-  notes: string
-}
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-function parseStructuredNotes(rawNotes: string | null): StructuredNotes {
-  if (!rawNotes) {
-    return { bio: '', phone: '', linkedin: '', notes: '' }
-  }
-
-  try {
-    const parsed = JSON.parse(rawNotes)
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'bio' in parsed &&
-      'phone' in parsed &&
-      'linkedin' in parsed
-    ) {
-      return {
-        bio: (parsed as any).bio ?? '',
-        phone: (parsed as any).phone ?? '',
-        linkedin: (parsed as any).linkedin ?? '',
-        notes: (parsed as any).notes ?? '',
-      }
-    }
-  } catch (error) {
-    console.warn('Could not parse structured notes, falling back to plain text', error)
-  }
-
-  return { bio: rawNotes || '', phone: '', linkedin: '', notes: '' }
-}
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { parseStructuredNotes, useProfile } from '@/lib/profile'
+import type { Profile, StructuredNotes } from '@/types/profile'
 
 function formatDate(value: string | number | Date | undefined): string {
   if (!value) return 'Unknown'
@@ -71,15 +29,6 @@ export default function ProfilePage() {
   // Treat auth as any so we can safely grab user.email etc even if the hook type is strict
   const auth = useAuth() as any
   const { isAuthenticated, isLoading, logout } = auth
-  const userEmail: string | null =
-    (auth?.user?.email as string | undefined) ??
-    (auth?.user?.Email as string | undefined) ??
-    null
-
-  const outsetaFirstName: string | null =
-    (auth?.user?.FirstName as string | undefined) ??
-    (auth?.user?.first_name as string | undefined) ??
-    null
 
   const lastLogin: string | undefined =
     (auth?.user?.LastLoginDate as string | undefined) ??
@@ -90,9 +39,18 @@ export default function ProfilePage() {
     (auth?.user?.plan as string | undefined) ??
     'Member'
 
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loadingProfile, setLoadingProfile] = useState(true)
+  const {
+    profile,
+    setProfile,
+    loading: loadingProfile,
+    error: profileError,
+    refreshProfile,
+    saveProfile,
+    fallbackName,
+    userEmail,
+  } = useProfile()
   const [saving, setSaving] = useState(false)
+  const [savingAvatar, setSavingAvatar] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -106,120 +64,72 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [notes, setNotes] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarUrlInput, setAvatarUrlInput] = useState('')
 
-  // Derive a label and initials for the avatar
   const emailLabel = userEmail ?? 'Your profile'
-  const fallbackName = useMemo(
+
+  const initials = useMemo(
     () =>
-      profile?.display_name ||
-      outsetaFirstName ||
-      emailLabel.split('@')[0]?.replace(/[._]/g, ' ') ||
-      'Member',
-    [profile?.display_name, outsetaFirstName, emailLabel],
+      (displayName || fallbackName)
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join(''),
+    [displayName, fallbackName],
   )
 
-  const initials = fallbackName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('')
+  const avatarPreview = useMemo(
+    () => profile?.avatar_url || avatarUrlInput.trim(),
+    [avatarUrlInput, profile?.avatar_url],
+  )
 
-  // Load profile from Supabase
+  const combinedError = error || profileError
+
+  // Load profile from API route
   useEffect(() => {
-    async function loadProfile() {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        setError('Profile service is temporarily unavailable.')
-        setLoadingProfile(false)
-        return
-      }
-
-      if (!userEmail) {
-        setError('No user email found for this session.')
-        setLoadingProfile(false)
-        return
-      }
-
-      try {
-        setLoadingProfile(true)
-        setError(null)
-        setSuccess(null)
-
-        const encodedEmail = encodeURIComponent(userEmail)
-        const url =
-          `${SUPABASE_URL}/rest/v1/profiles` +
-          `?user_email=eq.${encodedEmail}` +
-          `&select=*`
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
-        }
-
-        const rows = (await res.json()) as Profile[]
-        const row = rows[0] ?? null
-
-        if (row) {
-          setProfile(row)
-          setDisplayName(row.display_name || '')
-          setHeadline(row.headline || '')
-          setCity(row.city || '')
-          setState(row.state || '')
-          setPrimaryInterest(row.primary_interest || '')
-          setTools(row.tools || '')
-
-          const structured = parseStructuredNotes(row.notes)
-          setBio(structured.bio)
-          setPhone(structured.phone)
-          setLinkedin(structured.linkedin)
-          setNotes(structured.notes)
-
-          auth.updateProfileDisplayName?.(row.display_name || null)
-        } else {
-          // No profile yet. seed the form from Outseta name or email
-          setProfile(null)
-          setDisplayName(fallbackName)
-          setHeadline('')
-          setCity('')
-          setState('')
-          setPrimaryInterest('')
-          setTools('')
-          setBio('')
-          setPhone('')
-          setLinkedin('')
-          setNotes('')
-
-          auth.updateProfileDisplayName?.(fallbackName || null)
-        }
-      } catch (err) {
-        console.error('Error loading profile', err)
-        setError(
-          err instanceof Error ? err.message : 'Unknown error while loading profile',
-        )
-      } finally {
-        setLoadingProfile(false)
-      }
-    }
-
     if (!isLoading && isAuthenticated) {
-      loadProfile()
+      void refreshProfile()
     }
-  }, [isLoading, isAuthenticated, userEmail, fallbackName, auth])
+  }, [isAuthenticated, isLoading, refreshProfile])
+
+  useEffect(() => {
+    if (loadingProfile) return
+
+    if (profile) {
+      setDisplayName(profile.display_name || '')
+      setHeadline(profile.headline || '')
+      setCity(profile.city || '')
+      setState(profile.state || '')
+      setPrimaryInterest(profile.primary_interest || '')
+      setTools(profile.tools || '')
+
+      const structured = parseStructuredNotes(profile.notes)
+      setBio(structured.bio)
+      setPhone(structured.phone)
+      setLinkedin(structured.linkedin)
+      setNotes(structured.notes)
+      setAvatarUrlInput(profile.avatar_url || '')
+    } else {
+      setDisplayName(fallbackName)
+      setHeadline('')
+      setCity('')
+      setState('')
+      setPrimaryInterest('')
+      setTools('')
+      setBio('')
+      setPhone('')
+      setLinkedin('')
+      setNotes('')
+      setAvatarUrlInput('')
+    }
+  }, [fallbackName, loadingProfile, profile])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      setError('Profile service is temporarily unavailable.')
-      return
-    }
-    if (!userEmail) {
-      setError('No user email found for this session.')
+    if (!isAuthenticated) {
+      setError('Log in to update your profile.')
       return
     }
 
@@ -250,49 +160,19 @@ export default function ProfilePage() {
         notes: notes.trim(),
       }
 
-      const payload = {
-        user_email: userEmail,
-        display_name: displayName.trim() || null,
+      const updatedProfile = await saveProfile({
+        display_name: displayName.trim(),
         headline: headline.trim() || null,
         city: city.trim() || null,
         state: state.trim() || null,
         primary_interest: primaryInterest.trim() || null,
         tools: tools.trim() || null,
-        notes: JSON.stringify(structuredNotes),
-      }
-
-      const encodedEmail = encodeURIComponent(userEmail)
-      const hasExisting = !!profile
-
-      const url = hasExisting
-        ? `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}`
-        : `${SUPABASE_URL}/rest/v1/profiles`
-
-      const method = hasExisting ? 'PATCH' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'return=representation',
-        },
-        body: JSON.stringify(payload),
+        structured_notes: structuredNotes,
       })
 
-      if (!res.ok) {
-        throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
-      }
-
-      const rows = (await res.json()) as Profile[]
-      const row = rows[0] ?? null
-      if (row) {
-        setProfile(row)
-        if (row.display_name) {
-          setDisplayName(row.display_name)
-        }
-        auth.updateProfileDisplayName?.(row.display_name || null)
+      setProfile(updatedProfile)
+      if (updatedProfile.display_name) {
+        setDisplayName(updatedProfile.display_name)
       }
 
       setSuccess('Profile updated. Your dashboard greeting will reflect this change.')
@@ -303,6 +183,71 @@ export default function ProfilePage() {
       )
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleAvatarUpload() {
+    if (!avatarFile) {
+      setError('Choose an image to upload.')
+      return
+    }
+
+    try {
+      setSavingAvatar(true)
+      setError(null)
+      setSuccess(null)
+
+      const formData = new FormData()
+      formData.append('file', avatarFile)
+
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || 'Could not upload avatar right now.')
+      }
+
+      const { profile: updatedProfile } = (await res.json()) as { profile: Profile }
+      setProfile(updatedProfile)
+      setAvatarUrlInput(updatedProfile.avatar_url || '')
+      setAvatarFile(null)
+      setSuccess('Avatar updated. Cached images will refresh shortly.')
+    } catch (err) {
+      console.error('Error uploading avatar', err)
+      setError(err instanceof Error ? err.message : 'Unexpected error while uploading avatar')
+    } finally {
+      setSavingAvatar(false)
+    }
+  }
+
+  async function handleAvatarUrlSave() {
+    if (!avatarUrlInput.trim()) {
+      setError('Enter an image URL to save.')
+      return
+    }
+
+    try {
+      setSavingAvatar(true)
+      setError(null)
+      setSuccess(null)
+
+      const parsed = new URL(avatarUrlInput.trim())
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('Image URL must start with http:// or https://')
+      }
+
+      const updatedProfile = await saveProfile({ avatar_url: parsed.toString() })
+      setProfile(updatedProfile)
+      setAvatarUrlInput(updatedProfile.avatar_url || parsed.toString())
+      setSuccess('Image URL saved. Your avatar has been refreshed.')
+    } catch (err) {
+      console.error('Error saving avatar URL', err)
+      setError(err instanceof Error ? err.message : 'Unexpected error while saving avatar URL')
+    } finally {
+      setSavingAvatar(false)
     }
   }
 
@@ -437,42 +382,123 @@ export default function ProfilePage() {
         {/* Top layout. avatar summary + form */}
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.95fr)]">
           {/* Left. avatar + summary */}
-          <aside className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-white to-emerald-50 p-6 shadow-md dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900/70">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-xl font-semibold text-white shadow-lg">
-                {initials || '?'}
-              </div>
-              <div className="space-y-1">
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {displayName || fallbackName}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  {headline || 'Add a short headline so firms know your lane.'}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {city && state ? `${city}, ${state}` : 'Add your city and state.'}
-                </p>
-              </div>
-            </div>
+          <aside className="flex flex-col gap-5">
+            <Card className="border border-slate-200 bg-white/90 shadow-md ring-1 ring-slate-200 dark:border-slate-800 dark:bg-slate-900/70 dark:ring-slate-800">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center">
+                    {loadingProfile ? (
+                      <Skeleton className="h-16 w-16 rounded-full" />
+                    ) : avatarPreview ? (
+                      <div className="h-16 w-16 overflow-hidden rounded-full border border-slate-200 bg-white shadow-inner dark:border-slate-700">
+                        <img
+                          src={avatarPreview}
+                          alt={`Avatar for ${displayName || fallbackName}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-xl font-semibold text-white shadow-lg">
+                        {initials || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                      {displayName || fallbackName}
+                    </p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                      {headline || 'Add a short headline so firms know your lane.'}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {city && state ? `${city}, ${state}` : 'Add your city and state.'}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="avatar-upload">Upload a new image</Label>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+                      className="sm:max-w-[260px]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAvatarUpload}
+                      disabled={!avatarFile || savingAvatar}
+                      variant="primary"
+                    >
+                      {savingAvatar ? 'Uploading…' : 'Upload'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">JPG, PNG, or WEBP up to 5MB.</p>
+                </div>
 
-            <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
-              <p className="font-semibold text-slate-900 dark:text-white">
-                Make your profile match-ready
-              </p>
-              <ul className="space-y-2 text-slate-600 dark:text-slate-300">
-                <li className="flex gap-2">
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  Highlight your main field services lanes and regions.
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  List tools you already use so firms know you are plug and play.
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  Use the bio + notes area to track goals, certifications, or next steps.
-                </li>
-              </ul>
+                <div className="space-y-2">
+                  <Label htmlFor="avatar-url">Image URL</Label>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Input
+                      id="avatar-url"
+                      type="url"
+                      inputMode="url"
+                      value={avatarUrlInput}
+                      onChange={(e) => setAvatarUrlInput(e.target.value)}
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      shape="rounded"
+                      onClick={handleAvatarUrlSave}
+                      disabled={savingAvatar || !avatarUrlInput.trim()}
+                    >
+                      {savingAvatar ? 'Saving…' : 'Save'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-50 via-white to-emerald-50 p-6 shadow-md dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900/70">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-lg font-semibold text-white shadow-lg">
+                  {initials || '?'}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-base font-semibold text-slate-900 dark:text-white">
+                    {displayName || fallbackName}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {headline || 'Add a short headline so firms know your lane.'}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {city && state ? `${city}, ${state}` : 'Add your city and state.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                <p className="font-semibold text-slate-900 dark:text-white">Make your profile match-ready</p>
+                <ul className="space-y-2 text-slate-600 dark:text-slate-300">
+                  <li className="flex gap-2">
+                    <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    Highlight your main field services lanes and regions.
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    List tools you already use so firms know you are plug and play.
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    Use the bio + notes area to track goals, certifications, or next steps.
+                  </li>
+                </ul>
+              </div>
             </div>
           </aside>
 
@@ -500,9 +526,9 @@ export default function ProfilePage() {
 
             {!loadingProfile && (
               <form className="mt-6 space-y-5" onSubmit={handleSave}>
-                {error && (
+                {combinedError && (
                   <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100">
-                    {error}
+                    {combinedError}
                   </div>
                 )}
 

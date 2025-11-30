@@ -16,6 +16,21 @@ create table if not exists public.users (
   created_at timestamptz default now()
 );
 
+create table if not exists public.profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_email text not null unique,
+  display_name text,
+  headline text,
+  city text,
+  state text,
+  primary_interest text,
+  tools text,
+  notes text,
+  avatar_url text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 create table if not exists public.firms (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -116,6 +131,12 @@ $$ language plpgsql;
 drop trigger if exists trg_firms_updated_at on public.firms;
 create trigger trg_firms_updated_at
 before update on public.firms
+for each row execute procedure public.set_updated_at();
+
+-- Timestamps trigger for updated_at on profiles
+drop trigger if exists trg_profiles_updated_at on public.profiles;
+create trigger trg_profiles_updated_at
+before update on public.profiles
 for each row execute procedure public.set_updated_at();
 
 -- Timestamps trigger for updated_at on jobs
