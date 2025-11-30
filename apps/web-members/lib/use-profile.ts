@@ -10,6 +10,7 @@ export type ProfileRecord = {
   primary_interest: string | null
   tools: string | null
   notes: string | null
+  avatar_url: string | null
   created_at?: string | null
   updated_at?: string | null
 }
@@ -32,6 +33,7 @@ export type ProfileUpdateInput = {
   primaryInterest: string
   tools: string
   structuredNotes: StructuredNotes
+  avatarUrl: string
 }
 
 type UseProfileState = {
@@ -117,7 +119,9 @@ export function useProfile(userEmail: string | null): UseProfileState {
       setSuccess(null)
 
       const encodedEmail = encodeURIComponent(userEmail)
-      const url = `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}&select=*`
+      const url =
+        `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}` +
+        `&select=id,user_email,display_name,headline,city,state,primary_interest,tools,notes,avatar_url,created_at,updated_at`
       const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -158,7 +162,16 @@ export function useProfile(userEmail: string | null): UseProfileState {
   }, [refresh, userEmail])
 
   const saveProfile = useCallback(
-    async ({ displayName, headline, city, state, primaryInterest, tools, structuredNotes: notes }: ProfileUpdateInput) => {
+    async ({
+      displayName,
+      headline,
+      city,
+      state,
+      primaryInterest,
+      tools,
+      structuredNotes: notes,
+      avatarUrl,
+    }: ProfileUpdateInput) => {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         setError('Profile service is temporarily unavailable.')
         return false
@@ -183,6 +196,7 @@ export function useProfile(userEmail: string | null): UseProfileState {
           primary_interest: primaryInterest.trim() || null,
           tools: tools.trim() || null,
           notes: serializeStructuredNotes(notes),
+          avatar_url: avatarUrl.trim() || null,
         }
 
         const encodedEmail = encodeURIComponent(userEmail)
