@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -77,8 +77,7 @@ function buildFormState(
     availability: notes.availability,
     serviceArea: notes.service_area,
     website: notes.website,
-    // Avatar URL is intentionally read via any so this compiles
-    // even if ProfileRecord has not been updated yet
+    // tolerate ProfileRecord not being updated yet
     avatarUrl: (profile as any)?.avatar_url ?? '',
   }
 }
@@ -145,6 +144,7 @@ export default function ProfilePage() {
     displayName: fallbackName,
   })
   const [activeTab, setActiveTab] = useState('profile')
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -163,6 +163,51 @@ export default function ProfilePage() {
   const handleChange = (key: keyof ProfileFormState, value: string) => {
     setError(null)
     setFormState((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleAvatarFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setError(null)
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Please choose an image smaller than 5MB.')
+      return
+    }
+
+    try {
+      setIsUploadingAvatar(true)
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || 'Failed to upload avatar.')
+      }
+
+      setFormState((prev) => ({
+        ...prev,
+        avatarUrl: data.url as string,
+      }))
+    } catch (err: any) {
+      console.error('Avatar upload error', err)
+      setError(err?.message || 'Failed to upload avatar. Please try again.')
+    } finally {
+      setIsUploadingAvatar(false)
+    }
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -199,8 +244,6 @@ export default function ProfilePage() {
         service_area: formState.serviceArea,
         website: formState.website,
       },
-      // Note . this relies on useProfile/saveProfile being extended to support avatarUrl
-      // For now we cast to any so it does not block your build while you wire the backend
       avatarUrl: formState.avatarUrl,
     } as any)
 
@@ -486,10 +529,30 @@ export default function ProfilePage() {
 
                       <div className="space-y-2 md:col-span-2">
                         <label
+                          htmlFor="avatarFile"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
+                          Upload profile image
+                        </label>
+                        <Input
+                          id="avatarFile"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarFileChange}
+                        />
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                          {isUploadingAvatar
+                            ? 'Uploading image...'
+                            : 'JPG or PNG up to 5MB. After upload, remember to save your profile.'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label
                           htmlFor="avatarUrl"
                           className="text-sm font-medium text-slate-800 dark:text-slate-200"
                         >
-                          Profile image URL
+                          Or use a profile image URL
                         </label>
                         <Input
                           id="avatarUrl"
