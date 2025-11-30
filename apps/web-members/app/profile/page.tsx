@@ -124,10 +124,21 @@ export default function ProfilePage() {
 
   const initials = initialsFromName(fallbackName || 'Member')
 
-  const { profile, structuredNotes, isLoading, isSaving, error, success, saveProfile, setError } =
-    useProfile(userEmail)
+  const {
+    profile,
+    structuredNotes,
+    isLoading,
+    isSaving,
+    error,
+    success,
+    saveProfile,
+    setError,
+  } = useProfile(userEmail)
 
-  const [formState, setFormState] = useState<ProfileFormState>({ ...DEFAULT_FORM_STATE, displayName: fallbackName })
+  const [formState, setFormState] = useState<ProfileFormState>({
+    ...DEFAULT_FORM_STATE,
+    displayName: fallbackName,
+  })
   const [activeTab, setActiveTab] = useState('profile')
 
   useEffect(() => {
@@ -198,12 +209,17 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-12 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
         <header className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Account</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            Account
+          </p>
           <div className="flex flex-col gap-3 justify-between md:flex-row md:items-center">
             <div className="space-y-2">
-              <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Account settings</h1>
+              <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
+                Account settings
+              </h1>
               <p className="max-w-3xl text-sm text-slate-600 dark:text-slate-300">
-                Keep your inspector profile, billing preferences, and security details current so matching, alerts, and payouts stay accurate.
+                Keep your inspector profile, billing preferences, and security details current so
+                matching, alerts, and payouts stay accurate.
               </p>
             </div>
             <Link
@@ -227,30 +243,48 @@ export default function ProfilePage() {
                       {initials || '?'}
                     </div>
                     <div className="space-y-1">
-                      <p className="text-lg font-semibold text-slate-900 dark:text-white">{formState.displayName || fallbackName}</p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                        {formState.displayName || fallbackName}
+                      </p>
                       <p className="text-sm text-slate-600 dark:text-slate-300">
                         {formState.headline || 'Add a short headline so firms know your lane.'}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {formState.city && formState.state ? `${formState.city}, ${formState.state}` : 'Add your city and state.'}
+                        {formState.city && formState.state
+                          ? `${formState.city}, ${formState.state}`
+                          : 'Add your city and state.'}
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm text-slate-700 dark:text-slate-200">
                     <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Email</p>
-                      <p className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-white">{emailLabel}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Email
+                      </p>
+                      <p className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-white">
+                        {emailLabel}
+                      </p>
                     </div>
                     <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Role</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{role}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Role
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                        {role}
+                      </p>
                     </div>
                     <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Last login</p>
-                      <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{formatDate(lastLogin)}</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Last login
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
+                        {formatDate(lastLogin)}
+                      </p>
                     </div>
                     <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Availability</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                        Availability
+                      </p>
                       <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
                         {formState.availability || 'Add schedule + coverage.'}
                       </p>
@@ -258,7 +292,9 @@ export default function ProfilePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
-                  <p className="font-semibold text-slate-900 dark:text-white">Match-ready checklist</p>
+                  <p className="font-semibold text-slate-900 dark:text-white">
+                    Match-ready checklist
+                  </p>
                   <ul className="space-y-2 text-slate-600 dark:text-slate-300">
                     <li className="flex gap-2">
                       <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500" />
@@ -278,8 +314,12 @@ export default function ProfilePage() {
 
               <Card className="p-6 space-y-4">
                 <CardHeader className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Quick links</p>
-                  <p className="text-base font-semibold text-slate-900 dark:text-white">Billing & security</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                    Quick links
+                  </p>
+                  <p className="text-base font-semibold text-slate-900 dark:text-white">
+                    Billing & security
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
                   <button
@@ -309,8 +349,12 @@ export default function ProfilePage() {
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Workspace</p>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Manage your account</h2>
+                    <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                      Workspace
+                    </p>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                      Manage your account
+                    </h2>
                     <p className="text-sm text-slate-600 dark:text-slate-300">
                       Profile changes sync to your dashboard greeting and partner directory.
                     </p>
@@ -338,7 +382,10 @@ export default function ProfilePage() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label htmlFor="displayName" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="displayName"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Display name
                         </label>
                         <Input
@@ -349,7 +396,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="headline" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="headline"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Headline
                         </label>
                         <Input
@@ -360,7 +410,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="city" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="city"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           City
                         </label>
                         <Input
@@ -371,7 +424,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="state" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="state"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           State
                         </label>
                         <Input
@@ -382,7 +438,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="primaryInterest" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="primaryInterest"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Primary field services lane
                         </label>
                         <Input
@@ -393,7 +452,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="tools" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="tools"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Tools you use
                         </label>
                         <Input
@@ -404,18 +466,24 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="serviceArea" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="serviceArea"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Service area or regions
                         </label>
                         <Input
                           id="serviceArea"
                           value={formState.serviceArea}
                           onChange={(e) => handleChange('serviceArea', e.target.value)}
-                          placeholder="e.g. GA, TN, AL — willing to travel 150 miles"
+                          placeholder="e.g. GA, TN, AL . willing to travel 150 miles"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="availability" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="availability"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Availability
                         </label>
                         <Input
@@ -426,7 +494,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <label htmlFor="bio" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="bio"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Bio & availability
                         </label>
                         <textarea
@@ -439,7 +510,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="phone" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="phone"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Phone
                         </label>
                         <Input
@@ -451,7 +525,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="linkedin" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="linkedin"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           LinkedIn
                         </label>
                         <Input
@@ -463,7 +540,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="website" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="website"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Portfolio or website
                         </label>
                         <Input
@@ -475,7 +555,10 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="notes" className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <label
+                          htmlFor="notes"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
                           Notes, goals, or certifications
                         </label>
                         <textarea
@@ -506,7 +589,8 @@ export default function ProfilePage() {
                         </Link>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Autosaves ready. As we roll out more tools, this profile will help auto match you to firms, training, and routes.
+                        Autosaves ready. As we roll out more tools, this profile will help auto
+                        match you to firms, training, and routes.
                       </p>
                     </div>
                   </form>
@@ -514,10 +598,16 @@ export default function ProfilePage() {
 
                 <TabsContent value="billing" className="mt-4 space-y-4">
                   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Billing overview</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      Billing overview
+                    </p>
                     <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                      Your current access level is <span className="font-semibold text-slate-900 dark:text-white">{role}</span>.
-                      Billing updates and receipts are managed through Outseta. Use the links below if you need to update payment details or receipts.
+                      Your current access level is{' '}
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {role}
+                      </span>
+                      . Billing updates and receipts are managed through Outseta. Use the links
+                      below if you need to update payment details or receipts.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-3">
                       <a
@@ -538,7 +628,9 @@ export default function ProfilePage() {
 
                 <TabsContent value="account" className="mt-4 space-y-4">
                   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Security & session</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      Security & session
+                    </p>
                     <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                       Last login: {formatDate(lastLogin)}
                     </p>
