@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from './auth-provider'
+import { useProfile } from '@/lib/use-profile'
 import { Button, buttonVariants } from './ui/button'
 
 type SiteHeaderProps = {
@@ -30,6 +31,11 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
+  const userEmail =
+    (user?.email as string | undefined) ?? (user?.Email as string | undefined) ?? null
+
+  const { profile } = useProfile(userEmail)
+
   const displayName = useMemo(() => {
     return (
       (profileDisplayName as string | null) ??
@@ -42,6 +48,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }, [profileDisplayName, user])
 
   const initials = displayName.charAt(0).toUpperCase()
+  const avatarUrl = profile?.avatar_url ?? null
 
   const activeLink = (href: string) => {
     if (!pathname) return false
@@ -148,9 +155,17 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/90 px-3 py-2 shadow-brand-card">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
-                  {initials}
-                </div>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="h-10 w-10 rounded-full object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
+                    {initials}
+                  </div>
+                )}
                 <div className="hidden flex-col text-left text-xs sm:flex">
                   <span className="font-semibold text-text-primary">
                     {profileDisplayName ?? displayName}

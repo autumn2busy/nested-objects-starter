@@ -77,8 +77,7 @@ function buildFormState(
     availability: notes.availability,
     serviceArea: notes.service_area,
     website: notes.website,
-    // tolerate ProfileRecord not being updated yet
-    avatarUrl: (profile as any)?.avatar_url ?? '',
+    avatarUrl: profile?.avatar_url ?? '',
   }
 }
 
@@ -245,7 +244,7 @@ export default function ProfilePage() {
         website: formState.website,
       },
       avatarUrl: formState.avatarUrl,
-    } as any)
+    })
 
     if (saved) {
       auth.updateProfileDisplayName?.(formState.displayName || null)
