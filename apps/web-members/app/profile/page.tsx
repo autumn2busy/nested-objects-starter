@@ -25,6 +25,7 @@ type ProfileFormState = {
   availability: string
   serviceArea: string
   website: string
+  avatarUrl: string
 }
 
 const DEFAULT_FORM_STATE: ProfileFormState = {
@@ -41,6 +42,7 @@ const DEFAULT_FORM_STATE: ProfileFormState = {
   availability: '',
   serviceArea: '',
   website: '',
+  avatarUrl: '',
 }
 
 function formatDate(value: string | number | Date | undefined): string {
@@ -75,6 +77,9 @@ function buildFormState(
     availability: notes.availability,
     serviceArea: notes.service_area,
     website: notes.website,
+    // Avatar URL is intentionally read via any so this compiles
+    // even if ProfileRecord has not been updated yet
+    avatarUrl: (profile as any)?.avatar_url ?? '',
   }
 }
 
@@ -194,7 +199,10 @@ export default function ProfilePage() {
         service_area: formState.serviceArea,
         website: formState.website,
       },
-    })
+      // Note . this relies on useProfile/saveProfile being extended to support avatarUrl
+      // For now we cast to any so it does not block your build while you wire the backend
+      avatarUrl: formState.avatarUrl,
+    } as any)
 
     if (saved) {
       auth.updateProfileDisplayName?.(formState.displayName || null)
@@ -239,8 +247,18 @@ export default function ProfilePage() {
               <Card className="p-6">
                 <CardHeader className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-xl font-semibold text-white shadow-lg">
-                      {initials || '?'}
+                    <div className="h-16 w-16">
+                      {formState.avatarUrl ? (
+                        <img
+                          src={formState.avatarUrl}
+                          alt={formState.displayName || fallbackName}
+                          className="h-16 w-16 rounded-full object-cover shadow-lg border border-slate-200 dark:border-slate-700"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-xl font-semibold text-white shadow-lg">
+                          {initials || '?'}
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -465,6 +483,26 @@ export default function ProfilePage() {
                           placeholder="e.g. Aspen iAgent, EZInspections, Spectora"
                         />
                       </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label
+                          htmlFor="avatarUrl"
+                          className="text-sm font-medium text-slate-800 dark:text-slate-200"
+                        >
+                          Profile image URL
+                        </label>
+                        <Input
+                          id="avatarUrl"
+                          type="url"
+                          value={formState.avatarUrl}
+                          onChange={(e) => handleChange('avatarUrl', e.target.value)}
+                          placeholder="https://link.to/your/headshot-or-logo.jpg"
+                        />
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                          This image appears on your account header and, later, your directory card.
+                        </p>
+                      </div>
+
                       <div className="space-y-2">
                         <label
                           htmlFor="serviceArea"
