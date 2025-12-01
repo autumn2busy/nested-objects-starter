@@ -33,7 +33,7 @@ export type ProfileUpdateInput = {
   primaryInterest: string
   tools: string
   structuredNotes: StructuredNotes
-  avatarUrl: string
+  avatarUrl: string | null
 }
 
 type UseProfileState = {
@@ -187,6 +187,9 @@ export function useProfile(userEmail: string | null): UseProfileState {
         setError(null)
         setSuccess(null)
 
+        const normalizedAvatarUrl =
+          avatarUrl && avatarUrl.trim().length > 0 ? avatarUrl.trim() : null
+
         const payload = {
           user_email: userEmail,
           display_name: displayName.trim() || null,
@@ -196,7 +199,7 @@ export function useProfile(userEmail: string | null): UseProfileState {
           primary_interest: primaryInterest.trim() || null,
           tools: tools.trim() || null,
           notes: serializeStructuredNotes(notes),
-          avatar_url: avatarUrl.trim() || null,
+          avatar_url: normalizedAvatarUrl,
         }
 
         const encodedEmail = encodeURIComponent(userEmail)
