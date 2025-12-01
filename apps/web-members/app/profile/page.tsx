@@ -25,6 +25,7 @@ type ProfileFormState = {
   availability: string
   serviceArea: string
   website: string
+  avatarUrl: string | null
 }
 
 const DEFAULT_FORM_STATE: ProfileFormState = {
@@ -41,6 +42,7 @@ const DEFAULT_FORM_STATE: ProfileFormState = {
   availability: '',
   serviceArea: '',
   website: '',
+  avatarUrl: null,
 }
 
 function formatDate(value: string | number | Date | undefined | null): string {
@@ -75,6 +77,8 @@ function buildFormState(
     availability: notes.availability,
     serviceArea: notes.service_area,
     website: notes.website,
+    // assumes useProfile exposes camelCase avatarUrl on the record
+    avatarUrl: (profile as any)?.avatarUrl ?? null,
   }
 }
 
@@ -141,7 +145,6 @@ export default function ProfilePage() {
   })
   const [activeTab, setActiveTab] = useState('profile')
 
-  // Billing summary state pulled from Outseta
   const [billingSummary, setBillingSummary] = useState<{
     planName: string | null
     renewalTerm: string | null
@@ -166,9 +169,9 @@ export default function ProfilePage() {
 
   const isPageLoading = authLoading || isLoading
 
-  const handleChange = (key: keyof ProfileFormState, value: string) => {
+  const handleChange = (key: keyof ProfileFormState, value: string | null) => {
     setError(null)
-    setFormState((prev) => ({ ...prev, [key]: value }))
+    setFormState((prev) => ({ ...prev, [key]: value as any }))
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -196,6 +199,7 @@ export default function ProfilePage() {
       state: formState.state,
       primaryInterest: formState.primaryInterest,
       tools: formState.tools,
+      avatarUrl: formState.avatarUrl || null,
       structuredNotes: {
         bio: formState.bio,
         phone: formState.phone,
@@ -209,10 +213,11 @@ export default function ProfilePage() {
 
     if (saved) {
       auth.updateProfileDisplayName?.(formState.displayName || null)
+      // if your auth context tracks avatar, this is where you would update it too
+      // auth.updateProfileAvatarUrl?.(formState.avatarUrl || null)
     }
   }
 
-  // Load billing summary from Outseta when profile is ready
   useEffect(() => {
     let cancelled = false
 
@@ -308,7 +313,6 @@ export default function ProfilePage() {
 
     try {
       if (Outseta?.auth?.open) {
-        // Use the profile overlay so users land on Profile/Plan/Billing instead of a generic login
         Outseta.auth.open({ widgetMode: 'profile' })
         return
       }
@@ -324,7 +328,7 @@ export default function ProfilePage() {
     if (typeof window === 'undefined') return
     const Outseta = (window as any).Outseta
     const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
-    const proPlanUid = 'rQVqlLm6' // Pro plan UID in Outseta
+    const proPlanUid = 'rQVqlLm6'
 
     try {
       if (Outseta?.auth?.open) {
@@ -388,7 +392,6 @@ export default function ProfilePage() {
           <ProfilePageSkeleton />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[360px,1fr]">
-            {/* Left column. Identity + quick links */}
             <div className="space-y-4">
               <Card className="p-6">
                 <CardHeader className="space-y-4">
@@ -491,7 +494,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={logout}
-                    className="w-full rounded-full border border-transparent bg-slate-900 px-4 py-2 font-semibold text-white shadow transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:bg:white dark:text-slate-900 dark:hover:bg-slate-100"
+                    className="w-full rounded-full border border-transparent bg-slate-900 px-4 py-2 font-semibold text-white shadow transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
                   >
                     Logout
                   </button>
@@ -499,7 +502,6 @@ export default function ProfilePage() {
               </Card>
             </div>
 
-            {/* Right column. Tabs for profile, billing, account */}
             <Card className="p-6">
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -507,7 +509,7 @@ export default function ProfilePage() {
                     <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
                       Workspace
                     </p>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text:white">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                       Manage your account
                     </h2>
                     <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -521,7 +523,6 @@ export default function ProfilePage() {
                   </TabsList>
                 </div>
 
-                {/* PROFILE TAB */}
                 <TabsContent value="profile" className="mt-4">
                   <form className="space-y-5" onSubmit={handleSubmit}>
                     {error && (
@@ -752,7 +753,6 @@ export default function ProfilePage() {
                   </form>
                 </TabsContent>
 
-                {/* BILLING TAB */}
                 <TabsContent value="billing" className="mt-4 space-y-4">
                   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -855,7 +855,6 @@ export default function ProfilePage() {
                   </div>
                 </TabsContent>
 
-                {/* ACCOUNT TAB */}
                 <TabsContent value="account" className="mt-4 space-y-4">
                   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">
