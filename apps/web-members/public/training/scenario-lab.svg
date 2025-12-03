@@ -1,0 +1,19 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="28" fill="#F8F5EF"/>
+  <rect x="32" y="48" width="576" height="264" rx="20" fill="#0F172A" opacity="0.9"/>
+  <rect x="52" y="70" width="536" height="72" rx="16" fill="#F3E9DD"/>
+  <rect x="52" y="162" width="256" height="120" rx="16" fill="#F3E9DD"/>
+  <rect x="320" y="162" width="268" height="120" rx="16" fill="#14313E"/>
+  <rect x="340" y="182" width="228" height="12" rx="6" fill="#E58D3D"/>
+  <rect x="340" y="206" width="148" height="12" rx="6" fill="#E5B48A"/>
+  <rect x="340" y="230" width="176" height="12" rx="6" fill="#E58D3D" opacity="0.6"/>
+  <circle cx="88" cy="106" r="14" fill="#E58D3D"/>
+  <circle cx="124" cy="106" r="14" fill="#14313E" opacity="0.8"/>
+  <circle cx="160" cy="106" r="14" fill="#0F172A"/>
+  <text x="52" y="130" fill="#14313E" font-family="Arial, sans-serif" font-size="18" font-weight="700">Escalation map</text>
+  <text x="52" y="190" fill="#0F172A" font-family="Arial, sans-serif" font-size="16" font-weight="700">Evidence set</text>
+  <text x="52" y="218" fill="#14313E" font-family="Arial, sans-serif" font-size="13">Before / after / context photos</text>
+  <text x="52" y="242" fill="#14313E" font-family="Arial, sans-serif" font-size="13">Notes with chain of custody</text>
+  <text x="52" y="266" fill="#14313E" font-family="Arial, sans-serif" font-size="13">Escalation triggers</text>
+  <text x="340" y="154" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="14" font-weight="700">Scenario highlights</text>
+</svg>

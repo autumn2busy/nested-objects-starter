@@ -1,0 +1,16 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="28" fill="#F8F5EF"/>
+  <rect x="36" y="44" width="568" height="272" rx="22" fill="#14313E" opacity="0.94"/>
+  <rect x="60" y="70" width="520" height="72" rx="16" fill="#F3E9DD"/>
+  <rect x="60" y="158" width="520" height="134" rx="18" fill="#0F172A"/>
+  <rect x="82" y="182" width="64" height="64" rx="12" fill="#E58D3D"/>
+  <path d="M110 214L125 228L150 196" stroke="#F8F5EF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="172" y="184" width="120" height="10" rx="5" fill="#E5B48A"/>
+  <rect x="172" y="204" width="156" height="10" rx="5" fill="#E5B48A"/>
+  <rect x="172" y="224" width="96" height="10" rx="5" fill="#E5B48A"/>
+  <rect x="356" y="184" width="118" height="10" rx="5" fill="#F3E9DD" opacity="0.8"/>
+  <rect x="356" y="204" width="146" height="10" rx="5" fill="#F3E9DD" opacity="0.8"/>
+  <rect x="356" y="224" width="132" height="10" rx="5" fill="#F3E9DD" opacity="0.8"/>
+  <text x="82" y="110" fill="#14313E" font-family="Arial, sans-serif" font-size="18" font-weight="700">Elite checklist pack</text>
+  <text x="82" y="134" fill="#14313E" font-family="Arial, sans-serif" font-size="14">Print, mobile, and AI-ready formats</text>
+</svg>
