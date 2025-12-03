@@ -90,7 +90,11 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => null)
 
-    const rows = Array.isArray(body?.rows) ? body.rows : Array.isArray(body) ? body : null
+    const rows: SpreadsheetFirmRow[] | null = Array.isArray(body?.rows)
+      ? (body.rows as SpreadsheetFirmRow[])
+      : Array.isArray(body)
+        ? (body as SpreadsheetFirmRow[])
+        : null
 
     if (!rows) {
       return NextResponse.json({ error: 'Expected an array of spreadsheet rows.' }, { status: 400 })
