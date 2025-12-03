@@ -44,6 +44,8 @@ type FirmRow = {
   bbb_status?: string | null
   industry_recognition?: string | null
   client_reviews?: string | null
+  latitude?: number | null
+  longitude?: number | null
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -147,6 +149,10 @@ export default async function FirmDetailPage({
     (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry for ${firm.name}`)}` : null) ||
     (firm.phone ? `tel:${firm.phone}` : null)
   const fullAddress = buildAddress(firm)
+  const latitude = firm.latitude ?? null
+  const longitude = firm.longitude ?? null
+  const hasCoordinates = latitude !== null && longitude !== null
+  const coordinateQuery = hasCoordinates ? `${latitude},${longitude}` : null
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -176,13 +182,23 @@ export default async function FirmDetailPage({
             },
           ]
         : undefined,
+    geo:
+      hasCoordinates && latitude !== null && longitude !== null
+        ? {
+            '@type': 'GeoCoordinates',
+            latitude,
+            longitude,
+          }
+        : undefined,
   }
 
-  const googleMapsSearchUrl = fullAddress
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        fullAddress,
-      )}`
+  const googleMapsCoordinateUrl = coordinateQuery
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinateQuery)}`
     : null
+  const googleMapsAddressUrl =
+    !coordinateQuery && fullAddress
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`
+      : null
 
   return (
     <main
@@ -567,11 +583,11 @@ export default async function FirmDetailPage({
                 backgroundColor: '#e5e7eb',
               }}
             >
-              {GOOGLE_MAPS_EMBED_KEY && fullAddress ? (
+              {GOOGLE_MAPS_EMBED_KEY && coordinateQuery ? (
                 <iframe
                   title="Firm location"
                   src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(
-                    fullAddress,
+                    coordinateQuery,
                   )}`}
                   style={{
                     border: 0,
@@ -581,9 +597,9 @@ export default async function FirmDetailPage({
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
-              ) : googleMapsSearchUrl ? (
+              ) : googleMapsCoordinateUrl ? (
                 <a
-                  href={googleMapsSearchUrl}
+                  href={googleMapsCoordinateUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -599,7 +615,27 @@ export default async function FirmDetailPage({
                     textAlign: 'center',
                   }}
                 >
-                  Open this firms service area in Google Maps
+                  Open this firm&apos;s location in Google Maps
+                </a>
+              ) : googleMapsAddressUrl ? (
+                <a
+                  href={googleMapsAddressUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.8rem',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    padding: '1rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  Open this firm&apos;s address in Google Maps
                 </a>
               ) : (
                 <div
@@ -615,7 +651,7 @@ export default async function FirmDetailPage({
                     textAlign: 'center',
                   }}
                 >
-                  Map preview not available yet. missing address details.
+                  Map preview not available yet. Add coordinates or address details.
                 </div>
               )}
             </div>

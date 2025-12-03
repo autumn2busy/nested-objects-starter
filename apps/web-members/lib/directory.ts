@@ -15,4 +15,6 @@ export type Firm = {
   address_city: string | null
   address_state: string | null
   address_postal_code: string | null
+  latitude?: number | null
+  longitude?: number | null
 }
