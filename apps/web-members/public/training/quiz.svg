@@ -1,0 +1,16 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="28" fill="#F8F5EF"/>
+  <rect x="42" y="44" width="556" height="272" rx="22" fill="#0F172A" opacity="0.92"/>
+  <rect x="64" y="70" width="512" height="64" rx="16" fill="#14313E"/>
+  <rect x="64" y="146" width="512" height="146" rx="20" fill="#F3E9DD"/>
+  <rect x="92" y="176" width="150" height="14" rx="7" fill="#E58D3D"/>
+  <rect x="92" y="202" width="118" height="14" rx="7" fill="#E5B48A" opacity="0.8"/>
+  <rect x="92" y="228" width="176" height="14" rx="7" fill="#E58D3D"/>
+  <rect x="92" y="254" width="132" height="14" rx="7" fill="#14313E" opacity="0.9"/>
+  <rect x="324" y="176" width="210" height="96" rx="14" fill="#0F172A"/>
+  <text x="84" y="108" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="18" font-weight="700">Route readiness quiz</text>
+  <text x="84" y="132" fill="#E5B48A" font-family="Arial, sans-serif" font-size="14">Confirm the small details before you submit</text>
+  <text x="342" y="206" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="13">Escalation choice</text>
+  <text x="342" y="232" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="13">Photo coverage</text>
+  <text x="342" y="258" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="13">Metadata & notes</text>
+</svg>

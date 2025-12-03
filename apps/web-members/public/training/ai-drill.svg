@@ -1,0 +1,17 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="28" fill="#F8F5EF"/>
+  <rect x="40" y="44" width="560" height="272" rx="22" fill="#14313E" opacity="0.95"/>
+  <rect x="64" y="72" width="512" height="76" rx="16" fill="#F3E9DD"/>
+  <rect x="64" y="168" width="246" height="124" rx="16" fill="#0F172A"/>
+  <rect x="326" y="168" width="250" height="124" rx="16" fill="#F3E9DD"/>
+  <rect x="346" y="188" width="210" height="14" rx="7" fill="#E58D3D"/>
+  <rect x="346" y="216" width="170" height="14" rx="7" fill="#E5B48A"/>
+  <rect x="346" y="244" width="132" height="14" rx="7" fill="#E58D3D" opacity="0.7"/>
+  <text x="84" y="102" fill="#14313E" font-family="Arial, sans-serif" font-size="18" font-weight="700">Prompt guardrails</text>
+  <text x="84" y="126" fill="#14313E" font-family="Arial, sans-serif" font-size="14">Loss draft vs occupancy templates</text>
+  <text x="84" y="194" fill="#F3E9DD" font-family="Arial, sans-serif" font-size="16" font-weight="700">AI output</text>
+  <text x="84" y="220" fill="#E5B48A" font-family="Arial, sans-serif" font-size="13">Check for PHI, tone, clarity</text>
+  <text x="84" y="244" fill="#E5B48A" font-family="Arial, sans-serif" font-size="13">Apply scoring rubric</text>
+  <circle cx="526" cy="102" r="12" fill="#E58D3D"/>
+  <circle cx="500" cy="102" r="12" fill="#0F172A"/>
+</svg>
