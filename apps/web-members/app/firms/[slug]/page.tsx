@@ -2,6 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
+import { FirmMap } from '@/components/FirmMap'
+
+// Development SSL fix
+if (process.env.NODE_ENV === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+}
 
 export const revalidate = 3600
 
@@ -579,23 +585,15 @@ export default async function FirmDetailPage({
                 borderRadius: '12px',
                 overflow: 'hidden',
                 border: '1px solid #e5e7eb',
-                height: 180,
-                backgroundColor: '#e5e7eb',
+                height: 240,
               }}
             >
-              {GOOGLE_MAPS_EMBED_KEY && coordinateQuery ? (
-                <iframe
-                  title="Firm location"
-                  src={`https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(
-                    coordinateQuery,
-                  )}`}
-                  style={{
-                    border: 0,
-                    width: '100%',
-                    height: '100%',
-                  }}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
+              {hasCoordinates && latitude !== null && longitude !== null ? (
+                <FirmMap
+                  firms={[firm as any]}
+                  center={{ lat: latitude, lng: longitude }}
+                  zoom={12}
+                  className="h-full w-full"
                 />
               ) : googleMapsCoordinateUrl ? (
                 <a
@@ -613,6 +611,7 @@ export default async function FirmDetailPage({
                     textDecoration: 'none',
                     padding: '1rem',
                     textAlign: 'center',
+                    backgroundColor: '#e5e7eb',
                   }}
                 >
                   Open this firm&apos;s location in Google Maps
@@ -633,6 +632,7 @@ export default async function FirmDetailPage({
                     textDecoration: 'none',
                     padding: '1rem',
                     textAlign: 'center',
+                    backgroundColor: '#e5e7eb',
                   }}
                 >
                   Open this firm&apos;s address in Google Maps
@@ -649,6 +649,7 @@ export default async function FirmDetailPage({
                     color: '#6b7280',
                     padding: '1rem',
                     textAlign: 'center',
+                    backgroundColor: '#e5e7eb',
                   }}
                 >
                   Map preview not available yet. Add coordinates or address details.
