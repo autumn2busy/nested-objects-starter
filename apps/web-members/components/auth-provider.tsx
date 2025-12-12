@@ -116,19 +116,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Load auth state from Outseta (once on mount)
   useEffect(() => {
     let cancelled = false
+    let authed = false
+    let attempts = 0
+    let isChecking = false
+
+    const waitForOutseta = async () => {
+      if (typeof window === 'undefined') return null
+
+      if (window.Outseta?.getJwtPayload) return window.Outseta
+
+      return await new Promise<any | null>((resolve) => {
+        let interval: ReturnType<typeof setInterval> | undefined
+
+        const timeout = setTimeout(() => {
+          if (interval) clearInterval(interval)
+          resolve(null)
+        }, 4000)
+
+        interval = setInterval(() => {
+          if (cancelled) {
+            clearInterval(interval)
+            clearTimeout(timeout)
+            resolve(null)
+            return
+          }
+
+          if (window.Outseta?.getJwtPayload) {
+            clearInterval(interval)
+            clearTimeout(timeout)
+            resolve(window.Outseta)
+          }
+        }, 150)
+      })
+    }
 
     const loadUser = async () => {
+      if (isChecking) return
+      isChecking = true
+
       try {
         if (typeof window === 'undefined') {
           if (!cancelled) setIsLoading(false)
           return
         }
 
-        const Outseta = window.Outseta
-        if (!Outseta?.getJwtPayload) {
-          if (!cancelled) setIsLoading(false)
-          return
-        }
+        const Outseta = await waitForOutseta()
+        if (!Outseta?.getJwtPayload) return
 
         const payload = await Outseta.getJwtPayload()
 
@@ -138,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(payload)
           setPlanUid(payload['outseta:planUid'] ?? null)
           setIsAuthenticated(true)
+          authed = true
 
           // If there is no cached display name, seed it from the payload
           try {
@@ -161,14 +195,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAuthenticated(false)
         }
       } finally {
-        if (!cancelled) setIsLoading(false)
+        isChecking = false
       }
     }
 
-    loadUser()
+    const interval = setInterval(() => {
+      if (authed || attempts > 20) {
+        clearInterval(interval)
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+
+      attempts += 1
+      loadUser().finally(() => {
+        if (!cancelled && (authed || attempts > 20)) {
+          setIsLoading(false)
+        }
+      })
+    }, 300)
+
+    loadUser().finally(() => {
+      if (!cancelled && (authed || attempts > 20)) {
+        setIsLoading(false)
+      }
+    })
 
     return () => {
       cancelled = true
+      clearInterval(interval)
     }
   }, [persistProfileDisplayName])
 
