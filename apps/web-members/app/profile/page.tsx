@@ -180,6 +180,16 @@ export default function ProfilePage() {
     }
   }, [authLoading, isAuthenticated, profile, structuredNotes, fallbackName, profileAvatarUrl])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const { Outseta } = window as typeof window & {
+      Outseta?: { nocode?: { load?: () => void } }
+    }
+
+    Outseta?.nocode?.load?.()
+  }, [])
+
   const isPageLoading = authLoading || isLoading
 
   const handleChange = (key: keyof ProfileFormState, value: string | null) => {
