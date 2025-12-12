@@ -12,7 +12,7 @@
     "@react-google-maps/api": "^2.20.7",
     "@stripe/stripe-js": "^4.8.0",
     "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.45.0",
+    "@supabase/supabase-js": "^2.87.1",
     "jsonwebtoken": "^9.0.2",
     "next": "14.2.9",
     "react": "18.3.1",
