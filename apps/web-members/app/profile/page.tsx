@@ -754,6 +754,12 @@ export default function ProfilePage() {
                 </TabsContent>
 
                 <TabsContent value="billing" className="mt-4 space-y-4">
+                  <div
+                    data-o-profile="1"
+                    data-mode="embed"
+                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                  />
+
                   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>

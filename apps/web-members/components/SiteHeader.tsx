@@ -81,6 +81,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     setIsNavOpen(false)
   }, [pathname])
 
+  const visibleNavLinks = useMemo(
+    () =>
+      isAuthenticated
+        ? navLinks
+        : navLinks.filter((link) => link.href !== '/dashboard' && link.href !== '/profile'),
+    [isAuthenticated],
+  )
+
   return (
     <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/85 text-text-primary backdrop-blur-md shadow-sm">
       <div className={containerClass + ' flex items-center justify-between py-3'}>
@@ -130,7 +138,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 isNavOpen ? 'flex' : 'hidden'
               } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
             >
-              {navLinks.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
