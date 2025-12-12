@@ -31,11 +31,7 @@ type FirmRow = {
   pay_type: string | null
   phone: string | null
   email: string | null
-  address_line1?: string | null
-  address_street?: string | null
-  address_city: string | null
-  address_state: string | null
-  address_postal_code: string | null
+  address: string | null
   rating: number | null
   logo_url?: string | null
   compensation_structure?: string | null
@@ -92,19 +88,7 @@ function formatPay(firm: FirmRow): string | null {
 }
 
 function buildAddress(firm: FirmRow): string | null {
-  const street =
-    firm.address_line1 ||
-    firm.address_street ||
-    null
-
-  const parts = [
-    street || undefined,
-    firm.address_city || undefined,
-    firm.address_state || undefined,
-    firm.address_postal_code || undefined,
-  ].filter(Boolean)
-  if (!parts.length) return null
-  return parts.join(', ')
+  return firm.address || null
 }
 
 export async function generateMetadata({
@@ -168,15 +152,11 @@ export default async function FirmDetailPage({
     description: firm.description,
     areaServed: firm.geographic_coverage,
     address: fullAddress
-      ? {
-          '@type': 'PostalAddress',
-          streetAddress:
-            firm.address_line1 || firm.address_street || undefined,
-          addressLocality: firm.address_city || undefined,
-          addressRegion: firm.address_state || undefined,
-          postalCode: firm.address_postal_code || undefined,
-        }
-      : undefined,
+    ? {
+      '@type': 'PostalAddress',
+      streetAddress: firm.address || undefined,
+    }
+  : undefined,
     contactPoint:
       firm.phone || firm.email
         ? [

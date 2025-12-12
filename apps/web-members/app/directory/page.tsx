@@ -25,13 +25,13 @@ type Firm = {
   industry_focus: string | null
   is_published?: boolean | null
   rating: number | null
-  phone?: string | null
-  email?: string | null
-  address_street: string | null
-  address_city: string | null
-  address_state: string | null
-  address_postal_code: string | null
+  phone: string | null
+  email: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
 }
+
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -99,14 +99,7 @@ function formatCategories(categories: any): string {
 }
 
 function buildAddress(firm: Firm): string {
-  return [
-    firm.address_street,
-    firm.address_city,
-    firm.address_state,
-    firm.address_postal_code,
-  ]
-    .filter(Boolean)
-    .join(', ')
+  return firm.address || ''
 }
 
 declare global {
@@ -393,33 +386,32 @@ export default function DirectoryPage() {
 
       try {
         const url =
-          `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=' +
-          [
-            'id',
-            'slug',
-            'name',
-            'url',
-            'vendor_page_url',
-            'logo_url',
-            'geographic_coverage',
-            'categories',
-            'pay_min',
-            'pay_max',
-            'pay_type',
-            'company_size',
-            'industry_focus',
-            'rating',
-            'phone',
-            'email',
-            'is_published',
-            'address_street',
-            'address_city',
-            'address_state',
-            'address_postal_code',
-          ].join(',') +
-          '&is_published=eq.true' +
-          '&order=name.asc'
+        `${SUPABASE_URL}/rest/v1/firms` +
+        '?select=' +
+        [
+          'id',
+          'slug',
+          'name',
+          'url',
+          'vendor_page_url',
+          'logo_url',
+          'geographic_coverage',
+          'categories',
+          'pay_min',
+          'pay_max',
+          'pay_type',
+          'company_size',
+          'industry_focus',
+          'rating',
+          'phone',
+          'email',
+          'is_published',
+          'address',
+          'latitude',
+          'longitude',
+        ].join(',') +
+        '&is_published=eq.true' +
+        '&order=name.asc'
 
         const res = await fetch(url, {
           headers: {
