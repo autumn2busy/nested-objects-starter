@@ -10,12 +10,19 @@ import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * Initialize Supabase client with service role
+ * Get Supabase client (lazy initialization)
+ * This prevents build-time errors when env vars aren't available
  */
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase configuration');
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 /**
  * Verify Outseta webhook signature
@@ -98,6 +105,8 @@ function extractProfileData(payload: any) {
  * Upsert profile to Supabase
  */
 async function upsertProfile(profileData: any, rawPayload: any) {
+  const supabase = getSupabaseClient();
+
   try {
     // Call the upsert_profile function we created in SQL
     const { data, error } = await supabase.rpc('upsert_profile', {
@@ -301,13 +310,25 @@ export async function POST(request: NextRequest) {
  * GET handler for health check
  */
 export async function GET() {
-  // Test Supabase connection
-  const { error } = await supabase.from('profiles').select('count').limit(1);
-  
-  return NextResponse.json({
-    status: error ? 'unhealthy' : 'healthy',
-    endpoint: '/api/webhooks/outseta',
-    supabase_connected: !error,
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    const supabase = getSupabaseClient();
+    
+    // Test Supabase connection
+    const { error } = await supabase.from('profiles').select('count').limit(1);
+    
+    return NextResponse.json({
+      status: error ? 'unhealthy' : 'healthy',
+      endpoint: '/api/webhooks/outseta',
+      supabase_connected: !error,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return NextResponse.json({
+      status: 'unhealthy',
+      endpoint: '/api/webhooks/outseta',
+      supabase_connected: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
