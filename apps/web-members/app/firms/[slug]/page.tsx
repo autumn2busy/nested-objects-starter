@@ -211,7 +211,7 @@ export default async function FirmDetailPage({
       style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '2rem 1.5rem 4rem',
+        padding: '1.75rem 1.25rem 3.5rem',
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
@@ -253,8 +253,8 @@ export default async function FirmDetailPage({
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.3fr)',
-          gap: '1.5rem',
-          marginBottom: '2rem',
+          gap: '1.1rem',
+          marginBottom: '1.6rem',
           alignItems: 'stretch',
         }}
       >
@@ -263,11 +263,18 @@ export default async function FirmDetailPage({
             background:
               'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.06))',
             borderRadius: '16px',
-            padding: '1.75rem 1.75rem 1.5rem',
+            padding: '1.35rem 1.35rem 1.2rem',
             border: '1px solid #e5e7eb',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.85rem',
+              flexWrap: 'wrap',
+            }}
+          >
             {firm.logo_url ? (
               <div
                 style={{
@@ -307,22 +314,100 @@ export default async function FirmDetailPage({
               </div>
             )}
 
-            <div>
-              <h1
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div
                 style={{
-                  fontSize: '2rem',
-                  fontWeight: 700,
-                  margin: 0,
-                  marginBottom: '0.15rem',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
                 }}
               >
-                {firm.name}
-              </h1>
+                <h1
+                  style={{
+                    fontSize: '1.85rem',
+                    fontWeight: 700,
+                    margin: 0,
+                  }}
+                >
+                  {firm.name}
+                </h1>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                    marginBottom: '0.05rem',
+                  }}
+                >
+                  {firm.geographic_coverage && (
+                    <span
+                      style={{
+                        padding: '0.28rem 0.7rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#eff6ff',
+                        color: '#1d4ed8',
+                        fontSize: '0.78rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Coverage. {firm.geographic_coverage}
+                    </span>
+                  )}
+
+                  {firm.company_size && (
+                    <span
+                      style={{
+                        padding: '0.28rem 0.7rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#ecfdf5',
+                        color: '#047857',
+                        fontSize: '0.78rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Size. {firm.company_size}
+                    </span>
+                  )}
+
+                  {pay && (
+                    <span
+                      style={{
+                        padding: '0.28rem 0.7rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#fef3c7',
+                        color: '#92400e',
+                        fontSize: '0.78rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Typical pay. {pay}
+                    </span>
+                  )}
+
+                  {firm.pay_type && (
+                    <span
+                      style={{
+                        padding: '0.28rem 0.7rem',
+                        borderRadius: '999px',
+                        backgroundColor: '#eef2ff',
+                        color: '#4338ca',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Pay model. {firm.pay_type}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <p
                 style={{
                   margin: 0,
                   color: '#6b7280',
-                  fontSize: '0.95rem',
+                  fontSize: '0.94rem',
                 }}
               >
                 {firm.industry_focus || 'Field services and inspections'}
@@ -330,79 +415,10 @@ export default async function FirmDetailPage({
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              marginTop: '1.25rem',
-            }}
-          >
-            {firm.geographic_coverage && (
-              <span
-                style={{
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: '999px',
-                  backgroundColor: '#eff6ff',
-                  color: '#1d4ed8',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                }}
-              >
-                Coverage. {firm.geographic_coverage}
-              </span>
-            )}
-
-            {firm.company_size && (
-              <span
-                style={{
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: '999px',
-                  backgroundColor: '#ecfdf5',
-                  color: '#047857',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                }}
-              >
-                Size. {firm.company_size}
-              </span>
-            )}
-
-            {pay && (
-              <span
-                style={{
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: '999px',
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                }}
-              >
-                Typical pay. {pay}
-              </span>
-            )}
-
-            {firm.pay_type && (
-              <span
-                style={{
-                  padding: '0.35rem 0.8rem',
-                  borderRadius: '999px',
-                  backgroundColor: '#eef2ff',
-                  color: '#4338ca',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                }}
-              >
-                Pay model. {firm.pay_type}
-              </span>
-            )}
-          </div>
-
           {firm.description && (
             <p
               style={{
-                marginTop: '1.25rem',
+                marginTop: '0.8rem',
                 marginBottom: 0,
                 fontSize: '0.95rem',
                 color: '#4b5563',
