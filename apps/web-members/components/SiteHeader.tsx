@@ -26,7 +26,15 @@ const navLinks = [
 
 export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
-  const { user, isLoading, isAuthenticated, logout, planUid, profileDisplayName } = useAuth()
+  const {
+    user,
+    isLoading,
+    isAuthenticated,
+    logout,
+    planUid,
+    profileDisplayName,
+    profileAvatarUrl,
+  } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
@@ -48,7 +56,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }, [profileDisplayName, user])
 
   const initials = displayName.charAt(0).toUpperCase()
-  const avatarUrl = profile?.avatar_url ?? null
+  const avatarUrl = profileAvatarUrl ?? profile?.avatar_url ?? null
 
   const activeLink = (href: string) => {
     if (!pathname) return false
@@ -164,6 +172,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/90 px-3 py-2 shadow-brand-card">
                 {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarUrl}
                     alt={displayName}

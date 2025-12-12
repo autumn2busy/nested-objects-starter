@@ -18,6 +18,7 @@ type AuthContextValue = {
   user: JwtPayload | null
   planUid: string | null
   profileDisplayName: string | null
+  profileAvatarUrl: string | null
   isAuthenticated: boolean
   isLoading: boolean
   hasAccess: (feature?: string) => boolean
@@ -26,6 +27,7 @@ type AuthContextValue = {
   logout: () => void
   refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
+  updateProfileAvatarUrl: (url: string | null) => void
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -83,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<JwtPayload | null>(null)
   const [planUid, setPlanUid] = useState<string | null>(null)
   const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -99,6 +102,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const persistProfileAvatarUrl = useCallback((url: string | null) => {
+    const safeUrl = url?.trim() || null
+    setProfileAvatarUrl(safeUrl)
+
+    if (typeof window === 'undefined') return
+
+    if (safeUrl) {
+      window.localStorage.setItem('profileAvatarUrl', safeUrl)
+    } else {
+      window.localStorage.removeItem('profileAvatarUrl')
+    }
+  }, [])
+
   // Hydrate any cached profile name once on mount
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -107,6 +123,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cachedName = window.localStorage.getItem('profileDisplayName')
       if (cachedName) {
         setProfileDisplayName(cachedName)
+      }
+
+      const cachedAvatar = window.localStorage.getItem('profileAvatarUrl')
+      if (cachedAvatar) {
+        setProfileAvatarUrl(cachedAvatar)
       }
     } catch {
       // ignore localStorage issues
@@ -242,7 +263,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const url =
         `${SUPABASE_URL}/rest/v1/profiles` +
         `?user_email=eq.${encodedEmail}` +
-        `&select=display_name`
+        `&select=display_name,avatar_url`
 
       const res = await fetch(url, {
         headers: {
@@ -257,31 +278,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const rows = (await res.json()) as { display_name: string | null }[]
+      const rows = (await res.json()) as { display_name: string | null; avatar_url: string | null }[]
       const row = rows[0]
       const nameFromDb = row?.display_name?.trim() || null
+      const avatarFromDb = row?.avatar_url?.trim() || null
 
       if (nameFromDb) {
         persistProfileDisplayName(nameFromDb)
       } else {
         persistProfileDisplayName(deriveDisplayName(user))
       }
+
+      if (avatarFromDb) {
+        persistProfileAvatarUrl(avatarFromDb)
+      }
     } catch (error) {
       console.error('Error loading profile display name', error)
       persistProfileDisplayName(deriveDisplayName(user))
     }
-  }, [isAuthenticated, persistProfileDisplayName, user])
+  }, [isAuthenticated, persistProfileAvatarUrl, persistProfileDisplayName, user])
 
   // hydrate profile name from Supabase once auth is ready
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       void fetchProfileDisplayName()
     }
-
-    if (!isAuthenticated) {
-      persistProfileDisplayName(null)
-    }
-  }, [isLoading, isAuthenticated, fetchProfileDisplayName, persistProfileDisplayName])
+  }, [fetchProfileDisplayName, isAuthenticated, isLoading])
 
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
@@ -351,7 +373,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(null)
       setPlanUid(null)
-      persistProfileDisplayName(null)
       setIsAuthenticated(false)
     } catch (error) {
       console.error('Error during logout', error)
@@ -364,6 +385,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     planUid,
     profileDisplayName,
+    profileAvatarUrl,
     isAuthenticated,
     isLoading,
     hasAccess,
@@ -373,6 +395,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfileDisplayName: fetchProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
+    updateProfileAvatarUrl: (url: string | null) =>
+      persistProfileAvatarUrl(url || null),
   }
 
   return (
