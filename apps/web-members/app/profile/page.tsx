@@ -161,6 +161,10 @@ export default function ProfilePage() {
   } | null>(null)
   const [billingError, setBillingError] = useState<string | null>(null)
   const [billingLoading, setBillingLoading] = useState(false)
+  const [billingPortalReady, setBillingPortalReady] = useState(false)
+  const [billingPortalTimedOut, setBillingPortalTimedOut] = useState(false)
+
+  const billingPortalLoading = !billingPortalReady && !billingPortalTimedOut
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -229,6 +233,41 @@ export default function ProfilePage() {
   useEffect(() => {
     let cancelled = false
 
+    const waitForOutsetaEmbed = () => {
+      if (typeof window === 'undefined') return
+
+      let attempts = 0
+      const maxAttempts = 20
+      const intervalMs = 250
+
+      const checkReady = () => {
+        if (cancelled) return
+
+        const Outseta = (window as any).Outseta
+
+        if (Outseta?.auth?.open) {
+          setBillingPortalReady(true)
+          setBillingPortalTimedOut(false)
+          clearInterval(intervalId)
+          return
+        }
+
+        attempts += 1
+
+        if (attempts >= maxAttempts) {
+          setBillingPortalTimedOut(true)
+          clearInterval(intervalId)
+        }
+      }
+
+      const intervalId = window.setInterval(checkReady, intervalMs)
+      checkReady()
+
+      return () => {
+        clearInterval(intervalId)
+      }
+    }
+
     const loadBilling = async () => {
       try {
         setBillingLoading(true)
@@ -238,10 +277,7 @@ export default function ProfilePage() {
 
         const Outseta = (window as any).Outseta
 
-        if (!Outseta) {
-          setBillingError('Billing tools are still warming up. Try again in a moment.')
-          return
-        }
+        if (!Outseta) return
 
         const userDetails = await (Outseta.getCurrentUser?.() ?? Outseta.getUser?.())
 
@@ -305,14 +341,21 @@ export default function ProfilePage() {
       }
     }
 
-    if (!isLoading && isAuthenticated) {
-      void loadBilling()
+    const cleanupWait = billingPortalLoading ? waitForOutsetaEmbed() : undefined
+
+    if (!isLoading && isAuthenticated && !billingPortalLoading) {
+      if (!billingPortalReady && billingPortalTimedOut) {
+        setBillingError('Billing tools are unavailable. Use the hosted portal in the meantime.')
+      } else {
+        void loadBilling()
+      }
     }
 
     return () => {
       cancelled = true
+      cleanupWait?.()
     }
-  }, [isAuthenticated, isLoading])
+  }, [billingPortalLoading, billingPortalReady, billingPortalTimedOut, isAuthenticated, isLoading])
 
   const openManageBilling = () => {
     if (typeof window === 'undefined') return
@@ -320,8 +363,13 @@ export default function ProfilePage() {
     const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
 
     try {
-      if (Outseta?.auth?.open) {
+      if (billingPortalReady && Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'profile' })
+        return
+      }
+
+      if (billingPortalLoading) {
+        setBillingError('Billing tools are still loading. Please try again in a moment.')
         return
       }
 
@@ -511,7 +559,8 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={openManageBilling}
-                      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-800 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-100 dark:hover:border-blue-400"
+                      disabled={billingPortalLoading}
+                      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-800 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-100 dark:hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <span>Manage billing</span>
                       <span aria-hidden>→</span>
@@ -854,7 +903,8 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={openManageBilling}
-                          className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-800 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-400"
+                          disabled={billingPortalLoading}
+                          className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-800 transition hover:border-blue-500 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Manage billing
                         </button>
