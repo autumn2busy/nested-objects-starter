@@ -670,28 +670,27 @@ export default function ProfileClient() {
               </Card>
             </div>
             <Card className="border border-slate-200 shadow-xl dark:border-slate-800">
-              <div className="sticky top-4 z-10 border-b border-slate-100/70 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:px-6">
-                <TabsList className="flex w-full gap-2 overflow-auto rounded-xl bg-slate-100 p-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
-                  {[
-                    { value: 'profile', label: 'Profile' },
-                    { value: 'billing', label: 'Billing' },
-                    { value: 'security', label: 'Security' },
-                    { value: 'directory', label: 'Directory preview' },
-                    { value: 'activity', label: 'Activity' },
-                  ].map((tab) => (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="flex-1 whitespace-nowrap rounded-lg px-3 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700"
-                      onClick={() => setActiveTab(tab.value)}
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
+                <div className="sticky top-4 z-10 border-b border-slate-100/70 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:px-6">
+                  <TabsList className="flex w-full gap-2 overflow-auto rounded-xl bg-slate-100 p-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
+                    {[
+                      { value: 'profile', label: 'Profile' },
+                      { value: 'billing', label: 'Billing' },
+                      { value: 'security', label: 'Security' },
+                      { value: 'directory', label: 'Directory preview' },
+                      { value: 'activity', label: 'Activity' },
+                    ].map((tab) => (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="flex-1 whitespace-nowrap rounded-lg px-3 py-2 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-700"
+                      >
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+
                 <TabsContent value="profile" className="space-y-4 px-6 pb-6 pt-4">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -983,7 +982,7 @@ export default function ProfileClient() {
                         </Link>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Optimistic saves on, Outseta-connected. We’ll toast you when it sticks.
+                        Optimistic saves on, Outseta-connected. We'll toast you when it sticks.
                       </p>
                     </div>
                   </form>
@@ -1266,7 +1265,7 @@ export default function ProfileClient() {
                       </div>
                     ))}
                     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
-                      Empty state? We’ll surface plan changes, support tickets, and login alerts here as they happen.
+                      Empty state? We'll surface plan changes, support tickets, and login alerts here as they happen.
                     </div>
                   </div>
                 </TabsContent>
