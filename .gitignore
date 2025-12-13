@@ -10,3 +10,7 @@ dist/
 # Ignore all .env files in all directories (root, apps, packages, etc.)
 **/.env*
 .env.local
+
+.DS_Store
+
+.DS_Store
