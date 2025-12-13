@@ -4,7 +4,8 @@ import DashboardClientPage from './dashboard-client'
 
 export const metadata: Metadata = {
   title: 'Member dashboard | Nested Objects',
-  description: 'Manage inspections, payouts, training, marketing assets, and communications from a single dashboard.',
+  description:
+    'Personalized dashboard with plan badges, billing controls, activity, and training—all powered by Outseta.',
   openGraph: {
     title: 'Nested Objects member dashboard',
     description: 'Track analytics, training progress, job opportunities, and client communications in one workspace.',
