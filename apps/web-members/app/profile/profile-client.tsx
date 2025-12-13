@@ -982,7 +982,7 @@ export default function ProfileClient() {
                         </Link>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Optimistic saves on, Outseta-connected. We'll toast you when it sticks.
+                        Optimistic saves on, Outseta-connected. We&apos;ll toast you when it sticks.
                       </p>
                     </div>
                   </form>
@@ -1265,7 +1265,7 @@ export default function ProfileClient() {
                       </div>
                     ))}
                     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200">
-                      Empty state? We'll surface plan changes, support tickets, and login alerts here as they happen.
+                      Empty state? We&apos;ll surface plan changes, support tickets, and login alerts here as they happen.
                     </div>
                   </div>
                 </TabsContent>
