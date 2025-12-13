@@ -1,11 +1,10 @@
 // =========================================
-// Outseta Webhook Handler (Debug Version - Signature Check Disabled)
+// Outseta Webhook Handler (Fixed for Outseta's Actual Format)
 // Path: app/api/webhooks/outseta/route.ts
-// Purpose: Temporarily bypass signature to debug sync issue
+// Purpose: Handle Outseta webhooks that send raw Account objects
 // =========================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 /**
@@ -56,23 +55,33 @@ function mapOutsetaStatus(status: string | undefined): string {
 }
 
 /**
- * Extract profile data from Outseta webhook payload
+ * Extract profile data from Outseta payload
+ * Handles both event-wrapped and raw Account objects
  */
 function extractProfileData(payload: any) {
-  const account = payload.Account || payload.account;
-  const person = payload.Person || payload.person || account?.PrimaryContact;
-  const subscription = payload.Subscription || payload.subscription || account?.Subscriptions?.[0];
+  // Outseta sends raw Account objects, not wrapped events
+  const account = payload.Account || payload;
+  const person = payload.Person || payload.PrimaryContact || account?.PrimaryContact;
+  const subscription = payload.Subscription || account?.Subscriptions?.[0];
+  
+  console.log('🔍 Extracting from:', {
+    hasAccount: !!account,
+    hasPerson: !!person,
+    hasSubscription: !!subscription,
+    accountUid: account?.Uid,
+    personEmail: person?.Email,
+  });
   
   return {
-    outseta_account_id: account?.Uid || account?.uid,
-    email: person?.Email || person?.email,
-    first_name: person?.FirstName || person?.firstName,
-    last_name: person?.LastName || person?.lastName,
-    phone: person?.Phone || person?.phone,
-    subscription_tier: mapOutsetaPlanToTier(subscription?.Plan?.Name || subscription?.plan?.name),
-    subscription_status: mapOutsetaStatus(subscription?.SubscriptionStatus || subscription?.status),
-    subscription_start_date: subscription?.StartDate || subscription?.startDate,
-    subscription_end_date: subscription?.EndDate || subscription?.endDate,
+    outseta_account_id: account?.Uid,
+    email: person?.Email,
+    first_name: person?.FirstName || '',
+    last_name: person?.LastName || '',
+    phone: person?.PhoneMobile || person?.PhoneWork || null,
+    subscription_tier: mapOutsetaPlanToTier(subscription?.Plan?.Name),
+    subscription_status: mapOutsetaStatus(subscription?.SubscriptionStatus || 'active'),
+    subscription_start_date: subscription?.StartDate || null,
+    subscription_end_date: subscription?.EndDate || null,
   };
 }
 
@@ -83,6 +92,8 @@ async function upsertProfile(profileData: any, rawPayload: any) {
   const supabase = getSupabaseClient();
 
   try {
+    console.log('💾 Upserting profile:', profileData);
+
     // Call the upsert_profile function we created in SQL
     const { data, error } = await supabase.rpc('upsert_profile', {
       p_outseta_account_id: profileData.outseta_account_id,
@@ -95,14 +106,14 @@ async function upsertProfile(profileData: any, rawPayload: any) {
     });
 
     if (error) {
-      console.error('Supabase upsert error:', error);
+      console.error('❌ Supabase upsert error:', error);
       throw error;
     }
 
-    console.log('✅ Profile upserted successfully:', data);
+    console.log('✅ Profile upserted successfully! ID:', data);
     return data;
   } catch (error) {
-    console.error('❌ Failed to upsert profile:', error);
+    console.error('💥 Failed to upsert profile:', error);
     throw error;
   }
 }
@@ -115,30 +126,27 @@ export async function POST(request: NextRequest) {
     // Get raw body
     const rawBody = await request.text();
     
-    // Log all headers for debugging
-    console.log('📥 Webhook Headers:', Object.fromEntries(request.headers.entries()));
-    
     // Parse payload
     const payload = JSON.parse(rawBody);
-    const eventType = payload.EventType || payload.eventType;
 
+    // Check if it's an Account object (has Uid and _objectType)
+    const isAccountObject = payload._objectType === 'Account' || payload.Uid;
+    
     console.log('📨 Received Outseta webhook:', {
-      eventType,
-      accountId: payload.Account?.Uid,
+      objectType: payload._objectType,
+      accountUid: payload.Uid,
+      primaryContactEmail: payload.PrimaryContact?.Email,
+      isAccountObject,
       timestamp: new Date().toISOString(),
     });
 
-    // Log full payload for debugging
-    console.log('📦 Full payload:', JSON.stringify(payload, null, 2));
-
-    // Only process account-related events
-    if (!eventType || !eventType.toLowerCase().includes('account')) {
-      console.log('⏭️  Skipping non-account event:', eventType);
+    // Outseta sends raw Account objects, not event-wrapped payloads
+    if (!isAccountObject) {
+      console.log('⏭️  Not an Account object, skipping');
       return NextResponse.json({
         received: true,
         skipped: true,
-        event_type: eventType,
-        message: 'Only account events are processed',
+        reason: 'Not an Account object',
       });
     }
 
@@ -148,10 +156,17 @@ export async function POST(request: NextRequest) {
     console.log('👤 Extracted profile data:', profileData);
 
     if (!profileData.outseta_account_id || !profileData.email) {
-      console.error('❌ Missing required profile data:', profileData);
+      console.error('❌ Missing required profile data');
+      console.error('   Account ID:', profileData.outseta_account_id);
+      console.error('   Email:', profileData.email);
+      
       return NextResponse.json(
         { 
           error: 'Missing required profile data',
+          missing: {
+            account_id: !profileData.outseta_account_id,
+            email: !profileData.email,
+          },
           received_data: profileData,
         },
         { status: 400 }
@@ -164,10 +179,9 @@ export async function POST(request: NextRequest) {
     // Return success
     return NextResponse.json({
       success: true,
-      event_type: eventType,
       profile_id: profileId,
       email: profileData.email,
-      message: 'Profile synced successfully',
+      message: 'Profile synced successfully to Supabase',
     });
 
   } catch (error) {
@@ -200,6 +214,7 @@ export async function GET() {
       endpoint: '/api/webhooks/outseta',
       supabase_connected: !error,
       signature_verification: 'DISABLED (debugging mode)',
+      payload_format: 'Raw Account objects (not event-wrapped)',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
