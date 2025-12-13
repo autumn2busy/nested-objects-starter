@@ -691,7 +691,7 @@ export default function ProfileClient() {
                 </TabsList>
               </div>
 
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
                 <TabsContent value="profile" className="space-y-4 px-6 pb-6 pt-4">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>

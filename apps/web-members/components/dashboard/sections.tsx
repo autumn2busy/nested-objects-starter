@@ -117,29 +117,29 @@ export function GettingPaidSection() {
   )
 }
 
+const startOfWeek = (date = new Date()) => {
+  const copy = new Date(date)
+  const day = copy.getDay()
+  const diff = copy.getDate() - day
+  copy.setDate(diff)
+  copy.setHours(0, 0, 0, 0)
+  return copy
+}
+
+const endOfWeek = (date = new Date()) => {
+  const start = startOfWeek(date)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  end.setHours(23, 59, 59, 999)
+  return end
+}
+
 export function JobTrackerSection() {
   const [loading, setLoading] = useState(true)
   const [activeJobs, setActiveJobs] = useState(0)
   const [offers, setOffers] = useState(0)
   const [addedThisWeek, setAddedThisWeek] = useState(0)
   const [error, setError] = useState<string | null>(null)
-
-  const startOfWeek = (date = new Date()) => {
-    const copy = new Date(date)
-    const day = copy.getDay()
-    const diff = copy.getDate() - day
-    copy.setDate(diff)
-    copy.setHours(0, 0, 0, 0)
-    return copy
-  }
-
-  const endOfWeek = (date = new Date()) => {
-    const start = startOfWeek(date)
-    const end = new Date(start)
-    end.setDate(start.getDate() + 6)
-    end.setHours(23, 59, 59, 999)
-    return end
-  }
 
   useEffect(() => {
     const loadStats = async () => {
