@@ -14,14 +14,15 @@ type SiteHeaderProps = {
 }
 
 const navLinks = [
-  { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/about', label: 'About' },
-  { href: '/membership', label: 'Membership' },
   { href: '/directory', label: 'Directory' },
+  { href: '/jobs', label: 'Jobs' },
+  { href: '/tools', label: 'AI tools' },
   { href: '/resources', label: 'Resources' },
+  { href: '/membership', label: 'Membership' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
+  { href: '/profile', label: 'Profile' },
 ]
 
 export function SiteHeader({ containerClassName }: SiteHeaderProps) {
@@ -104,7 +105,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
               <Image
-                src="/logo-light.png"
+                src="/logo-light.svg"
                 alt="Nested Objects logo"
                 width={36}
                 height={36}
