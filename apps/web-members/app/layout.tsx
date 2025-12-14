@@ -4,9 +4,16 @@ import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
+import { cn } from '@/lib/utils'
 import '../styles/globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] })
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
 const contentContainerClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
 export const metadata: Metadata = {
@@ -57,8 +64,7 @@ export default function RootLayout({
           data-options="o_options"
         />
       </head>
-      <body className={`${plusJakarta.className} bg-slate-50 text-brand-dark antialiased`}>
-        {/* Wrap the entire app in the AuthProvider */}
+      <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
             <SiteHeader containerClassName={contentContainerClass} />

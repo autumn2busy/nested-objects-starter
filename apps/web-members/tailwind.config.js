@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       colors: {
         brand: {
+          DEFAULT: '#2A7166',
           // Metropolitan Fintech palette
           dark: '#343A40',
           slate: '#474747',
@@ -35,8 +36,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-sans)', 'Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       spacing: {
         gutter: '1.25rem',
