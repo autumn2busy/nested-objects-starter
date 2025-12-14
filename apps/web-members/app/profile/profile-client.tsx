@@ -196,6 +196,21 @@ export default function ProfileClient() {
     Outseta?.nocode?.load?.()
   }, [])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const { Outseta } = window as typeof window & {
+      Outseta?: { nocode?: { load?: () => void }; auth?: { open?: () => void } }
+    }
+
+    Outseta?.nocode?.load?.()
+
+    if (activeTab === 'billing' && Outseta?.auth?.open) {
+      setBillingPortalReady(true)
+      setBillingPortalTimedOut(false)
+    }
+  }, [activeTab])
+
   const isPageLoading = authLoading || isLoading
 
   const handleChange = (key: keyof ProfileFormState, value: string | null) => {
