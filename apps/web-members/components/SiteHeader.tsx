@@ -13,15 +13,23 @@ type SiteHeaderProps = {
   containerClassName?: string
 }
 
-const navLinks = [
+type NavLink = {
+  href: string
+  label: string
+  requiresAuth?: boolean
+}
+
+const navLinks: NavLink[] = [
   { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/about', label: 'About' },
-  { href: '/membership', label: 'Membership' },
   { href: '/directory', label: 'Directory' },
+  { href: '/tools', label: 'AI tools' },
+  { href: '/training', label: 'Training' },
   { href: '/resources', label: 'Resources' },
+  { href: '/membership', label: 'Membership' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
+  { href: '/dashboard', label: 'Dashboard', requiresAuth: true },
+  { href: '/profile', label: 'Profile', requiresAuth: true },
 ]
 
 export function SiteHeader({ containerClassName }: SiteHeaderProps) {
@@ -90,10 +98,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }, [pathname])
 
   const visibleNavLinks = useMemo(
-    () =>
-      isAuthenticated
-        ? navLinks
-        : navLinks.filter((link) => link.href !== '/dashboard' && link.href !== '/profile'),
+    () => navLinks.filter((link) => (link.requiresAuth ? isAuthenticated : true)),
     [isAuthenticated],
   )
 
@@ -104,7 +109,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
               <Image
-                src="/logo-light.png"
+                src="/logo-light.svg"
                 alt="Nested Objects logo"
                 width={36}
                 height={36}
