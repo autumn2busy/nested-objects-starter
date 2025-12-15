@@ -1,15 +1,20 @@
+'use client'
+
 import Link from 'next/link'
+import { useAuth } from '@/components/auth-provider'
 
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 export default function ToolsIndexPage() {
+  const { isAuthenticated } = useAuth()
+
   const tools = [
     {
       title: '🤖 AI concierge',
       description:
         'Ask questions about firms, requirements, and inspection workflows in plain language.',
-      href: '/tools/ai-chatbot',
+      href: '/concierge',
       cta: 'Open AI concierge →',
     },
     {
@@ -64,7 +69,8 @@ export default function ToolsIndexPage() {
           {tools.map((tool) => (
             <Card
               key={tool.title}
-              className="flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm"
+              className={`flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'blur-[2px] hover:blur-none' : ''
+                }`}
             >
               <div>
                 <h2 className="text-xl font-semibold text-text-primary">
@@ -74,19 +80,42 @@ export default function ToolsIndexPage() {
                   {tool.description}
                 </p>
               </div>
-              <Link
-                href={tool.href}
-                className={buttonVariants({
-                  variant: 'link',
-                  size: 'sm',
-                  className: 'text-sm font-semibold',
-                })}
-              >
-                {tool.cta}
-              </Link>
+              <div className="mt-auto">
+                {!isAuthenticated ? (
+                  <span className="text-sm font-semibold text-brand-copper opacity-80">
+                    Log in to access
+                  </span>
+                ) : (
+                  <Link
+                    href={tool.href}
+                    className={buttonVariants({
+                      variant: 'link',
+                      size: 'sm',
+                      className: 'text-sm font-semibold px-0',
+                    })}
+                  >
+                    {tool.cta}
+                  </Link>
+                )}
+              </div>
             </Card>
           ))}
         </div>
+
+        {!isAuthenticated && (
+          <div className="mx-auto mb-12 flex max-w-md justify-center">
+            <Link
+              href="/membership"
+              className={buttonVariants({
+                variant: 'primary',
+                size: 'md',
+                className: 'w-full shadow-lg border border-brand-copper/50'
+              })}
+            >
+              Join to unlock all tools
+            </Link>
+          </div>
+        )}
       </section>
     </main>
   )

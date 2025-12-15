@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, MapPin, FileText, UserCircle } from "lucide-react";
+import { Search, MapPin, FileText, UserCircle, MessageSquare, Cloud } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ACTIONS = [
@@ -30,6 +30,27 @@ const ACTIONS = [
         icon: UserCircle,
         description: "Keep your info fresh",
         color: "bg-purple-50 text-purple-600",
+    },
+    {
+        label: "AI Concierge",
+        href: "/concierge",
+        icon: MessageSquare,
+        description: "Ask the expert",
+        color: "bg-indigo-50 text-indigo-600",
+    },
+    {
+        label: "AI Resume",
+        href: "/tools/ai-resume",
+        icon: FileText,
+        description: "Build profile",
+        color: "bg-pink-50 text-pink-600",
+    },
+    {
+        label: "Weather",
+        href: "/tools/weather",
+        icon: Cloud,
+        description: "Route forecast",
+        color: "bg-sky-50 text-sky-600",
     },
 ];
 

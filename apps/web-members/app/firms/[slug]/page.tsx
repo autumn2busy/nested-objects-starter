@@ -54,14 +54,15 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase env vars')
+function getSupabase() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase env vars')
+  }
+  return createClient(supabaseUrl, supabaseAnonKey)
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
 async function getFirmBySlug(slug: string): Promise<FirmRow | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('firms')
     .select('*')
     .eq('slug', slug)
@@ -152,29 +153,29 @@ export default async function FirmDetailPage({
     description: firm.description,
     areaServed: firm.geographic_coverage,
     address: fullAddress
-    ? {
-      '@type': 'PostalAddress',
-      streetAddress: firm.address || undefined,
-    }
-  : undefined,
+      ? {
+        '@type': 'PostalAddress',
+        streetAddress: firm.address || undefined,
+      }
+      : undefined,
     contactPoint:
       firm.phone || firm.email
         ? [
-            {
-              '@type': 'ContactPoint',
-              telephone: firm.phone || undefined,
-              email: firm.email || undefined,
-              contactType: 'vendor inquiries',
-            },
-          ]
+          {
+            '@type': 'ContactPoint',
+            telephone: firm.phone || undefined,
+            email: firm.email || undefined,
+            contactType: 'vendor inquiries',
+          },
+        ]
         : undefined,
     geo:
       hasCoordinates && latitude !== null && longitude !== null
         ? {
-            '@type': 'GeoCoordinates',
-            latitude,
-            longitude,
-          }
+          '@type': 'GeoCoordinates',
+          latitude,
+          longitude,
+        }
         : undefined,
   }
 
@@ -720,7 +721,7 @@ export default async function FirmDetailPage({
                       color: '#9ca3af',
                     }}
                   >
-                  Company type
+                    Company type
                   </dt>
                   <dd style={{ margin: 0, fontSize: '0.9rem' }}>
                     {firm.company_type}

@@ -93,7 +93,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const visibleNavLinks = useMemo(
     () =>
       isAuthenticated
-        ? navLinks
+        ? navLinks.filter((link) => link.href !== '/tools')
         : navLinks.filter((link) => link.href !== '/dashboard' && link.href !== '/profile'),
     [isAuthenticated],
   )
@@ -143,9 +143,8 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
 
             <div
               id="primary-navigation"
-              className={`${
-                isNavOpen ? 'flex' : 'hidden'
-              } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
+              className={`${isNavOpen ? 'flex' : 'hidden'
+                } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
             >
               {visibleNavLinks.map((link) => (
                 <Link
