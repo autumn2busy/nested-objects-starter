@@ -1,7 +1,8 @@
-import { cn } from "@/lib/utils";
+﻿import * as React from "react"
+import { cn } from "@/lib/utils"
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: "default" | "glass" | "outline";
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: "default" | "glass" | "outline"
 }
 
 export function Card({ className, variant = "default", ...props }: CardProps) {
@@ -9,9 +10,9 @@ export function Card({ className, variant = "default", ...props }: CardProps) {
         <div
             className={cn(
                 "rounded-xl border transition-all duration-300",
-                variant === "default" && "bg-card text-card-foreground border-border/50 shadow-sm",
-                variant === "glass" && "bg-white/5 backdrop-blur-md border-white/10 text-white glass-card-hover",
-                variant === "outline" && "bg-transparent border-dashed border-white/20 text-muted-foreground",
+                variant === "default" && "bg-white border-gray-200 shadow-sm",
+                variant === "glass" && "bg-white/5 backdrop-blur-md border-white/10",
+                variant === "outline" && "bg-transparent border-dashed border-gray-300",
                 className
             )}
             {...props}
