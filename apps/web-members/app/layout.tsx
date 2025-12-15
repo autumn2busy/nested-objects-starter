@@ -49,7 +49,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Outseta install snippet */}
-        <Script id="outseta-config" strategy="beforeInteractive">
+        <Script id="outseta-config" strategy="afterInteractive">
           {`
             var o_options = {
               domain: 'nested-objects.outseta.com',
@@ -60,7 +60,7 @@ export default function RootLayout({
         <Script
           id="outseta-script"
           src="https://cdn.outseta.com/outseta.min.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           data-options="o_options"
         />
       </head>

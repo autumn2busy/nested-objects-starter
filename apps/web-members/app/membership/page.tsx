@@ -1,61 +1,65 @@
 'use client'
 
-import { Suspense } from 'react'
+import Link from 'next/link'
+import { Suspense, useMemo, useState } from 'react'
+
+import { PlanChangeModal } from '@/components/PlanChangeModal'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 
-function MembershipContent() {
-  const { isAuthenticated, planUid } = useAuth()
+const PLAN_CHANGE_URLS: Record<string, string> = {
+  rmk5Xk9g:
+    'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rmk5Xk9g%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated',
+  zWZD0rQp:
+    'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22zWZD0rQp%22%2C%22planPaymentTerm%22%3A%22oneTime%22%7D#o-authenticated',
+  NmdnNO90:
+    'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22NmdnNO90%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated',
+  rQVqlLm6:
+    'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rQVqlLm6%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated',
+  L9nbKV9Z:
+    'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22L9nbKV9Z%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated',
+}
 
-  const currentPlanName =
-    membershipPlans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
+function MembershipContent() {
+  const { isAuthenticated, planUid, login } = useAuth()
+  const [selectedPlanUid, setSelectedPlanUid] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const currentPlanName = useMemo(
+    () =>
+      membershipPlans.find((p) => p.planUid === planUid)?.name ||
+      (isAuthenticated ? 'Member' : null),
+    [planUid, isAuthenticated],
+  )
 
   const isProOrHigher =
     planUid === 'rQVqlLm6' || planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g'
 
   const proPlan = membershipPlans.find((p) => p.planUid === 'rQVqlLm6')!
 
-  const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+  const selectedPlan = selectedPlanUid
+    ? membershipPlans.find((plan) => plan.planUid === selectedPlanUid) ?? null
+    : null
+  const selectedUrl = selectedPlanUid ? PLAN_CHANGE_URLS[selectedPlanUid] ?? null : null
 
-  const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
+  const handlePlanSelection = (plan: MembershipPlan, isCurrentPlan: boolean) => {
     if (isCurrentPlan) return
-    if (typeof window === 'undefined') return
 
-    const Outseta = window.Outseta
-    const widgetMode = isAuthenticated ? 'updateSubscription' : 'register'
-
-    // Preferred. use the embedded widget so existing sessions are respected.
-    if (Outseta?.auth?.open) {
-      Outseta.auth.open({
-        widgetMode,
-        planUid: plan.planUid,
-        planPaymentTerm: 'month',
-        skipPlanOptions: true,
-      })
+    if (!isAuthenticated) {
+      login()
       return
     }
 
-    // Fallback. if the JS SDK is missing, bounce to the hosted page.
-    const params = new URLSearchParams({
-      widgetMode,
-      planUid: plan.planUid,
-      planPaymentTerm: 'month',
-      skipPlanOptions: 'true',
-    })
+    const url = PLAN_CHANGE_URLS[plan.planUid]
+    if (!url) return
 
-    window.location.href = `${hostedBaseUrl}?${params.toString()}`
+    setSelectedPlanUid(plan.planUid)
+    setIsModalOpen(true)
   }
 
-  const openManageBilling = () => {
-    if (typeof window === 'undefined') return
-    const Outseta = window.Outseta
-
-    if (Outseta?.auth?.open) {
-      Outseta.auth.open({ widgetMode: 'updateSubscription' })
-      return
-    }
-
-    window.location.href = `${hostedBaseUrl}?widgetMode=updateSubscription`
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedPlanUid(null)
   }
 
   return (
@@ -82,28 +86,27 @@ function MembershipContent() {
 
         {!isAuthenticated && (
           <p className="mt-4 text-sm text-slate-500">
-            Create a free Starter account first. then upgrade inside the hub whenever you are ready.
+            Sign in to pick a plan or upgrade. You can create a free Starter account first and move up later.
+          </p>
+        )}
+
+        {isAuthenticated && (
+          <p className="mt-4 text-sm text-slate-500">
+            Manage plan &amp; billing from your{' '}
+            <Link
+              href="/profile"
+              className="font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+            >
+              profile
+            </Link>
+            . Use the plan buttons below to open a secure change flow.
           </p>
         )}
 
         {isAuthenticated && !isProOrHigher && (
           <p className="mt-4 text-sm text-slate-500">
-            You can upgrade your plan using the buttons below. changes are handled securely by
+            You can upgrade your plan using the buttons below. Changes are handled securely by
             Outseta&apos;s billing portal.
-          </p>
-        )}
-
-        {isProOrHigher && (
-          <p className="mt-4 text-sm text-slate-500">
-            Your billing and plan changes are managed from the{' '}
-            <button
-              type="button"
-              onClick={openManageBilling}
-              className="font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
-            >
-              manage plan &amp; billing
-            </button>{' '}
-            widget.
           </p>
         )}
       </header>
@@ -130,20 +133,28 @@ function MembershipContent() {
 
               const label = (() => {
                 if (isCurrentPlan) return 'Current plan'
-                if (!isAuthenticated && plan.name === 'Starter') return 'Join free'
-                if (!isAuthenticated) return `Start on ${plan.name}`
+                if (!isAuthenticated) return 'Sign in to change plan'
                 return `Switch to ${plan.name}`
               })()
 
               return (
                 <article
                   key={plan.planUid}
-                  className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
+                  className={`relative flex h-full cursor-pointer flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
                     plan.highlight
                       ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                       : 'border-slate-200'
                   }`}
                   aria-label={`${plan.name} plan`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handlePlanSelection(plan, isCurrentPlan)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      handlePlanSelection(plan, isCurrentPlan)
+                    }
+                  }}
                 >
                   {plan.highlight && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -181,14 +192,17 @@ function MembershipContent() {
                       type="button"
                       disabled={isCurrentPlan}
                       className={buttonClasses}
-                      onClick={() => openPlanWidget(plan, isCurrentPlan)}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handlePlanSelection(plan, isCurrentPlan)
+                      }}
                     >
                       {label}
                     </button>
 
                     {plan.name === 'Starter' && (
                       <p className="mt-2 text-center text-xs text-slate-500">
-                        No credit card required. upgrade whenever you are ready.
+                        No credit card required. Upgrade whenever you are ready.
                       </p>
                     )}
                   </div>
@@ -244,20 +258,15 @@ function MembershipContent() {
 
         <div className="mx-auto mt-6 grid max-w-3xl gap-6 text-sm text-slate-700">
           <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              Can I change plans or cancel anytime?
-            </h3>
+            <h3 className="text-base font-semibold text-slate-900">Can I change plans or cancel anytime?</h3>
             <p className="mt-2">
               Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
-              Changes take effect immediately and you keep access until the end of your billing
-              period.
+              Changes take effect immediately and you keep access until the end of your billing period.
             </p>
           </div>
 
           <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              What payment methods do you accept?
-            </h3>
+            <h3 className="text-base font-semibold text-slate-900">What payment methods do you accept?</h3>
             <p className="mt-2">
               All major credit cards are processed securely through Outseta and Stripe. Your billing
               details never touch the Nested Objects servers.
@@ -265,24 +274,18 @@ function MembershipContent() {
           </div>
 
           <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              Is there a free option while I am getting started?
-            </h3>
+            <h3 className="text-base font-semibold text-slate-900">Is there a free option while I am getting started?</h3>
             <p className="mt-2">
-              Yes. The Starter plan gives you ongoing access to the directory and core hub without a
-              card on file. When you are ready for intel and AI tools you can upgrade into Pro or
-              higher.
+              Yes. The Starter plan gives you ongoing access to the directory and core hub without a card on file. When you are
+              ready for intel and AI tools you can upgrade into Pro or higher.
             </p>
           </div>
 
           <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              Who is Nested Objects built for?
-            </h3>
+            <h3 className="text-base font-semibold text-slate-900">Who is Nested Objects built for?</h3>
             <p className="mt-2">
-              Field inspectors, mobile notaries, real estate and investor friendly agents, and gig
-              workers adding inspections as a new income lane. If you work outside, drive routes, or
-              step into other people&apos;s properties, this hub is for you.
+              Field inspectors, mobile notaries, real estate and investor friendly agents, and gig workers adding inspections as
+              a new income lane. If you work outside, drive routes, or step into other people&apos;s properties, this hub is for you.
             </p>
           </div>
         </div>
@@ -299,17 +302,16 @@ function MembershipContent() {
         </p>
 
         {isProOrHigher ? (
-          <button
-            type="button"
-            onClick={openManageBilling}
+          <Link
+            href="/profile"
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Open manage plan &amp; billing
-          </button>
+          </Link>
         ) : (
           <button
             type="button"
-            onClick={() => openPlanWidget(proPlan, false)}
+            onClick={() => handlePlanSelection(proPlan, false)}
             className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
           >
             Start with Pro
@@ -329,6 +331,13 @@ function MembershipContent() {
           ← Back to home
         </a>
       </div>
+
+      <PlanChangeModal
+        open={isModalOpen && !!selectedUrl}
+        url={selectedUrl ?? null}
+        planName={selectedPlan?.name ?? null}
+        onClose={closeModal}
+      />
     </main>
   )
 }
@@ -345,4 +354,4 @@ export default function MembershipPage() {
       <MembershipContent />
     </Suspense>
   )
-                       }
+}

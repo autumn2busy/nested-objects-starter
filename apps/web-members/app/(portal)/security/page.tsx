@@ -2,16 +2,17 @@
 
 import { OutsetaProfileWidget } from "@/components/outseta/ProfileWidget";
 
-export default function ProfilePage() {
+export default function SecurityPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Member Profile</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Security</h1>
                 <p className="text-muted-foreground">
-                    Control center for your membership.
+                    Manage authentication, passwords, and recovery options.
                 </p>
             </div>
-            <OutsetaProfileWidget tab="account" />
+
+            <OutsetaProfileWidget tab="security" />
         </div>
     );
 }

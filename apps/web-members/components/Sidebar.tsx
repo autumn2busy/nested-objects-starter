@@ -4,9 +4,39 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, BOTTOM_NAV_ITEMS } from "@/constants/nav";
+import { useAuth } from "./auth-provider";
+import { useMemo } from "react";
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { isAuthenticated, profileDisplayName, planUid, logout } = useAuth();
+
+    const planLabel = useMemo(() => {
+        switch (planUid) {
+            case "L9nbKV9Z":
+                return "Starter";
+            case "zWZD0rQp":
+                return "Directory";
+            case "rQVqlLm6":
+                return "Pro";
+            case "NmdnNO90":
+                return "Elite";
+            case "rmk5Xk9g":
+                return "Agency";
+            default:
+                return null;
+        }
+    }, [planUid]);
+
+    const visibleNavItems = useMemo(
+        () => NAV_ITEMS.filter((item) => (item.requiresAuth ? isAuthenticated : true)),
+        [isAuthenticated]
+    );
+
+    const bottomNavItems = useMemo(
+        () => BOTTOM_NAV_ITEMS.filter((item) => (item.requiresAuth ? isAuthenticated : true)),
+        [isAuthenticated]
+    );
 
     return (
         <aside className="w-64 h-screen border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col fixed left-0 top-0 z-40 hidden md:flex">
@@ -19,7 +49,7 @@ export function Sidebar() {
 
             {/* Main Nav */}
             <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
-                {NAV_ITEMS.map((item) => {
+                {visibleNavItems.map((item) => {
                     const isActive = pathname === item.href;
                     const Icon = item.icon;
                     return (
@@ -45,19 +75,38 @@ export function Sidebar() {
 
             {/* User Footer */}
             <div className="p-4 border-t border-white/5">
-                <div className="mb-4 px-3">
-                    <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Member</p>
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gold-600 to-yellow-200" />
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-medium text-white truncate">Marcus V.</p>
-                            <p className="text-xs text-white/50 truncate">Elite Tier</p>
+                {isAuthenticated && (
+                    <div className="mb-4 px-3">
+                        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Member</p>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gold-600 to-yellow-200" />
+                            <div className="overflow-hidden">
+                                <p className="text-sm font-medium text-white truncate">{profileDisplayName ?? "Member"}</p>
+                                {planLabel && (
+                                    <p className="text-xs text-white/50 truncate">{planLabel} plan</p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {BOTTOM_NAV_ITEMS.map((item) => {
+                {bottomNavItems.map((item) => {
                     const Icon = item.icon;
+
+                    if (item.href === "#logout") {
+                        return (
+                            <button
+                                key={item.label}
+                                type="button"
+                                onClick={() => logout()}
+                                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-white/40 hover:text-white transition-colors"
+                            >
+                                <Icon className="w-4 h-4" />
+                                {item.label}
+                            </button>
+                        );
+                    }
+
                     return (
                         <Link
                             key={item.href}
@@ -67,7 +116,7 @@ export function Sidebar() {
                             <Icon className="w-4 h-4" />
                             {item.label}
                         </Link>
-                    )
+                    );
                 })}
             </div>
         </aside>
