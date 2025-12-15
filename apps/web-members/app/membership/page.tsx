@@ -1,8 +1,10 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
+import { PlanChangeModal } from '@/components/membership/PlanChangeModal'
 
 function MembershipContent() {
   const { isAuthenticated, planUid } = useAuth()
@@ -15,47 +17,44 @@ function MembershipContent() {
 
   const proPlan = membershipPlans.find((p) => p.planUid === 'rQVqlLm6')!
 
-  const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+  const [modalUrl, setModalUrl] = useState<string | null>(null);
+  const router = useRouter();
+
+  const PLAN_CHANGE_URLS: Record<string, string> = {
+    'rmk5Xk9g': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rmk5Xk9g%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Agency
+    'zWZD0rQp': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22zWZD0rQp%22%2C%22planPaymentTerm%22%3A%22oneTime%22%7D#o-authenticated', // Directory
+    'NmdnNO90': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22NmdnNO90%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Elite
+    'rQVqlLm6': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rQVqlLm6%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Pro
+    'L9nbKV9Z': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22L9nbKV9Z%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Starter
+  };
 
   const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
     if (isCurrentPlan) return
-    if (typeof window === 'undefined') return
 
-    const Outseta = window.Outseta
-    const widgetMode = isAuthenticated ? 'updateSubscription' : 'register'
-
-    // Preferred. use the embedded widget so existing sessions are respected.
-    if (Outseta?.auth?.open) {
-      Outseta.auth.open({
-        widgetMode,
-        planUid: plan.planUid,
-        planPaymentTerm: 'month',
-        skipPlanOptions: true,
-      })
+    if (!isAuthenticated) {
+      // Fallback for unauth: bounce to hosted page or open register widget
+      if (typeof window !== 'undefined' && window.Outseta?.auth?.open) {
+        window.Outseta.auth.open({
+          widgetMode: 'register',
+          planUid: plan.planUid,
+          planPaymentTerm: 'month',
+          skipPlanOptions: true,
+        })
+      } else {
+        window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}`
+      }
       return
     }
 
-    // Fallback. if the JS SDK is missing, bounce to the hosted page.
-    const params = new URLSearchParams({
-      widgetMode,
-      planUid: plan.planUid,
-      planPaymentTerm: 'month',
-      skipPlanOptions: 'true',
-    })
-
-    window.location.href = `${hostedBaseUrl}?${params.toString()}`
+    // Authenticated: Open Modal
+    const url = PLAN_CHANGE_URLS[plan.planUid]
+    if (url) setModalUrl(url)
   }
 
   const openManageBilling = () => {
-    if (typeof window === 'undefined') return
-    const Outseta = window.Outseta
-
-    if (Outseta?.auth?.open) {
-      Outseta.auth.open({ widgetMode: 'updateSubscription' })
-      return
+    if (isAuthenticated) {
+      router.push('/profile')
     }
-
-    window.location.href = `${hostedBaseUrl}?widgetMode=updateSubscription`
   }
 
   return (
@@ -138,11 +137,10 @@ function MembershipContent() {
               return (
                 <article
                   key={plan.planUid}
-                  className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
-                    plan.highlight
-                      ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
-                      : 'border-slate-200'
-                  }`}
+                  className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
+                    ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
+                    : 'border-slate-200'
+                    }`}
                   aria-label={`${plan.name} plan`}
                 >
                   {plan.highlight && (
@@ -329,6 +327,12 @@ function MembershipContent() {
           ← Back to home
         </a>
       </div>
+
+      <PlanChangeModal
+        isOpen={!!modalUrl}
+        onClose={() => setModalUrl(null)}
+        url={modalUrl}
+      />
     </main>
   )
 }
@@ -345,4 +349,4 @@ export default function MembershipPage() {
       <MembershipContent />
     </Suspense>
   )
-                       }
+}

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 import { NAV_ITEMS, BOTTOM_NAV_ITEMS } from "@/constants/nav";
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { isAuthenticated } = useAuth();
 
     return (
         <aside className="w-64 h-screen border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col fixed left-0 top-0 z-40 hidden md:flex">
@@ -20,6 +22,11 @@ export function Sidebar() {
             {/* Main Nav */}
             <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
                 {NAV_ITEMS.map((item) => {
+                    // Filter out auth-only items if not logged in
+                    if (!isAuthenticated && ['/profile', '/security', '/directory-preview'].includes(item.href)) {
+                        return null;
+                    }
+
                     const isActive = pathname === item.href;
                     const Icon = item.icon;
                     return (

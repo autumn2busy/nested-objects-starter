@@ -57,11 +57,10 @@ export default function RootLayout({
             };
           `}
         </Script>
-        <Script
-          id="outseta-script"
-          src="https://cdn.outseta.com/outseta.min.js"
-          strategy="beforeInteractive"
-          data-options="o_options"
+        id="outseta-script"
+        src="https://cdn.outseta.com/outseta.min.js"
+        strategy="afterInteractive"
+        data-options="o_options"
         />
       </head>
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>

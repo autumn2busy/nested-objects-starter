@@ -7,12 +7,16 @@ import {
     Settings,
     HelpCircle,
     LogOut,
+    ShieldCheck,
+    Eye,
 } from "lucide-react";
 
 export const NAV_ITEMS = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Directory", href: "/directory", icon: Map },
     { label: "Profile", href: "/profile", icon: UserCircle },
+    { label: "Security", href: "/security", icon: ShieldCheck },
+    { label: "Directory Preview", href: "/directory-preview", icon: Eye },
     { label: "Concierge", href: "/concierge", icon: MessageSquare },
     { label: "Jobs", href: "/jobs", icon: Briefcase },
 ];
