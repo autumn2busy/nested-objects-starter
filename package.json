@@ -1,0 +1,11 @@
+{
+    "name": "nested-objects-root",
+    "private": true,
+    "scripts": {
+        "install": "cd apps/web-members && npm install",
+        "build": "cd apps/web-members && npm run build",
+        "dev": "cd apps/web-members && npm run dev"
+    },
+    "dependencies": {},
+    "devDependencies": {}
+}
