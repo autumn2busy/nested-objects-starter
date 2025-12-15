@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api'
-import { Firm } from '@/lib/directory'
+import { Firm } from '../lib/directory'
 
 type FirmMapProps = {
   firms: Firm[]
@@ -48,7 +48,7 @@ export function FirmMap({
 
       // Auto-fit bounds to show all firms with coordinates
       const firmsWithCoords = firms.filter((f) => f.latitude != null && f.longitude != null)
-      
+
       if (firmsWithCoords.length > 0) {
         const bounds = new window.google.maps.LatLngBounds()
         firmsWithCoords.forEach((firm) => {

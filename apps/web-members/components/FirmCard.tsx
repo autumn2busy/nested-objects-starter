@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { Firm } from '@/lib/directory'
+import { Firm } from '../lib/directory'
 
 type FirmCardProps = {
   firm: Firm
