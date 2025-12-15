@@ -120,12 +120,12 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('[MEMBER_JOBS_INSERT_ERROR]', error)
-      return NextResponse.json({ error: 'Could not save job entry.' }, { status: 500 })
+      return NextResponse.json({ error: `Could not save job entry. DB Error: ${error.message || JSON.stringify(error)}` }, { status: 500 })
     }
 
     return NextResponse.json(data)
-  } catch (error) {
+  } catch (error: any) {
     console.error('[MEMBER_JOBS_POST_ERROR]', error)
-    return NextResponse.json({ error: 'Unexpected error while creating job entry.' }, { status: 500 })
+    return NextResponse.json({ error: `Unexpected error: ${error?.message || error}` }, { status: 500 })
   }
 }

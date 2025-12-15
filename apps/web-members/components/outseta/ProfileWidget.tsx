@@ -7,8 +7,13 @@ export function OutsetaProfileWidget({ tab = "account" }: { tab?: string }) {
         // Ensure Outseta script is loaded before rendering widget
         if (typeof window !== 'undefined' && (window as any).Outseta) {
             console.log('Outseta loaded successfully');
+            // Force re-scan for widgets (SPA fix)
+            const o = (window as any).Outseta;
+            if (o.c && o.c.parse) {
+                o.c.parse();
+            }
         }
-    }, []);
+    }, [tab]);
 
     return (
         <div
