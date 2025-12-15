@@ -1,5 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { LiveFeed } from "@/components/dashboard/LiveFeed";
 
 export default function DashboardPage() {
     return (
@@ -49,6 +51,15 @@ export default function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Est. this month</p>
                     </CardContent>
                 </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-7">
+                <div className="md:col-span-4">
+                    <QuickActions />
+                </div>
+                <div className="md:col-span-3">
+                    <LiveFeed />
+                </div>
             </div>
         </div>
     );
