@@ -4,7 +4,6 @@ import { Suspense, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
-import { PlanChangeModal } from '@/components/membership/PlanChangeModal'
 
 function MembershipContent() {
   const { isAuthenticated, planUid } = useAuth()
@@ -17,7 +16,6 @@ function MembershipContent() {
 
   const proPlan = membershipPlans.find((p) => p.planUid === 'rQVqlLm6')!
 
-  const [modalUrl, setModalUrl] = useState<string | null>(null);
   const router = useRouter();
 
   const PLAN_CHANGE_URLS: Record<string, string> = {
@@ -46,9 +44,11 @@ function MembershipContent() {
       return
     }
 
-    // Authenticated: Open Modal
+    // Authenticated: Redirect to Outseta portal (iframe not allowed)
     const url = PLAN_CHANGE_URLS[plan.planUid]
-    if (url) setModalUrl(url)
+    if (url) {
+      window.location.href = url
+    }
   }
 
   const openManageBilling = () => {
@@ -327,12 +327,6 @@ function MembershipContent() {
           ← Back to home
         </a>
       </div>
-
-      <PlanChangeModal
-        isOpen={!!modalUrl}
-        onClose={() => setModalUrl(null)}
-        url={modalUrl}
-      />
     </main>
   )
 }

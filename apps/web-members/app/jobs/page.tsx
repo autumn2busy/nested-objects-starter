@@ -1,16 +1,45 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 import { Gate } from '@/components/Gate'
-import { jobBoardEntries, type JobBoardEntry } from '@/lib/ai-datasets'
+
+// Type definition matching the API response structure
+type JobEntry = {
+  id: string
+  title: string
+  company: string
+  location: string
+  pay: string
+  description: string
+  link: string
+  roles: string[]
+}
 
 export default function JobsPage() {
+  const [jobs, setJobs] = useState<JobEntry[]>([])
+  const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
-  const saveJobToTracker = async (job: JobBoardEntry) => {
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const res = await fetch('/api/jobs')
+        if (!res.ok) throw new Error('Failed to fetch jobs')
+        const data = await res.json()
+        setJobs(data.jobs || [])
+      } catch (error) {
+        console.error('Error fetching jobs:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchJobs()
+  }, [])
+
+  const saveJobToTracker = async (job: JobEntry) => {
     try {
       setSavingId(job.id)
       setMessage(null)
@@ -19,6 +48,8 @@ export default function JobsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          // We map 'id' to 'job_id' for the tracker to reference the original job if needed
+          // or just store the details as a snapshot.
           job_id: job.id,
           title: job.title,
           company: job.company,
@@ -95,7 +126,20 @@ export default function JobsPage() {
             </div>
           )}
 
-          {jobBoardEntries.map((job) => (
+          {loading && (
+            <div className="py-12 text-center text-slate-500">
+              <p>Loading latest opportunities...</p>
+            </div>
+          )}
+
+          {!loading && jobs.length === 0 && (
+            <div className="py-12 text-center text-slate-500 bg-slate-50 rounded-lg border border-slate-200">
+              <p>No active job listings found at the moment.</p>
+              <p className="text-sm mt-2">Check back later for new weekly drops.</p>
+            </div>
+          )}
+
+          {!loading && jobs.map((job) => (
             <article
               key={job.id}
               style={{
