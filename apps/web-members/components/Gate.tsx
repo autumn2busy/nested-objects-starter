@@ -6,7 +6,7 @@ import { useAuth } from './auth-provider'
 import { logoDataUrl } from '../lib/logoData'
 
 interface GateProps {
-  feature: string
+  feature?: string
   children: ReactNode
   fallback?: ReactNode
   loadingFallback?: ReactNode
@@ -66,7 +66,7 @@ export function Gate({ feature, children, fallback, loadingFallback }: GateProps
   }
 
   // User is authenticated but lacks access
-  if (!hasAccess(feature)) {
+  if (feature && !hasAccess(feature)) {
     return fallback || (
       <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-brand-steel/35 bg-brand-sand/90 p-8 text-center shadow-brand-card">
         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-copper">Premium lane</p>
