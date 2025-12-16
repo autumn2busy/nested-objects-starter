@@ -56,17 +56,6 @@ export function Sidebar() {
 
             {/* User Footer */}
             <div className="p-4 border-t border-white/5">
-                <div className="mb-4 px-3">
-                    <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Member</p>
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gold-600 to-yellow-200" />
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-medium text-white truncate">
-                                {isAuthenticated && localUser ? localUser.name : 'Member'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
                 {BOTTOM_NAV_ITEMS.map((item) => {
                     const Icon = item.icon;

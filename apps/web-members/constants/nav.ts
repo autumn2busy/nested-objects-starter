@@ -21,7 +21,5 @@ export const NAV_ITEMS = [
 ];
 
 export const BOTTOM_NAV_ITEMS = [
-    { label: "Settings", href: "/settings", icon: Settings },
-    { label: "Support", href: "/support", icon: HelpCircle },
-    { label: "Sign Out", href: "/auth/signout", icon: LogOut },
+    { label: "Support", href: "/contact", icon: HelpCircle },
 ];
