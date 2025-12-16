@@ -8,33 +8,46 @@ export function OutsetaProfileWidget({ tab }: { tab?: string }) {
     const [outsetaReady, setOutsetaReady] = useState(false);
 
     useEffect(() => {
+        let intervalId: NodeJS.Timeout;
         let attempts = 0;
-        let timeoutId: NodeJS.Timeout;
+        const MAX_ATTEMPTS = 50; // 50 * 200ms = 10 seconds
 
-        const checkOutseta = () => {
+        const initOutseta = () => {
             if (typeof window !== 'undefined' && window.Outseta) {
                 setOutsetaReady(true);
-                // Trigger parse if available to render widget immediately
+                // Force a parse call to render the widget
                 if (window.Outseta.c && window.Outseta.c.parse) {
                     window.Outseta.c.parse();
                 }
-            } else if (attempts < 15) { // 15 attempts * 150ms = 2.25s
-                attempts++;
-                timeoutId = setTimeout(checkOutseta, 150);
+                return true;
             }
+            return false;
         };
 
-        checkOutseta();
+        // Try immediately
+        if (!initOutseta()) {
+            // Poll for script availability
+            intervalId = setInterval(() => {
+                attempts++;
+                if (initOutseta() || attempts >= MAX_ATTEMPTS) {
+                    clearInterval(intervalId);
+                }
+            }, 200);
+        }
 
         return () => {
-            if (timeoutId) clearTimeout(timeoutId);
+            if (intervalId) clearInterval(intervalId);
         };
-    }, []); // Run once on mount to start checking
+    }, []);
 
-    // Re-trigger parse when tab changes if already ready
+    // Re-trigger parse when tab changes
     useEffect(() => {
         if (outsetaReady && window.Outseta?.c?.parse) {
-            window.Outseta.c.parse();
+            // Small delay to ensure DOM is ready for the new tab data
+            const timer = setTimeout(() => {
+                window.Outseta.c.parse();
+            }, 50);
+            return () => clearTimeout(timer);
         }
     }, [outsetaReady, tab]);
 
