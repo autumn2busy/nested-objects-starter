@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { Gate } from "@/components/Gate";
 import { OutsetaProfileWidget } from "@/components/outseta/ProfileWidget";
 
 import { useSearchParams } from 'next/navigation';
 
-export default function ProfilePage() {
+function ProfileContent() {
     const searchParams = useSearchParams();
     const tab = searchParams.get('tab') || 'profile';
     // Outseta sometimes passes planUid in stateProps JSON
@@ -35,5 +36,13 @@ export default function ProfilePage() {
                 </div>
             </div>
         </Gate>
+    );
+}
+
+export default function ProfilePage() {
+    return (
+        <Suspense fallback={<div className="p-6">Loading profile...</div>}>
+            <ProfileContent />
+        </Suspense>
     );
 }
