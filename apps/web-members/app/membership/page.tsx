@@ -44,11 +44,9 @@ function MembershipContent() {
       return
     }
 
-    // Authenticated: Redirect to Outseta portal (iframe not allowed)
-    const url = PLAN_CHANGE_URLS[plan.planUid]
-    if (url) {
-      window.location.href = url
-    }
+    // Authenticated: Redirect to internal profile page with plan change params
+    // This keeps the user in the app and lets the embed handle the success state
+    router.push(`/profile?tab=planChange&stateProps=${encodeURIComponent(JSON.stringify({ planUid: plan.planUid, planPaymentTerm: plan.period === 'month' ? 'monthly' : 'annual' }))}`);
   }
 
   const openManageBilling = () => {

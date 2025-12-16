@@ -8,7 +8,11 @@ import { NAV_ITEMS, BOTTOM_NAV_ITEMS } from "@/constants/nav";
 
 export function Sidebar() {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    // Helper to safely get display name
+    const localUser = user ? {
+        name: (user.Name || user.name || user.email || 'Member').split(' ')[0]
+    } : null;
 
     return (
         <aside className="w-64 h-screen border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col fixed left-0 top-0 z-40 hidden md:flex">
@@ -57,8 +61,9 @@ export function Sidebar() {
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gold-600 to-yellow-200" />
                         <div className="overflow-hidden">
-                            <p className="text-sm font-medium text-white truncate">Marcus V.</p>
-                            <p className="text-xs text-white/50 truncate">Elite Tier</p>
+                            <p className="text-sm font-medium text-white truncate">
+                                {isAuthenticated && localUser ? localUser.name : 'Member'}
+                            </p>
                         </div>
                     </div>
                 </div>

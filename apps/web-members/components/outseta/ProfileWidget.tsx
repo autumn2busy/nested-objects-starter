@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/components/auth-provider";
 
-export function OutsetaProfileWidget({ tab }: { tab?: string }) {
+export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?: string }) {
     const { isAuthenticated } = useAuth();
     const [outsetaReady, setOutsetaReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +69,7 @@ export function OutsetaProfileWidget({ tab }: { tab?: string }) {
             ref={containerRef}
             data-o-profile="1"
             data-tab={tab || "profile"}
+            data-plan-uid={planUid}
             data-mode="embed"
             className="w-full min-h-[600px] bg-white relative" // relative for positioning if needed
         >

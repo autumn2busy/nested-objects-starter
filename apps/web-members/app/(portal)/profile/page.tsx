@@ -3,7 +3,25 @@
 import { Gate } from "@/components/Gate";
 import { OutsetaProfileWidget } from "@/components/outseta/ProfileWidget";
 
+import { useSearchParams } from 'next/navigation';
+
 export default function ProfilePage() {
+    const searchParams = useSearchParams();
+    const tab = searchParams.get('tab') || 'profile';
+    // Outseta sometimes passes planUid in stateProps JSON
+    let planUidParam = searchParams.get('planUid');
+
+    // Safely parse stateProps if present (Outseta redirect format)
+    const stateProps = searchParams.get('stateProps');
+    if (stateProps && !planUidParam) {
+        try {
+            const props = JSON.parse(stateProps);
+            if (props.planUid) planUidParam = props.planUid;
+        } catch (e) {
+            // ignore
+        }
+    }
+
     return (
         <Gate>
             <div className="space-y-6">
@@ -13,11 +31,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-                    {/* The main profile widget. Tabs are removed effectively by not passing any specific tab, 
-                        so it defaults to 'profile' or the widget's internal nav if capable, 
-                        but sidebar items now handle Security etc. 
-                        User acceptance: "Remove any extra in-page tabs... Profile page content is minimal." */}
-                    <OutsetaProfileWidget tab="profile" />
+                    <OutsetaProfileWidget tab={tab} planUid={planUidParam || undefined} />
                 </div>
             </div>
         </Gate>
