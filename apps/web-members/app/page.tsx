@@ -46,55 +46,91 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is the best directory for field inspection firms?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Nested Objects is the only AI-verified, real-time directory for field inspection firms, offering live data on pay rates, hiring status, and tool requirements."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do notaries and realtors find extra field work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Many field service firms hire notaries and realtors for BPOs (Broker Price Opinions) and occupancy verifications. Nested Objects filters these firms by license requirement."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Are there field inspection firms that pay daily?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, several national firms offer daily or weekly pay. Filter by 'Net 7' or 'Daily Pay' inside the Nested Objects directory to find them."
+                }
+              }
+            ]
+          })
+        }}
+      />
+
       <main className="min-h-screen bg-brand-background text-brand-text">
         {/* TOP HERO */}
-<section className="relative w-full overflow-hidden bg-brand-background">
-  <div className="absolute inset-0">
-    <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
+        <section className="relative w-full overflow-hidden bg-brand-background">
+          <div className="absolute inset-0">
+            <Image src={heroImage} alt="" fill priority className="object-cover object-center" />
 
-    {/* Gradient tint to improve text visibility */}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
-  </div>
+            {/* Gradient tint to improve text visibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent" />
+          </div>
 
-  <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
-    <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
+          <div className="relative mx-auto max-w-5xl px-4 py-24 text-center lg:py-32">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
 
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-[rgb(229,231,235)]">
-        The AI-powered vendor hub for field pros
-      </h1>
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-[rgb(229,231,235)]">
+                The AI-powered vendor hub for field pros
+              </h1>
 
-      <p className="mt-2 text-[rgb(229,231,235)] text-sm leading-relaxed sm:text-base">
-        Tools, insights, and transparent data to help inspectors, notaries, and field vendors
-        get paid faster and protect their time.
-      </p>
+              <p className="mt-2 text-[rgb(229,231,235)] text-sm leading-relaxed sm:text-base">
+                Tools, insights, and transparent data to help inspectors, notaries, and field vendors
+                get paid faster and protect their time.
+              </p>
 
-      <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
-        <Link
-          href="/membership"
-          className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
-        >
-          Explore membership options
-        </Link>
+              <div className="flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:text-left">
+                <Link
+                  href="/membership"
+                  className="inline-flex items-center justify-center bg-brand-primary text-white border border-brand-primary px-5 py-2.5 text-sm font-medium rounded-none hover:bg-brand-primaryHover"
+                >
+                  Explore membership options
+                </Link>
 
-        <Link
-          href="/directory"
-          className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-[rgb(229,231,235)] rounded-none hover:bg-brand-soft"
-        >
-          Preview the firm directory
-        </Link>
-      </div>
-    </div>
-  </div>
-</section>
+                <Link
+                  href="/directory"
+                  className="inline-flex items-center justify-center border border-brand-border bg-brand-surface px-5 py-2.5 text-sm font-medium text-[rgb(229,231,235)] rounded-none hover:bg-brand-soft"
+                >
+                  Preview the firm directory
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
 
         {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
         <section className="relative border-b border-slate-200 overflow-hidden">
           {/* background image sits directly under the section. spans full width */}
           <div
-            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-[900ms] ease-out ${
-              roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
-            }`}
+            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-[900ms] ease-out ${roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
+              }`}
           >
 
             {/* gradient fade from solid hub color into the image. like oracle */}

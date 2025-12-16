@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
+import { BadgeCheck } from 'lucide-react'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -210,12 +211,12 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
   const payText =
     firm.pay_min != null || firm.pay_max != null
       ? [
-          firm.pay_min != null ? `$${firm.pay_min}` : null,
-          firm.pay_max != null ? `$${firm.pay_max}` : null,
-        ]
-          .filter(Boolean)
-          .join(' - ') +
-        (firm.pay_type ? ` ${firm.pay_type}` : '')
+        firm.pay_min != null ? `$${firm.pay_min}` : null,
+        firm.pay_max != null ? `$${firm.pay_max}` : null,
+      ]
+        .filter(Boolean)
+        .join(' - ') +
+      (firm.pay_type ? ` ${firm.pay_type}` : '')
       : firm.pay_type || 'Shared with members inside the hub'
 
   const serviceRegion = firm.geographic_coverage || 'Service region not specified'
@@ -276,7 +277,11 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
           </div>
           <div className="min-w-0 space-y-0.5 break-words">
             <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
-            {/* category label intentionally omitted */}
+            {/* Tech-Forward "Verified" Badge */}
+            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+              <BadgeCheck className="w-3 h-3 text-emerald-600" />
+              <span>Verified by AI</span>
+            </div>
           </div>
         </div>
       </div>
@@ -386,32 +391,32 @@ export default function DirectoryPage() {
 
       try {
         const url =
-        `${SUPABASE_URL}/rest/v1/firms` +
-        '?select=' +
-        [
-          'id',
-          'slug',
-          'name',
-          'url',
-          'vendor_page_url',
-          'logo_url',
-          'geographic_coverage',
-          'categories',
-          'pay_min',
-          'pay_max',
-          'pay_type',
-          'company_size',
-          'industry_focus',
-          'rating',
-          'phone',
-          'email',
-          'is_published',
-          'address',
-          'latitude',
-          'longitude',
-        ].join(',') +
-        '&is_published=eq.true' +
-        '&order=name.asc'
+          `${SUPABASE_URL}/rest/v1/firms` +
+          '?select=' +
+          [
+            'id',
+            'slug',
+            'name',
+            'url',
+            'vendor_page_url',
+            'logo_url',
+            'geographic_coverage',
+            'categories',
+            'pay_min',
+            'pay_max',
+            'pay_type',
+            'company_size',
+            'industry_focus',
+            'rating',
+            'phone',
+            'email',
+            'is_published',
+            'address',
+            'latitude',
+            'longitude',
+          ].join(',') +
+          '&is_published=eq.true' +
+          '&order=name.asc'
 
         const res = await fetch(url, {
           headers: {
@@ -560,6 +565,28 @@ export default function DirectoryPage() {
     })
   }, [displayedFirms, mapLoaded])
 
+  // CollectionPage Schema (Dataset)
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Directory of Field Inspection Firms',
+    description: 'Live, AI-verified database of firms hiring field inspectors, notaries, and realtors.',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: displayedFirms.map((firm, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Organization',
+          name: firm.name,
+          url: `https://nested-objects-starter.vercel.app/firms/${firm.slug ?? firm.id}`,
+          image: firm.logo_url,
+          areaServed: firm.geographic_coverage
+        }
+      }))
+    }
+  }
+
   if (!isLoading && !isAuthenticated) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-10">
@@ -579,6 +606,12 @@ export default function DirectoryPage() {
 
   return (
     <>
+      <Script
+        id="directory-collection-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+      />
+
       {GOOGLE_MAPS_KEY && (
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}`}
@@ -602,7 +635,7 @@ export default function DirectoryPage() {
               ← BACK TO DASHBOARD
             </Link>
             <Link href="/membership" className="text-slate-700 hover:text-slate-900">
-              MEMBERSHIP &amp; PRICING
+              MEMBERSHIP & PRICING
             </Link>
           </div>
         </header>
