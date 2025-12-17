@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock, HelpCircle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { generateCertificate } from '@/lib/certificate'
+import { Input } from '@/components/ui/input'
 import { basicFieldInspectionModules } from '../modules'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +22,7 @@ export default function ModulePlayerPage() {
     const [quizPassed, setQuizPassed] = useState(false)
     const [answers, setAnswers] = useState<number[]>([])
     const [showResults, setShowResults] = useState(false)
+    const [candidateName, setCandidateName] = useState('')
 
     if (!currentModule) {
         return (
@@ -285,9 +288,22 @@ export default function ModulePlayerPage() {
                                                 Next Lesson →
                                             </Link>
                                         ) : (
-                                            <Button className="w-full bg-white hover:bg-slate-100 text-emerald-900 font-bold">
-                                                Complete Course 🎉
-                                            </Button>
+                                            <div className="space-y-3 bg-emerald-800/50 p-4 rounded-xl">
+                                                <p className="font-bold text-white text-sm">Course Complete! Claim your certificate.</p>
+                                                <Input
+                                                    placeholder="Enter Full Name"
+                                                    value={candidateName}
+                                                    onChange={(e) => setCandidateName(e.target.value)}
+                                                    className="bg-white text-slate-900 border-0"
+                                                />
+                                                <Button
+                                                    onClick={() => generateCertificate(candidateName || 'Valued Member', 'Basic Field Inspection Track', new Date().toLocaleDateString())}
+                                                    className="w-full bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold"
+                                                    disabled={!candidateName}
+                                                >
+                                                    Download Certificate 🎖️
+                                                </Button>
+                                            </div>
                                         )}
                                     </>
                                 )}
