@@ -45,10 +45,10 @@ export default function ClaimProfilePage() {
                             <ShieldCheck className="w-3 h-3" /> OFFICIAL FIRM VERIFICATION
                         </div>
                         <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">
-                            Claim your firm's profile.
+                            Claim your firm&apos;s profile.
                         </h1>
                         <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                            Manage your brand, access verifyied candidate data, and post direct-contract jobs to the world's largest network of field professionals.
+                            Manage your brand, access verifyied candidate data, and post direct-contract jobs to the world&apos;s largest network of field professionals.
                         </p>
                     </div>
 
@@ -146,7 +146,7 @@ export default function ClaimProfilePage() {
                                     </div>
                                     <h3 className="text-2xl font-bold text-white mb-4">Check your inbox</h3>
                                     <p className="text-slate-400 max-w-sm mx-auto mb-8">
-                                        We've sent a secure verification link to your email. Click it to complete your profile setup and access the dashboard.
+                                        We&apos;ve sent a secure verification link to your email. Click it to complete your profile setup and access the dashboard.
                                     </p>
                                     <Button variant="outline" className="border-slate-700 text-white hover:bg-slate-800" asChild>
                                         <Link href="/">Return Home</Link>
@@ -185,6 +185,6 @@ export default function ClaimProfilePage() {
                     </div>
                 </div>
             </section>
-        </main>
+        </main >
     )
 }
