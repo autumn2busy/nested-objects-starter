@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
+import { createClient } from '@supabase/supabase-js'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -385,47 +386,41 @@ export default function DirectoryPage() {
       }
 
       try {
-        const url =
-        `${SUPABASE_URL}/rest/v1/firms` +
-        '?select=' +
-        [
-          'id',
-          'slug',
-          'name',
-          'url',
-          'vendor_page_url',
-          'logo_url',
-          'geographic_coverage',
-          'categories',
-          'pay_min',
-          'pay_max',
-          'pay_type',
-          'company_size',
-          'industry_focus',
-          'rating',
-          'phone',
-          'email',
-          'is_published',
-          'address',
-          'latitude',
-          'longitude',
-        ].join(',') +
-        '&is_published=eq.true' +
-        '&order=name.asc'
+        const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        const { data, error: supabaseError } = await client
+          .from('firms')
+          .select(
+            [
+              'id',
+              'slug',
+              'name',
+              'url',
+              'vendor_page_url',
+              'logo_url',
+              'geographic_coverage',
+              'categories',
+              'pay_min',
+              'pay_max',
+              'pay_type',
+              'company_size',
+              'industry_focus',
+              'rating',
+              'phone',
+              'email',
+              'is_published',
+              'address',
+              'latitude',
+              'longitude',
+            ].join(',')
+          )
+          .eq('is_published', true)
+          .order('name', { ascending: true })
 
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
+        if (supabaseError) {
+          throw supabaseError
         }
 
-        const data = (await res.json()) as Firm[]
-        setFirms(data)
+        setFirms(data ?? [])
       } catch (err) {
         console.error('Error loading firms', err)
         setError(err instanceof Error ? err.message : 'Unknown error while loading firms')
