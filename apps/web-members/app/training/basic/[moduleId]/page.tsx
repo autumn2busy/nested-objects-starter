@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock } from 'lucide-react'
+import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock, HelpCircle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { basicFieldInspectionModules } from '../modules'
 import { cn } from '@/lib/utils'
@@ -15,6 +16,11 @@ export default function ModulePlayerPage() {
     const currentIndex = basicFieldInspectionModules.findIndex(m => m.id === moduleId)
     const nextModule = basicFieldInspectionModules[currentIndex + 1]
 
+    const [quizStarted, setQuizStarted] = useState(false)
+    const [quizPassed, setQuizPassed] = useState(false)
+    const [answers, setAnswers] = useState<number[]>([])
+    const [showResults, setShowResults] = useState(false)
+
     if (!currentModule) {
         return (
             <div className="flex h-screen items-center justify-center bg-brand-micra">
@@ -25,6 +31,24 @@ export default function ModulePlayerPage() {
             </div>
         )
     }
+
+    const handleOptionSelect = (qIndex: number, oIndex: number) => {
+        const newAnswers = [...answers]
+        newAnswers[qIndex] = oIndex
+        setAnswers(newAnswers)
+    }
+
+    const submitQuiz = () => {
+        if (!currentModule.quiz) return
+        const isCorrect = currentModule.quiz.every((q, i) => q.correctIndex === answers[i])
+        setShowResults(true)
+        if (isCorrect) {
+            setQuizPassed(true)
+        }
+    }
+
+    // If module has quiz and not passed, block "Next"
+    const requiresQuiz = currentModule.quiz && currentModule.quiz.length > 0 && !quizPassed
 
     return (
         <div className="flex h-screen flex-col lg:flex-row bg-slate-50 overflow-hidden">
@@ -40,7 +64,7 @@ export default function ModulePlayerPage() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                     {basicFieldInspectionModules.map((module, idx) => {
                         const isActive = module.id === moduleId
-                        const isCompleted = idx < currentIndex // Dummy completion logic: assumes sequential
+                        const isCompleted = idx < currentIndex // Dummy completion logic
 
                         return (
                             <Link
@@ -67,7 +91,7 @@ export default function ModulePlayerPage() {
                                     <h4 className={cn("text-sm font-semibold leading-tight", isActive ? "text-emerald-900" : "text-slate-700")}>
                                         {module.title}
                                     </h4>
-                                    <p className="text-xs text-slate-500 mt-1">{module.duration}</p>
+                                    <p className="text-xs text-slate-500 mt-1">{module.duration} {module.quiz ? '• Quiz' : ''}</p>
                                 </div>
                             </Link>
                         )
@@ -107,43 +131,165 @@ export default function ModulePlayerPage() {
                         />
                     </div>
 
-                    {/* Action Area */}
+                    {/* Action Area & Quiz */}
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="md:col-span-2 space-y-6">
-                            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
-                                    <FileText className="w-5 h-5 text-emerald-600" />
-                                    Lesson Syllabus
-                                </h3>
-                                <ul className="space-y-3">
-                                    {currentModule.syllabus.map((item, i) => (
-                                        <li key={i} className="flex gap-3 text-slate-700 text-sm">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
-                                            {item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            {/* Syllabus or Quiz Interface */}
+                            {quizStarted && currentModule.quiz ? (
+                                <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm ring-1 ring-emerald-400/20">
+                                    <div className="flex items-center gap-2 mb-6 border-b border-emerald-50 pb-4">
+                                        <HelpCircle className="w-5 h-5 text-emerald-600" />
+                                        <h3 className="font-bold text-slate-900">Module Quiz</h3>
+                                        <span className="text-xs font-medium bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full ml-auto">
+                                            {currentModule.quiz.length} Questions
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        {currentModule.quiz.map((q, qIndex) => (
+                                            <div key={qIndex} className="space-y-3">
+                                                <p className="font-medium text-slate-900 text-lg leading-snug">{qIndex + 1}. {q.question}</p>
+                                                <div className="space-y-2 pl-4 border-l-2 border-slate-100">
+                                                    {q.options.map((option, oIndex) => {
+                                                        const isSelected = answers[qIndex] === oIndex
+                                                        const isCorrect = q.correctIndex === oIndex
+                                                        // Show colors if results are shown
+                                                        let className = "flex items-center gap-3 p-3 rounded-lg border w-full text-left transition-colors "
+                                                        if (showResults) {
+                                                            if (isCorrect) className += "bg-emerald-50 border-emerald-500 text-emerald-900"
+                                                            else if (isSelected && !isCorrect) className += "bg-red-50 border-red-200 text-red-900"
+                                                            else className += "bg-white border-slate-200 opacity-50"
+                                                        } else {
+                                                            if (isSelected) className += "bg-emerald-50 border-emerald-500 text-emerald-900 ring-1 ring-emerald-500"
+                                                            else className += "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                                                        }
+
+                                                        return (
+                                                            <button
+                                                                key={oIndex}
+                                                                onClick={() => !showResults && handleOptionSelect(qIndex, oIndex)}
+                                                                disabled={showResults}
+                                                                className={className}
+                                                            >
+                                                                <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center shrink-0",
+                                                                    isSelected ? (showResults && !isCorrect ? "border-red-500 bg-red-500" : "border-emerald-600 bg-emerald-600") : "border-slate-300"
+                                                                )}>
+                                                                    {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                                </div>
+                                                                <span className="text-sm font-medium">{option}</span>
+                                                            </button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {!showResults && (
+                                        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                                            <Button
+                                                onClick={submitQuiz}
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8"
+                                                disabled={answers.length < currentModule.quiz.length || answers.includes(undefined as any)} // undefined check hack
+                                            >
+                                                Submit Quiz
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {showResults && !quizPassed && (
+                                        <div className="mt-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between text-red-800">
+                                            <span className="font-semibold">Not quite. Review the material and try again.</span>
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => {
+                                                    setShowResults(false)
+                                                    setAnswers([])
+                                                    // Potentially scroll to top
+                                                }}
+                                                className="bg-white border text-slate-900"
+                                            >
+                                                Retry
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {showResults && quizPassed && (
+                                        <div className="mt-8 p-4 bg-emerald-100 border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-900 animate-in fade-in slide-in-from-bottom-2">
+                                            <CheckCircle className="w-5 h-5" />
+                                            <span className="font-bold">Excellent work! You passed.</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                                    <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
+                                        <FileText className="w-5 h-5 text-emerald-600" />
+                                        Lesson Syllabus
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {currentModule.syllabus.map((item, i) => (
+                                            <li key={i} className="flex gap-3 text-slate-700 text-sm">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-4">
-                            <div className="bg-emerald-900 text-white rounded-2xl p-6 shadow-xl">
+                            <div className="bg-emerald-900 text-white rounded-2xl p-6 shadow-xl sticky top-6">
                                 <h3 className="font-bold mb-2">Ready to advance?</h3>
-                                <p className="text-emerald-100 text-sm mb-6">
-                                    Confirm you have watched the video and reviewed the syllabus notes.
-                                </p>
 
-                                {nextModule ? (
-                                    <Link
-                                        href={`/training/basic/${nextModule.id}`}
-                                        className={cn(buttonVariants({ className: "w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold" }))}
-                                    >
-                                        Next Lesson →
-                                    </Link>
+                                {requiresQuiz ? (
+                                    <>
+                                        <p className="text-emerald-100 text-sm mb-6">
+                                            This module has a mandatory quiz. Score 100% to unlock the next lesson.
+                                        </p>
+                                        {!quizStarted && (
+                                            <Button
+                                                onClick={() => setQuizStarted(true)}
+                                                className="w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold"
+                                            >
+                                                Take Quiz
+                                            </Button>
+                                        )}
+                                        {quizStarted && !quizPassed && (
+                                            <div className="text-center text-sm text-emerald-200 font-medium bg-emerald-950/50 py-2 rounded-lg">
+                                                Quiz in Progress...
+                                            </div>
+                                        )}
+
+                                        {quizPassed && nextModule && (
+                                            <Link
+                                                href={`/training/basic/${nextModule.id}`}
+                                                className={cn(buttonVariants({ className: "w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold" }))}
+                                            >
+                                                Next Lesson →
+                                            </Link>
+                                        )}
+                                    </>
                                 ) : (
-                                    <Button className="w-full bg-white hover:bg-slate-100 text-emerald-900 font-bold">
-                                        Complete Course 🎉
-                                    </Button>
+                                    <>
+                                        <p className="text-emerald-100 text-sm mb-6">
+                                            Confirm you have watched the video and reviewed the syllabus notes.
+                                        </p>
+
+                                        {nextModule ? (
+                                            <Link
+                                                href={`/training/basic/${nextModule.id}`}
+                                                className={cn(buttonVariants({ className: "w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold" }))}
+                                            >
+                                                Next Lesson →
+                                            </Link>
+                                        ) : (
+                                            <Button className="w-full bg-white hover:bg-slate-100 text-emerald-900 font-bold">
+                                                Complete Course 🎉
+                                            </Button>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>

@@ -12,6 +12,28 @@ export const basicFieldInspectionModules = [
       'Ground rules for safety, photos, and notes',
     ],
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder
+    quiz: [
+      {
+        question: "What is the primary purpose of an occupancy inspection?",
+        options: [
+          "To evict the tenant",
+          "To verify if the property is occupied or vacant",
+          "To check the foundation stability",
+          "To collect rent"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "When should you mention you are there on behalf of the 'bank'?",
+        options: [
+          "Always directly states the bank name",
+          "Never - use generic terms like 'mortgage servicer' or just 'occupancy check'",
+          "Only if the neighbor asks",
+          "When leaving a voicemail"
+        ],
+        correctIndex: 1
+      }
+    ]
   },
   {
     id: 'field-kit',
