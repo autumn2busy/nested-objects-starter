@@ -148,9 +148,9 @@ export default function ClaimProfilePage() {
                                     <p className="text-slate-400 max-w-sm mx-auto mb-8">
                                         We&apos;ve sent a secure verification link to your email. Click it to complete your profile setup and access the dashboard.
                                     </p>
-                                    <Button variant="outline" className="border-slate-700 text-white hover:bg-slate-800" asChild>
-                                        <Link href="/">Return Home</Link>
-                                    </Button>
+                                    <Link href="/" className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800">
+                                        Return Home
+                                    </Link>
                                 </div>
                             )}
                         </div>
