@@ -119,7 +119,7 @@ export function HeroMap() {
     }, [usData, dimensions])
 
     return (
-        <div className="w-full h-full flex items-center justify-center overflow-hidden opacity-40 mix-blend-screen pointer-events-none md:pointer-events-auto">
+        <div className="w-full h-full flex items-center justify-center overflow-hidden pointer-events-none md:pointer-events-auto">
             <svg
                 ref={svgRef}
                 width="100%"

@@ -34,7 +34,7 @@ export function TechHero() {
             <div className="absolute inset-0 z-0">
                 {/* Grid Pattern */}
                 <div
-                    className="absolute inset-0 opacity-[0.08]"
+                    className="absolute inset-0 opacity-[0.05]"
                     style={{
                         backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)',
                         backgroundSize: '40px 40px'
@@ -42,12 +42,12 @@ export function TechHero() {
                 />
 
                 {/* The D3 Map */}
-                <div className="absolute inset-0 flex items-center justify-center p-4 md:p-10 translate-y-10 md:translate-y-0">
+                <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0">
                     <HeroMap />
                 </div>
 
-                {/* Radial Gradient Vignette to focus center */}
-                <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/60 to-slate-950" />
+                {/* Radial Gradient Vignette (Lighter) */}
+                <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/40 to-slate-950/80" />
             </div>
 
             {/* 2. Foreground Content */}
