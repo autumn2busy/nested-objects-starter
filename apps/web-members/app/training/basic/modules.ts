@@ -48,6 +48,28 @@ export const basicFieldInspectionModules = [
       'File naming and backup habits that prevent rework',
     ],
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    quiz: [
+      {
+        question: "What is the most critical requirement for inspection photos?",
+        options: [
+          "They must be artistic and moody",
+          "They must include a visible date/time stamp",
+          "They must be taken with a DSLR camera",
+          "They must include your smiling face"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "How many angles should you capture for the 'Front of House' photo?",
+        options: [
+          "Just one from the driveway",
+          "At least two angles (Street View & Direct View) to prove address context",
+          "None, satellite view is enough",
+          "Only the house number"
+        ],
+        correctIndex: 1
+      }
+    ]
   },
   {
     id: 'core-inspections',
@@ -62,6 +84,28 @@ export const basicFieldInspectionModules = [
       'Uploading proofs that avoid lender callbacks',
     ],
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    quiz: [
+      {
+        question: "If a property appears vacant but the lawn is mowed, how do you verify occupancy?",
+        options: [
+          "Mark it as occupied immediately",
+          "Check for personal items through windows, or check utility meters",
+          "Ask the mailman and take his word for it",
+          "Guess based on the neighbors' houses"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "What is a 'Loss Draft' inspection?",
+        options: [
+          "Checking for lost mail",
+          "Verifying repairs are being made after an insurance claim payout",
+          "Drafting a letter to the homeowner",
+          "Inspection of a lost property"
+        ],
+        correctIndex: 1
+      }
+    ]
   },
   {
     id: 'preferred-list',
@@ -76,5 +120,27 @@ export const basicFieldInspectionModules = [
       'What happens after submission and how to follow up',
     ],
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    quiz: [
+      {
+        question: "How quickly should you submit a routine inspection report?",
+        options: [
+          "Whenever you get around to it",
+          "Within 24-48 hours of the site visit",
+          "At the end of the month",
+          "Before the sun sets"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "What is the best way to handle a dispute from a coordinator?",
+        options: [
+          "Argue and shout",
+          "Calmly provide photo evidence that supports your finding",
+          "Delete the order",
+          "Ignore the email"
+        ],
+        correctIndex: 1
+      }
+    ]
   },
 ]
