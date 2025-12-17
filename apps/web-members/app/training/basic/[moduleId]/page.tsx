@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock, HelpCircle } from 'lucide-react'
+import { createBrowserClient } from '@supabase/ssr'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { generateCertificate } from '@/lib/certificate'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,12 @@ export default function ModulePlayerPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
 
+    // Supabase
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
     const currentModule = basicFieldInspectionModules.find(m => m.id === moduleId)
     const currentIndex = basicFieldInspectionModules.findIndex(m => m.id === moduleId)
     const nextModule = basicFieldInspectionModules[currentIndex + 1]
@@ -23,6 +30,34 @@ export default function ModulePlayerPage() {
     const [answers, setAnswers] = useState<number[]>([])
     const [showResults, setShowResults] = useState(false)
     const [candidateName, setCandidateName] = useState('')
+
+    // Real Progress State
+    const [completedModules, setCompletedModules] = useState<string[]>([])
+    const [userId, setUserId] = useState<string | null>(null)
+
+    // 1. Fetch User & Progress on Mount
+    useEffect(() => {
+        async function loadProgress() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                setUserId(user.id)
+                const { data } = await supabase
+                    .from('training_progress')
+                    .select('module_id')
+                    .eq('user_id', user.id)
+                    .eq('status', 'completed')
+
+                if (data) {
+                    setCompletedModules(data.map(r => r.module_id))
+                    // If current module is already done, auto-pass quiz (optional, but good UX)
+                    if (data.some(r => r.module_id === moduleId)) {
+                        setQuizPassed(true)
+                    }
+                }
+            }
+        }
+        loadProgress()
+    }, [moduleId, supabase]) // Re-check when module changes
 
     if (!currentModule) {
         return (
@@ -41,17 +76,31 @@ export default function ModulePlayerPage() {
         setAnswers(newAnswers)
     }
 
-    const submitQuiz = () => {
+    const submitQuiz = async () => {
         if (!currentModule.quiz) return
         const isCorrect = currentModule.quiz.every((q, i) => q.correctIndex === answers[i])
         setShowResults(true)
+
         if (isCorrect) {
             setQuizPassed(true)
+            // Save to Supabase
+            if (userId) {
+                await supabase.from('training_progress').upsert({
+                    user_id: userId,
+                    module_id: moduleId,
+                    status: 'completed',
+                    quiz_score: 100,
+                    completed_at: new Date().toISOString()
+                })
+                setCompletedModules(prev => [...prev, moduleId])
+            }
         }
     }
 
     // If module has quiz and not passed, block "Next"
-    const requiresQuiz = currentModule.quiz && currentModule.quiz.length > 0 && !quizPassed
+    // BUT! If module is already in completedModules, allow through.
+    const isModuleCompleted = completedModules.includes(moduleId)
+    const requiresQuiz = currentModule.quiz && currentModule.quiz.length > 0 && !isModuleCompleted && !quizPassed
 
     return (
         <div className="flex h-screen flex-col lg:flex-row bg-slate-50 overflow-hidden">
@@ -65,9 +114,9 @@ export default function ModulePlayerPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                    {basicFieldInspectionModules.map((module, idx) => {
+                    {basicFieldInspectionModules.map((module) => {
                         const isActive = module.id === moduleId
-                        const isCompleted = idx < currentIndex // Dummy completion logic
+                        const isCompleted = completedModules.includes(module.id)
 
                         return (
                             <Link
@@ -76,7 +125,8 @@ export default function ModulePlayerPage() {
                                 className={cn(
                                     "flex items-start gap-3 p-3 rounded-xl transition-all border border-transparent",
                                     isActive ? "bg-emerald-50 border-emerald-100 ring-1 ring-emerald-200" : "hover:bg-slate-50 hover:border-slate-200",
-                                    isCompleted ? "opacity-70" : ""
+                                    // Dim if done? No, keep bright.
+                                    isCompleted ? "opacity-100" : ""
                                 )}
                             >
                                 <div className="mt-0.5">
@@ -138,7 +188,7 @@ export default function ModulePlayerPage() {
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="md:col-span-2 space-y-6">
                             {/* Syllabus or Quiz Interface */}
-                            {quizStarted && currentModule.quiz ? (
+                            {(quizStarted || requiresQuiz) && !isModuleCompleted && currentModule.quiz ? (
                                 <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm ring-1 ring-emerald-400/20">
                                     <div className="flex items-center gap-2 mb-6 border-b border-emerald-50 pb-4">
                                         <HelpCircle className="w-5 h-5 text-emerald-600" />
@@ -193,7 +243,7 @@ export default function ModulePlayerPage() {
                                             <Button
                                                 onClick={submitQuiz}
                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8"
-                                                disabled={answers.length < currentModule.quiz.length || answers.includes(undefined as any)} // undefined check hack
+                                                disabled={answers.length < currentModule.quiz.length || answers.includes(undefined as any)}
                                             >
                                                 Submit Quiz
                                             </Button>
@@ -208,7 +258,6 @@ export default function ModulePlayerPage() {
                                                 onClick={() => {
                                                     setShowResults(false)
                                                     setAnswers([])
-                                                    // Potentially scroll to top
                                                 }}
                                                 className="bg-white border text-slate-900"
                                             >
@@ -264,15 +313,6 @@ export default function ModulePlayerPage() {
                                                 Quiz in Progress...
                                             </div>
                                         )}
-
-                                        {quizPassed && nextModule && (
-                                            <Link
-                                                href={`/training/basic/${nextModule.id}`}
-                                                className={cn(buttonVariants({ className: "w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold" }))}
-                                            >
-                                                Next Lesson →
-                                            </Link>
-                                        )}
                                     </>
                                 ) : (
                                     <>
@@ -306,6 +346,15 @@ export default function ModulePlayerPage() {
                                             </div>
                                         )}
                                     </>
+                                )}
+
+                                {quizPassed && requiresQuiz && nextModule && (
+                                    <Link
+                                        href={`/training/basic/${nextModule.id}`}
+                                        className={cn(buttonVariants({ className: "w-full bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold" }))}
+                                    >
+                                        Next Lesson →
+                                    </Link>
                                 )}
                             </div>
                         </div>
