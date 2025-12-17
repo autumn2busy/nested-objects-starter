@@ -10,6 +10,7 @@
     "geocode:firms": "node ./scripts/geocode-firms.js"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.8",
     "@react-google-maps/api": "^2.20.7",
     "@stripe/stripe-js": "^4.8.0",
     "@supabase/ssr": "^0.7.0",
@@ -22,6 +23,7 @@
     "@types/react": "^18.3.12",
     "@types/topojson-client": "^3.1.5",
     "autoprefixer": "^10.4.20",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.0.0",
     "d3-geo": "^3.1.1",
     "d3-selection": "^3.0.0",
