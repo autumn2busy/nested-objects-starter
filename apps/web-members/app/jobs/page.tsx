@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Kanban, List as ListIcon, Loader2, Search, CheckCircle2, DollarSign } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Gate } from '@/components/Gate'
@@ -76,8 +76,8 @@ export default function JobsPage() {
         </div>
 
         <nav className="flex gap-2">
-          <Button variant="ghost" asChild><Link href="/dashboard">Dashboard</Link></Button>
-          <Button variant="ghost" asChild><Link href="/directory">Directory</Link></Button>
+          <Link href="/dashboard" className={buttonVariants({ variant: 'ghost' })}>Dashboard</Link>
+          <Link href="/directory" className={buttonVariants({ variant: 'ghost' })}>Directory</Link>
         </nav>
       </header>
 
@@ -187,16 +187,14 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
           </p>
 
           <div className="flex gap-3 mt-6 pt-4 border-t border-slate-100">
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-2 border-slate-300"
-              asChild
+            <Link
+              href={job.link}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'gap-2 border-slate-300' })}
             >
-              <a href={job.link} target="_blank" rel="noreferrer">
-                View External Post <ArrowRight className="w-3 h-3 ml-1 opacity-50" />
-              </a>
-            </Button>
+              View External Post <ArrowRight className="w-3 h-3 ml-1 opacity-50" />
+            </Link>
             <Button
               size="sm"
               className={savingId === job.id ? "bg-slate-100 text-slate-400" : "bg-emerald-600 hover:bg-emerald-700 text-white"}

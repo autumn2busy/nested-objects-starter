@@ -11,6 +11,7 @@ export const basicFieldInspectionModules = [
       'Common inspection categories you will accept',
       'Ground rules for safety, photos, and notes',
     ],
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder
   },
   {
     id: 'field-kit',
@@ -24,6 +25,7 @@ export const basicFieldInspectionModules = [
       'Angle, distance, and timestamp expectations',
       'File naming and backup habits that prevent rework',
     ],
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
   },
   {
     id: 'core-inspections',
@@ -37,6 +39,7 @@ export const basicFieldInspectionModules = [
       'Exterior sweep, interior rooms, and measurements',
       'Uploading proofs that avoid lender callbacks',
     ],
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
   },
   {
     id: 'preferred-list',
@@ -50,5 +53,6 @@ export const basicFieldInspectionModules = [
       'Double-checks before you hit send',
       'What happens after submission and how to follow up',
     ],
+    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
   },
 ]
