@@ -11,7 +11,33 @@ export const basicFieldInspectionModules = [
       'Common inspection categories you will accept',
       'Ground rules for safety, photos, and notes',
     ],
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder
+    videoUrl: 'https://www.youtube.com/embed/UAuJ8tqm9w4', // "The Unseen Inspector"
+    flashcards: [
+      { front: "What is the fundamental difference in purpose between a field inspection and a home inspection?", back: "Field inspections are targeted assessments for lenders and insurers, while home inspections are comprehensive evaluations for potential buyers." },
+      { front: "Field inspectors operate with a much narrower scope than home inspectors and do not test drain lines, check thermostat functionality, or inspect _____.", back: "ductwork or ventilation systems" },
+      { front: "What are the three essential pieces of equipment for a field inspector, often called the 'Holy Trinity'?", back: "A smartphone with a high-quality camera, a backup battery/charger, and a visibly worn ID badge." },
+      { front: "According to standard photo requirements, all photos must be clear, readable, horizontal, not taken through glass, and must not contain _____.", back: "car parts" },
+      { front: "For an occupied property, what two occupancy indicators are required?", back: "Two photos demonstrating that the property is occupied." },
+      { front: "If a contact/interview is ordered for an occupied property, what specific photo must be taken to document the attempt?", back: "A photo of an arm knocking on the door OR feet on the front porch." },
+      { front: "For a vacant property, how many photos of the vacancy posting are required, and what must they show?", back: "Two photos are required: one up close and readable, and one showing the posting on the front door." },
+      { front: "What action must an inspector take at the water spigot of a vacant property?", back: "Turn it on and take a photo." },
+      { front: "When an interior inspection is ordered, what must be photographed regarding the electric meter?", back: "The electric meter with a Volt Stick." },
+      { front: "If an interior inspection is ordered and toilets are tapped down, what is the photo requirement?", back: "Photos of each toilet are required to show that they are tapped down." },
+      { front: "What is the primary goal of an Occupancy / Property Condition Report (PCR)?", back: "To confirm whether the property appears occupied and capture condition indicators for servicing decisions." },
+      { front: "What is the primary goal of a Draw Inspection?", back: "To verify completed work against a scope, which is used to release funds in stages." },
+      { front: "A common pitfall in Draw Inspections is reporting _____ as completed work.", back: "materials on site" },
+      { front: "What type of inspection documents repair progress after an insured loss so that funds can be disbursed appropriately?", back: "A Loss Draft Inspection." },
+      { front: "In the context of mortgage servicing, what does the acronym 'PCR' stand for?", back: "Property Condition Report." },
+      { front: "In report writing, what is the 'two-photo rule' for documentation discipline?", back: "Take a context shot first, then a detail shot." },
+      { front: "What is a key principle of 'Access and Trespass Discipline' for field inspectors?", back: "Only enter when the work order authorizes entry and the access method is approved." },
+      { front: "According to the 'Lender Workflow Overview', a coordinator or vendor management team performs what initial action on a submitted report?", back: "They conduct the first-pass review and make rejection decisions." },
+      { front: "A key quality rule for inspectors is to never infer occupancy; instead, one must use _____ and state them neutrally.", back: "indicators" },
+      { front: "What is the primary job of a field services coordinator?", back: "To prevent bad data from hitting the client." },
+      { front: "A common reason for report rejection is 'Occupancy unsupported'; what is the fix pattern for this issue?", back: "Use an indicator list and document only observable facts." },
+      { front: "What does the '6-Angle Rule' for photos typically require?", back: "Front, Left Angle, Right Angle, Street View Left, Street View Right, and House Number." },
+      { front: "When writing notes, an inspector should use objective language like 'Siding is discolored' instead of subjective language like '_____'.", back: "Siding looks ugly and old" },
+      { front: "What is a 'draw' in the context of a loss draft or construction inspection?", back: "A staged release of funds for verified completed work." }
+    ],
     quiz: [
       {
         question: "What is the primary purpose of an occupancy inspection?",

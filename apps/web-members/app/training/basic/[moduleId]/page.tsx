@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock, HelpCircle } from 'lucide-react'
+import { PlayCircle, CheckCircle, FileText, ChevronLeft, Lock, HelpCircle, BookOpen, RotateCcw } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { generateCertificate } from '@/lib/certificate'
@@ -30,6 +30,11 @@ export default function ModulePlayerPage() {
     const [answers, setAnswers] = useState<number[]>([])
     const [showResults, setShowResults] = useState(false)
     const [candidateName, setCandidateName] = useState('')
+
+    // Flashcard State
+    const [activeTab, setActiveTab] = useState<'syllabus' | 'quiz' | 'flashcards'>('syllabus')
+    const [currentFlashcard, setCurrentFlashcard] = useState(0)
+    const [isFlipped, setIsFlipped] = useState(false)
 
     // Real Progress State
     const [completedModules, setCompletedModules] = useState<string[]>([])
@@ -187,8 +192,85 @@ export default function ModulePlayerPage() {
                     {/* Action Area & Quiz */}
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="md:col-span-2 space-y-6">
-                            {/* Syllabus or Quiz Interface */}
-                            {(quizStarted || requiresQuiz) && !isModuleCompleted && currentModule.quiz ? (
+                            {/* Tabs */}
+                            <div className="flex gap-2 border-b border-slate-200 pb-px">
+                                <button
+                                    onClick={() => setActiveTab('syllabus')}
+                                    className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors", activeTab === 'syllabus' ? "border-emerald-500 text-emerald-700" : "border-transparent text-slate-500 hover:text-slate-700")}
+                                >
+                                    Syllabus
+                                </button>
+                                {currentModule.flashcards && (
+                                    <button
+                                        onClick={() => setActiveTab('flashcards')}
+                                        className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors", activeTab === 'flashcards' ? "border-emerald-500 text-emerald-700" : "border-transparent text-slate-500 hover:text-slate-700")}
+                                    >
+                                        Flashcards ({currentModule.flashcards.length})
+                                    </button>
+                                )}
+                                {currentModule.quiz && (
+                                    <button
+                                        onClick={() => setActiveTab('quiz')}
+                                        className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors", activeTab === 'quiz' ? "border-emerald-500 text-emerald-700" : "border-transparent text-slate-500 hover:text-slate-700")}
+                                    >
+                                        Quiz
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Content based on Active Tab */}
+                            {activeTab === 'flashcards' && currentModule.flashcards ? (
+                                <div className="space-y-4">
+                                    <div
+                                        onClick={() => setIsFlipped(!isFlipped)}
+                                        className="aspect-[3/2] perspective-1000 cursor-pointer group"
+                                    >
+                                        <div className={cn(
+                                            "relative w-full h-full duration-500 preserve-3d transition-all transform",
+                                            isFlipped ? "rotate-y-180" : ""
+                                        )}>
+                                            {/* Front */}
+                                            <div className="absolute inset-0 backface-hidden bg-white border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm group-hover:border-emerald-300 transition-colors">
+                                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Question</span>
+                                                <p className="text-xl font-medium text-slate-800">{currentModule.flashcards[currentFlashcard].front}</p>
+                                                <span className="text-xs text-slate-400 mt-6 md:absolute md:bottom-6">Click to flip</span>
+                                            </div>
+
+                                            {/* Back */}
+                                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-emerald-50 border-2 border-emerald-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm">
+                                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Answer</span>
+                                                <p className="text-xl font-medium text-emerald-900">{currentModule.flashcards[currentFlashcard].back}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between px-4">
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setCurrentFlashcard(prev => Math.max(0, prev - 1))
+                                                setIsFlipped(false)
+                                            }}
+                                            disabled={currentFlashcard === 0}
+                                        >
+                                            ← Previous
+                                        </Button>
+                                        <span className="text-sm font-medium text-slate-500">
+                                            {currentFlashcard + 1} / {currentModule.flashcards.length}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => {
+                                                setCurrentFlashcard(prev => Math.min((currentModule.flashcards?.length || 1) - 1, prev + 1))
+                                                setIsFlipped(false)
+                                            }}
+                                            disabled={currentFlashcard === (currentModule.flashcards.length - 1)}
+                                        >
+                                            Next →
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : activeTab === 'quiz' && ((quizStarted || requiresQuiz) && !isModuleCompleted && currentModule.quiz) ? (
                                 <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm ring-1 ring-emerald-400/20">
                                     <div className="flex items-center gap-2 mb-6 border-b border-emerald-50 pb-4">
                                         <HelpCircle className="w-5 h-5 text-emerald-600" />
@@ -360,7 +442,7 @@ export default function ModulePlayerPage() {
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     )
 }
