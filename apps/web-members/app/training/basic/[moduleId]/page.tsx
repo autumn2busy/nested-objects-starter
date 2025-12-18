@@ -223,24 +223,24 @@ export default function ModulePlayerPage() {
                                 <div className="space-y-4">
                                     <div
                                         onClick={() => setIsFlipped(!isFlipped)}
-                                        className="aspect-[3/2] perspective-1000 cursor-pointer group"
+                                        className="aspect-[3/2] cursor-pointer group perspective-1000"
                                     >
                                         <div className={cn(
-                                            "relative w-full h-full duration-500 preserve-3d transition-all transform",
+                                            "relative w-full h-full transition-all duration-500 transform-style-3d",
                                             isFlipped ? "rotate-y-180" : ""
                                         )}>
-                                            {/* Front */}
-                                            <div className="absolute inset-0 backface-hidden bg-white border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm group-hover:border-emerald-300 transition-colors">
-                                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Question</span>
-                                                <p className="text-xl font-medium text-slate-800">{currentModule.flashcards[currentFlashcard].front}</p>
-                                                <span className="text-xs text-slate-400 mt-6 md:absolute md:bottom-6">Click to flip</span>
-                                            </div>
-
-                                            {/* Back */}
-                                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-emerald-50 border-2 border-emerald-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm">
-                                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Answer</span>
-                                                <p className="text-xl font-medium text-emerald-900">{currentModule.flashcards[currentFlashcard].back}</p>
-                                            </div>
+                                            {!isFlipped ? (
+                                                <div className="absolute inset-0 bg-white border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm group-hover:border-emerald-300 transition-colors animate-in fade-in zoom-in-95 duration-200">
+                                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Question</span>
+                                                    <p className="text-xl font-medium text-slate-800">{currentModule.flashcards[currentFlashcard].front}</p>
+                                                    <span className="text-xs text-slate-400 mt-6 md:absolute md:bottom-6">Click to flip</span>
+                                                </div>
+                                            ) : (
+                                                <div className="absolute inset-0 bg-emerald-50 border-2 border-emerald-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Answer</span>
+                                                    <p className="text-xl font-medium text-emerald-900">{currentModule.flashcards[currentFlashcard].back}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
