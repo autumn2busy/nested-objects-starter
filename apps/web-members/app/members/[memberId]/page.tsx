@@ -63,7 +63,7 @@ export default async function MemberProfilePage({
                 <div className="text-center space-y-4 max-w-md">
                     <h1 className="text-2xl font-bold text-slate-900">Profile Not Found</h1>
                     <p className="text-slate-600">
-                        This member hasn't published their profile yet or the ID is incorrect.
+                        This member has not published their profile yet or the ID is incorrect.
                     </p>
                     <Link href="/directory" className="inline-block text-blue-600 hover:underline">
                         Return to Directory
