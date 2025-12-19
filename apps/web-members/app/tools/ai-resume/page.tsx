@@ -5,6 +5,8 @@ import { Gate } from '@/components/Gate'
 import { useAuth } from '@/components/auth-provider'
 import { ToolLayout } from '../_components/ToolLayout'
 import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
+import Link from 'next/link'
+import { ExternalLink } from 'lucide-react'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -597,11 +599,10 @@ export default function AiResumePage() {
                                 },
                               }))
                             }
-                            className={`rounded-full border px-3 py-1 text-sm transition ${
-                              active
+                            className={`rounded-full border px-3 py-1 text-sm transition ${active
                                 ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
                                 : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                            }`}
+                              }`}
                           >
                             {option}
                           </button>
@@ -670,11 +671,10 @@ export default function AiResumePage() {
                                 },
                               }))
                             }
-                            className={`rounded-full border px-3 py-1 text-sm transition ${
-                              active
+                            className={`rounded-full border px-3 py-1 text-sm transition ${active
                                 ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
                                 : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                            }`}
+                              }`}
                           >
                             {option}
                           </button>
@@ -717,37 +717,47 @@ export default function AiResumePage() {
             </div>
 
             <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:col-span-1">                    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Outputs + export</p>
-                  <h3 className="text-lg font-semibold text-brand-dark">Generate, copy, or download</h3>
-                  <p className="text-sm text-slate-700">AI drafts are timestamped. Copy everything or export to PDF with your current details.</p>
-                </div>
-                <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row sm:flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:cursor-not-allowed disabled:opacity-70"
-                    disabled={isGenerating || loading}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Outputs + export</p>
+                <h3 className="text-lg font-semibold text-brand-dark">Generate, copy, or download</h3>
+                <p className="text-sm text-slate-700">AI drafts are timestamped. Copy everything or export to PDF with your current details.</p>
+              </div>
+              <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row sm:flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={isGenerating || loading}
+                >
+                  {isGenerating ? 'Generating…' : 'Generate copy'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-4 py-2 font-semibold text-brand-copper transition hover:border-brand-copper hover:bg-brand-copper/10"
+                >
+                  Copy all
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={isDownloading}
+                  className="inline-flex items-center justify-center rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isDownloading ? 'Preparing PDF…' : 'Download PDF'}
+                </button>
+                {hasExistingRecord && (
+                  <Link
+                    href={`/members/${userId}`}
+                    target="_blank"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper"
                   >
-                    {isGenerating ? 'Generating…' : 'Generate copy'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyAll}
-                    className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-4 py-2 font-semibold text-brand-copper transition hover:border-brand-copper hover:bg-brand-copper/10"
-                  >
-                    Copy all
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadPdf}
-                    disabled={isDownloading}
-                    className="inline-flex items-center justify-center rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isDownloading ? 'Preparing PDF…' : 'Download PDF'}
-                  </button>
-                </div>
-              </header>
+                    <span>Public Profile</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                )}
+              </div>
+            </header>
 
               <div className="space-y-3 rounded-xl border border-brand-steel/30 bg-brand-mist/50 p-4 text-sm text-slate-700">
                 <div className="flex flex-wrap items-center gap-2">

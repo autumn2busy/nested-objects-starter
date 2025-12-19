@@ -291,64 +291,429 @@ export const basicFieldInspectionModules = [
       'Exterior sweep, interior rooms, and measurements',
       'Uploading proofs that avoid lender callbacks',
     ],
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    videoUrl: 'https://www.youtube.com/embed/lBFR2W_skrU',
+    flashcards: [
+      { front: "What is the first photo you should take to establish a 'context-first' workflow?", back: "The nearest street sign or intersection (establishes indisputable location)." },
+      { front: "On a digital electric meter, what does 'OPN' indicate?", back: "Open Circuit = Power is OFF." },
+      { front: "On a digital electric meter, what does 'CLS' indicate?", back: "Closed Circuit = Power is ON." },
+      { front: "What are the 'forbidden words' you must never use with a homeowner?", back: "Delinquency, Foreclosure, or Bank." },
+      { front: "What are valid 'Indicators of Life' for occupancy?", back: "Mowed lawn, fresh trash in bins, active utilities (lights), or personal property." },
+      { front: "In a Loss Draft inspection, do materials on site (e.g., stack of windows) count towards completion?", back: "No. Materials must be permanently installed to count. Uninstalled = 0%." },
+      { front: "If a house is visible 100 yards away behind a locked gate, should you mark 'No Access'?", back: "No. Take a photo of the gate and a zoomed-in photo of the house." },
+      { front: "What is the standard for proving a property is 'First Time Vacant'?", back: "A 'through-the-window' photo showing an empty interior (no furniture)." },
+      { front: "How should you document a hole in the wall to make it 'dispute-proof'?", back: "Use a scale reference (ruler/tape) in the close-up photo to show exact dimensions." },
+      { front: "What does 'weblike' cracking paint indicate in a home built before 1978?", back: "A potential Lead-Based Paint hazard (Critical Habitability Violation)." },
+      { front: "What is the 'Partial Vacant' status used for?", back: "Multi-family units where at least one unit is occupied and one is vacant." },
+      { front: "Where is the most reliable place to use a volt stick to avoid false positives?", back: "On the wiring leading to the exterior AC condensing unit (avoid the meter base)." }
+    ],
     quiz: [
       {
-        question: "If a property appears vacant but the lawn is mowed, how do you verify occupancy?",
+        question: "Which tech step is most critical before losing cell signal in a rural area?",
         options: [
-          "Mark it as occupied immediately",
-          "Check for personal items through windows, or check utility meters",
-          "Ask the mailman and take his word for it",
-          "Guess based on the neighbors' houses"
+          "Charge phone to 100%",
+          "Set camera to portrait mode",
+          "Log into portal and download offline templates",
+          "Check weather forecast"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "What is the first photo you should take to establish 'context-first'?",
+        options: [
+          "The front door",
+          "The electric meter",
+          "The nearest street sign or intersection",
+          "A close-up of the house number"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "A digital meter flashes 'OPN'. What does this indicate?",
+        options: [
+          "The meter is broken",
+          "The power is shut off (Open)",
+          "The power is active (Closed)",
+          "It is a Smart Meter"
         ],
         correctIndex: 1
       },
       {
-        question: "What is a 'Loss Draft' inspection?",
+        question: "A homeowner asks 'Am I behind on my mortgage?'. What is the only allowed response?",
         options: [
-          "Checking for lost mail",
-          "Verifying repairs are being made after an insurance claim payout",
-          "Drafting a letter to the homeowner",
-          "Inspection of a lost property"
+          "Yes, I'm here for the delinquency",
+          "I'm not sure, I just take photos",
+          "I am completing a property inspection on behalf of the bank/servicer",
+          "Check your mail for foreclosure"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "Which constitutes an 'Indicator of Life'?",
+        options: [
+          "Mowed lawn",
+          "Fresh trash in bin",
+          "Lit porch light",
+          "All of the above"
+        ],
+        correctIndex: 3
+      },
+      {
+        question: "You see 50 new windows in the garage, but old windows are still installed. What % complete are Windows?",
+        options: [
+          "50% (materials present)",
+          "100% (money spent)",
+          "0% (materials on-site do not equal installed)",
+          "25%"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "Your photo is rejected as 'too dark'. How do you fix it?",
+        options: [
+          "Argue it was shady",
+          "Return to site, retake with flash/better light, resubmit as Revision",
+          "Brighten in Photoshop",
+          "Ignore it"
         ],
         correctIndex: 1
+      },
+      {
+        question: "True or False: If you see the house 100 yards away behind a locked gate, mark 'No Access'.",
+        options: [
+          "True",
+          "False - Zoom in and photograph house + gate"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: Measure walls wall-to-wall at floor level.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 0
+      },
+      {
+        question: "True or False: It is acceptable to include your shadow if the house is visible.",
+        options: [
+          "True",
+          "False - No distractions allowed"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: Taking a screenshot of the 'Submission Successful' screen is optional.",
+        options: [
+          "True",
+          "False - It is your only proof"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "A neighbor says the owners moved out 3 weeks ago. What do you do?",
+        options: [
+          "Mark Occupied (neighbor was there)",
+          "Mark Vacant, document neighbor's statement and address as audit trail",
+          "Ask neighbor for owner's number",
+          "Mark Unknown"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "An aggressive dog prevents access to the rear. What do you do?",
+        options: [
+          "Climb fence anyway",
+          "Use deterrent spray",
+          "Maintain safety, photograph dog/barrier, inspect from safe vantage point",
+          "Leave immediately"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "To prove 'First Time Vacant', what specific photo is required?",
+        options: [
+          "Empty mailbox",
+          "Through-the-window shot showing empty interior",
+          "Beware of Dog sign",
+          "Front door lock"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "A contractor threatens you to mark plumbing 100%. What do you do?",
+        options: [
+          "Change to 100%",
+          "Argue back",
+          "Politely state you must report only what is visible; the bank decides",
+          "Cancel order"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "What should be in a close-up photo of a hole in the wall?",
+        options: [
+          "Business card",
+          "Scale reference (ruler/tape)",
+          "Homeowner",
+          "Entire room"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "You see 'weblike' cracking paint in a 1950s home. What is this?",
+        options: [
+          "Just old paint",
+          "Critical Violation (Lead-Based Paint hazard)",
+          "Cleaning issue",
+          "Sample needed"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "What is the minimum photo count for a vacant property?",
+        options: [
+          "1-3",
+          "7-10",
+          "12-20+ (Full loop, all meters, vacancy proof)",
+          "50 exactly"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "Unit A is occupied, Unit B is vacant. What is the status?",
+        options: [
+          "Occupied",
+          "Vacant",
+          "Partial Vacant",
+          "Unknown"
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "Where is the best place to test with a volt stick?",
+        options: [
+          "Meter base",
+          "Ceiling wire",
+          "Wiring to exterior AC condensing unit",
+          "Front door handle"
+        ],
+        correctIndex: 2
       }
     ]
   },
   {
-    id: 'preferred-list',
+    id: 'report-writing',
     title: 'Submitting reports that keep you on the preferred list',
     description:
-      'Turn in polished reports that coordinators can approve quickly so you keep getting the best routes.',
-    duration: '14 min',
-    type: 'Review',
+      'Master the technical submission standards, avoid common rejections, and learn the specific "Language of Lending" that coordinators trust.',
+    duration: '20 min',
+    type: 'Certification',
     syllabus: [
-      'Structuring notes for different firm templates',
-      'Double-checks before you hit send',
-      'What happens after submission and how to follow up',
+      'The "Gold Standard" for objective notes vs. subjective opinions',
+      'Photo requirements: Resolution, metadata, and the "Two-Photo Rule"',
+      'Handling rejections and "Access Denial" scenarios professionally',
     ],
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    videoUrl: 'https://www.youtube.com/embed/gPHmP0PiGUo',
+    flashcards: [
+      { front: "What does the acronym GPM stand for in property inspection?", back: "Gallons per minute (used for faucet/showerhead efficiency ratings)." },
+      { front: "What is the 'faulty workmanship exclusion' (Exclusion j(6))?", back: "A CGL policy exclusion for property damage to the specific part of work that must be restored because it was performed incorrectly." },
+      { front: "According to FHA guidelines, what must an appraiser do if there is evidence of infestation?", back: "Mark 'Evidence of Infestation' and make the appraisal subject to inspection by a pest control specialist." },
+      { front: "What organization develops data standards for the U.S. mortgage industry (including ULDD)?", back: "MISMO (Mortgage Industry Standards Maintenance Organization)." },
+      { front: "Freddie Mac requires two distinct ratings: one for quality of construction and another for _____.", back: "condition of improvements" },
+      { front: "What is the key principle of CGL exclusion 'l. Damage To Your Work'?", back: "It eliminates coverage for damage to the insured's own work after operations are complete (unless performed by a subcontractor)." },
+      { front: "Per FHA, what must an appraisal for a methamphetamine-contaminated property be made 'subject to'?", back: "The property being certified safe for habitation." },
+      { front: "What is a 'root cause' of workplace incidents according to OSHA?", back: "Failure to identify or recognize hazards that strictly speaking could have been anticipated." },
+      { front: "In fire protection, what is a 'Hidden Impairment'?", back: "The most serious impairment type, where a protective system is shut down unknowingly, leaving the facility vulnerable." },
+      { front: "What is the 'Two-Photo Rule' for reporting defects?", back: "Take a wide 'Context' shot first to locate the issue, then a close-up 'Detail' shot with scale." },
+      { front: "What is the 'Two-Photo Rule' for reporting defects?", back: "Take a wide 'Context' shot first to locate the issue, then a close-up 'Detail' shot with scale." },
+      { front: "What are the only three tools defined as 'Holy Trinity' essentials for field inspectors?", back: "Smartphone (camera), Fuel-efficient vehicle, and High-speed internet computer." },
+      { front: "True or False: You should always compare a property's curb appeal to its neighbors.", back: "False. 'Neighborhood comparison' can violate Fair Lending laws; stick to the subject property." },
+      { front: "What is 'Wrench time'?", back: "A metric measuring the time a craftsperson spends productively working (vs. travel/admin)." }
+    ],
     quiz: [
       {
-        question: "How quickly should you submit a routine inspection report?",
+        question: "According to NAMFS standards, what are the mandatory technical specifications for photo submissions?",
         options: [
-          "Whenever you get around to it",
-          "Within 24-48 hours of the site visit",
-          "At the end of the month",
-          "Before the sun sets"
+          "PNG format, 1024x768 resolution",
+          "JPG format, 640x480 resolution, red-font date/timestamp in lower right",
+          "HEIC format, GPS hidden",
+          "GIF format, 320x240"
         ],
         correctIndex: 1
       },
       {
-        question: "What is the best way to handle a dispute from a coordinator?",
+        question: "Which of these notes follows the 'Gold Standard' for objectivity?",
         options: [
-          "Argue and shout",
-          "Calmly provide photo evidence that supports your finding",
-          "Delete the order",
-          "Ignore the email"
+          "The property management team is very friendly.",
+          "The unit has a beautiful new kitchen.",
+          "Kitchen drywall and cabinets installed; bathroom tile incomplete; 10 of 12 LED lighting upgrades verified.",
+          "I think the owner is neglecting the roof."
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "When using the UAD rating scale, what is the primary difference between a C3 and C4 rating?",
+        options: [
+          "C3 is for new construction.",
+          "C3 represents limited depreciation; C4 indicates minor deferred maintenance or components near end of life.",
+          "C3 requires a written defense.",
+          "C3 is commercial only."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "In systems like PRS, what action causes an automatic file rejection?",
+        options: [
+          "Using a tablet.",
+          "Deleting or renaming any tabs from the original Excel template.",
+          "Uploading more than 50 photos.",
+          "Including full name."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "Which metadata component is required to establish 'Digital Trust'?",
+        options: [
+          "Personal cell number",
+          "Certified GPS latitude/longitude and Order ID associated with each photo",
+          "Digital watermark",
+          "Occupant name"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "Under GLBA privacy guidelines, what can you share with a curious neighbor?",
+        options: [
+          "The property is in foreclosure.",
+          "The homeowner is 90 days delinquent.",
+          "Nothing; maintain confidentiality.",
+          "Only exterior condition results."
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "For insurance adjustments, what is the required 'ID Photo' sequence?",
+        options: [
+          "Damage close-up then address.",
+          "Overview of the building followed by its address or signage.",
+          "Kitchen interior then roof.",
+          "Metadata screenshot."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "What is the 'Two-Photo Rule' for documenting property defects?",
+        options: [
+          "One front, one back.",
+          "One with flash, one without.",
+          "One wide-angle context shot and one tight detail shot with a scale reference.",
+          "One defect, one repair estimate."
+        ],
+        correctIndex: 2
+      },
+      {
+        question: "What is 'Management of Change' (MOC)?",
+        options: [
+          "Training new managers.",
+          "A formal procedure to ensure modifications do not introduce unacceptable risks.",
+          "Increasing inspection speed.",
+          "Switching inspection firms."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "What is the benchmark turnaround time (TAT) for a standard '4-point' insurance inspection?",
+        options: [
+          "5-7 days",
+          "24 hours",
+          "72 hours",
+          "10 days"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: You should always compare a property’s curb appeal to its neighbors to determine its rating.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: In an Annual Inspection Form, yellow input cells must change color before submission.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 0
+      },
+      {
+        question: "True or False: If you find a potential life-safety hazard, wait until the full report to notify the client.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: A property rated C1 is essentially in the same condition as a property rated C2.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "True or False: 'Wrench time' measures the time a craftsperson spends productively.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 0
+      },
+      {
+        question: "True or False: Professional rejection handling means logging errors to prevent recurrence.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 0
+      },
+      {
+        question: "True or False: It is acceptable to adjust photo brightness in editing software before submission.",
+        options: [
+          "True",
+          "False"
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "You have 3 jobs left and blurry photos on the current one. What do you do?",
+        options: [
+          "Submit and hope.",
+          "Return immediately and retake, even if late for next job.",
+          "Note the blur in comments."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "Photo rejected for 'Damage not documented'. You sent 10 close-ups. What was missing?",
+        options: [
+          "Higher resolution.",
+          "A wide-angle context shot showing location of damage.",
+          "Building ID label."
+        ],
+        correctIndex: 1
+      },
+      {
+        question: "Aggressive pet blocks access. Instructions say 'complete exterior'. What do you do?",
+        options: [
+          "Hop the fence.",
+          "Upload photos of barrier and notify coordinator of Access Denial.",
+          "Call homeowner to complain."
         ],
         correctIndex: 1
       }
     ]
-  },
+  }
 ]
