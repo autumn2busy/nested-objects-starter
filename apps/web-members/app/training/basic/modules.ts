@@ -1,17 +1,235 @@
+export type Lesson = {
+  id: string
+  title: string
+  description: string
+  duration: string // e.g. "10 min"
+  content: string // Markdown
+  callouts?: {
+    type: 'notary' | 'realtor' | 'gig-worker' | 'inspector'
+    text: string
+  }[]
+}
+
+export type Scenario = {
+  id: string
+  title: string
+  situation: string
+  decisionPoints: {
+    question: string
+    options: {
+      text: string
+      isOptimal: boolean
+      feedback: string
+    }[]
+  }[]
+  outcome: {
+    optimal: string
+    suboptimal: string
+  }
+  debrief: string
+}
+
+export type DownloadableResource = {
+  title: string
+  description: string
+  fileName: string
+  fileSize: string
+  icon: 'pdf' | 'spreadsheet' | 'doc'
+}
+
 export const basicFieldInspectionModules = [
   {
     id: 'orientation',
-    title: 'Orientation to mortgage field inspections',
+    title: 'Module 1: Orientation & Quick Start',
     description:
       'Understand how lenders use your reports, the inspection types you will see most often, and how to keep routes predictable.',
-    duration: '12 min',
-    type: 'Lesson',
+    duration: '2-4 hours',
+    type: 'Certification',
     syllabus: [
       'Where field reports fit in the lender workflow',
       'Common inspection categories you will accept',
       'Ground rules for safety, photos, and notes',
     ],
-    videoUrl: 'https://www.youtube.com/embed/UAuJ8tqm9w4', // "The Unseen Inspector"
+    videoUrl: 'https://www.youtube.com/embed/w_YEUvaZaOg',
+
+    // New Deep Dive Content
+    downloads: [
+      { title: 'Income Calculator', description: 'Project your earnings based on route density.', fileName: 'Module1_1_Income_Calculator.pdf', fileSize: '450 KB', icon: 'pdf' },
+      { title: 'Career Transition Guide', description: 'Moving from W2 to 1099 mindset.', fileName: 'Module1_2_Career_Transition_Guide.pdf', fileSize: '1.2 MB', icon: 'pdf' },
+      { title: 'Terminology Cheat Sheet', description: 'Speak the language of lending.', fileName: 'Module1_3_Terminology_Cheat_Sheet.pdf', fileSize: '850 KB', icon: 'pdf' },
+      { title: 'Before You Leave Checklist', description: 'Daily pre-departure protocol.', fileName: 'Module1_4_Before_You_Leave_Checklist.pdf', fileSize: '320 KB', icon: 'pdf' },
+      { title: 'Standards & Protocols', description: 'The official rulebook for inspections.', fileName: 'Resource_ Standards and Protocols for Mortgage Field Inspectors.pdf', fileSize: '2.5 MB', icon: 'pdf' },
+    ] as DownloadableResource[],
+
+    lessons: [
+      {
+        id: '1',
+        title: 'The Mortgage Field Services Industry',
+        description: 'Who orders inspections, why they matter, and where you fit in.',
+        duration: '15 min',
+        callouts: [
+          { type: 'gig-worker', text: 'Use your existing routing skills to hit 4–8 stops per hour, turning a $15/hr driving job into a $30–$60/hr professional service.' },
+          { type: 'notary', text: 'Apply your "verify and witness" habits to property occupancy and condition instead of loan signatures.' }
+        ],
+        content: `## Field Services as a High-Velocity Income Stream
+
+> **Core Concept:** Shift from low-paying gig work ($5–10 per delivery) or time-intensive professional roles to high-volume, 10-minute property inspections paying $50–$150 each.
+
+### Step-by-Step Instructions
+1. **Register as an Independent Contractor:** Apply to a vetted firm like National Field Representatives (NFR) or National Risk Services (NRS).
+2. **Clear the Background Check:** Obtain an ABC# through Shield Hub (approx. $50) to verify your eligibility for lender work.
+3. **Setup Your Mobile Office:** Ensure you have a fuel-efficient vehicle, a smartphone with a high-resolution camera, and high-speed internet.
+4. **Accept Your Territory:** Once onboarded, you will be assigned a specific geographic batch of orders.
+
+### Quick Win
+Complete your first "Drive-By" occupancy check—typically a 5-minute exterior observation.
+
+> **Warning Signs:** Treating this as "casual" work. Lenders require professional-grade reliability and strict adherence to due dates.`,
+      },
+      {
+        id: '2',
+        title: 'Inspection Types & Scopes',
+        description: 'Occupancy checks, insurance loss drafts, and commercial verify.',
+        duration: '20 min',
+        content: `## Mastering Basic Industry Terminology
+
+> **Core Concept:** Professional proficiency begins with a command of the technical lexicon used by lenders and investors.
+
+### Key Terms
+* **PCR (Property Condition Report):** The standard data deliverable documenting the state of the asset.
+* **SLA (Service Level Agreement):** The contractual deadline for your report (typically 3–5 days).
+* **REO (Real Estate Owned):** Properties the bank has already foreclosed on; these require regular "REO Checks" for maintenance.
+* **Loss Draft:** Inspections that verify the progress of repairs after an insurance claim (e.g., fire or storm damage).
+
+### Step-by-Step Instructions
+1. **Download the Base Standard PCR:** Familiarize yourself with the NAMFS standard fields.
+2. **Monitor Your Queue:** Check your app (InspectorADE or Focus) daily for new orders and their respective SLAs.
+
+### Quick Win
+Use the term "SLA" when communicating with your account manager to demonstrate industry readiness.
+
+> **Warning Signs:** Missing an SLA. Reports not received within 20 days may be reissued, and your payment forfeited.`,
+      },
+      {
+        id: '3',
+        title: 'Tools of the Trade',
+        description: 'The hardware and software you need to survive day 1.',
+        duration: '25 min',
+        callouts: [
+          { type: 'realtor', text: 'Avoid the urge to estimate repair costs. Simply document the damage to avoid liability and conflict of interest.' }
+        ],
+        content: `## Scope of Practice—Field Inspector vs. Home Inspector
+
+> **Core Concept:** You are a non-invasive observer documenting facts, not a licensed professional diagnosing structural failures.
+
+| Feature | Field Inspector (You) | Home Inspector (Not You) |
+| :--- | :--- | :--- |
+| **Goal** | Risk mitigation and collateral preservation | Diagnostic assessment for buyers |
+| **Method** | Ground-level, visual observation only | Invasive testing of HVAC/Electrical |
+| **Action** | Document the ceiling stain | Diagnose the roof leak |
+| **Cost** | High volume, low per-unit fee ($50-$150) | Low volume, high professional fee ($300+) |
+
+### Quick Win
+Practice describing a cracked window as "one cracked pane on front window" rather than "window needs replacement".
+
+> **Warning Signs:** Climbing on a roof or opening a breaker panel. These are invasive actions outside your scope.`,
+      },
+      {
+        id: '4',
+        title: 'Safety & Field Protocols',
+        description: 'Dealing with dogs, neighbors, and aggressive homeowners.',
+        duration: '30 min',
+        content: `## The 6-Angle Rule and Technical Photography
+
+> **Core Concept:** Photographs are the primary unit of value; a report without forensic-quality photos is considered fraudulent.
+
+### The 6-Angle Sequence
+1. **Street Sign:** Proves you are in the correct neighborhood.
+2. **House Number:** Direct verification of the collateral address.
+3. **Front Elevation:** Straight-on shot including the entire roofline.
+4. **Front Left Angle:** Perspective showing the front and left side.
+5. **Front Right Angle:** Perspective showing the front and right side.
+6. **Street Views (Left & Right):** Documents the neighborhood context.
+
+### Step-by-Step Instructions
+1. **Disable Orientation Lock:** All photos must be taken in landscape mode.
+2. **Exit the Vehicle:** Never take photos through a windshield. Car parts (mirrors/dashboards) in a shot trigger immediate rejection.
+3. **Sync Metadata:** Ensure your app is embedding GPS, date/time stamps, and your Inspector ID.
+
+### Quick Win
+Capture the "Front Elevation" with 5% open space on all sides to provide full context.
+
+> **Warning Signs:** Blurry images, fingers in the frame, or shadows of the inspector.`,
+      },
+      {
+        id: '5',
+        title: 'Photo Standards & Evidence',
+        description: 'The "Two-Photo Rule" and how to never get a rejection.',
+        duration: '25 min',
+        content: `## The Workflow—From Work Order to Payment
+
+> **Core Concept:** Success is found in efficient routing and the "First-Time Pass" rate of your reports.
+
+### Step-by-Step Instructions
+1. **Sync (Daily):** Hit "Download" in your app to pull new orders and check for cancellations.
+2. **Route (The Night Before):** Use GPS software to group 4–8 stops per hour.
+3. **Execute & Upload (On-Site):** Complete the digital checklist and upload photos before leaving the property to avoid return trips.
+4. **Payday:** Payments are typically processed bi-weekly (every other Friday) via direct deposit.
+
+### Quick Win
+Install a non-contact volt stick (approx. $10) to quickly verify power at vacant properties without touching wires.
+
+> **Warning Signs:** Submitting "Unknown" for occupancy. This is considered "a hamburger without the meat" and is useless to the lender.`,
+      },
+      {
+        id: '6',
+        title: 'Submitting Your First Report',
+        description: 'Walkthrough of a standard submission portal.',
+        duration: '20 min',
+        callouts: [
+          { type: 'realtor', text: 'Mistake: Reporting a roof "needs replacement." Correct: Document "missing shingles on south-facing slope".' },
+          { type: 'notary', text: 'Mistake: Marking a property "Unknown" if no one answers the door. Correct: Check utility meters and signs of life.' },
+          { type: 'gig-worker', text: 'Mistake: Taking photos from the driver seat. Correct: You must exit the vehicle to prove a full visual survey.' },
+          { type: 'inspector', text: 'Mistake: Reporting "Occupant was rude." Correct: "Occupant stated [quote] and slammed the door".' }
+        ],
+        content: `## Avoiding Beginner Mistakes by Audience Type
+
+> **Core Concept:** Every professional background has a "Subjectivity Trap" that leads to rejected reports.
+
+### Quick Win
+Always include a photo of a lit doorbell or a spinning electric meter as definitive proof of occupancy.
+
+> **Warning Signs:** Using adjectives like "overwhelmingly," "terrible," or "aggressive." Stick to objective, factual descriptions.`,
+      }
+    ] as Lesson[],
+
+    scenarios: [
+      {
+        id: 'a',
+        title: 'Scenario A: The Career Transition Trap',
+        situation: 'You are a Realtor who just started inspections. You see a homeowner who asks about the property value.',
+        decisionPoints: [
+          {
+            question: 'How do you respond?',
+            options: [
+              { text: 'Give them a rough estimate based on MLS.', isOptimal: false, feedback: 'Incorrect. You are not wearing your Realtor hat.' },
+              { text: 'Politely decline, stating you are only documenting condition.', isOptimal: true, feedback: 'Correct. Stay in your lane.' }
+            ]
+          }
+        ],
+        outcome: { optimal: 'Trust maintained.', suboptimal: 'Confusion and liability created.' },
+        debrief: 'Always separate your roles.'
+      },
+      {
+        id: 'b',
+        title: 'Scenario B: The Gig Worker Mindset',
+        situation: 'You have 20 stops. The first one is behind a locked gate.',
+        decisionPoints: [],
+        outcome: { optimal: '', suboptimal: '' },
+        debrief: 'Speed cannot come at the cost of accuracy.'
+      }
+    ] as Scenario[],
+
     flashcards: [
       { front: "What is the fundamental difference in purpose between a field inspection and a home inspection?", back: "Field inspections are targeted assessments for lenders and insurers, while home inspections are comprehensive evaluations for potential buyers." },
       { front: "Field inspectors operate with a much narrower scope than home inspectors and do not test drain lines, check thermostat functionality, or inspect _____.", back: "ductwork or ventilation systems" },

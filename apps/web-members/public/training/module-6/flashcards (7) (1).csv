@@ -1,0 +1,79 @@
+"In the context of AI, what is an Automated Valuation Model (AVM)?","An algorithm that estimates a property’s value using data like comparable sales, tax assessments, and property features."
+How do AI scheduling assistants differ from traditional scheduling tools?,"AI assistants continuously learn and adapt based on real-time data, while traditional tools rely on static rules or manual input."
+What is the term for the risk where an AI model perpetuates historical discrimination in mortgage lending?,"Algorithmic bias or ""digital redlining""."
+An AI _____ occurs when a generative model produces factually incorrect or fabricated information but presents it confidently.,hallucination
+What is the leading technical solution to mitigate AI hallucinations by grounding the model in a trusted knowledge base?,Retrieval-Augmented Generation (RAG).
+What problem does Fulcrum's Audio FastFill solve in field data capture?,"It replaces manual typing with real-time, structured voice dictation, allowing for hands-free data entry."
+"According to research, high-performing field service teams are how much more likely to use intelligent scheduling tools?",They are 2.6 times more likely.
+What is a primary benefit of using computer vision in property inspections?,"It can automatically detect physical defects such as cracks, water damage, mold, and structural issues from images."
+"In field service management, what are three factors Autofleet's AI routing platform considers when optimizing routes?","Technician skill-sets, client priority/SLA, and specialized equipment requirements."
+"What is meant by the ""black box"" problem in relation to Large Language Models (LLMs)?",Users can see the inputs and outputs without clear insight into how the model arrived at its conclusions.
+The unsanctioned use of personal AI applications by an employee for work-related tasks without formal oversight is known as _____.,Shadow AI
+"According to professional engineering ethics, AI should be used to augment an engineer's role, not to supplant their _____.",professional judgment and expertise
+What is the primary purpose of an Occupancy Inspection in the mortgage field services industry?,"To determine if a property is currently occupied and by whom (borrower, tenant, etc.)."
+For what reason would an Insurance Loss Draft Inspection be performed?,To provide an opinion on the approximate percentage of repairs completed on a property after an insurance claim.
+"Pruvan's mobile app ensures photo integrity by making photos timestamped, geocoded, and ____.",unaltered (tamper-proof)
+"According to Fannie Mae guidelines, when must a servicer order the first property inspection for a delinquent mortgage loan?",On or after the 90th day of delinquency.
+The Coursebox AI Quiz Generator can create quizzes from what types of uploaded content?,"It accepts formats like PDFs, Word documents, PowerPoint slides, and spreadsheets."
+What are the three main features of the Vertex AI Vision Occupancy Analytics model?,"Active zones counting, line crossing counting, and dwelling detection."
+"In modern occupancy analysis, what are the three key dimensions measured to understand space utilization?","Density (how many people), flow (how people move), and dwell time (how long they stay)."
+What core benefit does Record360's AI Blur Detection provide during asset inspections?,"It gives the inspector real-time feedback on blurry photos, improving the overall quality and clarity of documentation."
+How do AI-powered chatbots cut down on service calls in a field service organization?,They enable customers and technicians to resolve routine issues themselves by accessing tutorials or automated instructions.
+What is a key benefit of AI-powered lease abstraction in commercial real estate?,"It automatically extracts key clauses and data from lease agreements in minutes, drastically reducing manual review time."
+What capability does Zeitro's Scenario AI provide to Mortgage Loan Officers?,"It gives instant, accurate answers to complex borrower questions by searching thousands of lender program guidelines."
+"According to its case study, Suzuki used Autofleet's platform to increase the utilization of its car sharing fleet by more than what percentage?",More than 25%.
+What feature of Autofleet's driver app allows for the capture of photos and signatures?,Customized service forms.
+What is a major limitation of traditional property appraisals that AI helps overcome?,"They are time-consuming, subjective, and prone to human error or bias."
+"In field service, AI scheduling assistants can reduce technician burnout by doing what when last-minute changes occur?",They quickly and automatically adjust schedules in real time without overloading technicians.
+Technologies like Optical Character Recognition (OCR) and Natural Language Processing (NLP) are used in the mortgage industry to automate what task?,"To scan, extract, and structure data from documents like pay stubs and W-2s."
+"What is a primary risk of employees using public, non-enterprise AI tools for work-related tasks (Shadow AI)?",It can expose an organization's proprietary or confidential information.
+A _____ is a type of mortgage field inspection that provides a third-party assessment of a property's actual condition to complement an AVM report.,Valuation Condition Inspection
+What is the purpose of a Rehab Scoping Inspection for a single-family rental property?,To provide a detailed account of what needs to be repaired or renovated to get the property ready to be rented.
+Under what circumstance does Fannie Mae authorize a curbside (drive-by) inspection instead of a full exterior inspection?,If there are legal constraints (like an active bankruptcy) or potential danger to the inspector.
+"AI Quiz Generators can support various question formats, including multiple choice, short answer, and _____ questions.",drag-and-drop
+"In workplace management, AI-powered analytics can analyze foot traffic patterns to identify _____ areas, helping optimize space utilization.",underutilized
+What is a key advantage of AI-based damage detection in building inspections over human review?,"AI can analyze thousands of images in minutes, maintaining consistent focus and detecting subtle issues humans might miss."
+"What is the primary function of a ""smart reporting engine"" in an AI real estate inspection app?","It automatically generates structured, narrative-rich reports from inspection data using templates and LLMs."
+"Why is an ""offline inspection mode"" a critical feature for a real estate inspection app?",It allows inspectors to continue working and capturing data in locations without internet access.
+"For FHA loans, what specific inspection is required for properties with a well?",A water quality test is required to ensure the water is safe for consumption.
+"What is the purpose of the ""predictive maintenance"" feature in AI-enabled facilities management?","It analyzes data from assets (like HVAC units) to predict potential failures before they happen, allowing for proactive maintenance."
+Why is it important for an AI vehicle inspection system to perform an image quality check before analysis?,Because poor-quality images lead to unreliable and inaccurate damage detection outcomes.
+"According to Fulcrum, field teams using Audio FastFill report completing tasks at least ____ percent faster.",20
+What type of AI technology allows a scheduling assistant to communicate directly with customers in a conversational manner?,Natural Language Processing (NLP).
+What is the first phase in the 8-12 week implementation plan for an AI voice agent in mortgage lending?,Phase 1: Strategy and Scoping.
+"To ensure compliance, AI-powered underwriting models must be interpretable. What emerging field of AI addresses this need?",Explainable AI (XAI).
+"In the construction industry, what is the term for the unsanctioned use of AI applications by employees for work-related tasks?",Shadow AI.
+For what primary reason do financial institutions require high photo integrity from apps like Pruvan for virtual inspections?,"To prevent manipulation of photos, as bad players could take advantage of the system."
+"In Cal.com's scheduling automation, what feature allows jobs to be assigned to inspectors based on their service address?",Intelligent routing based on ZIP codes.
+"AI-powered occupancy analysis helps building managers implement _____-driven HVAC operations, saving energy by heating or cooling spaces only when needed.",demand
+What is a significant privacy consideration when implementing occupancy monitoring systems in a building?,"To focus on collecting aggregate data rather than tracking individuals, and to be transparent with tenants about the monitoring."
+"What is the main reason that experience and judgment are still considered critical in home inspections, despite the rise of AI?","An experienced inspector can understand how building systems interact and how small defects can lead to larger problems, providing context AI may miss."
+How does MaintWiz CMMS use AI for predictive field service?,"It uses AI to anticipate service needs, optimize schedules, and enhance decision-making in real-time field scenarios."
+"In AI property appraisals, what is the core benefit of AI analyzing huge datasets?","It can uncover patterns and correlations that even seasoned appraisers might miss, leading to more data-driven valuations."
+The Salesforce article states that what once took an average of 17 minutes to book an appointment can now happen in under ____ minutes with an AI assistant.,5
+"A key risk of ""Shadow AI"" is that an employee might input _____ into a public AI tool, which then uses that data to train its model.",proprietary or confidential company information
+What does a QC Compliance Inspection verify in mortgage field services?,It verifies previously received inspection results or specific preservation services that were already reported as completed.
+How can AI quiz generators like Coursebox support global training teams?,They can create and deliver quizzes in over 100 languages with localized text.
+"Besides counting people or vehicles, what advanced capability does the Vertex AI Vision Occupancy model offer regarding movement?","Line crossing counting, which tracks the direction an object crosses a defined line."
+"In property management, what is a key metric used to measure the impact of occupancy-based HVAC management?","The Energy Usage Index (EUI), which correlates energy consumption with occupied hours."
+Why is an offline mode a crucial feature for field service and inspection mobile apps?,It ensures continuous data capture in remote locations with limited or no internet connectivity.
+"AI can assist in real estate investment analysis by processing vast amounts of data to enhance _____, appraisal, and decision-making.",underwriting
+"According to the Datagrid article, AI agents can track the _____ of water damage to help prioritize urgent interventions.",progression (or spread rate)
+"In an AI real estate inspection app, what is the purpose of geotagging photos and videos?","It captures location-specific visuals for every observation, strengthening audit trails and reporting accuracy."
+"For government-backed loans like FHA, appraisers must ensure the property meets specific _____ and habitability standards.",safety
+How can AI-powered tools help with data governance for a real estate firm?,"They can help standardize, secure, and clean lease and financial data to ensure it's reliable for analysis."
+What is the primary value of AI in facilities management for an asset like an HVAC unit?,"It enables predictive maintenance by identifying signs of potential failure, allowing for proactive repairs and avoiding costly breakdowns."
+"In multifamily marketing, an AI-powered _____ can handle tenant inquiries, book virtual tours, and send follow-ups after hours.",chatbot
+"What technology allows AI to automatically read and extract information from documents like VIN numbers, license plates, and mileage in vehicle inspections?",Optical Character Recognition (OCR).
+What is the purpose of a pre-acquisition inspection for a single-family rental property?,To understand the overall condition of a property and what repairs may be needed before the acquisition is finalized.
+How does using a third-party inspection service for pre- and post-move-out inspections help a property manager?,A disinterested third-party review can help resolve claims over returning a tenant's security deposit.
+"What is a primary benefit of using AI voice dictation, like Audio FastFill, for an inspector on a ladder wearing gloves?","It allows for hands-free data capture, which is safer and more practical than trying to type on a mobile device."
+"In AI scheduling, what is the purpose of defining travel or prep buffers between events?",To prevent unmanageable schedules by automatically blocking out time needed for travel between job sites or preparation.
+AI algorithms can analyze historical occupancy data along with external factors like weather and local events to create _____ occupancy models.,predictive
+What legal risk does a contractor face if their AI tool generates a misrepresentation to a consumer?,"They can be held liable under state consumer protection acts, as using an AI tool is not a defense."
+A key feature of MaintWiz's mobile app for field technicians is that it functions flawlessly both online and ____.,offline
+The Interagency Rule on AVMs requires institutions using them in credit decisions to maintain _____.,robust quality controls
+"According to the Baker Donelson article, what is the projected growth of the ""AI in construction"" market from 2025 to 2030?",From around $11.1 billion in 2025 to $24.3 billion by 2030.
+"A major challenge in building an effective AI inspection model is acquiring high-quality, _____ datasets of property damage to train on.",labeled
+What is a Disaster/FEMA Inspection designed to do?,To determine the condition of a property and document damages observed due to a recent disaster.
+What is a key benefit of integrating a field service platform with accounting software?,"It streamlines financial processes like invoicing and payroll, and maintains accurate records."
