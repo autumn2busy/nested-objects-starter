@@ -85,7 +85,7 @@ export default function QuizPage() {
                     </p>
                     <div className="flex gap-4 justify-center">
                         <Link href="/training/basic/module-1">
-                            <Button variant="outline">Cancel</Button>
+                            <Button variant="secondary">Cancel</Button>
                         </Link>
                         <Button
                             className="bg-blue-600 hover:bg-blue-500"
