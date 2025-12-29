@@ -89,7 +89,7 @@ export default function LessonPage() {
         <div className="flex min-h-screen bg-slate-50 font-sans">
             {/* Mobile Sidebar Toggle */}
             <div className="lg:hidden fixed top-20 right-4 z-50">
-                <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white shadow">
+               <Button variant="secondary" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white shadow p-2"> 
                     <Menu className="w-5 h-5" />
                 </Button>
             </div>
