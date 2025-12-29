@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, ArrowRight, CheckCircle, Circle, Menu, BookOpen, AlertTriangle, Home, Car, PenTool } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { basicFieldInspectionModules } from '../../modules'
+import { basicFieldInspectionModules } from '../../../modules'
 import { cn } from '@/lib/utils'
 
 // Icons for audience callouts
