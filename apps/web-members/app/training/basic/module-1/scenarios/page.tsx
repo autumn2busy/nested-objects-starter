@@ -145,7 +145,7 @@ export default function ScenariosPage() {
                                         {!state.outcome && (
                                             <Button
                                                 onClick={() => toggleSection(scenario.id, 'outcome')}
-                                                variant="outline"
+                                                variant="secondary"
                                                 className="mt-6"
                                             >
                                                 Reveal Outcomes <ChevronDown className="w-4 h-4 ml-2" />
