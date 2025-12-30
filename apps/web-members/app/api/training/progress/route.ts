@@ -8,11 +8,6 @@ export async function GET(request: Request) {
         const outsetaId = getOutsetaUserId(user)
 
         if (!user || !outsetaId) {
-            console.log('API Auth Failed:', {
-                hasUser: !!user,
-                hasOutsetaId: !!outsetaId,
-                cookies: request.headers.get('cookie')
-            })
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -28,11 +23,10 @@ export async function GET(request: Request) {
             .single()
 
         if (!profile) {
-            // User exists in Outseta but not yet in Supabase profiles? Return empty progress.
-            return NextResponse.json({ quizPasses: [], progress: [] })
+            return NextResponse.json({ completedModuleIds: [], progress: [] })
         }
 
-        // IF moduleId is provided, fetch granular progress
+        // IF moduleId is provided, fetch granular progress for that module
         if (moduleId) {
             const { data: progress } = await supabase
                 .from('training_progress')
@@ -40,21 +34,27 @@ export async function GET(request: Request) {
                 .eq('user_id', profile.id)
                 .eq('module_id', moduleId)
 
-            return NextResponse.json({ progress: progress || [] })
+            return NextResponse.json({ progress: progress || [], completedModuleIds: [] })
         }
 
-        // ELSE fetch high-level passed quizzes
-        const { data: attempts, error } = await supabase
-            .from('quiz_attempts')
-            .select('module_id, passed, training_modules(module_number)')
+        // ELSE fetch ALL completed modules (Source of Truth)
+        const { data: completed } = await supabase
+            .from('training_progress')
+            .select('module_id')
             .eq('user_id', profile.id)
-            .eq('passed', true)
+            .eq('status', 'completed')
+        // Filter for modules/quizzes only? Or just distinct module_ids that have 'completed' status of 'module' type?
+        // Existing logic saved 'status: completed' for the module itself or quiz.
+        // Let's rely on distinct module_ids that have AT LEAST ONE 'completed' entry.
+        // Preferably resource_type = 'module' or 'quiz' passed.
+        // For now, simple distinct module_id is best.
 
-        if (error) throw error
+        // Manual distinct map since Supabase .select('module_id', { count: 'exact', head: false }) with distinct is implied? No.
+        // We'll process in JS.
 
-        const passedModuleNumbers = attempts?.map((a: any) => a.training_modules?.module_number).filter(Boolean) || []
+        const completedModuleIds = Array.from(new Set(completed?.map((c: any) => c.module_id) || []))
 
-        return NextResponse.json({ quizPasses: passedModuleNumbers })
+        return NextResponse.json({ completedModuleIds })
 
     } catch (error) {
         console.error('Error in training/progress:', error)

@@ -22,12 +22,13 @@ type Module = {
 
 export default function TrainingPortalPage() {
   const [loading, setLoading] = useState(true)
-  const [quizPasses, setQuizPasses] = useState<number[]>([])
+  const [completedModuleIds, setCompletedModuleIds] = useState<string[]>([])
 
   // Combine modules for display? Or section them?
   // Let's section them: Basic Track (1-4) vs Advanced (5-8).
   const basicModules = basicFieldInspectionModules
   const advancedModules = advancedFieldInspectionModules
+  const totalModules = basicModules.length + advancedModules.length
 
   useEffect(() => {
     async function fetchData() {
@@ -36,10 +37,11 @@ export default function TrainingPortalPage() {
         const isDev = window.location.search.includes('dev=true') && process.env.NODE_ENV === 'development'
         const res = await fetch('/api/training/progress')
         if (res.ok) {
-          const { quizPasses: passed } = await res.json()
-          setQuizPasses(passed || [])
+          const { completedModuleIds } = await res.json()
+          setCompletedModuleIds(completedModuleIds || [])
         } else if (isDev) {
-          setQuizPasses([1, 2, 3, 4])
+          // Mock dev data
+          setCompletedModuleIds(basicModules.slice(0, 2).map(m => m.id))
         }
       } catch (err) {
         console.error(err)
@@ -52,26 +54,30 @@ export default function TrainingPortalPage() {
 
   // Helper to check lock
   const isLocked = (modIndex: number, track: 'basic' | 'advanced') => {
-    // Basic 1 (Index 0) -> Unlocked
-    // Basic 2 (Index 1) -> Requires Module 1 pass?
-    // Our data structure in `modules.ts` doesn't explicitly have `module_number`.
-    // We assume order.
-    // Logic: Mod N requires Mod N-1 passed.
-    // Mod 1: Unlocked.
-    // Mod 2: Requires 1.
-
-    let modNum = 0
-    if (track === 'basic') modNum = modIndex + 1
-    if (track === 'advanced') modNum = modIndex + 5
-
-    if (modNum === 1) return false
-    return !quizPasses.includes(modNum - 1)
+    if (track === 'basic') {
+      if (modIndex === 0) return false
+      // Requires previous module in Basic track to be done
+      const prevMod = basicModules[modIndex - 1]
+      return !completedModuleIds.includes(prevMod.id)
+    }
+    if (track === 'advanced') {
+      // Module 1 (Index 0 of Advanced) requires ALL Basic to be done? 
+      // Or just Basic 4? usually ALL basic.
+      if (modIndex === 0) {
+        // Check if all Basic are done
+        const allBasicDone = basicModules.every(m => completedModuleIds.includes(m.id))
+        return !allBasicDone
+      }
+      const prevMod = advancedModules[modIndex - 1]
+      return !completedModuleIds.includes(prevMod.id)
+    }
+    return true
   }
 
   const renderModuleCard = (mod: any, index: number, track: 'basic' | 'advanced') => {
     const locked = isLocked(index, track)
     const modNum = track === 'basic' ? index + 1 : index + 5
-    const isPassed = quizPasses.includes(modNum)
+    const isPassed = completedModuleIds.includes(mod.id)
     const href = `/training/${track}/${mod.id}`
 
     return (
@@ -111,7 +117,7 @@ export default function TrainingPortalPage() {
           {locked ? (
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 py-2 px-3 rounded-lg">
               <Lock className="w-3 h-3" />
-              <span>Complete Module {modNum - 1} Quiz to unlock</span>
+              <span>Complete previous module to unlock</span>
             </div>
           ) : (
             <Link
@@ -142,12 +148,12 @@ export default function TrainingPortalPage() {
             <div className="mt-6">
               <div className="flex justify-between text-xs font-semibold text-slate-600 mb-2">
                 <span>Certification Progress</span>
-                <span>{Math.round((quizPasses.length / 8) * 100)}%</span>
+                <span>{Math.round((completedModuleIds.length / totalModules) * 100)}%</span>
               </div>
               <div className="h-2 w-full bg-brand-copper/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-brand-copper transition-all duration-500"
-                  style={{ width: `${(quizPasses.length / 8) * 100}%` }}
+                  style={{ width: `${(completedModuleIds.length / totalModules) * 100}%` }}
                 />
               </div>
             </div>

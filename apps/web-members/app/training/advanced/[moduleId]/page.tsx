@@ -8,6 +8,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { generateCertificate } from '@/lib/certificate'
 import { Input } from '@/components/ui/input'
+import { basicFieldInspectionModules } from '../../basic/modules'
 import { advancedFieldInspectionModules } from '../modules'
 import { cn } from '@/lib/utils'
 
@@ -43,40 +44,18 @@ export default function ModulePlayerPage() {
     useEffect(() => {
         async function loadProgress() {
             try {
-                // Fetch completed modules/progress
-                // We use generic progress API which returns quizPasses (module numbers or IDs?)
-                // Wait, training/progress returns module NUMBERS.
-                // This page uses module IDs (slugs).
-                // We might need to fetch granular progress to get completed module IDs.
-                // Let's just fetch granular progress for THIS module to check completion.
-                // And maybe others if sidebar needs it? Sidebar loops all modules.
-                // Current implementation fetched ALL completed modules for user.
-
-                // Let's just fetch granular progress for this user via API if possible?
-                // Currently API only supports `moduleId` param or returns `quizPasses`.
-                // `quizPasses` are numbers. `basicFieldInspectionModules` has IDs.
-                // We might need a map.
-
-                // Hack: Fetch this module's status.
-                const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
+                // Fetch ALL progress for sidebar locking
+                const res = await fetch('/api/training/progress')
                 if (res.ok) {
-                    const { progress } = await res.json()
-                    const isDone = progress?.some((r: any) => r.status === 'completed' && (!r.resource_type || r.resource_type === 'module')) // Logic?
-                    // Previous code checked `r.module_id === moduleId` (implied by query) AND status completed.
-                    // But wait, previous code fetched ALL completed modules.
-                    // It updated `completedModules` state which sidebar uses.
-
-                    // I'll skip fetching ALL modules for sidebar for now (or assume sidebar doesn't update).
-                    // Or I need an API to get "all completed module IDs".
-
-                    if (isDone) setCompletedModules(prev => [...prev, moduleId])
+                    const { completedModuleIds } = await res.json()
+                    setCompletedModules(completedModuleIds || [])
                 }
             } catch (err) {
                 console.error(err)
             }
         }
         loadProgress()
-    }, [moduleId])
+    }, [])
 
     if (!currentModule) {
         return (
@@ -133,21 +112,26 @@ export default function ModulePlayerPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                    {advancedFieldInspectionModules.map((module) => {
+                    {advancedFieldInspectionModules.map((module, index) => {
                         const isActive = module.id === moduleId
                         const isCompleted = completedModules.includes(module.id)
 
-                        return (
-                            <Link
-                                key={module.id}
-                                href={`/training/advanced/${module.id}`}
-                                className={cn(
-                                    "flex items-start gap-3 p-3 rounded-xl transition-all border border-transparent",
-                                    isActive ? "bg-emerald-50 border-emerald-100 ring-1 ring-emerald-200" : "hover:bg-slate-50 hover:border-slate-200",
-                                    // Dim if done? No, keep bright.
-                                    isCompleted ? "opacity-100" : ""
-                                )}
-                            >
+                        // Strict Locking Logic for Advanced:
+                        // Index 0 (Mod 5) requires Basic Mod 4 (last basic) to be done.
+                        // Other indices require previous Advanced mod to be done.
+                        let isUnlocked = false
+                        if (index === 0) {
+                            const lastBasic = basicFieldInspectionModules[basicFieldInspectionModules.length - 1]
+                            isUnlocked = completedModules.includes(lastBasic.id)
+                        } else {
+                            isUnlocked = completedModules.includes(advancedFieldInspectionModules[index - 1].id)
+                        }
+
+                        const content = (
+                            <div className={cn(
+                                "flex items-start gap-3 p-3 rounded-xl transition-all border border-transparent w-full text-left",
+                                isActive ? "bg-emerald-50 border-emerald-100 ring-1 ring-emerald-200" : isUnlocked ? "hover:bg-slate-50 hover:border-slate-200 cursor-pointer" : "opacity-50 cursor-not-allowed bg-slate-50/50"
+                            )}>
                                 <div className="mt-0.5">
                                     {isActive ? (
                                         <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center shadow-sm">
@@ -155,18 +139,30 @@ export default function ModulePlayerPage() {
                                         </div>
                                     ) : isCompleted ? (
                                         <CheckCircle className="w-5 h-5 text-emerald-500" />
-                                    ) : (
+                                    ) : isUnlocked ? (
                                         <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
+                                    ) : (
+                                        <Lock className="w-5 h-5 text-slate-300" />
                                     )}
                                 </div>
                                 <div>
-                                    <h4 className={cn("text-sm font-semibold leading-tight", isActive ? "text-emerald-900" : "text-slate-700")}>
+                                    <h4 className={cn("text-sm font-semibold leading-tight", isActive ? "text-emerald-900" : isUnlocked ? "text-slate-700" : "text-slate-400")}>
                                         {module.title}
                                     </h4>
                                     <p className="text-xs text-slate-500 mt-1">{module.duration} {module.quiz ? '• Quiz' : ''}</p>
                                 </div>
-                            </Link>
+                            </div>
                         )
+
+                        if (isUnlocked) {
+                            return (
+                                <Link key={module.id} href={`/training/advanced/${module.id}`}>
+                                    {content}
+                                </Link>
+                            )
+                        }
+
+                        return <div key={module.id}>{content}</div>
                     })}
                 </div>
 
