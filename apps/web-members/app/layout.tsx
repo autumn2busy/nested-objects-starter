@@ -49,20 +49,25 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Outseta install snippet */}
-        <Script id="outseta-config" strategy="beforeInteractive">
-          {`
-            var o_options = {
-              domain: 'nested-objects.outseta.com',
-              load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
-            };
-          `}
-        </Script>
-        <Script
-          id="outseta-script"
-          src="https://cdn.outseta.com/outseta.min.js"
-          strategy="afterInteractive"
-          data-options="o_options"
-        />
+        {/* Outseta install snippet - Only load in production or if explicitly enabled to prevent local redirects */}
+        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
+          <>
+            <Script id="outseta-config" strategy="beforeInteractive">
+              {`
+                var o_options = {
+                  domain: 'nested-objects.outseta.com',
+                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+                };
+              `}
+            </Script>
+            <Script
+              id="outseta-script"
+              src="https://cdn.outseta.com/outseta.min.js"
+              strategy="afterInteractive"
+              data-options="o_options"
+            />
+          </>
+        )}
       </head>
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
         <AuthProvider>
