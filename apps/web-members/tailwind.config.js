@@ -19,6 +19,7 @@ module.exports = {
           steel: '#A9A9A9',
           teal: '#2A7166',
           tealDark: '#1E5249',
+          auth: '#2A7166', // Copied from DEFAULT as placeholder
         },
         surface: {
           base: '#FFFFFF',

@@ -8,6 +8,11 @@ export async function GET(request: Request) {
         const outsetaId = getOutsetaUserId(user)
 
         if (!user || !outsetaId) {
+            console.log('API Auth Failed:', {
+                hasUser: !!user,
+                hasOutsetaId: !!outsetaId,
+                cookies: request.headers.get('cookie')
+            })
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

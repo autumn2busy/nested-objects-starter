@@ -189,6 +189,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return
 
         if (payload) {
+          // Sync access token to cookie for server-side auth
+          try {
+            const accessToken = await Outseta.getAccessToken()
+            if (accessToken) {
+              document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
+            }
+          } catch (e) {
+            console.error('Error syncing auth cookie', e)
+          }
+
           setUser(payload)
           setPlanUid(payload['outseta:planUid'] ?? null)
           setIsAuthenticated(true)
