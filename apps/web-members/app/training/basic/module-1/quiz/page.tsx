@@ -26,18 +26,14 @@ export default function QuizPage() {
     const [candidateName, setCandidateName] = useState('')
     const [userId, setUserId] = useState<string | null>(null)
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Removed Supabase client
+    // const supabase = createBrowserClient(...)
 
-    useEffect(() => {
-        async function loadUser() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) setUserId(user.id)
-        }
-        loadUser()
-    }, [supabase])
+    // Auth handled by API
+    // useEffect(() => {
+    //     async function loadUser() { ... }
+    //     loadUser()
+    // }, [supabase])
 
     const handleAnswer = (optionIndex: number) => {
         const newAnswers = [...answers]
@@ -58,16 +54,21 @@ export default function QuizPage() {
         setPassed(isPassed)
         setSubmitted(true)
 
-        if (userId) {
-            await supabase.from('training_progress').upsert({
-                user_id: userId,
-                module_id: 'orientation',
-                resource_type: 'quiz', // Assuming 'quiz' is valid resource_type now
-                quiz_score: finalScore,
-                quiz_passed: isPassed,
-                status: isPassed ? 'completed' : 'failed',
-                updated_at: new Date().toISOString()
+        // Submit to API
+        try {
+            await fetch('/api/training/progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    module_id: 'orientation',
+                    resource_type: 'quiz',
+                    quiz_score: finalScore,
+                    quiz_passed: isPassed,
+                    status: isPassed ? 'completed' : 'failed'
+                })
             })
+        } catch (err) {
+            console.error('Failed to save quiz result', err)
         }
     }
 

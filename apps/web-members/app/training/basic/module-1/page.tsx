@@ -22,35 +22,41 @@ export default function Module1OverviewPage() {
     })
     const [loading, setLoading] = useState(true)
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Supabase client only for public data if needed, or remove if not used for other things.
+    // Actually we don't need it for progress anymore.
+    // But we might need it for something else?
+    // The previous code verified user first.
+    // We can just rely on the API call.
 
     useEffect(() => {
         async function loadProgress() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
+            try {
+                const res = await fetch('/api/training/progress?moduleId=orientation')
+                if (!res.ok) {
+                    // If 401, maybe redirect or just show empty?
+                    // For now, just stop loading
+                    setLoading(false)
+                    return
+                }
 
-            // Fetch granular progress
-            const { data } = await supabase
-                .from('training_progress')
-                .select('lesson_id, resource_type, status')
-                .eq('user_id', user.id)
-                .eq('module_id', 'orientation')
+                const { progress: data } = await res.json()
 
-            const completedLessons = data
-                ?.filter(r => r.resource_type === 'lesson' && r.status === 'completed')
-                .map(r => r.lesson_id) || []
+                const completedLessons = data
+                    ?.filter((r: any) => r.resource_type === 'lesson' && r.status === 'completed')
+                    .map((r: any) => r.lesson_id) || []
 
-            const scenariosCompleted = data?.some(r => r.resource_type === 'scenario' && r.status === 'completed') || false
-            const quizPassed = data?.some(r => r.resource_type === 'quiz' && r.status === 'completed') || false
+                const scenariosCompleted = data?.some((r: any) => r.resource_type === 'scenario' && r.status === 'completed') || false
+                const quizPassed = data?.some((r: any) => r.resource_type === 'quiz' && r.status === 'completed') || false
 
-            setProgress({ completedLessons, scenariosCompleted, quizPassed })
-            setLoading(false)
+                setProgress({ completedLessons, scenariosCompleted, quizPassed })
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
         }
         loadProgress()
-    }, [supabase])
+    }, [])
 
     const totalLessons = moduleData.lessons?.length || 0
     const completedCount = progress.completedLessons.length

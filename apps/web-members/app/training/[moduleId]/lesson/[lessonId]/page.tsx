@@ -44,19 +44,18 @@ export default function LessonPlayerPage() {
                 if (error) throw error
                 setLesson(currentLesson)
 
-                // 2. Fetch Completion Status
-                const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    const { data: progress } = await supabase
-                        .from('training_progress')
-                        .select('status')
-                        .eq('user_id', user.id)
-                        .eq('lesson_id', lessonId)
-                        .single()
-
-                    if (progress?.status === 'completed') {
-                        setCompleted(true)
+                // 2. Fetch Completion Status via API
+                try {
+                    const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
+                    if (res.ok) {
+                        const { progress } = await res.json()
+                        const lessonProgress = progress?.find((p: any) => p.lesson_id === lessonId)
+                        if (lessonProgress?.status === 'completed') {
+                            setCompleted(true)
+                        }
                     }
+                } catch (err) {
+                    console.error(err)
                 }
 
                 // 3. Find Next Lesson
@@ -85,20 +84,17 @@ export default function LessonPlayerPage() {
 
     const handleMarkComplete = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-
-            const { error } = await supabase
-                .from('training_progress')
-                .upsert({
-                    user_id: user.id,
+            const response = await fetch('/api/training/progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     module_id: moduleId,
                     lesson_id: lessonId,
-                    status: 'completed',
-                    updated_at: new Date().toISOString()
+                    status: 'completed'
                 })
+            })
 
-            if (!error) {
+            if (response.ok) {
                 setCompleted(true)
                 // Optional: Auto-redirect or just show success
                 if (nextLessonId) {

@@ -74,18 +74,18 @@ export default function ModuleOverviewPage() {
 
                 if (resourceData) setResources(resourceData)
 
-                // 4. Fetch Progress
-                const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    const { data: progress } = await supabase
-                        .from('training_progress')
-                        .select('lesson_id')
-                        .eq('user_id', user.id)
-                        .eq('status', 'completed')
-
-                    if (progress) {
-                        setCompletedLessonIds(progress.map(p => p.lesson_id))
+                // 4. Fetch Progress via API
+                try {
+                    const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
+                    if (res.ok) {
+                        const { progress } = await res.json()
+                        // Ensure progress is array
+                        const pList = Array.isArray(progress) ? progress : []
+                        // Filter for completed lessons
+                        setCompletedLessonIds(pList.filter((p: any) => p.status === 'completed' && p.resource_type === 'lesson' || p.lesson_id && !p.resource_type /* legacy fallback */).map((p: any) => p.lesson_id))
                     }
+                } catch (err) {
+                    console.error('Error fetching progress:', err)
                 }
 
             } catch (error) {

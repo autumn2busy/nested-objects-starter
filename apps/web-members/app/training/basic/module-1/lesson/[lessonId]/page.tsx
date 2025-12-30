@@ -33,45 +33,43 @@ export default function LessonPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Removed Supabase client
+    // const supabase = createBrowserClient(...)
 
     useEffect(() => {
         async function loadData() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-            setUserId(user.id)
+            try {
+                const res = await fetch('/api/training/progress?moduleId=orientation')
+                if (!res.ok) return
 
-            const { data } = await supabase
-                .from('training_progress')
-                .select('lesson_id, status')
-                .eq('user_id', user.id)
-                .eq('module_id', 'orientation')
-                .eq('resource_type', 'lesson')
-
-            setCompletedLessons(data?.filter(r => r.status === 'completed').map(r => r.lesson_id) || [])
+                const { progress: data } = await res.json()
+                setCompletedLessons(data?.filter((r: any) => r.status === 'completed').map((r: any) => r.lesson_id) || [])
+            } catch (err) {
+                console.error(err)
+            }
         }
         loadData()
-    }, [supabase])
+    }, [])
 
     if (!currentLesson) return <div>Lesson not found</div>
 
     const handleComplete = async () => {
-        if (!userId) return
+        // No userId check needed, API handles auth
+        // if (!userId) return
 
         // Optimistic update
         setCompletedLessons(prev => [...prev, lessonId])
 
-        await supabase.from('training_progress').upsert({
-            user_id: userId,
-            module_id: 'orientation',
-            lesson_id: lessonId,
-            resource_type: 'lesson',
-            status: 'completed',
-            updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id, module_id, lesson_id' })
+        await fetch('/api/training/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                module_id: 'orientation',
+                lesson_id: lessonId,
+                resource_type: 'lesson',
+                status: 'completed'
+            })
+        })
 
         // Auto-advance logic
         const nextLesson = moduleData.lessons?.[currentIndex + 1]
@@ -89,7 +87,7 @@ export default function LessonPage() {
         <div className="flex min-h-screen bg-slate-50 font-sans">
             {/* Mobile Sidebar Toggle */}
             <div className="lg:hidden fixed top-20 right-4 z-50">
-               <Button variant="secondary" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white shadow p-2"> 
+                <Button variant="secondary" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white shadow p-2">
                     <Menu className="w-5 h-5" />
                 </Button>
             </div>

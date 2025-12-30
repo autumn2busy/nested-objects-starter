@@ -17,30 +17,22 @@ export default function ScenariosPage() {
     const [completedScenarios, setCompletedScenarios] = useState<string[]>([])
     const [userId, setUserId] = useState<string | null>(null)
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Removed Supabase client initialization
 
     useEffect(() => {
         async function loadProgress() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-            setUserId(user.id)
+            try {
+                const res = await fetch('/api/training/progress?moduleId=orientation')
+                if (!res.ok) return
 
-            // Mark page as "visited/completed" if all scenarios done? 
-            // For now, let's just track individual completion locally or per click.
-            const { data } = await supabase
-                .from('training_progress')
-                .select('lesson_id, status')
-                .eq('user_id', user.id)
-                .eq('module_id', 'orientation')
-                .eq('resource_type', 'scenario')
-
-            setCompletedScenarios(data?.filter(r => r.status === 'completed').map(r => r.lesson_id) || [])
+                const { progress: data } = await res.json()
+                setCompletedScenarios(data?.filter((r: any) => r.resource_type === 'scenario' && r.status === 'completed').map((r: any) => r.lesson_id) || [])
+            } catch (err) {
+                console.error(err)
+            }
         }
         loadProgress()
-    }, [supabase])
+    }, [])
 
     const toggleSection = (scenarioId: string, section: 'decision' | 'outcome' | 'debrief') => {
         setExpandedMap(prev => ({
@@ -57,13 +49,16 @@ export default function ScenariosPage() {
         if (completedScenarios.includes(scenarioId)) return
 
         setCompletedScenarios(prev => [...prev, scenarioId])
-        await supabase.from('training_progress').upsert({
-            user_id: userId,
-            module_id: 'orientation',
-            lesson_id: scenarioId,
-            resource_type: 'scenario',
-            status: 'completed',
-            updated_at: new Date().toISOString()
+
+        await fetch('/api/training/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                module_id: 'orientation',
+                lesson_id: scenarioId,
+                resource_type: 'scenario',
+                status: 'completed'
+            })
         })
     }
 

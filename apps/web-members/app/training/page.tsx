@@ -41,22 +41,16 @@ export default function TrainingPortalPage() {
 
         if (modulesError) throw modulesError
 
-        // 2. Fetch User Progress (Check quiz attempts or module completion)
-        const { data: { user } } = await supabase.auth.getUser()
-
+        // 2. Fetch User Progress (via API route)
         // DEV BYPASS: ?dev=true in URL (only in development)
         const isDev = window.location.search.includes('dev=true') && process.env.NODE_ENV === 'development'
 
-        if (user) {
-          // Check completed quizzes to determine locks
-          const { data: attempts } = await supabase
-            .from('quiz_attempts')
-            .select('module_id, passed, training_modules(module_number)')
-            .eq('user_id', user.id)
-            .eq('passed', true)
+        // Fetch from API
+        const res = await fetch('/api/training/progress')
 
-          const passedModuleNumbers = attempts?.map((a: any) => a.training_modules.module_number) || []
-          setQuizPasses(passedModuleNumbers)
+        if (res.ok) {
+          const { quizPasses: passed } = await res.json()
+          setQuizPasses(passed || [])
         } else if (isDev) {
           // Mock progress for verification
           console.log('DEV MODE: Mocking progress')
