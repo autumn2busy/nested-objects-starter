@@ -140,9 +140,17 @@ export default function QuizPage() {
                             >
                                 Download Certificate 🎖️
                             </Button>
-                            <Link href="/training">
-                                <Button variant="link" className="text-slate-500 mt-2">Return to Training Hub</Button>
-                            </Link>
+
+                            <div className="pt-4 border-t border-slate-100">
+                                <Link href="/training">
+                                    <Button size="lg" className="w-full max-w-sm bg-slate-900 text-white hover:bg-slate-800">
+                                        Return to Dashboard
+                                    </Button>
+                                </Link>
+                                <p className="text-xs text-slate-500 mt-2">
+                                    Your progress has been saved.
+                                </p>
+                            </div>
                         </div>
                     ) : (
                         <div className="text-center space-y-4">
