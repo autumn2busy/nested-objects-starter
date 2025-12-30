@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import jwksClient from 'jwks-rsa'
 import { cookies } from 'next/headers'
 
 interface OutsetaJWTPayload {
@@ -39,41 +40,51 @@ export const FEATURE_ACCESS: Record<string, string[]> = {
   white_label: [PLAN_UIDS.AGENCY]
 }
 
-/**
- * Verify an Outseta JWT token
- * 
- * For production use, you should fetch and cache Outseta's public key from:
- * https://nested-objects.outseta.com/.well-known/jwks
- * 
- * For now, we'll decode without verification (for development only)
- * TODO: Add proper JWT verification with Outseta's public key
- */
+const client = jwksClient({
+  jwksUri: 'https://nested-objects.outseta.com/.well-known/jwks'
+})
+
+function getKey(header: any, callback: any) {
+  client.getSigningKey(header.kid, function (err, key) {
+    if (err) {
+      callback(err, null)
+      return
+    }
+    const signingKey = key?.getPublicKey()
+    callback(null, signingKey)
+  })
+}
+
 export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPayload | null> {
-  try {
-    // Decode the JWT without verification (DEVELOPMENT ONLY)
-    // In production, you should verify the signature using Outseta's public key
-    const decoded = jwt.decode(token) as OutsetaJWTPayload | null
-    
-    if (!decoded) {
-      return null
-    }
+  return new Promise((resolve) => {
+    jwt.verify(
+      token,
+      getKey,
+      {
+        // Outseta tokens don't strictly set "audience" to your site ID in some versions, 
+        // but they do set issuer. We check issuer rigorously.
+        algorithms: ['RS256']
+      },
+      (err, decoded) => {
+        if (err) {
+          console.error('JWT Verification Failed:', err.message)
+          resolve(null)
+          return
+        }
 
-    // Check if token is expired
-    const now = Math.floor(Date.now() / 1000)
-    if (decoded.exp && decoded.exp < now) {
-      return null
-    }
+        const payload = decoded as OutsetaJWTPayload
 
-    // Verify issuer matches Outseta domain
-    if (!decoded.iss || !decoded.iss.includes('outseta.com')) {
-      return null
-    }
+        // Verify issuer matches Outseta domain
+        if (!payload.iss || !payload.iss.includes('outseta.com')) {
+          console.error('JWT Issuer Mismatch:', payload.iss)
+          resolve(null)
+          return
+        }
 
-    return decoded
-  } catch (error) {
-    console.error('Error verifying Outseta token:', error)
-    return null
-  }
+        resolve(payload)
+      }
+    )
+  })
 }
 
 export function getOutsetaUserId(user: OutsetaJWTPayload | null) {
