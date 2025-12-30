@@ -77,14 +77,40 @@ export async function POST(request: Request) {
         const supabase = createServiceRoleClient()
 
         // 1. Get Profile ID
-        const { data: profile } = await supabase
+        // 1. Get Profile ID
+        let { data: profile } = await supabase
             .from('profiles')
             .select('id')
             .eq('outseta_account_id', outsetaId)
             .single()
 
         if (!profile) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+            console.log(`Profile not found for outsetaId: ${outsetaId}. Attempting to create...`)
+
+            // Attempt to create profile (Auto-provisioning)
+            // Note: This assumes profiles.id is auto-generated or not strictly tied to auth.users if Supabase Auth isn't used directly.
+            // If it IS tied, we might fail here, but the error message will be revealing.
+            const { data: newProfile, error: createError } = await supabase
+                .from('profiles')
+                .insert({
+                    outseta_account_id: outsetaId,
+                    email: user.email,
+                    full_name: user.name,
+                    updated_at: new Date().toISOString()
+                })
+                .select('id')
+                .single()
+
+            if (createError || !newProfile) {
+                console.error('Failed to create profile:', createError)
+                return NextResponse.json({
+                    error: 'Profile not found and creation failed',
+                    details: createError?.message,
+                    outsetaId
+                }, { status: 404 }) // Keeping 404 or 500? 404 is technically correct for "Profile failed", but 500 might be better for "Creation failed".
+            }
+
+            profile = newProfile
         }
 
         // 2. Upsert Progress
