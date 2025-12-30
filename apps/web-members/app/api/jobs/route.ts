@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '@/lib/supabase-admin'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
 
     // Fetch jobs from the public.jobs table
     // Ordering by posted_date descending (newest first)

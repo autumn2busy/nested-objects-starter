@@ -162,8 +162,12 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true })
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating progress:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json({
+            error: 'Internal Server Error',
+            details: error?.message,
+            code: error?.code
+        }, { status: 500 })
     }
 }
