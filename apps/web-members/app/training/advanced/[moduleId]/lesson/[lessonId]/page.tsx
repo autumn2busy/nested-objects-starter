@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, ArrowRight, CheckCircle, Circle, Menu, BookOpen, AlertTriangle, Home, Car, PenTool } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { basicFieldInspectionModules } from '../../../modules'
+import { advancedFieldInspectionModules } from '../../../modules'
 import { cn } from '@/lib/utils'
 
 // Icons for audience callouts
@@ -24,22 +24,18 @@ const AudienceIcon = ({ type }: { type: string }) => {
 export default function LessonPage() {
     const params = useParams()
     const router = useRouter()
+    const moduleId = params.moduleId as string
     const lessonId = params.lessonId as string
-    const moduleData = basicFieldInspectionModules.find(m => m.id === 'orientation')!
-    const currentIndex = moduleData.lessons?.findIndex(l => l.id === lessonId) ?? -1
-    const currentLesson = moduleData.lessons?.[currentIndex]
+    const moduleData = advancedFieldInspectionModules.find(m => m.id === moduleId)
 
     const [completedLessons, setCompletedLessons] = useState<string[]>([])
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
 
-    // Removed Supabase client
-    // const supabase = createBrowserClient(...)
-
     useEffect(() => {
         async function loadData() {
             try {
-                const res = await fetch('/api/training/progress?moduleId=orientation')
+                const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
                 if (!res.ok) return
 
                 const { progress: data } = await res.json()
@@ -49,14 +45,17 @@ export default function LessonPage() {
             }
         }
         loadData()
-    }, [])
+    }, [moduleId])
+
+    // Early return if not found - AFTER hooks
+    if (!moduleData) return <div>Module not found</div>
+
+    const currentIndex = moduleData.lessons?.findIndex(l => l.id === lessonId) ?? -1
+    const currentLesson = moduleData.lessons?.[currentIndex]
 
     if (!currentLesson) return <div>Lesson not found</div>
 
     const handleComplete = async () => {
-        // No userId check needed, API handles auth
-        // if (!userId) return
-
         // Optimistic update
         setCompletedLessons(prev => [...prev, lessonId])
 
@@ -64,7 +63,7 @@ export default function LessonPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                module_id: 'orientation',
+                module_id: moduleId,
                 lesson_id: lessonId,
                 resource_type: 'lesson',
                 status: 'completed'
@@ -74,9 +73,9 @@ export default function LessonPage() {
         // Auto-advance logic
         const nextLesson = moduleData.lessons?.[currentIndex + 1]
         if (nextLesson) {
-            router.push(`/training/basic/module-1/lesson/${nextLesson.id}`)
+            router.push(`/training/advanced/${moduleId}/lesson/${nextLesson.id}`)
         } else {
-            router.push('/training/basic/module-1')
+            router.push(`/training/advanced/${moduleId}`)
         }
     }
 
@@ -98,7 +97,7 @@ export default function LessonPage() {
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="p-6 border-b border-slate-100">
-                    <Link href="/training/basic/module-1" className="text-sm text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-4">
+                    <Link href={`/training/advanced/${moduleId}`} className="text-sm text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-4">
                         <ArrowLeft className="w-4 h-4" />
                         Back to Overview
                     </Link>
@@ -114,7 +113,7 @@ export default function LessonPage() {
                         return (
                             <Link
                                 key={lesson.id}
-                                href={`/training/basic/module-1/lesson/${lesson.id}`}
+                                href={`/training/advanced/${moduleId}/lesson/${lesson.id}`}
                                 className={cn(
                                     "flex items-start gap-3 p-3 rounded-lg text-sm transition-colors",
                                     isActive ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-600 hover:bg-slate-50",
@@ -166,7 +165,7 @@ export default function LessonPage() {
                     <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
                         {prevLesson ? (
                             <Link
-                                href={`/training/basic/module-1/lesson/${prevLesson.id}`}
+                                href={`/training/advanced/${moduleId}/lesson/${prevLesson.id}`}
                                 className="text-slate-500 hover:text-slate-900 font-medium flex items-center gap-2"
                             >
                                 <ArrowLeft className="w-4 h-4" />

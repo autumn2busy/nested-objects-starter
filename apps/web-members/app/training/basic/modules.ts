@@ -291,7 +291,134 @@ Always include a photo of a lit doorbell or a spinning electric meter as definit
       'Angle, distance, and timestamp expectations',
       'File naming and backup habits that prevent rework',
     ],
-    videoUrl: 'https://www.youtube.com/embed/7C141_zC9UI',
+    videoUrl: 'https://www.youtube.com/embed/KtfUM9X5VMg',
+    lessons: [
+      {
+        id: '1',
+        title: 'Pack the Essential Field Kit',
+        description: 'Prioritize safety and efficiency with a contractor-grade loadout.',
+        duration: '15 min',
+        content: `## Pack the Contractor-Grade Loadout
+
+> **Core Concept:** Your field kit must prioritize safety, efficiency, and reliability to guarantee zero rework.
+
+### Step-by-Step Instructions
+1. **Core Tech:** Primary phone (high-quality camera) + Power Bank (10,000mAh min).
+2. **Tools:** Laser measure, 25-foot tape measure, small ruler (for scale).
+3. **Safety:** High-visibility vest, non-slip boots.
+4. **Org:** Organize gear for quick "Vehicle-to-door" access.`
+      },
+      {
+        id: '2',
+        title: 'Master Lighting and Framing',
+        description: 'Context and Clarity: The two pillars of verifiable photos.',
+        duration: '20 min',
+        content: `## Master Context and Clarity in Photography
+
+> **Core Concept:** QC reviewers must be able to identify location/condition without reading notes.
+
+### Rules
+* **Horizontal Only:** Vertical photos are prohibited.
+* **The Sequence:** Context shot first, then Detail shot.
+* **Lighting:** Use flash in dark areas but step back to avoid washout.`
+      },
+      {
+        id: '3',
+        title: 'Enable Timestamps & GPS',
+        description: 'Validate location/time without visible stamps.',
+        duration: '10 min',
+        content: `## Validate Location and Time Metadata
+
+> **Core Concept:** Underlying metadata validates the fieldwork authenticity.
+
+### Protocol
+* **Do NOT** use visible time/date stamps on photos.
+* **Enable GPS/Location Services** on your camera app.
+* **Sync Device Time** to ensure accurate metadata.`
+      },
+      {
+        id: '4',
+        title: 'Organize Files & Backup',
+        description: 'Naming conventions and redundancy to prevent data loss.',
+        duration: '15 min',
+        content: `## Optimize File Naming and Data Redundancy
+
+> **Core Concept:** Quick retrieval prevents rework after app crashes.
+
+### Workflow
+* **Naming:** ORDERID_ADDRESS_SECTION_DESC.jpg
+* **Folders:** Create 01-Exterior, 02-Interior, 03-Damage.
+* **Backup:** Sync to cloud immediately; copy to backup drive daily.`
+      },
+      {
+        id: '5',
+        title: 'Good vs. Bad Examples',
+        description: 'Visualizing compliance standards.',
+        duration: '15 min',
+        content: `## Evaluate Compliance Through Visual Comparison
+
+### comparisons
+* **Bad:** Blurry address; Close-up of crack only; Dark interior.
+* **Good:** Sharp address with context; Wall shot + close-up with ruler; Bright, corner-to-corner interior shot.`
+      },
+      {
+        id: '6',
+        title: 'Troubleshoot Rejections',
+        description: 'Fixing common non-compliance issues.',
+        duration: '15 min',
+        content: `## Troubleshoot Non-Compliance
+
+> **Core Concept:** Rejections stem from missing mandatory evidence or privacy breaches.
+
+### Checklist
+* **Format:** 4:3 ratio, Horizontal, >1024x768.
+* **Privacy:** NO people, NO reflections of inspector, NO interior views through windows.`
+      }
+    ] as Lesson[],
+    scenarios: [
+      {
+        id: 'sunset-failure',
+        title: 'Scenario: The Sunset Inspection Failure',
+        situation: 'Arrived at 4:30 PM (sunset). 40 photos taken. Failures: Dark photos, dead phone, confused interior shots.',
+        decisionPoints: [
+          {
+            question: "Do you return tonight to retake photos, or submit what you have?",
+            options: [
+              {
+                text: "Submit what you have (dark/blurry).",
+                isOptimal: false,
+                feedback: "QC Rejection. Unreadable images are unverifiable."
+              },
+              {
+                text: "Return immediately, use flashlight/car charger, retake.",
+                isOptimal: true,
+                feedback: "Correct. Clear evidence prevents rejection."
+              }
+            ]
+          },
+          {
+            question: "How do you fix the timestamp issue (none visible)?",
+            options: [
+              {
+                text: "Download app to add visible stamps.",
+                isOptimal: false,
+                feedback: "Rejection. Visible stamps are prohibited."
+              },
+              {
+                text: "Verify metadata/GPS settings only.",
+                isOptimal: true,
+                feedback: "Correct. Metadata validates the work silently."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Successful submission, no return trip needed.",
+          suboptimal: "Rejection, forced return trip next day."
+        },
+        debrief: "Field kit readiness (battery, light) prevents costly rework."
+      }
+    ] as Scenario[],
     flashcards: [
       { front: "What is the minimum acceptable resolution standard for submitted inspection photos?", back: "1024x768 (though 1600x1200 is preferred)." },
       { front: "Which piece of equipment is considered mandatory 'Core Tech' to prevent fieldwork failure from dead batteries?", back: "A portable power bank with at least 10,000mAh." },
@@ -509,7 +636,176 @@ Always include a photo of a lit doorbell or a spinning electric meter as definit
       'Exterior sweep, interior rooms, and measurements',
       'Uploading proofs that avoid lender callbacks',
     ],
-    videoUrl: 'https://www.youtube.com/embed/lBFR2W_skrU',
+    videoUrl: 'https://www.youtube.com/embed/22oUdcEApi0',
+    lessons: [
+      {
+        id: '1',
+        title: 'Pre-Call Prep and Arrival',
+        description: 'The first 5 minutes: Validating orders and safety scans.',
+        duration: '15 min',
+        content: `## Pre-Call Prep and Arrival
+
+> **Core Concept:** Success begins before you start the engine.
+
+### Checklist
+1. **Verify Order:** Check address, code, inspection type.
+2. **Tech Check:** Login to portal while having signal.
+3. **Arrival:** Park for quick exit; scan for dogs/hazards.`
+      },
+      {
+        id: '2',
+        title: 'Execute Clean Occupancy Check',
+        description: 'The Neutral "Four-Side Loop" and specific indicators.',
+        duration: '20 min',
+        content: `## Execute a Clean Occupancy Inspection
+
+> **Core Concept:** Provide neutral, factual evidence of occupancy status.
+
+### Workflow
+1. **Identity:** House number (Tight + Wide).
+2. **The Loop:** Front -> Right -> Rear -> Left.
+3. **Indicators:** Active utilities? Car? Mowed lawn? (Neutral observations only).`
+      },
+      {
+        id: '3',
+        title: 'Interior Authorized Inspections',
+        description: 'Room flow and measurement integrity.',
+        duration: '20 min',
+        content: `## Handle Interior Authorized Inspections
+
+> **Core Concept:** Document condition of every room with logical flow.
+
+### Workflow
+1. **Overview:** Wide shot of every room.
+2. **Measurement:** Wall-to-wall at floor level.
+3. **Defects:** Context first, then Detail.`
+      },
+      {
+        id: '4',
+        title: 'Loss Draft & Repair Progress',
+        description: 'Materials vs. Installed Work.',
+        duration: '20 min',
+        content: `## Document Loss Draft and Repair Progress
+
+> **Core Concept:** Verify **installed** work, not just materials on site.
+
+### Rules
+* **Quantify:** Measure size of repairs.
+* **Materials:** Do NOT count materials on site (uninstalled) as progress.
+* **Quality:** Document work quality.`
+      },
+      {
+        id: '5',
+        title: 'Upload Photos for First Pass',
+        description: 'Coordinator-proof submission strategies.',
+        duration: '15 min',
+        content: `## Upload Photos that Pass First Review
+
+> **Core Concept:** Organized, labeled, complete.
+
+### Checklist
+* **Scan:** Check for blur/darkness.
+* **Order:** Upload in portal's requested order.
+* **Proof:** PROOF OF SUBMISSION screenshot.`
+      },
+      {
+        id: '6',
+        title: 'Respond to Rejections',
+        description: 'Professional handling of revision requests.',
+        duration: '15 min',
+        content: `## Respond to Rejections Like a Pro
+
+> **Core Concept:** Speed and precision turning a negative into a positive.
+
+### Workflow
+1. **Identify Gap:** Read notes carefully.
+2. **Fix:** Provide the missing photo or context.
+3. **Resubmit:** Tag as "Revision" with note.`
+      }
+    ] as Lesson[],
+    scenarios: [
+      {
+        id: 'occupancy-gone-wrong',
+        title: 'Scenario A: Occupancy Check Gone Wrong',
+        situation: 'First solo day. Occupant is hostile and refuses entry ("Get off my property!"). Order requires interior photos.',
+        decisionPoints: [
+          {
+            question: "How do you proceed?",
+            options: [
+              {
+                text: "Argue/Negotiate to get interior photos.",
+                isOptimal: false,
+                feedback: "Unsafe. Never argue or discuss loan status."
+              },
+              {
+                text: "Back away, complete exterior from street, mark 'No Access' with notes.",
+                isOptimal: true,
+                feedback: "Correct. Safety first. Document refusal."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Safe retreat, valid report submitted with 'No Access' justification.",
+          suboptimal: "Escalation, police called, or rejection for missing data without explanation."
+        },
+        debrief: "Safety overrides data collection. Document the barrier."
+      },
+      {
+        id: 'loss-draft-materials',
+        title: 'Scenario B: The Materials Trap',
+        situation: 'Kitchen fire claim. 50 boxes of flooring in living room. Subfloor is bare. Homeowner wants 100% completion marked.',
+        decisionPoints: [
+          {
+            question: "Do you mark flooring as 100% complete?",
+            options: [
+              {
+                text: "Yes, materials are there.",
+                isOptimal: false,
+                feedback: "Fraud risk. Bank pays for installed work only."
+              },
+              {
+                text: "No. Mark 0% and explain materials are on-site but uninstalled.",
+                isOptimal: true,
+                feedback: "Correct. Protects lender collateral."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Accurate report, lender assets protected.",
+          suboptimal: "Potential fraud, report rejected."
+        },
+        debrief: "Materials on site != Completed work."
+      },
+      {
+        id: 'loss-draft-roof',
+        title: 'Scenario C: Roof Shingles Trap',
+        situation: 'Roof replacement. 25 bundles of shingles in driveway. Old shingles still on roof. Contractor pressures for draw approval.',
+        decisionPoints: [
+          {
+            question: "Do you approve the draw?",
+            options: [
+              {
+                text: "Approve. Contractor promised to install next week.",
+                isOptimal: false,
+                feedback: "Violation. You cannot verify future work."
+              },
+              {
+                text: "Report 0% complete. Document materials on site.",
+                isOptimal: true,
+                feedback: "Correct. Maintain integrity."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Integrity maintained.",
+          suboptimal: "Reputation damage, potential removal from vendor list."
+        },
+        debrief: "You are the eyes and ears of the bank, not the contractor's friend."
+      }
+    ] as Scenario[],
     flashcards: [
       { front: "What is the first photo you should take to establish a 'context-first' workflow?", back: "The nearest street sign or intersection (establishes indisputable location)." },
       { front: "On a digital electric meter, what does 'OPN' indicate?", back: "Open Circuit = Power is OFF." },
@@ -731,7 +1027,167 @@ Always include a photo of a lit doorbell or a spinning electric meter as definit
       'Photo requirements: Resolution, metadata, and the "Two-Photo Rule"',
       'Handling rejections and "Access Denial" scenarios professionally',
     ],
-    videoUrl: 'https://www.youtube.com/embed/gPHmP0PiGUo',
+    videoUrl: 'https://www.youtube.com/embed/REoW8dINYoI',
+    lessons: [
+      {
+        id: '1',
+        title: 'Write Objective, Factual Notes',
+        description: 'The "Language of Lending": Gold Standard vs. Unacceptable.',
+        duration: '20 min',
+        content: `## Write Objective, Factual Notes
+
+> **Core Concept:** Be the "eyes and ears," not the judge.
+
+### Strategies
+* **Structure:** Arrival > Verification > Scope > Condition > Departure.
+* **No Subjectivity:** Replace "ugly/bad" with specific observations ("discolored/missing").
+* **Absolute Definitions:** Use standard scales (C1-C6), avoid neighborhood comparisons.`
+      },
+      {
+        id: '2',
+        title: 'The 10-Minute Pre-Submit Ritual',
+        description: 'Prevent technically-driven rejections.',
+        duration: '15 min',
+        content: `## Execute the 10-Minute Pre-Submit Ritual
+
+> **Core Concept:** Standardization lowers costs and prevents friction.
+
+### Checklist
+* **Specs:** Checked format (JPG) and resolution?
+* **Yellow Cells:** All required fields filled?
+* **No-Rename:** Did NOT rename Excel tabs?
+* **Spell Check:** Run macro.`
+      },
+      {
+        id: '3',
+        title: 'Match Notes to Photos',
+        description: 'Building Digital Trust through consistency.',
+        duration: '15 min',
+        content: `## Match Notes to Photos
+
+> **Core Concept:** Contradictions destroy credibility.
+
+### Workflow
+* **Link:** Ensure every "Deferred Maintenance" item has a photo.
+* **ID Photos:** First photo = Overview/Address.
+* **Two-Photo Rule:** Context + Detail for every defect.`
+      },
+      {
+        id: '4',
+        title: 'Handle Rejections Professionally',
+        description: 'Turning revisions into "Prevention Rules".',
+        duration: '15 min',
+        content: `## Handle Rejections Professionally
+
+> **Core Concept:** Rejections are feedback loops.
+
+### Workflow
+1. **Log:** Track every rejection.
+2. **Prevention Rule:** Create a rule to prevent recurrence.
+3. **Fix:** Acknowledge and fix immediately.`
+      },
+      {
+        id: '5',
+        title: 'Communicate with Coordinators',
+        description: 'Short, professional, timestamped.',
+        duration: '15 min',
+        content: `## Communicate with Coordinators Effectively
+
+> **Core Concept:** No drama. Just facts.
+
+### Scripts
+* **Access Denied:** "Arrived [Time]. Access blocked by [Reason]. Photos uploaded. Advise."
+* **Boundaries:** Never discuss loan status with neighbors.`
+      }
+    ] as Lesson[],
+    scenarios: [
+      {
+        id: 'first-rejection',
+        title: 'Scenario A: First Rejection Response',
+        situation: 'Submitted report. Rejected next morning for "Dark foundation photos". Property is 45 mins away.',
+        decisionPoints: [
+          {
+            question: "How do you respond?",
+            options: [
+              {
+                text: "Argue photos are fine.",
+                isOptimal: false,
+                feedback: "Reputation damage."
+              },
+              {
+                text: "Edit photos to brighten them.",
+                isOptimal: false,
+                feedback: "Second rejection (edited metadata)."
+              },
+              {
+                text: "Return and retake with flash.",
+                isOptimal: true,
+                feedback: "Correct. Demonstrates commitment to accuracy."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Quick approval, trust built.",
+          suboptimal: "Lost client trust."
+        },
+        debrief: "Do it right the first time to avoid windshield time."
+      },
+      {
+        id: 'technical-trap',
+        title: 'Scenario B: The Technical Trap',
+        situation: 'Rush job. You rename Excel tabs to organize yourself. Yellow cells left blank.',
+        decisionPoints: [
+          {
+            question: "Submit modified file?",
+            options: [
+              {
+                text: "Yes, they can figure it out.",
+                isOptimal: false,
+                feedback: "Auto-rejection by system."
+              },
+              {
+                text: "Revert tabs, fill all cells.",
+                isOptimal: true,
+                feedback: "Correct. Passes data validation."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Fast payment.",
+          suboptimal: "Late penalties."
+        },
+        debrief: "Technical compliance is non-negotiable."
+      },
+      {
+        id: 'quality-speed',
+        title: 'Scenario C: Quality vs Speed',
+        situation: 'Finishing up. 3 PM. 3 more jobs. Notice 2 photos are blurry.',
+        decisionPoints: [
+          {
+            question: "What do you do?",
+            options: [
+              {
+                text: "Submit as-is (gamble).",
+                isOptimal: false,
+                feedback: "Rejection likely. Return trip costs double."
+              },
+              {
+                text: "Retake immediately.",
+                isOptimal: true,
+                feedback: "Correct. Gold Standard submission."
+              }
+            ]
+          }
+        ],
+        outcome: {
+          optimal: "Preferred vendor status.",
+          suboptimal: "High per-loan cost due to rework."
+        },
+        debrief: "Blurry photos are useless data."
+      }
+    ] as Scenario[],
     flashcards: [
       { front: "What does the acronym GPM stand for in property inspection?", back: "Gallons per minute (used for faucet/showerhead efficiency ratings)." },
       { front: "What is the 'faulty workmanship exclusion' (Exclusion j(6))?", back: "A CGL policy exclusion for property damage to the specific part of work that must be restored because it was performed incorrectly." },

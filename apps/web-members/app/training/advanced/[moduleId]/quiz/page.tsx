@@ -6,15 +6,21 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { ArrowLeft, CheckCircle, XCircle, Award, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { basicFieldInspectionModules } from '../../modules'
+import { advancedFieldInspectionModules } from '../../modules'
 import { generateCertificate } from '@/lib/certificate'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input' // Ensure Input component exists or adapt
 
+import { useParams } from 'next/navigation'
+// ... imports
+
 export default function QuizPage() {
     const router = useRouter()
-    const moduleData = basicFieldInspectionModules.find(m => m.id === 'orientation')!
-    const questions = moduleData.quiz || []
+    const params = useParams()
+    const moduleId = params.moduleId as string
+
+    const moduleData = advancedFieldInspectionModules.find(m => m.id === moduleId)
+    const questions = moduleData?.quiz || []
 
     // State
     const [started, setStarted] = useState(false)
@@ -26,14 +32,8 @@ export default function QuizPage() {
     const [candidateName, setCandidateName] = useState('')
     const [userId, setUserId] = useState<string | null>(null)
 
-    // Removed Supabase client
-    // const supabase = createBrowserClient(...)
-
-    // Auth handled by API
-    // useEffect(() => {
-    //     async function loadUser() { ... }
-    //     loadUser()
-    // }, [supabase])
+    // Safety check - AFTER hooks
+    if (!moduleData) return <div>Module not found</div>
 
     const handleAnswer = (optionIndex: number) => {
         const newAnswers = [...answers]
@@ -60,7 +60,7 @@ export default function QuizPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    module_id: 'orientation',
+                    module_id: moduleId,
                     resource_type: 'quiz',
                     quiz_score: finalScore,
                     quiz_passed: isPassed,
@@ -85,7 +85,7 @@ export default function QuizPage() {
                         You need 80% to pass and earn your certificate.
                     </p>
                     <div className="flex gap-4 justify-center">
-                        <Link href="/training/basic/module-1">
+                        <Link href={`/training/advanced/${moduleId}`}>
                             <Button variant="secondary">Cancel</Button>
                         </Link>
                         <Button
@@ -134,13 +134,13 @@ export default function QuizPage() {
                                 onChange={(e) => setCandidateName(e.target.value)}
                             />
                             <Button
-                                onClick={() => generateCertificate(candidateName || 'Valued Member', 'Module 1: Orientation', new Date().toLocaleDateString())}
+                                onClick={() => generateCertificate(candidateName || 'Valued Member', moduleData.title, new Date().toLocaleDateString())}
                                 className="w-full max-w-sm mx-auto bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold"
                                 disabled={!candidateName}
                             >
                                 Download Certificate 🎖️
                             </Button>
-                            <Link href="/training/basic">
+                            <Link href="/training">
                                 <Button variant="link" className="text-slate-500 mt-2">Return to Training Hub</Button>
                             </Link>
                         </div>
@@ -158,7 +158,7 @@ export default function QuizPage() {
                                 Retake Exam
                             </Button>
                             <div className="text-sm text-slate-500">
-                                <Link href="/training/basic/module-1" className="hover:underline">Review Material</Link>
+                                <Link href={`/training/basic/${moduleId}`} className="hover:underline">Review Material</Link>
                             </div>
                         </div>
                     )}

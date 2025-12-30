@@ -8,9 +8,14 @@ import { Button } from '@/components/ui/button'
 import { basicFieldInspectionModules, Scenario } from '../../modules'
 import { cn } from '@/lib/utils'
 
+import { useParams } from 'next/navigation'
+// ...
+
 export default function ScenariosPage() {
-    const moduleData = basicFieldInspectionModules.find(m => m.id === 'orientation')!
-    const scenarios = moduleData.scenarios || []
+    const params = useParams()
+    const moduleId = params.moduleId as string
+    const moduleData = basicFieldInspectionModules.find(m => m.id === moduleId)
+    const scenarios = moduleData?.scenarios || []
 
     // State to track expanded sections per scenario
     const [expandedMap, setExpandedMap] = useState<Record<string, { decision: boolean, outcome: boolean, debrief: boolean }>>({})
@@ -22,7 +27,7 @@ export default function ScenariosPage() {
     useEffect(() => {
         async function loadProgress() {
             try {
-                const res = await fetch('/api/training/progress?moduleId=orientation')
+                const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
                 if (!res.ok) return
 
                 const { progress: data } = await res.json()
@@ -32,7 +37,10 @@ export default function ScenariosPage() {
             }
         }
         loadProgress()
-    }, [])
+    }, [moduleId])
+
+    // Safety check - AFTER hooks
+    if (!moduleData) return <div>Module not found</div>
 
     const toggleSection = (scenarioId: string, section: 'decision' | 'outcome' | 'debrief') => {
         setExpandedMap(prev => ({
@@ -45,7 +53,7 @@ export default function ScenariosPage() {
     }
 
     const markScenarioComplete = async (scenarioId: string) => {
-        if (!userId) return
+        // if (!userId) return
         if (completedScenarios.includes(scenarioId)) return
 
         setCompletedScenarios(prev => [...prev, scenarioId])
@@ -54,7 +62,7 @@ export default function ScenariosPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                module_id: 'orientation',
+                module_id: moduleId,
                 lesson_id: scenarioId,
                 resource_type: 'scenario',
                 status: 'completed'
@@ -66,7 +74,7 @@ export default function ScenariosPage() {
         <div className="min-h-screen bg-slate-50 font-sans p-4 lg:p-12">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                    <Link href="/training/basic/module-1" className="text-sm text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-4">
+                    <Link href={`/training/basic/${moduleId}`} className="text-sm text-slate-500 hover:text-blue-600 flex items-center gap-2 mb-4">
                         <ArrowLeft className="w-4 h-4" />
                         Back to Overview
                     </Link>
