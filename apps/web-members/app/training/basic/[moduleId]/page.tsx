@@ -29,6 +29,7 @@ export default function ModulePlayerPage() {
     const [activeTab, setActiveTab] = useState<'syllabus' | 'flashcards'>('syllabus')
     const [currentFlashcard, setCurrentFlashcard] = useState(0)
     const [isFlipped, setIsFlipped] = useState(false)
+    const [candidateName, setCandidateName] = useState('')
 
     // Real Progress State
     const [completedModules, setCompletedModules] = useState<string[]>([])
@@ -277,7 +278,7 @@ export default function ModulePlayerPage() {
                                             </div>
                                         )}
                                         <Link href="/training">
-                                            <Button variant="outline" className="w-full border-emerald-700 text-emerald-100 hover:bg-emerald-800 hover:text-white mt-2">
+                                            <Button variant="ghost" className="w-full border border-emerald-700 text-emerald-100 hover:bg-emerald-800 hover:text-white mt-2">
                                                 Return to Dashboard
                                             </Button>
                                         </Link>

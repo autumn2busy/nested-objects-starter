@@ -143,7 +143,7 @@ export default function QuizPage() {
 
                             <div className="pt-4 border-t border-slate-100">
                                 <Link href="/training">
-                                    <Button size="lg" className="w-full max-w-sm bg-slate-900 text-white hover:bg-slate-800">
+                                    <Button className="w-full max-w-sm bg-slate-900 text-white hover:bg-slate-800 py-3">
                                         Return to Dashboard
                                     </Button>
                                 </Link>
