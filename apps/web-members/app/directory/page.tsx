@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Script from 'next/script'
 import { BadgeCheck } from 'lucide-react'
@@ -36,9 +36,10 @@ type Firm = {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || ''
 
 const US_STATES = [
+  // ... (states list remains)
+
   { code: 'ALL', label: 'All service areas' },
   { code: 'AL', label: 'Alabama' },
   { code: 'AK', label: 'Alaska' },
@@ -343,28 +344,8 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
   )
 }
 
-type MapPreviewProps = {
-  googleMapsKey: string
-}
+// MapPreview removed in favor of static image
 
-function MapPreview({ googleMapsKey }: MapPreviewProps) {
-  return (
-    <aside className="sticky top-8 border border-slate-200 bg-slate-50 px-4 py-4 text-sm shadow-sm">
-      <h2 className="text-sm font-semibold text-slate-900">Map preview</h2>
-      <p className="mb-3 mt-1 text-xs text-slate-600">
-        Pins show firms in your current filter. Hover to see details, click for more info.
-      </p>
-
-      {googleMapsKey ? (
-        <div id="google-map" className="h-[480px] w-full border border-slate-200" />
-      ) : (
-        <div className="flex h-[480px] items-center justify-center border border-dashed border-slate-300 bg-white px-4 text-center text-xs text-slate-500">
-          Configure NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY to enable the live map.
-        </div>
-      )}
-    </aside>
-  )
-}
 
 export default function DirectoryPage() {
   const { isAuthenticated, isLoading, planUid } = useAuth()
@@ -375,12 +356,9 @@ export default function DirectoryPage() {
   const [stateFilter, setStateFilter] = useState<string>('ALL')
   const [search, setSearch] = useState<string>('')
   const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
-  const [mapLoaded, setMapLoaded] = useState(false)
-
-  const mapRef = useRef<any>(null)
-  const markersRef = useRef<any[]>([])
 
   useEffect(() => {
+
     async function fetchFirms() {
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error('Missing Supabase env vars')
@@ -485,85 +463,8 @@ export default function DirectoryPage() {
   const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
   const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
 
-  useEffect(() => {
-    if (!mapLoaded || !window.google || displayedFirms.length === 0) return
+  // Map state removed
 
-    if (!mapRef.current) {
-      const mapElement = document.getElementById('google-map')
-      if (mapElement) {
-        mapRef.current = new window.google.maps.Map(mapElement, {
-          zoom: 4,
-          center: { lat: 39.8283, lng: -98.5795 },
-          mapTypeControl: true,
-          streetViewControl: false,
-          fullscreenControl: true,
-        })
-      }
-    }
-
-    markersRef.current.forEach((marker) => marker.setMap(null))
-    markersRef.current = []
-
-    const geocoder = new window.google.maps.Geocoder()
-    const bounds = new window.google.maps.LatLngBounds()
-    let geocodedCount = 0
-
-    displayedFirms.forEach((firm) => {
-      const address = buildAddress(firm)
-      if (!address) return
-
-      geocoder.geocode({ address }, (results: any, status: any) => {
-        if (status === 'OK' && results[0]) {
-          const location = results[0].geometry.location
-
-          const marker = new window.google.maps.Marker({
-            position: location,
-            map: mapRef.current,
-            title: firm.name,
-          })
-
-          const infoWindow = new window.google.maps.InfoWindow({
-            content: `
-              <div style="padding: 8px; max-width: 220px;">
-                <strong style="font-size: 14px;">${firm.name}</strong><br/>
-                <span style="font-size: 12px; color: #666;">${address}</span>
-              </div>
-            `,
-          })
-
-          marker.addListener('mouseover', () => {
-            infoWindow.open(mapRef.current, marker)
-          })
-
-          marker.addListener('mouseout', () => {
-            infoWindow.close()
-          })
-
-          marker.addListener('click', () => {
-            window.location.href = '/firms/${firm.slug ?? firm.id}'
-          })
-
-          markersRef.current.push(marker)
-          bounds.extend(location)
-
-          geocodedCount++
-          if (geocodedCount === displayedFirms.filter((f) => buildAddress(f)).length) {
-            mapRef.current.fitBounds(bounds)
-
-            window.google.maps.event.addListenerOnce(
-              mapRef.current,
-              'bounds_changed',
-              () => {
-                if (mapRef.current.getZoom() > 15) {
-                  mapRef.current.setZoom(15)
-                }
-              },
-            )
-          }
-        }
-      })
-    })
-  }, [displayedFirms, mapLoaded])
 
   // CollectionPage Schema (Dataset)
   const collectionSchema = {
@@ -612,13 +513,7 @@ export default function DirectoryPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
 
-      {GOOGLE_MAPS_KEY && (
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}`}
-          strategy="afterInteractive"
-          onLoad={() => setMapLoaded(true)}
-        />
-      )}
+      {/* Replaced Google Maps Script with Static Image logic (Cleaned up) */}
 
       <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
         <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
@@ -685,8 +580,21 @@ export default function DirectoryPage() {
                 ))}
               </div>
 
-              {/* Map */}
-              <MapPreview googleMapsKey={GOOGLE_MAPS_KEY} />
+              {/* Static Map Image */}
+              <aside className="sticky top-8 border border-slate-200 bg-slate-50 px-4 py-4 text-sm shadow-sm h-fit">
+                <h2 className="text-sm font-semibold text-slate-900">Map view</h2>
+                <p className="mb-3 mt-1 text-xs text-slate-600">
+                  Firms operate nationwide. Check specific service areas in the listing details.
+                </p>
+                <div className="w-full border border-slate-200 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/directory-map.jpg"
+                    alt="Map of US Service Coverage"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </aside>
             </section>
 
             {isStarter && filteredFirms.length > displayedFirms.length && (
