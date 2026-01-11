@@ -31,6 +31,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     user,
     isLoading,
     isAuthenticated,
+    login,
     logout,
     planUid,
     profileDisplayName,
@@ -201,16 +202,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                className={buttonVariants({
-                  variant: 'secondary',
-                  size: 'sm',
-                  className: 'bg-white/80 backdrop-blur',
-                })}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={login}
+                className="bg-white/80 backdrop-blur"
               >
                 Login
-              </a>
+              </Button>
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
                 className={buttonVariants({

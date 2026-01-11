@@ -45,12 +45,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const shouldLoadOutseta = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Outseta install snippet */}
-        {/* Outseta install snippet - Only load in production or if explicitly enabled to prevent local redirects */}
-        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
+        {shouldLoadOutseta && (
           <>
             <Script id="outseta-config" strategy="beforeInteractive">
               {`
