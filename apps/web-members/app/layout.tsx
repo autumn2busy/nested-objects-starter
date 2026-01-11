@@ -54,24 +54,20 @@ export default function RootLayout({
       <head>
         {shouldLoadOutseta && (
           <>
-            <Script id="outseta-config" strategy="beforeInteractive">
-              {`
-                // Ensure config exists before outseta.min.js loads
-                window.o_options = {
-                  domain: 'nested-objects.outseta.com',
-                  // Critical for Next.js client-side navigation:
-                  // lets Outseta detect new embed nodes after route changes
-                  monitorDom: true,
-                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support,billing'
-                };
-              `}
-            </Script>
-            <Script
-              id="outseta-script"
-              src="https://cdn.outseta.com/outseta.min.js"
-              strategy="afterInteractive"
-              data-options="o_options"
-            />
+<Script id="outseta-config" strategy="beforeInteractive">
+  {`
+    window.o_options = {
+      domain: 'nested-objects.outseta.com',
+      monitorDom: true,
+      load: 'auth,profile,billing,support'
+    };
+  `}
+</Script>
+
+<Script
+  src="https://cdn.outseta.com/outseta.min.js"
+  strategy="afterInteractive"
+/>
           </>
         )}
       </head>
