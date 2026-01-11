@@ -116,7 +116,7 @@ export default function AboutPage() {
     '@type': 'Organization',
     name: 'Nested Objects',
     url: 'https://nested-objects-starter.vercel.app',
-    logo: 'https://nested-objects-starter.vercel.app/logo-light.svg',
+    logo: 'https://nested-objects-starter.vercel.app/logo-light.png',
     description:
       'AI-powered member hub for home inspectors, notaries, realtors, and coordinators seeking verified intel and modern workflows.',
     sameAs: ['https://nested-objects-starter.vercel.app/about', 'https://nested-objects-starter.vercel.app/contact'],

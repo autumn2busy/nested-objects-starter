@@ -105,7 +105,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
               <Image
-                src="/logo-light.svg"
+                src="/logo-light.png"
                 alt="Nested Objects logo"
                 width={36}
                 height={36}
