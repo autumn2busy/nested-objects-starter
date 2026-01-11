@@ -69,6 +69,7 @@ export default function RootLayout({
           </>
         )}
       </head>
+
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
