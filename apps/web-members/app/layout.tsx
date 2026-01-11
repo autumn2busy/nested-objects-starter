@@ -45,18 +45,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const shouldLoadOutseta =
+    process.env.NODE_ENV === 'production' ||
+    process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Outseta install snippet */}
-        {/* Outseta install snippet - Only load in production or if explicitly enabled to prevent local redirects */}
-        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
+        {shouldLoadOutseta && (
           <>
             <Script id="outseta-config" strategy="beforeInteractive">
               {`
-                var o_options = {
+                // Ensure config exists before outseta.min.js loads
+                window.o_options = {
                   domain: 'nested-objects.outseta.com',
-                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+                  // Critical for Next.js client-side navigation:
+                  // lets Outseta detect new embed nodes after route changes
+                  monitorDom: true,
+                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support,billing'
                 };
               `}
             </Script>
@@ -69,6 +75,7 @@ export default function RootLayout({
           </>
         )}
       </head>
+
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
