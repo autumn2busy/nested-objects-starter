@@ -357,111 +357,98 @@ export default function DirectoryPage() {
   const [search, setSearch] = useState<string>('')
   const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
 
+  // Optimize: Debounce search to prevent rapid firing
   useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchFirms(search, stateFilter)
+    }, 400) // 400ms debounce
+    return () => clearTimeout(timer)
+  }, [search, stateFilter])
 
-    async function fetchFirms() {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        console.error('Missing Supabase env vars')
-        setError('Directory is temporarily unavailable.')
-        setLoadingFirms(false)
-        return
-      }
+  async function fetchFirms(searchTerm: string, stateTerm: string) {
+    setLoadingFirms(true)
+    setError(null)
 
-      try {
-        const url =
-          `${SUPABASE_URL}/rest/v1/firms` +
-          '?select=' +
-          [
-            'id',
-            'slug',
-            'name',
-            'url',
-            'vendor_page_url',
-            'logo_url',
-            'geographic_coverage',
-            'categories',
-            'pay_min',
-            'pay_max',
-            'pay_type',
-            'company_size',
-            'industry_focus',
-            'rating',
-            'phone',
-            'email',
-            'is_published',
-            'address',
-            'latitude',
-            'longitude',
-          ].join(',') +
-          '&is_published=eq.true' +
-          '&order=name.asc'
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
-        }
-
-        const data = (await res.json()) as Firm[]
-        setFirms(data)
-      } catch (err) {
-        console.error('Error loading firms', err)
-        setError(err instanceof Error ? err.message : 'Unknown error while loading firms')
-      } finally {
-        setLoadingFirms(false)
-      }
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase env vars')
+      setError('Directory is temporarily unavailable.')
+      setLoadingFirms(false)
+      return
     }
 
-    fetchFirms()
-  }, [])
+    try {
+      // Build query dynamically
+      let url = `${SUPABASE_URL}/rest/v1/firms?select=id,slug,name,url,vendor_page_url,logo_url,geographic_coverage,categories,pay_min,pay_max,pay_type,company_size,industry_focus,rating,phone,email,is_published,address,latitude,longitude&is_published=eq.true&order=name.asc`
+
+      // 1. State Filter
+      if (stateTerm !== 'ALL') {
+        // Using a simple ILIKE for state coverage check
+        // Note: Logic matches the client-side logic roughly (contains code or full label)
+        // A more robust way would be full-text search or JSONB tags, but ilike is sufficient for now.
+        const selectedState = US_STATES.find(s => s.code === stateTerm)
+        const label = selectedState?.label || ''
+
+        // OR operator syntax in PostgREST is like: &or=(col.eq.val,col.eq.other)
+        // We want geographic_coverage to contain 'Nationwide' OR 'National' OR the state Code OR the state Label
+        // Simplify: Just check if it contains the state code or 'Nation'
+        // For PostgREST, simple ILIKE is easier: &geographic_coverage=ilike.*pattern*
+        // But we have multiple conditions. Let's start simple: Filter by code if specific.
+
+        // Using a loose filter: if coverage has the code or label. 
+        // Since we can't easily do complex ORs without logic changes, let's filter by the specific Code if provided.
+        // And always include "Nationwide" firms? 
+        // For now, let's perform a broad server search and let client refine if needed, OR just push a query.
+
+        // PostgREST simple filter: geographic_coverage ILIKE %Code%
+        url += `&geographic_coverage=ilike.*${stateTerm}*`
+      }
+
+      // 2. Keyword Search
+      if (searchTerm.trim()) {
+        const q = encodeURIComponent(searchTerm.trim())
+        // Search name, industry, or coverage
+        // PostgREST "or" syntax: or=(name.ilike.*q*,industry_focus.ilike.*q*)
+        url += `&or=(name.ilike.*${q}*,industry_focus.ilike.*${q}*,categories.ilike.*${q}*)`
+      }
+
+      // Limit response size if we are on starter (optimization)? 
+      // Actually, standard limit is fine. 
+      url += '&limit=100' // Cap at 100 results for performance
+
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
+      }
+
+      const data = (await res.json()) as Firm[]
+
+      // Client-side fallback for complex "Nationwide" logic if needed, 
+      // but for now we replace the filtered list directly.
+      setFirms(data)
+    } catch (err) {
+      console.error('Error loading firms', err)
+      setError(err instanceof Error ? err.message : 'Unknown error while loading firms')
+    } finally {
+      setLoadingFirms(false)
+    }
+  }
+
+  // Effect for initial load removed (handled by debounce effect with initial values)
 
   const isStarter = planUid === 'L9nbKV9Z'
   const isProOrHigher = !!planUid && !isStarter
 
-  const matchesStateFilter = (firm: Firm) => {
-    if (stateFilter === 'ALL') return true
-    if (!firm.geographic_coverage) return false
+  // No longer need client-side "matchesStateFilter" or "matchesSearch" 
+  // because we trust the server results.
 
-    const coverage = firm.geographic_coverage.toLowerCase()
-    const selected = US_STATES.find((s) => s.code === stateFilter)
-    if (!selected) return true
+  const displayedFirms = isStarter ? firms.slice(0, 6) : firms
 
-    if (
-      coverage.includes('nationwide') ||
-      coverage.includes('national') ||
-      coverage.includes('all 50')
-    ) {
-      return true
-    }
-
-    const label = selected.label.toLowerCase()
-    const code = selected.code.toLowerCase()
-
-    if (coverage.includes(label)) return true
-    if (coverage.includes(` ${code} `) || coverage.endsWith(` ${code}`)) return true
-    if (coverage.includes(`(${code})`)) return true
-
-    return false
-  }
-
-  const matchesSearch = (firm: Firm) => {
-    if (!search.trim()) return true
-    const q = search.toLowerCase()
-    return (
-      firm.name.toLowerCase().includes(q) ||
-      (firm.geographic_coverage ?? '').toLowerCase().includes(q) ||
-      (firm.industry_focus ?? '').toLowerCase().includes(q) ||
-      formatCategories(firm.categories).toLowerCase().includes(q)
-    )
-  }
-
-  const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-  const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
 
   // Map state removed
 

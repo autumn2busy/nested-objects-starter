@@ -1,33 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 
-export function LiveFeed() {
-    const activities = [
+export type Activity = {
+    id: number | string;
+    text: string;
+    time: string;
+    type: "job" | "view" | "system" | "resource";
+}
+
+type LiveFeedProps = {
+    activities?: Activity[];
+}
+
+export function LiveFeed({ activities }: LiveFeedProps) {
+    const defaultActivities: Activity[] = [
         {
             id: 1,
-            text: "New job posted: Residential Inspector in Atlanta, GA",
-            time: "2 hours ago",
-            type: "job",
-        },
-        {
-            id: 2,
-            text: "Peachtree Field Services viewed your profile",
-            time: "4 hours ago",
-            type: "view",
-        },
-        {
-            id: 3,
-            text: "System: Your trust score increased to 98",
-            time: "1 day ago",
+            text: "System: Welcome to your new dashboard.",
+            time: "Just now",
             type: "system",
         },
-        {
-            id: 4,
-            text: "New resource added: Field Inspection 101 Guide",
-            time: "2 days ago",
-            type: "resource",
-        },
     ];
+
+    const displayActivities = activities && activities.length > 0 ? activities : defaultActivities;
 
     return (
         <Card className="h-full">
@@ -42,7 +37,7 @@ export function LiveFeed() {
             </CardHeader>
             <CardContent>
                 <div className="space-y-6">
-                    {activities.map((activity) => (
+                    {displayActivities.map((activity) => (
                         <div key={activity.id} className="relative pl-6 border-l-2 border-slate-100 last:border-0">
                             <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-teal-500 ring-4 ring-white" />
                             <p className="text-sm font-medium text-slate-800">{activity.text}</p>

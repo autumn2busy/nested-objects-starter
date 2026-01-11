@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 /**
  * Get Supabase client (lazy initialization)
@@ -26,14 +27,14 @@ function getSupabaseClient() {
  */
 function mapOutsetaPlanToTier(planName: string | undefined): string {
   if (!planName) return 'free';
-  
+
   const normalized = planName.toLowerCase();
-  
+
   if (normalized.includes('agency')) return 'agency';
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
   if (normalized.includes('starter')) return 'free';
-  
+
   return 'free';
 }
 
@@ -42,15 +43,15 @@ function mapOutsetaPlanToTier(planName: string | undefined): string {
  */
 function mapOutsetaStatus(status: string | undefined): string {
   if (!status) return 'active';
-  
+
   const normalized = status.toLowerCase();
-  
+
   if (normalized === 'active') return 'active';
   if (normalized === 'trialing') return 'trialing';
   if (normalized === 'pastdue') return 'past_due';
   if (normalized === 'canceled') return 'canceled';
   if (normalized === 'paused') return 'paused';
-  
+
   return 'active';
 }
 
@@ -63,7 +64,7 @@ function extractProfileData(payload: any) {
   const account = payload.Account || payload;
   const person = payload.Person || payload.PrimaryContact || account?.PrimaryContact;
   const subscription = payload.Subscription || account?.Subscriptions?.[0];
-  
+
   console.log('🔍 Extracting from:', {
     hasAccount: !!account,
     hasPerson: !!person,
@@ -71,7 +72,7 @@ function extractProfileData(payload: any) {
     accountUid: account?.Uid,
     personEmail: person?.Email,
   });
-  
+
   return {
     outseta_account_id: account?.Uid,
     email: person?.Email,
@@ -121,17 +122,61 @@ async function upsertProfile(profileData: any, rawPayload: any) {
 /**
  * POST handler for Outseta webhooks
  */
+/**
+ * POST handler for Outseta webhooks
+ */
 export async function POST(request: NextRequest) {
   try {
     // Get raw body
     const rawBody = await request.text();
-    
+
+    // 1. Verify Signature
+    const signature = request.headers.get('x-outseta-signature');
+    const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
+
+    if (webhookSecret) {
+      if (!signature) {
+        console.error('❌ Missing Outseta signature header');
+        return NextResponse.json(
+          { error: 'Missing signature' },
+          { status: 401 }
+        );
+      }
+
+      // Compute HMAC-SHA256
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      const computedSignature = hmac.update(rawBody).digest('hex');
+
+      // Constant-time comparison to prevent timing attacks
+      // Note: crypto.timingSafeEqual requires Buffers of equal length
+      const signatureBuffer = Buffer.from(signature);
+      const computedBuffer = Buffer.from(computedSignature);
+
+      // Simple length check first to avoid errors in timingSafeEqual
+      if (
+        signatureBuffer.length !== computedBuffer.length ||
+        !crypto.timingSafeEqual(signatureBuffer, computedBuffer)
+      ) {
+        console.error('❌ Invalid Outseta signature');
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Warn if secret is missing in production, but don't hard fail yet 
+      // to avoid breaking existing setup until secret is deployed
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('⚠️ OUTSETA_WEBHOOK_SECRET not set. Signature verification skipped.');
+      }
+    }
+
     // Parse payload
     const payload = JSON.parse(rawBody);
 
     // Check if it's an Account object (has Uid and _objectType)
     const isAccountObject = payload._objectType === 'Account' || payload.Uid;
-    
+
     console.log('📨 Received Outseta webhook:', {
       objectType: payload._objectType,
       accountUid: payload.Uid,
@@ -159,9 +204,9 @@ export async function POST(request: NextRequest) {
       console.error('❌ Missing required profile data');
       console.error('   Account ID:', profileData.outseta_account_id);
       console.error('   Email:', profileData.email);
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'Missing required profile data',
           missing: {
             account_id: !profileData.outseta_account_id,
@@ -186,10 +231,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('💥 Webhook processing error:', error);
-    
+
     // Return 500 so Outseta retries
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
@@ -205,10 +250,10 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const supabase = getSupabaseClient();
-    
+
     // Test Supabase connection
     const { error } = await supabase.from('profiles').select('count').limit(1);
-    
+
     return NextResponse.json({
       status: error ? 'unhealthy' : 'healthy',
       endpoint: '/api/webhooks/outseta',

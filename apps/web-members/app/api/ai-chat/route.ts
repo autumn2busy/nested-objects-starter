@@ -127,9 +127,57 @@ export async function POST(req: Request) {
       );
     }
 
+    // Inject System Prompt
+    const systemMessage: ChatMessage = {
+      role: 'system',
+      content: `You are the AI Concierge for "Nested Objects", a private professional hub for field inspectors, notaries, and gig workers.
+      
+      Your goal is to help members find work, understand their tools, and navigate the platform.
+      
+      Key Context:
+      - The "Directory" contains firms hiring for field work (inspections, BPOs, etc).
+      - "Tools" includes an AI Resume Builder, Job Tracker, and Routing tool.
+      - Plans: Starter (Free), Pro ($19/mo), Elite ($49/mo), Agency ($199/mo).
+      - If asked about "how to get work", direct them to the Directory to find firms.
+      
+      Tone: Professional, encouraging, and concise. Do not hallucinate specific firm names unless they are provided in the conversation context.`
+    };
+
+    // MOCK_AI Support for testing without credits
+    if (process.env.MOCK_AI === 'true' || process.env.NEXT_PUBLIC_MOCK_AI === 'true') {
+      const mockResponse = "This is a simulated response from the AI Concierge (Mock Mode). I can help you find firms in the Directory or use the tools. [Test Data]"
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream({
+        async start(controller) {
+          // Simulate network delay
+          await new Promise(r => setTimeout(r, 500))
+
+          // Stream chunks
+          const chunks = mockResponse.split(' ')
+          for (const chunk of chunks) {
+            const data = {
+              choices: [{ delta: { content: chunk + ' ' } }]
+            }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+            await new Promise(r => setTimeout(r, 100))
+          }
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+          controller.close()
+        }
+      })
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        }
+      })
+    }
+
     const streamingPayload = {
       model: "gpt-4o-mini",
-      messages,
+      messages: [systemMessage, ...messages],
       stream: true,
     };
 

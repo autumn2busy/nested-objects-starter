@@ -1,66 +1,58 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 
 export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?: string }) {
     const { isAuthenticated } = useAuth();
-    const [outsetaReady, setOutsetaReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isParsed, setIsParsed] = useState(false);
 
     useEffect(() => {
-        let attempts = 0;
-        const MAX_ATTEMPTS = 50;
+        if (!isAuthenticated) return;
+        if (!containerRef.current) return;
 
-        const initOutseta = () => {
-            if (typeof window !== 'undefined' && window.Outseta) {
-                setOutsetaReady(true);
-                // Only parse if we have the container
-                if (containerRef.current && window.Outseta.c && window.Outseta.c.parse) {
+        // Function to attempt parsing
+        const parseWidget = () => {
+            if (window.Outseta && window.Outseta.c && window.Outseta.c.parse) {
+                try {
+                    window.Outseta.c.parse(containerRef.current);
+                    setIsParsed(true);
+                } catch (e) {
+                    console.warn("Outseta parse failed, retrying global parse", e);
                     try {
-                        window.Outseta.c.parse(containerRef.current);
-                    } catch (e) {
-                        // Fallback global parse
-                        window.Outseta.c.parse();
+                        window.Outseta.c.parse(); // Fallback
+                        setIsParsed(true);
+                    } catch (err) {
+                        console.error("Outseta global parse failed", err);
                     }
                 }
-                return true;
             }
-            return false;
         };
 
-        // Attempt sequence
-        initOutseta();
+        // 1. Try immediately
+        parseWidget();
 
-        const intervalId = setInterval(() => {
-            attempts++;
-            if (initOutseta() || attempts >= MAX_ATTEMPTS) {
-                clearInterval(intervalId);
+        // 2. Observer for script loading (if not present yet)
+        const observer = new MutationObserver((mutations) => {
+            if (window.Outseta?.c?.parse && !isParsed) {
+                parseWidget();
             }
-        }, 100);
+        });
 
-        return () => clearInterval(intervalId);
-    }, []);
+        observer.observe(document.body, { childList: true, subtree: true });
 
-    // Re-trigger parse when tab or readiness changes
-    useEffect(() => {
-        if (outsetaReady && window.Outseta?.c?.parse) {
-            // Multi-stage retry to ensure iframe injection happens even if React is slow to commit
-            const timers = [0, 100, 500, 1000].map(delay =>
-                setTimeout(() => {
-                    if (containerRef.current) {
-                        try {
-                            // Some versions of Outseta script accept a node, otherwise global
-                            window.Outseta.c.parse(containerRef.current);
-                        } catch (e) {
-                            window.Outseta.c.parse();
-                        }
-                    }
-                }, delay)
-            );
-            return () => timers.forEach(clearTimeout);
-        }
-    }, [outsetaReady, tab]);
+        // 3. Backup poll (gentle)
+        const interval = setInterval(() => {
+            if (isParsed) clearInterval(interval);
+            else parseWidget();
+        }, 500);
+
+        return () => {
+            observer.disconnect();
+            clearInterval(interval);
+        };
+    }, [isAuthenticated, isParsed, tab, planUid]);
 
     if (!isAuthenticated) return null;
 
@@ -71,10 +63,8 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
             data-tab={tab || "profile"}
             data-plan-uid={planUid}
             data-mode="embed"
-            className="w-full min-h-[600px] bg-white relative" // relative for positioning if needed
+            className="w-full min-h-[600px] bg-white relative"
         >
-            {/* Optional loading state if needed within the container, 
-                 but Outseta usually clears content. */}
         </div>
     );
 }

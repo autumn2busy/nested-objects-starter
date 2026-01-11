@@ -157,6 +157,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                     active: activeLink(link.href),
                     className: 'w-full justify-start md:w-auto md:justify-center',
                   })}
+                  aria-current={activeLink(link.href) ? 'page' : undefined}
                 >
                   {link.label}
                 </Link>

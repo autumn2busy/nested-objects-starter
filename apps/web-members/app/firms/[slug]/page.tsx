@@ -109,16 +109,20 @@ export async function generateMetadata({
   const pay = formatPay(firm)
 
   return {
-    title: `${firm.name} . Hiring firm snapshot`,
+    title: `${firm.name} | Hiring Firm Snapshot | Nested Objects`,
     description:
       firm.description ||
-      `Snapshot of ${firm.name}. coverage ${firm.geographic_coverage || 'field inspections'}. roles, pay and vendor signup info for inspectors.`,
+      `Snapshot of ${firm.name}. Coverage: ${firm.geographic_coverage || 'National'}. Learn about pay, services, and vendor requirements for field inspectors and notaries.`,
+    alternates: {
+      canonical: `https://nested-objects-starter.vercel.app/firms/${firm.slug}`,
+    },
     openGraph: {
-      title: `${firm.name} . Hiring firm snapshot`,
+      title: `${firm.name} | Hiring Firm Snapshot`,
       description:
         firm.description ||
         `Learn about ${firm.name}. coverage, services and pay for field service vendors.`,
       url: `https://nested-objects-starter.vercel.app/firms/${firm.slug}`,
+      type: 'article',
     },
   }
 }
