@@ -54,20 +54,15 @@ export default function RootLayout({
       <head>
         {shouldLoadOutseta && (
           <>
-<Script id="outseta-config" strategy="beforeInteractive">
-  {`
-    window.o_options = {
-      domain: 'nested-objects.outseta.com',
-      monitorDom: true,
-      load: 'auth,profile,billing,support'
-    };
-  `}
-</Script>
-
-<Script
-  src="https://cdn.outseta.com/outseta.min.js"
-  strategy="afterInteractive"
-/>
+<script>
+var o_options = {
+    domain: 'nested-objects.outseta.com',
+    load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+};
+</script>
+<script src="https://cdn.outseta.com/outseta.min.js"
+        data-options="o_options">
+</script>
           </>
         )}
       </head>
