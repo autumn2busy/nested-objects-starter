@@ -584,9 +584,9 @@ export default function DirectoryPage() {
               </aside>
             </section>
 
-            {isStarter && filteredFirms.length > displayedFirms.length && (
+            {isStarter && firms.length > displayedFirms.length && (
               <p className="mt-4 text-xs text-slate-600">
-                Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
+                Showing {displayedFirms.length} of {firms.length} matching firms on the
                 Starter preview.
               </p>
             )}
