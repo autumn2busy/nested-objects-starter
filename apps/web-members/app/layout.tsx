@@ -45,6 +45,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Outseta configuration - loads in production or when explicitly enabled
   const shouldLoadOutseta = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
 
   return (
