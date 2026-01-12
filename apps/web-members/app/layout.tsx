@@ -57,7 +57,7 @@ export default function RootLayout({
               {`
                 var o_options = {
                   domain: 'nested-objects.outseta.com',
-                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+                  load: 'auth,customForm,emailList,leadCapture,profile,support'
                 };
               `}
             </Script>
