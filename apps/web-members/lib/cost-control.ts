@@ -40,41 +40,41 @@ type FeatureType = keyof typeof DAILY_LIMITS
 /**
  * Check if user has exceeded their daily quota for a feature
  */
-export async function checkRateL limit(
+export async function checkRateLimit(
     userId: string,
     planUid: string,
     feature: FeatureType
-): Promise < { allowed: boolean; remaining: number; limit: number } > {
+): Promise<{ allowed: boolean; remaining: number; limit: number }> {
     const limit = DAILY_LIMITS[feature][planUid as keyof typeof DAILY_LIMITS[typeof feature]] || 0
 
-  if(limit === 0) {
-    return { allowed: false, remaining: 0, limit: 0 }
-}
+    if (limit === 0) {
+        return { allowed: false, remaining: 0, limit: 0 }
+    }
 
-const today = new Date().toISOString().split('T')[0]
-const column = `${feature}_calls` as const
+    const today = new Date().toISOString().split('T')[0]
+    const column = `${feature}_calls` as const
 
-// Get or create today's usage record
-const { data, error } = await supabase
-    .from('api_usage')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('date', today)
-    .single()
+    // Get or create today's usage record
+    const { data, error } = await supabase
+        .from('api_usage')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .single()
 
-if (error && error.code !== 'PGRST116') {
-    console.error('Rate limit check error:', error)
-    return { allowed: true, remaining: limit, limit } // Fail open
-}
+    if (error && error.code !== 'PGRST116') {
+        console.error('Rate limit check error:', error)
+        return { allowed: true, remaining: limit, limit } // Fail open
+    }
 
-const currentCalls = data?.[column] || 0
-const remaining = Math.max(0, limit - currentCalls)
+    const currentCalls = data?.[column] || 0
+    const remaining = Math.max(0, limit - currentCalls)
 
-return {
-    allowed: currentCalls < limit,
-    remaining,
-    limit,
-}
+    return {
+        allowed: currentCalls < limit,
+        remaining,
+        limit,
+    }
 }
 
 /**
