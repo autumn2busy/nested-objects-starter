@@ -10,7 +10,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
   const [error, setError] = useState<string | null>(null);
   const parsedRef = useRef(false);
   const attemptCountRef = useRef(0);
-  const maxAttempts = 40; // Try for up to 4 seconds (40 * 100ms)
+  const maxAttempts = 60; // Try for up to 6 seconds (60 * 100ms)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -18,7 +18,6 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
       parsedRef.current = false;
       return;
     }
-    if (!containerRef.current) return;
 
     // Reset state when tab/planUid changes
     parsedRef.current = false;
@@ -64,7 +63,12 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
         // Try to parse the specific container
         window.Outseta.c.parse(el);
         parsedRef.current = true;
-        setIsLoading(false);
+
+        // Give it a moment to render before hiding loader
+        setTimeout(() => {
+          if (!cancelled) setIsLoading(false);
+        }, 500);
+
         setError(null);
       } catch (e) {
         console.warn("Outseta container parse failed, trying global parse", e);
@@ -102,7 +106,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
       parseWidget();
     }, 100);
 
-    // 3. DOM mutation observer to detect when Outseta injects content
+    // 3. DOM mutation observer
     const observer = new MutationObserver(() => {
       if (isMounted() && !parsedRef.current && !cancelled) {
         parsedRef.current = true;
@@ -114,10 +118,12 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
       }
     });
 
-    observer.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-    });
+    if (containerRef.current) {
+      observer.observe(containerRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
 
     // Safety timeout
     const timeoutId = setTimeout(() => {
@@ -125,7 +131,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
         setIsLoading(false);
         setError("Profile widget is taking longer than expected. Please refresh the page.");
       }
-    }, 6000);
+    }, 8000);
 
     return () => {
       cancelled = true;
@@ -140,7 +146,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
   return (
     <div className="w-full min-h-[600px] bg-white relative">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-copper border-t-transparent"></div>
             <p className="text-sm text-text-secondary">Loading your profile...</p>
@@ -149,7 +155,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
       )}
 
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white">
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-20">
           <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
             <p className="text-sm text-red-800">{error}</p>
             <button
