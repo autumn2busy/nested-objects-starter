@@ -80,7 +80,7 @@ export default function ProfilePage() {
 
                     <div className="mt-8 space-y-2">
                         <button
-                            onClick={() => openProfileModal('profile')}
+                            onClick={() => openProfileModal('account')}
                             className="w-full rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand"
                         >
                             Edit Profile Details
@@ -111,7 +111,7 @@ export default function ProfilePage() {
                             Manage Billing
                         </button>
                         <button
-                            onClick={() => openProfileModal('profile')} // Outseta tab logic usually groups password with profile
+                            onClick={() => openProfileModal('passwordChange')}
                             className="flex-1 rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand"
                         >
                             Change Password
