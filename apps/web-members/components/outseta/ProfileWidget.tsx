@@ -7,34 +7,45 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
   const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isParsed, setIsParsed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const parsedRef = useRef(false);
   const attemptCountRef = useRef(0);
-  const maxAttempts = 30; // Try for up to 15 seconds (30 * 500ms)
+  const maxAttempts = 40; // Try for up to 4 seconds (40 * 100ms)
 
   useEffect(() => {
     if (!isAuthenticated) {
       setIsLoading(false);
+      parsedRef.current = false;
       return;
     }
     if (!containerRef.current) return;
 
-    let cancelled = false;
+    // Reset state when tab/planUid changes
+    parsedRef.current = false;
+    setIsLoading(true);
+    setError(null);
     attemptCountRef.current = 0;
+
+    let cancelled = false;
 
     // Function to check if Outseta is fully ready
     const isOutsetaReady = () => {
       return !!(
         window.Outseta &&
         window.Outseta.c &&
-        typeof window.Outseta.c.parse === 'function' &&
-        window.Outseta.getJwtPayload
+        typeof window.Outseta.c.parse === 'function'
       );
+    };
+
+    // Helper: check if widget has been mounted (Outseta injected content)
+    const isMounted = () => {
+      const el = containerRef.current;
+      return el ? el.childNodes.length > 0 : false;
     };
 
     // Function to attempt parsing
     const parseWidget = () => {
-      if (cancelled || isParsed) return;
+      if (cancelled || parsedRef.current) return;
 
       attemptCountRef.current++;
 
@@ -46,12 +57,13 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
         return;
       }
 
-      if (!containerRef.current) return;
+      const el = containerRef.current;
+      if (!el) return;
 
       try {
         // Try to parse the specific container
-        window.Outseta.c.parse(containerRef.current);
-        setIsParsed(true);
+        window.Outseta.c.parse(el);
+        parsedRef.current = true;
         setIsLoading(false);
         setError(null);
       } catch (e) {
@@ -59,7 +71,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
         try {
           // Fallback to global parse
           window.Outseta.c.parse();
-          setIsParsed(true);
+          parsedRef.current = true;
           setIsLoading(false);
           setError(null);
         } catch (err) {
@@ -73,53 +85,61 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
     };
 
     // 1. Initial immediate attempt
-    parseWidget();
+    if (isOutsetaReady()) {
+      parseWidget();
+    }
 
-    // 2. Polling mechanism with increasing intervals
+    // 2. Polling mechanism
     const pollInterval = setInterval(() => {
-      if (isParsed || cancelled) {
+      if (parsedRef.current || cancelled || isMounted()) {
+        if (isMounted()) {
+          parsedRef.current = true;
+          setIsLoading(false);
+        }
         clearInterval(pollInterval);
         return;
       }
       parseWidget();
-    }, 500);
+    }, 100);
 
-    // 3. DOM mutation observer as a backup
+    // 3. DOM mutation observer to detect when Outseta injects content
     const observer = new MutationObserver(() => {
-      if (!isParsed && !cancelled && isOutsetaReady()) {
+      if (isMounted() && !parsedRef.current && !cancelled) {
+        parsedRef.current = true;
+        setIsLoading(false);
+        setError(null);
+        observer.disconnect();
+      } else if (!parsedRef.current && !cancelled && isOutsetaReady()) {
         parseWidget();
       }
     });
 
-    observer.observe(document.body, {
+    observer.observe(containerRef.current, {
       childList: true,
       subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'data-outseta-loaded']
     });
 
-    // 4. Listen for Outseta load event if available
-    const handleOutsetaLoad = () => {
-      if (!cancelled && !isParsed) {
-        parseWidget();
+    // Safety timeout
+    const timeoutId = setTimeout(() => {
+      if (!parsedRef.current && !isMounted() && !cancelled) {
+        setIsLoading(false);
+        setError("Profile widget is taking longer than expected. Please refresh the page.");
       }
-    };
-
-    window.addEventListener('outsetaLoaded', handleOutsetaLoad);
+    }, 6000);
 
     return () => {
       cancelled = true;
       clearInterval(pollInterval);
       observer.disconnect();
-      window.removeEventListener('outsetaLoaded', handleOutsetaLoad);
+      clearTimeout(timeoutId);
     };
-  }, [isAuthenticated, isParsed, tab, planUid]);
+  }, [isAuthenticated, tab, planUid]);
 
   if (!isAuthenticated) return null;
 
   return (
     <div className="w-full min-h-[600px] bg-white relative">
-      {isLoading && !isParsed && (
+      {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-copper border-t-transparent"></div>
