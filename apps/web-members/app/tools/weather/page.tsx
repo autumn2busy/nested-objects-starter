@@ -178,10 +178,10 @@ export default function WeatherToolPage() {
                 <div
                   key={idx}
                   className={`flex items-start gap-3 rounded-lg border px-4 py-3 ${warning.severity === 'high'
-                      ? 'border-red-300 bg-red-50 text-red-900'
-                      : warning.severity === 'medium'
-                        ? 'border-amber-300 bg-amber-50 text-amber-900'
-                        : 'border-blue-300 bg-blue-50 text-blue-900'
+                    ? 'border-red-300 bg-red-50 text-red-900'
+                    : warning.severity === 'medium'
+                      ? 'border-amber-300 bg-amber-50 text-amber-900'
+                      : 'border-blue-300 bg-blue-50 text-blue-900'
                     }`}
                 >
                   <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0" />
