@@ -230,7 +230,7 @@ export default function WeatherToolPage() {
                       {day.precipitationSum > 0 && (
                         <div className="flex items-center gap-2">
                           <Droplets className="h-3.5 w-3.5 text-slate-500" />
-                          <span>Rain: {day.precipitationSum.toFixed(1)}"</span>
+                          <span>Rain: {day.precipitationSum.toFixed(1)}&quot;</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2">
