@@ -26,36 +26,30 @@ export function OutsetaProfileWidget({
     // Reset on tab/plan change
     setIsLoading(true)
 
-    // Helper. consider the widget "loaded" once Outseta injects any child nodes
-    const isMounted = () => (el.childNodes?.length ?? 0) > 0
+    // Consider the widget ready once Outseta has loaded and injected content.
+    const isReady = () => {
+      const hasChildren = (el.childNodes?.length ?? 0) > 0
+      const hasOutseta = typeof window !== 'undefined' && !!window.Outseta
+      return hasChildren && hasOutseta
+    }
 
     // If already mounted (ex. back navigation), stop loading
-    if (isMounted()) {
+    if (isReady()) {
       setIsLoading(false)
       return
     }
 
-    let observer: MutationObserver | undefined
-    let timeoutId: ReturnType<typeof setTimeout> | undefined
-
-    observer = new MutationObserver(() => {
-      if (isMounted()) {
+    const observer = new MutationObserver(() => {
+      if (isReady()) {
         setIsLoading(false)
-        observer?.disconnect()
+        observer.disconnect()
       }
     })
 
     observer.observe(el, { childList: true, subtree: true })
 
-    // Safety timeout so we never spin forever
-    timeoutId = setTimeout(() => {
-      setIsLoading(false)
-      observer?.disconnect()
-    }, 6000)
-
     return () => {
-      observer?.disconnect()
-      if (timeoutId) clearTimeout(timeoutId)
+      observer.disconnect()
     }
   }, [isAuthenticated, tab, planUid])
 
