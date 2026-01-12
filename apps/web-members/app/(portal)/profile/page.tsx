@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/components/auth-provider'
-import { User, Settings, CreditCard, Shield } from 'lucide-react'
+import { User, Settings, CreditCard, Shield, X } from 'lucide-react'
+import { OutsetaProfileWidget } from '@/components/outseta/ProfileWidget'
 
 export default function ProfilePage() {
     const { isAuthenticated, user, refreshUser } = useAuth()
     const [lastUpdate, setLastUpdate] = useState(Date.now())
+    const [activeTab, setActiveTab] = useState<string | null>(null)
 
     // Listen for Outseta profile updates to refresh local state
     useEffect(() => {
@@ -34,12 +36,7 @@ export default function ProfilePage() {
     }, [refreshUser])
 
     const openProfileModal = (tab: string = 'profile') => {
-        if (typeof window !== 'undefined' && window.Outseta) {
-            // open() takes parameters: { tab: 'profile' | 'password' | 'billing' }
-            window.Outseta.profile.open({ tab })
-        } else {
-            console.warn('Outseta SDK not ready')
-        }
+        setActiveTab(tab)
     }
 
     if (!isAuthenticated) {
@@ -133,6 +130,29 @@ export default function ProfilePage() {
                     <span>Need to update your payment method or view invoices? Use the <strong>Manage Billing</strong> button above.</span>
                 </p>
             </div>
+
+            {/* Custom Modal Overlay */}
+            {activeTab && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between border-b px-6 py-4 bg-slate-50">
+                            <h3 className="font-semibold text-lg text-slate-800">
+                                {activeTab === 'billing' ? 'Billing & Invoices' : 'Edit Profile'}
+                            </h3>
+                            <button
+                                onClick={() => setActiveTab(null)}
+                                className="rounded-full p-2 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto bg-white p-0">
+                            {/* Re-mount widget when tab changes to ensure clean state */}
+                            <OutsetaProfileWidget key={activeTab} tab={activeTab} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

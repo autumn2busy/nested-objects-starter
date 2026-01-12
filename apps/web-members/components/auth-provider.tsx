@@ -28,6 +28,7 @@ type AuthContextValue = {
   refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
   updateProfileAvatarUrl: (url: string | null) => void
+  refreshUser: () => Promise<void>
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -384,12 +385,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const Outseta = window.Outseta
 
+      // Try official logout if available
+      if (Outseta?.auth?.logout) {
+        Outseta.auth.logout()
+      }
+
+      // Clear access token in SDK
       if (Outseta?.setAccessToken) {
         Outseta.setAccessToken(null)
       }
 
+      // Clear cookie
       document.cookie =
         'outseta_access_token=; path=/; max-age=0; samesite=lax'
+
+      // Aggressively clear Outseta storage to prevent zombie sessions
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.toLowerCase().includes('outseta')) {
+            localStorage.removeItem(key);
+          }
+        });
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.toLowerCase().includes('outseta')) {
+            sessionStorage.removeItem(key);
+          }
+        });
+      } catch (e) {
+        // ignore storage errors
+      }
 
       setUser(null)
       setPlanUid(null)
@@ -398,8 +422,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error during logout', error)
     }
 
+    // Force full reload to clear any memory states
     window.location.href = '/'
   }
+
+  const refreshUser = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    const Outseta = window.Outseta
+
+    if (!Outseta?.getJwtPayload) return
+
+    try {
+      const payload = await Outseta.getJwtPayload()
+      if (payload) {
+        // Sync access token to cookie
+        try {
+          const accessToken = await Outseta.getAccessToken()
+          if (accessToken) {
+            document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
+          }
+        } catch (e) {
+          console.error('Error refreshing auth cookie', e)
+        }
+
+        setUser(payload)
+        setPlanUid(payload['outseta:planUid'] ?? null)
+
+        // Update display name if it changed in the payload
+        const newName = deriveDisplayName(payload)
+        if (newName && newName !== profileDisplayName) {
+          persistProfileDisplayName(newName)
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing user state', error)
+    }
+  }, [persistProfileDisplayName, profileDisplayName])
 
   const value: AuthContextValue = {
     user,
@@ -412,6 +470,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
+    refreshUser,
     refreshProfileDisplayName: fetchProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
