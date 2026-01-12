@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
@@ -45,28 +45,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Outseta configuration - loads in production or when explicitly enabled
-  const shouldLoadOutseta = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
+  const shouldLoadOutseta =
+    process.env.NODE_ENV === 'production' ||
+    process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         {shouldLoadOutseta && (
           <>
-            <Script id="outseta-config" strategy="beforeInteractive">
-              {`
-                var o_options = {
-                  domain: 'nested-objects.outseta.com',
-                  load: 'auth,customForm,emailList,leadCapture,profile,support'
-                };
-              `}
-            </Script>
-            <Script
-              id="outseta-script"
-              src="https://cdn.outseta.com/outseta.min.js"
-              strategy="afterInteractive"
-              data-options="o_options"
-            />
+<script>
+var o_options = {
+    domain: 'nested-objects.outseta.com',
+    load: 'auth,customForm,emailList,leadCapture,nocode,profile,support'
+};
+</script>
+<script src="https://cdn.outseta.com/outseta.min.js"
+        data-options="o_options">
+</script>
           </>
         )}
       </head>

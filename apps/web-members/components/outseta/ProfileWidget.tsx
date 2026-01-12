@@ -1,81 +1,181 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { useAuth } from '@/components/auth-provider'
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
 
-export function OutsetaProfileWidget({
-  tab,
-  planUid,
-}: {
-  tab?: string
-  planUid?: string
-}) {
-  const { isAuthenticated } = useAuth()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?: string }) {
+  const { isAuthenticated } = useAuth();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const parsedRef = useRef(false);
+  const attemptCountRef = useRef(0);
+  const maxAttempts = 60; // Try for up to 6 seconds (60 * 100ms)
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setIsLoading(false)
-      return
+      setIsLoading(false);
+      parsedRef.current = false;
+      return;
     }
 
-    const el = containerRef.current
-    if (!el) return
+    // Reset state when tab/planUid changes
+    parsedRef.current = false;
+    setIsLoading(true);
+    setError(null);
+    attemptCountRef.current = 0;
 
-    // Reset on tab/plan change
-    setIsLoading(true)
+    let cancelled = false;
 
-    // Consider the widget ready once Outseta has loaded and injected content.
-    const isReady = () => {
-      const hasChildren = (el.childNodes?.length ?? 0) > 0
-      const hasOutseta = typeof window !== 'undefined' && !!window.Outseta
-      return hasChildren && hasOutseta
-    }
+    // Function to check if Outseta is fully ready
+    const isOutsetaReady = () => {
+      return !!(
+        window.Outseta &&
+        window.Outseta.c &&
+        typeof window.Outseta.c.parse === 'function'
+      );
+    };
 
-    // If already mounted (ex. back navigation), stop loading
-    if (isReady()) {
-      setIsLoading(false)
-      return
-    }
+    // Helper: check if widget has been mounted (Outseta injected content)
+    const isMounted = () => {
+      const el = containerRef.current;
+      return el ? el.childNodes.length > 0 : false;
+    };
 
-    const observer = new MutationObserver(() => {
-      if (isReady()) {
-        setIsLoading(false)
-        observer.disconnect()
+    // Function to attempt parsing
+    const parseWidget = () => {
+      if (cancelled || parsedRef.current) return;
+
+      attemptCountRef.current++;
+
+      if (!isOutsetaReady()) {
+        if (attemptCountRef.current >= maxAttempts) {
+          setError("Outseta is taking longer than expected to load. Please refresh the page.");
+          setIsLoading(false);
+        }
+        return;
       }
-    })
 
-    observer.observe(el, { childList: true, subtree: true })
+      const el = containerRef.current;
+      if (!el) return;
+
+      try {
+        // Try to parse the specific container
+        window.Outseta.c.parse(el);
+        parsedRef.current = true;
+
+        // Give it a moment to render before hiding loader
+        setTimeout(() => {
+          if (!cancelled) setIsLoading(false);
+        }, 500);
+
+        setError(null);
+      } catch (e) {
+        console.warn("Outseta container parse failed, trying global parse", e);
+        try {
+          // Fallback to global parse
+          window.Outseta.c.parse();
+          parsedRef.current = true;
+          setIsLoading(false);
+          setError(null);
+        } catch (err) {
+          console.error("Outseta global parse failed", err);
+          if (attemptCountRef.current >= maxAttempts) {
+            setError("Unable to load profile widget. Please refresh the page.");
+            setIsLoading(false);
+          }
+        }
+      }
+    };
+
+    // 1. Initial immediate attempt
+    if (isOutsetaReady()) {
+      parseWidget();
+    }
+
+    // 2. Polling mechanism
+    const pollInterval = setInterval(() => {
+      if (parsedRef.current || cancelled || isMounted()) {
+        if (isMounted()) {
+          parsedRef.current = true;
+          setIsLoading(false);
+        }
+        clearInterval(pollInterval);
+        return;
+      }
+      parseWidget();
+    }, 100);
+
+    // 3. DOM mutation observer
+    const observer = new MutationObserver(() => {
+      if (isMounted() && !parsedRef.current && !cancelled) {
+        parsedRef.current = true;
+        setIsLoading(false);
+        setError(null);
+        observer.disconnect();
+      } else if (!parsedRef.current && !cancelled && isOutsetaReady()) {
+        parseWidget();
+      }
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // Safety timeout
+    const timeoutId = setTimeout(() => {
+      if (!parsedRef.current && !isMounted() && !cancelled) {
+        setIsLoading(false);
+        setError("Profile widget is taking longer than expected. Please refresh the page.");
+      }
+    }, 8000);
 
     return () => {
-      observer.disconnect()
-    }
-  }, [isAuthenticated, tab, planUid])
+      cancelled = true;
+      clearInterval(pollInterval);
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated, tab, planUid]);
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated) return null;
 
   return (
     <div className="w-full min-h-[600px] bg-white relative">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-900"></div>
-            <p className="mt-4 text-sm text-slate-600">Loading profile...</p>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-10">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-copper border-t-transparent"></div>
+            <p className="text-sm text-text-secondary">Loading your profile...</p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-20">
+          <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+            <p className="text-sm text-red-800">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Refresh Page
+            </button>
           </div>
         </div>
       )}
 
       <div
         ref={containerRef}
-        data-o-component="profile"
-        data-o-props={JSON.stringify({
-          tab: tab || 'profile',
-          mode: 'embed',
-          ...(planUid ? { planUid } : {}),
-        })}
+        data-o-profile="1"
+        data-tab={tab || "profile"}
+        data-plan-uid={planUid}
+        data-mode="embed"
         className="w-full min-h-[600px]"
       />
     </div>
-  )
+  );
 }
