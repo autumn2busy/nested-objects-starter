@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/components/auth-provider'
-import { User, Settings, CreditCard, Shield, X } from 'lucide-react'
-import { OutsetaProfileWidget } from '@/components/outseta/ProfileWidget'
+import { User, Settings, CreditCard, Shield } from 'lucide-react'
 
 export default function ProfilePage() {
     const { isAuthenticated, user, refreshUser } = useAuth()
     const [lastUpdate, setLastUpdate] = useState(Date.now())
-    const [activeTab, setActiveTab] = useState<string | null>(null)
+    const [outsetaReady, setOutsetaReady] = useState(false)
+    const [outsetaError, setOutsetaError] = useState<string | null>(null)
 
     // Listen for Outseta profile updates to refresh local state
     useEffect(() => {
@@ -35,8 +35,86 @@ export default function ProfilePage() {
         }
     }, [refreshUser])
 
-    const openProfileModal = (tab: string = 'profile') => {
-        setActiveTab(tab)
+    // Wait for Outseta SDK to be fully ready (profile.open available)
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+
+        let cancelled = false
+        let attempts = 0
+        const maxAttempts = 50 // ~10s at 200ms interval
+
+        const checkReady = () => {
+            const ready =
+                !!window.Outseta &&
+                typeof window.Outseta?.profile?.open === 'function' &&
+                typeof window.Outseta?.c?.parse === 'function'
+
+            if (ready && !cancelled) {
+                setOutsetaReady(true)
+                setOutsetaError(null)
+            } else if (attempts >= maxAttempts && !cancelled) {
+                setOutsetaError('Outseta is taking longer than expected to be ready.')
+            }
+        }
+
+        const interval = setInterval(() => {
+            attempts += 1
+            checkReady()
+            if (outsetaReady || attempts > maxAttempts || cancelled) {
+                clearInterval(interval)
+            }
+        }, 200)
+
+        // Run an immediate check without waiting for the first tick
+        checkReady()
+
+        return () => {
+            cancelled = true
+            clearInterval(interval)
+        }
+    }, [outsetaReady])
+
+    const ensureOutsetaReady = async (): Promise<boolean> => {
+        if (outsetaReady) return true
+
+        return await new Promise((resolve) => {
+            let attempts = 0
+            const maxAttempts = 25 // ~5s
+            const interval = setInterval(() => {
+                attempts += 1
+                const ready =
+                    !!window.Outseta &&
+                    typeof window.Outseta?.profile?.open === 'function' &&
+                    typeof window.Outseta?.c?.parse === 'function'
+
+                if (ready || attempts >= maxAttempts) {
+                    clearInterval(interval)
+                    setOutsetaReady(ready)
+                    if (!ready) {
+                        setOutsetaError('Outseta is taking longer than expected to be ready.')
+                    }
+                    resolve(ready)
+                }
+            }, 200)
+        })
+    }
+
+    const openProfileModal = async (tab: string = 'profile') => {
+        if (typeof window === 'undefined') return
+
+        const ready = await ensureOutsetaReady()
+        if (!ready || !window.Outseta) {
+            console.warn('Outseta SDK not ready')
+            return
+        }
+
+        try {
+            window.Outseta.profile.open({ tab })
+            setOutsetaError(null)
+        } catch (err) {
+            console.error('Failed to open Outseta profile modal', err)
+            setOutsetaError('Unable to open profile at the moment. Please try again.')
+        }
     }
 
     if (!isAuthenticated) {
@@ -82,13 +160,20 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    <div className="mt-8">
+                    <div className="mt-8 space-y-2">
                         <button
                             onClick={() => openProfileModal('profile')}
-                            className="w-full rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand"
+                            className="w-full rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={!outsetaReady}
                         >
                             Edit Profile Details
                         </button>
+                        {!outsetaReady && (
+                            <p className="text-xs text-slate-500">Preparing profile widget…</p>
+                        )}
+                        {outsetaError && (
+                            <p className="text-xs text-red-600">{outsetaError}</p>
+                        )}
                     </div>
                 </div>
 
@@ -110,13 +195,15 @@ export default function ProfilePage() {
                     <div className="mt-8 flex gap-3">
                         <button
                             onClick={() => openProfileModal('billing')}
-                            className="flex-1 rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand"
+                            className="flex-1 rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={!outsetaReady}
                         >
                             Manage Billing
                         </button>
                         <button
                             onClick={() => openProfileModal('profile')} // Outseta tab logic usually groups password with profile or generic
-                            className="flex-1 rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand"
+                            className="flex-1 rounded-lg border border-brand-steel/40 bg-white px-4 py-2 text-sm font-medium text-brand-dark transition hover:bg-brand-sand disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={!outsetaReady}
                         >
                             Change Password
                         </button>
@@ -130,29 +217,6 @@ export default function ProfilePage() {
                     <span>Need to update your payment method or view invoices? Use the <strong>Manage Billing</strong> button above.</span>
                 </p>
             </div>
-
-            {/* Custom Modal Overlay */}
-            {activeTab && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-                        <div className="flex items-center justify-between border-b px-6 py-4 bg-slate-50">
-                            <h3 className="font-semibold text-lg text-slate-800">
-                                {activeTab === 'billing' ? 'Billing & Invoices' : 'Edit Profile'}
-                            </h3>
-                            <button
-                                onClick={() => setActiveTab(null)}
-                                className="rounded-full p-2 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
-                            >
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto bg-white p-0">
-                            {/* Re-mount widget when tab changes to ensure clean state */}
-                            <OutsetaProfileWidget key={activeTab} tab={activeTab} />
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
