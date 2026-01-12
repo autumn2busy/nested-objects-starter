@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCachedWeather, cacheWeather } from '@/lib/cost-control'
 
 /**
  * Weather API Route
  * Uses Open-Meteo API (free, no API key required)
+ * Implements 1-hour caching to minimize API calls
  * https://open-meteo.com/en/docs
  */
-
-type WeatherParams = {
-    latitude: number
-    longitude: number
-    location?: string
-}
 
 type ForecastDay = {
     date: string
@@ -36,37 +32,7 @@ type WeatherResponse = {
     timezone: string
     forecast: ForecastDay[]
     safetyWarnings: SafetyWarning[]
-}
-
-function getWeatherDescription(code: number): string {
-    // WMO Weather interpretation codes
-    const codes: Record<number, string> = {
-        0: 'Clear sky',
-        1: 'Mainly clear',
-        2: 'Partly cloudy',
-        3: 'Overcast',
-        45: 'Foggy',
-        48: 'Depositing rime fog',
-        51: 'Light drizzle',
-        53: 'Moderate drizzle',
-        55: 'Dense drizzle',
-        61: 'Slight rain',
-        63: 'Moderate rain',
-        65: 'Heavy rain',
-        71: 'Slight snow',
-        73: 'Moderate snow',
-        75: 'Heavy snow',
-        77: 'Snow grains',
-        80: 'Slight rain showers',
-        81: 'Moderate rain showers',
-        82: 'Violent rain showers',
-        85: 'Slight snow showers',
-        86: 'Heavy snow showers',
-        95: 'Thunderstorm',
-        96: 'Thunderstorm with slight hail',
-        99: 'Thunderstorm with heavy hail',
-    }
-    return codes[code] || 'Unknown'
+    cached?: boolean
 }
 
 function generateSafetyWarnings(forecast: ForecastDay[]): SafetyWarning[] {
@@ -139,6 +105,15 @@ export async function GET(request: NextRequest) {
             )
         }
 
+        // Create cache key from rounded coordinates (to group nearby locations)
+        const locationKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`
+
+        // Check cache first
+        const cachedData = await getCachedWeather(locationKey)
+        if (cachedData) {
+            return NextResponse.json({ ...cachedData, cached: true })
+        }
+
         // Call Open-Meteo API
         const weatherUrl = new URL('https://api.open-meteo.com/v1/forecast')
         weatherUrl.searchParams.set('latitude', latitude.toString())
@@ -180,7 +155,11 @@ export async function GET(request: NextRequest) {
             timezone: weatherData.timezone,
             forecast,
             safetyWarnings,
+            cached: false,
         }
+
+        // Cache the response (1-hour TTL handled by cacheWeather)
+        await cacheWeather(locationKey, response)
 
         return NextResponse.json(response)
     } catch (error) {
