@@ -182,6 +182,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const Outseta = await waitForOutseta()
+
+        // CRITICAL FIX: explicit token capture from URL for SPA navigation
+        const params = new URLSearchParams(window.location.search)
+        const tokenFromUrl = params.get('access_token')
+
+        if (tokenFromUrl && Outseta?.setAccessToken) {
+          console.log('Explicitly setting access token from URL')
+          Outseta.setAccessToken(tokenFromUrl)
+        }
+
         if (!Outseta?.getJwtPayload) return
 
         const payload = await Outseta.getJwtPayload()
