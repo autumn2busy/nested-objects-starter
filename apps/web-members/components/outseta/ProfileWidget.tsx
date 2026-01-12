@@ -68,10 +68,12 @@ export function OutsetaProfileWidget({
 
       <div
         ref={containerRef}
-        data-o-profile="1"
-        data-tab={tab || 'profile'}
-        data-plan-uid={planUid}
-        data-mode="embed"
+        data-o-component="profile"
+        data-o-props={JSON.stringify({
+          tab: tab || 'profile',
+          mode: 'embed',
+          ...(planUid ? { planUid } : {}),
+        })}
         className="w-full min-h-[600px]"
       />
     </div>
