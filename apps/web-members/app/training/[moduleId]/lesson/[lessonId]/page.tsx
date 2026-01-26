@@ -129,10 +129,22 @@ export default function LessonPlayerPage() {
                     <div className="mx-auto max-w-4xl bg-white min-h-[50vh] shadow-sm my-8 rounded-xl overflow-hidden">
 
                         {/* 1. MEDIA PLAYER (Video) */}
-                        {hasVideo && videoSource.includes('youtu') && (
+                        {hasVideo && (
                             <div className="aspect-video w-full bg-black relative">
                                 <iframe
-                                    src={videoSource.replace('watch?v=', 'embed/').split('&')[0]}
+                                    src={(function () {
+                                        const url = videoSource || '';
+                                        let videoId = '';
+                                        if (url.includes('youtu.be/')) {
+                                            videoId = url.split('youtu.be/')[1].split('?')[0];
+                                        } else if (url.includes('watch?v=')) {
+                                            videoId = url.split('watch?v=')[1].split('&')[0];
+                                        } else if (url.includes('embed/')) {
+                                            videoId = url.split('embed/')[1].split('?')[0];
+                                        }
+                                        // Default embed URL if we found an ID, otherwise return original (fallback)
+                                        return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : url;
+                                    })()}
                                     className="w-full h-full absolute inset-0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen

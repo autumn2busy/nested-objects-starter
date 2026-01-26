@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle, Video, Mic } from 'lucide-react'
+import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle, Video, Mic, Layers } from 'lucide-react'
 import VisualReferenceLibrary from '@/components/training/VisualReferenceLibrary'
 import { TrainingModule, TrainingLesson, TrainingResource } from '@/types/training'
 
@@ -43,10 +43,6 @@ export default function ModuleOverviewPage() {
                 if (lessonData) setLessons(lessonData as TrainingLesson[])
 
                 // 3. Fetch Resources with joined lesson data if possible, or just raw
-                // Note: supabase-js joins look like: .select('*, lesson:training_lessons(lesson_number)')
-                // But for simplicity/type-safety in this step, we'll fetch raw and manual join if needed, 
-                // or assume backend returns what we need if we set up a view.
-                // Here we'll just fetch raw resources and map lesson_number from our local lessons array.
                 const { data: resourceData } = await supabase
                     .from('training_resources')
                     .select('*')
@@ -97,6 +93,11 @@ export default function ModuleOverviewPage() {
         ? Math.round((completedLessonIds.length / lessons.length) * 100)
         : 0
 
+    // Filter resources for Flashcards (simple heuristic for now: xlsx or labeled 'flashcard' in title)
+    // A real implementation would use a dedicated content type or table.
+    const flashcardResources = resources.filter(r => r.title.toLowerCase().includes('flashcard') || r.file_path.endsWith('.xlsx'))
+    const visualResources = resources.filter(r => !flashcardResources.includes(r))
+
     return (
         <main className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
@@ -113,6 +114,12 @@ export default function ModuleOverviewPage() {
                                 Module {module.module_number}: {module.title}
                             </h1>
                             <p className="mt-2 text-slate-600 max-w-3xl">{module.description}</p>
+
+                            {/* Unlock Callout */}
+                            <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 w-fit">
+                                <Lock className="w-4 h-4" />
+                                <span>Complete all lessons to unlock the assessment.</span>
+                            </div>
                         </div>
                     </div>
 
@@ -132,13 +139,13 @@ export default function ModuleOverviewPage() {
                 </div>
             </div>
 
-            <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 space-y-12">
+            <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
 
                 {/* SECTION 1: LESSONS */}
                 <section>
-                    <div className="mb-6">
+                    <div className="mb-6 border-b border-slate-200 pb-4">
                         <h2 className="text-2xl font-bold text-brand-dark">Lessons: Learn the Concepts</h2>
-                        <p className="text-slate-500">Complete all lessons to unlock the module assessment.</p>
+                        <p className="text-slate-500 mt-1">Foundational knowledge required for certification.</p>
                     </div>
 
                     <div className="space-y-4">
@@ -147,7 +154,7 @@ export default function ModuleOverviewPage() {
                                 No lessons published yet.
                             </div>
                         ) : (
-                            lessons.map((lesson, index) => {
+                            lessons.map((lesson) => {
                                 const isCompleted = completedLessonIds.includes(lesson.id)
                                 // Icon logic
                                 let Icon = FileText;
@@ -158,34 +165,36 @@ export default function ModuleOverviewPage() {
                                     <Link
                                         key={lesson.id}
                                         href={`/training/${moduleId}/lesson/${lesson.id}`}
-                                        className="group flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200 hover:border-brand-copper/50 hover:shadow-md transition-all"
+                                        className="group flex items-center gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:border-brand-copper hover:shadow-lg transition-all"
                                     >
                                         <div className="flex-shrink-0">
                                             {isCompleted ? (
-                                                <CheckCircle className="w-8 h-8 text-green-500" />
+                                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                                    <CheckCircle className="w-6 h-6" />
+                                                </div>
                                             ) : (
-                                                <div className="w-8 h-8 rounded-full border-2 border-slate-300 group-hover:border-brand-copper flex items-center justify-center text-sm font-bold text-slate-400 group-hover:text-brand-copper">
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-300 group-hover:border-brand-copper flex items-center justify-center text-sm font-bold text-slate-500 group-hover:text-brand-copper">
                                                     {lesson.lesson_number}
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="flex-grow">
-                                            <h3 className="font-semibold text-slate-800 text-lg group-hover:text-brand-copper">
+                                            <h3 className="font-bold text-slate-800 text-lg group-hover:text-brand-copper">
                                                 {lesson.title}
                                             </h3>
                                             <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
-                                                <span className="flex items-center gap-1">
-                                                    <Icon className="w-4 h-4" />
-                                                    {lesson.video_url ? 'Video Lesson' : lesson.audio_url ? 'Audio Lesson' : 'Reading'}
+                                                <span className="flex items-center gap-1 font-medium bg-slate-100 px-2 py-0.5 rounded text-xs uppercase tracking-wide">
+                                                    <Icon className="w-3 h-3" />
+                                                    {lesson.video_url ? 'Video' : lesson.audio_url ? 'Audio' : 'Text'}
                                                 </span>
-                                                <span>•</span>
-                                                <span>{lesson.estimated_minutes} min</span>
+                                                <span className="text-slate-300">•</span>
+                                                <span>{lesson.estimated_minutes} min read</span>
                                             </div>
                                         </div>
 
-                                        <div className="text-slate-400 group-hover:translate-x-1 transition-transform">
-                                            →
+                                        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-brand-copper group-hover:text-white transition-colors">
+                                            <ArrowLeft className="w-4 h-4 rotate-180" />
                                         </div>
                                     </Link>
                                 )
@@ -194,36 +203,65 @@ export default function ModuleOverviewPage() {
                     </div>
                 </section>
 
-                {/* SECTION 2: VISUAL REFERENCE LIBRARY */}
+                {/* SECTION 2: VISUAL REFERENCE LIBRARY (Secondary Support) */}
                 <section>
-                    <VisualReferenceLibrary resources={resources} />
+                    <VisualReferenceLibrary resources={visualResources} />
                 </section>
 
-                {/* SECTION 3: MODULE ASSESSMENT */}
-                <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                {/* SECTION 3: FLASHCARDS (Reinforcement) */}
+                <section className="scroll-mt-24">
+                    <div className="mb-6 border-b border-slate-200 pb-4">
+                        <h2 className="text-2xl font-bold text-brand-dark">Flashcards: Reinforce Key Concepts</h2>
+                        <p className="text-slate-500 mt-1">Flip through these cards to test your memory (Optional).</p>
+                    </div>
+
+                    {flashcardResources.length > 0 ? (
+                        <div className="bg-slate-900 rounded-xl p-8 text-center text-white">
+                            <Layers className="w-12 h-12 mx-auto text-brand-copper mb-4" />
+                            <h3 className="text-xl font-bold mb-2">Interactive Flashcards Available</h3>
+                            <p className="text-slate-400 mb-6 max-w-lg mx-auto">
+                                We found {flashcardResources.length} flashcard sets for this module.
+                                Launch the interactive review mode to practice.
+                            </p>
+                            <button className="bg-brand-copper hover:bg-white hover:text-brand-copper text-white px-6 py-3 rounded-full font-bold transition-colors">
+                                Start Review Session
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="bg-slate-100 rounded-xl p-8 text-center border border-dashed border-slate-300">
+                            <p className="text-slate-500 italic">No flashcards available for this module yet.</p>
+                        </div>
+                    )}
+                </section>
+
+                {/* SECTION 4: MODULE ASSESSMENT (Gate) */}
+                <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm ring-1 ring-slate-100">
                     <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-full ${allLessonsCompleted ? 'bg-brand-copper/10 text-brand-copper' : 'bg-slate-100 text-slate-400'}`}>
-                            {allLessonsCompleted ? <HelpCircle className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
+                        <div className={`p-4 rounded-full flex-shrink-0 ${allLessonsCompleted ? 'bg-brand-copper text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            {allLessonsCompleted ? <HelpCircle className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
                         </div>
                         <div className="flex-grow">
                             <h2 className="text-2xl font-bold text-brand-dark mb-2">Module Assessment: Readiness Check</h2>
-                            <p className="text-slate-600 mb-4 max-w-2xl">
-                                Verify your understanding of the concepts taught in this module.
-                                <span className="block mt-2 font-medium text-slate-700 flex items-center gap-1">
-                                    <AlertCircle className="w-4 h-4" />
-                                    This quiz only covers concepts explicitly taught in the lessons above.
-                                </span>
+                            <p className="text-slate-600 mb-6 max-w-2xl text-lg">
+                                Verify your understanding to earn your certificate for this module.
                             </p>
+
+                            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
+                                <p className="text-sm text-amber-800 flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                    <span>This quiz only covers concepts explicitly taught in the lessons above.</span>
+                                </p>
+                            </div>
 
                             {allLessonsCompleted ? (
                                 <Link
                                     href={`/training/${moduleId}/quiz`}
-                                    className="inline-flex items-center justify-center px-8 py-3 bg-brand-copper hover:bg-brand-copperDark text-white font-bold rounded-full transition-colors shadow-lg shadow-brand-copper/20"
+                                    className="inline-flex items-center justify-center px-8 py-4 bg-brand-copper hover:bg-brand-copperDark text-white font-bold rounded-lg transition-colors shadow-lg shadow-brand-copper/20 w-full sm:w-auto"
                                 >
                                     Start Module Quiz
                                 </Link>
                             ) : (
-                                <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-400 font-bold rounded-full cursor-not-allowed">
+                                <div className="inline-flex items-center gap-2 px-6 py-4 bg-slate-100 text-slate-400 font-bold rounded-lg cursor-not-allowed w-full sm:w-auto justify-center sm:justify-start">
                                     <Lock className="w-4 h-4" /> Complete all lessons to unlock
                                 </div>
                             )}
