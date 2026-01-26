@@ -186,3 +186,5 @@ function WeatherWorkspace() {
         </Link>
       </section>
     </div>
+  )
+}
