@@ -2,10 +2,19 @@
 
 import ChatWidget from "@/components/ChatWidget";
 import { Gate } from "@/components/Gate";
+import { useAuth } from "@/components/auth-provider";
 import { ToolAccessMessage } from "@/app/tools/_components/ToolAccessMessage";
 import { Card } from "@/components/ui/card";
 
 export default function ConciergePage() {
+    const auth = useAuth() as any
+    // Helper to extract user info roughly
+    const user = {
+        name: auth?.user?.name || auth?.user?.email || 'User',
+        plan: auth?.user?.plan || 'Pro',
+        role: 'Inspector'
+    }
+
     return (
         <div className="space-y-6">
             <div>
@@ -38,7 +47,7 @@ export default function ConciergePage() {
             >
                 <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
                     <section className="h-[600px] overflow-hidden rounded-2xl border border-brand-copper/25 bg-white shadow-sm">
-                        <ChatWidget />
+                        <ChatWidget context={user} />
                     </section>
 
                     <section className="h-fit rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">

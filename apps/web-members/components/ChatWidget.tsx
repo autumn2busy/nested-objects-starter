@@ -9,12 +9,20 @@ type ChatMessage = {
   content: string;
 };
 
-export default function ChatWidget() {
+type ChatWidgetProps = {
+  context?: {
+    name?: string
+    plan?: string
+    role?: string
+  }
+}
+
+export default function ChatWidget({ context }: ChatWidgetProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       content:
-        "Hey inspector. I am your AI field services concierge. Ask me about firms, requirements, pay ranges, or inspection workflows.",
+        `Hi ${context?.name ? context.name.split(' ')[0] : 'there'}! I am your AI field services concierge. Ask me about firms, requirements, pay ranges, or inspection workflows.`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -36,15 +44,15 @@ export default function ChatWidget() {
     }
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSend(e: React.FormEvent, overrideInput?: string) {
+    e?.preventDefault();
 
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) {
+    const text = overrideInput ?? input.trim();
+    if (!text || isLoading) {
       return;
     }
 
-    const userMessage: ChatMessage = { role: "user", content: trimmed };
+    const userMessage: ChatMessage = { role: "user", content: text };
     const nextMessages = [...messages, userMessage];
 
     setMessages(nextMessages);
@@ -55,7 +63,10 @@ export default function ChatWidget() {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({
+          messages: nextMessages,
+          context: context // Inject context
+        }),
       });
 
       if (!res.ok) {
@@ -117,9 +128,8 @@ export default function ChatWidget() {
         {messages.map((m, idx) => (
           <div
             key={idx}
-            className={`flex ${
-              m.role === "user" ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+              }`}
           >
             <div
               className={`max-w-[80%] rounded-2xl px-3 py-2 shadow-sm ${getMessageStyles(
@@ -144,7 +154,21 @@ export default function ChatWidget() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSend} className="border-t border-slate-200 p-3">
+      {messages.length < 3 && (
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 border-t border-slate-100 mb-1 scrollbar-hide">
+          <button onClick={(e) => handleSend(e, "Check my billing status")} className="whitespace-nowrap rounded-full border border-brand-copper/30 bg-brand-mist/30 px-3 py-1 text-xs text-brand-dark hover:bg-brand-copper/10">
+            Billing Help
+          </button>
+          <button onClick={(e) => handleSend(e, "How do I optimize my route?")} className="whitespace-nowrap rounded-full border border-brand-copper/30 bg-brand-mist/30 px-3 py-1 text-xs text-brand-dark hover:bg-brand-copper/10">
+            Routing Support
+          </button>
+          <button onClick={(e) => handleSend(e, "List top firms in my area")} className="whitespace-nowrap rounded-full border border-brand-copper/30 bg-brand-mist/30 px-3 py-1 text-xs text-brand-dark hover:bg-brand-copper/10">
+            Top Firms
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={(e) => handleSend(e)} className="border-t border-slate-200 p-3">
         <div className="flex items-center gap-2">
           <input
             value={input}

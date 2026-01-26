@@ -36,30 +36,29 @@ function fallbackResponse(
 }
 
 function buildPrompt(profile?: ProfileIntake, experience?: ExperienceGear) {
-  const counties = profile?.counties ? `Counties or zips: ${profile.counties}.` : ''
-  const pay = profile?.payPreferences ? `Preferred pay: ${profile.payPreferences}.` : ''
-  const availability = profile?.availability ? `Availability: ${profile.availability}.` : ''
-  const ruralUrban = profile?.ruralUrbanMix ? `Rural/urban mix: ${profile.ruralUrbanMix}.` : ''
-  const drive = profile?.driveRadius ? `Drive radius: ${profile.driveRadius}.` : ''
-  const rush = profile?.rushCapacity ? `Rush capacity: ${profile.rushCapacity}.` : ''
+  // Compress input context using minimal labels
+  const p = [
+    profile?.fullName,
+    profile?.serviceArea,
+    profile?.counties ? `Counties:${profile.counties}` : '',
+    profile?.payPreferences ? `Pay:${profile.payPreferences}` : '',
+    profile?.availability ? `Avail:${profile.availability}` : '',
+    profile?.driveRadius ? `Drive:${profile.driveRadius}` : '',
+    profile?.rushCapacity ? `Rush:${profile.rushCapacity}` : '',
+  ].filter(Boolean).join(' | ')
 
-  const ladderHeights = experience?.ladderHeights?.length
-    ? `Ladder heights: ${experience.ladderHeights.join(', ')}.`
-    : ''
-  const specialties = experience?.specialties?.length ? `Specialties: ${experience.specialties.join(', ')}.` : ''
-  const vendors = experience?.vendors ? `Vendor mix: ${experience.vendors}.` : ''
-  const gear = experience?.cameraGear ? `Camera gear: ${experience.cameraGear}.` : ''
-  const drone = experience?.hasDrone
-    ? `Drone: ${experience.droneModel || 'Ready to fly, FAA Part 107'}.`
-    : experience?.droneModel
-      ? `Drone-ready: ${experience.droneModel}.`
-      : ''
-  const measuring = experience?.measuringTools ? `Measuring tools: ${experience.measuringTools}.` : ''
-  const weather = experience?.weatherConstraints ? `Weather constraints: ${experience.weatherConstraints}.` : ''
-  const safety = experience?.safetyNotes ? `Safety: ${experience.safetyNotes}.` : ''
-  const turnaround = experience?.turnaroundTime ? `Turnaround: ${experience.turnaroundTime}.` : ''
+  const e = [
+    experience?.vendors ? `Vendors:${experience.vendors}` : '',
+    experience?.ladderHeights?.length ? `Ladders:${experience.ladderHeights.join(',')}` : '',
+    experience?.specialties?.length ? `Specs:${experience.specialties.join(',')}` : '',
+    experience?.cameraGear ? `Cam:${experience.cameraGear}` : '',
+    experience?.droneModel ? `Drone:${experience.droneModel}` : '',
+    experience?.measuringTools ? `Tools:${experience.measuringTools}` : '',
+    experience?.safetyNotes ? `Safe:${experience.safetyNotes}` : '',
+    experience?.turnaroundTime ? `TAT:${experience.turnaroundTime}` : '',
+  ].filter(Boolean).join(' | ')
 
-  return `Use the following intake to write vendor-safe resume blocks for an insurance field vendor. Keep PII redacted unless explicitly provided. Summary, bullets, and blurbs should be concise, quantify work completed, and emphasize reliability. Return JSON with keys summary (string), experienceBullets (array of short bullet strings), skillsBullets (array of short bullet strings), portalBlurb (short paragraph for text boxes).\n\nProfile: ${profile?.fullName || 'Inspector'}, ${profile?.serviceArea || 'service area unknown'}. ${counties} ${pay} ${availability} ${ruralUrban} ${drive} ${rush}\nExperience: ${vendors}\nGear: ${ladderHeights} ${gear} ${drone} ${measuring}\nSpecialties: ${specialties}\nLimits: ${weather}\nSafety: ${safety}\nTurnaround: ${turnaround}`
+  return `Write vendor-safe resume blocks for a field inspector. Redact PII. Return strictly valid JSON with keys: s (summary string), eb (experience bullets array), sb (skills bullets array), pb (portal blurb string). Keep it concise.\n\nProfile: ${p}\nExperience: ${e}`
 }
 
 export async function POST(req: Request) {
@@ -133,7 +132,7 @@ export async function POST(req: Request) {
       }, 500)
     }
 
-    let parsed: { summary?: string; experienceBullets?: string[]; skillsBullets?: string[]; portalBlurb?: string } = {}
+    let parsed: { s?: string; eb?: string[]; sb?: string[]; pb?: string } = {}
     try {
       parsed = JSON.parse(content)
     } catch (error) {
@@ -144,14 +143,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       summary:
-        parsed.summary ||
+        parsed.s ||
         content.trim() ||
         'AI generation completed, but the content could not be parsed. Re-run generate to try again.',
-      experienceBullets: parsed.experienceBullets?.length ? parsed.experienceBullets : [content.slice(0, 180)],
-      skillsBullets: parsed.skillsBullets?.length
-        ? parsed.skillsBullets
+      experienceBullets: parsed.eb?.length ? parsed.eb : [content.slice(0, 180)],
+      skillsBullets: parsed.sb?.length
+        ? parsed.sb
         : ['Add ladder heights, camera gear, drones, and tools.'],
-      portalBlurb: parsed.portalBlurb || 'Ready to cover your counties with reliable turnaround and safety controls.',
+      portalBlurb: parsed.pb || 'Ready to cover your counties with reliable turnaround and safety controls.',
       updatedAt,
     })
   } catch (error) {

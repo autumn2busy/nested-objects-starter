@@ -126,6 +126,21 @@ function formatTimestamp(value?: string | null) {
   })
 }
 
+// ... imports
+
+function SkeletonLoader() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-6 w-3/4 bg-slate-200 rounded"></div>
+      <div className="space-y-2">
+        <div className="h-4 w-full bg-slate-200 rounded"></div>
+        <div className="h-4 w-5/6 bg-slate-200 rounded"></div>
+        <div className="h-4 w-4/6 bg-slate-200 rounded"></div>
+      </div>
+    </div>
+  )
+}
+
 export default function AiResumePage() {
   const auth = useAuth() as any
   const userId: string | null =
@@ -600,8 +615,8 @@ export default function AiResumePage() {
                               }))
                             }
                             className={`rounded-full border px-3 py-1 text-sm transition ${active
-                                ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                                : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
                               }`}
                           >
                             {option}
@@ -672,8 +687,8 @@ export default function AiResumePage() {
                               }))
                             }
                             className={`rounded-full border px-3 py-1 text-sm transition ${active
-                                ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                                : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
+                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
+                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
                               }`}
                           >
                             {option}
@@ -731,6 +746,10 @@ export default function AiResumePage() {
                 >
                   {isGenerating ? 'Generating…' : 'Generate copy'}
                 </button>
+                <div className="hidden sm:flex flex-col text-[10px] text-slate-500 leading-tight justify-center">
+                  <span className="font-medium text-emerald-600">~250 tokens</span>
+                  <span>optimized</span>
+                </div>
                 <button
                   type="button"
                   onClick={handleCopyAll}
@@ -777,12 +796,16 @@ export default function AiResumePage() {
               </div>
 
               <div className="space-y-3">
-                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3 relative overflow-hidden">
                   <header className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-brand-dark">Summary</p>
-                    {generatedLabel && <p className="text-xs text-slate-500">Updated {generatedLabel}</p>}
+                    {generatedLabel && !isGenerating && <p className="text-xs text-slate-500">Updated {generatedLabel}</p>}
                   </header>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.summary}</p>
+                  {isGenerating ? (
+                    <SkeletonLoader />
+                  ) : (
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.summary}</p>
+                  )}
                 </article>
 
                 <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
@@ -790,14 +813,19 @@ export default function AiResumePage() {
                     <p className="text-sm font-semibold text-brand-dark">Experience bullets</p>
                     <p className="text-xs text-slate-500">Counts, geographies, and speed</p>
                   </header>
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                    {workspace.outputs.experienceBullets.map((item, index) => (
-                      <li key={`${item}-${index}`}>{item}</li>
-                    ))}
-                  </ul>
+                  {isGenerating ? (
+                    <SkeletonLoader />
+                  ) : (
+                    <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+                      {workspace.outputs.experienceBullets.map((item, index) => (
+                        <li key={`${item}-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
                 </article>
 
                 <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
+
                   <header className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-brand-dark">Skills + gear bullets</p>
                     <p className="text-xs text-slate-500">Ladders, drones, cameras, and tools</p>

@@ -98,6 +98,22 @@ export async function POST(req: Request) {
     }
 
     const messages = body?.messages as ChatMessage[] | undefined;
+    const context = body?.context as { name?: string; plan?: string } | undefined;
+
+    // 1. Zero-Token Intents (Fixed Menu)
+    const lastMsg = messages?.[messages.length - 1];
+    if (lastMsg?.role === "user") {
+      const text = lastMsg.content.toLowerCase();
+      if (text.includes("check my billing")) {
+        return NextResponse.json({ message: { role: "assistant", content: "You can manage your subscription and view invoices in the [Membership Portal](/membership)." } });
+      }
+      if (text.includes("optimize my route")) {
+        return NextResponse.json({ message: { role: "assistant", content: "Routing tools are in beta. Check the [Weather Tool](/tools/weather) to see conditions along your path." } });
+      }
+      if (text.includes("top firms")) {
+        return NextResponse.json({ message: { role: "assistant", content: "Based on your area, check out: \n1. WonderClaim\n2. Acme IA\n3. Aurora Desk\n\nVisit the [Directory](/directory) for full listings." } });
+      }
+    }
 
     const apiKey =
       process.env.OPENAI_API_KEY ??
@@ -125,6 +141,16 @@ export async function POST(req: Request) {
         { error: "messages array is required" },
         { status: 400 }
       );
+    }
+
+    // 2. Context Injection
+    const systemContent = `You are a helpful field services concierge. Keep answers concise. User Context: ${context ? `Name: ${context.name}, Plan: ${context.plan}` : 'Unknown'}.`;
+
+    // Ensure system message exists or prepend/update it
+    if (messages[0].role === 'system') {
+      messages[0].content = systemContent;
+    } else {
+      messages.unshift({ role: 'system', content: systemContent });
     }
 
     const streamingPayload = {
