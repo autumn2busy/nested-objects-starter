@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { Gate } from "@/components/Gate";
 import { OutsetaProfileWidget } from "@/components/outseta/ProfileWidget";
+import { useAuth } from "@/components/auth-provider";
 
 import { useSearchParams } from 'next/navigation';
 
@@ -11,6 +12,8 @@ function ProfileContent() {
     const tab = searchParams.get('tab') || 'profile';
     // Outseta sometimes passes planUid in stateProps JSON
     let planUidParam = searchParams.get('planUid');
+
+    const { isAuthenticated, accessToken } = useAuth();
 
     // Safely parse stateProps if present (Outseta redirect format)
     const stateProps = searchParams.get('stateProps');
@@ -32,7 +35,7 @@ function ProfileContent() {
                 </div>
 
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-                    <OutsetaProfileWidget tab={tab} planUid={planUidParam || undefined} />
+                    <OutsetaProfileWidget tab={tab} planUid={planUidParam || undefined} accessToken={accessToken} />
                 </div>
             </div>
         </Gate>

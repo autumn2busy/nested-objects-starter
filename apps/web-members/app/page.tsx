@@ -9,22 +9,22 @@ import { TechHero } from '@/components/TechHero'
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
+  '@type': 'LocalBusiness',
   name: 'Nested Objects Member Hub',
-  applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Any',
-  url: 'https://nested-objects-starter.vercel.app',
+  image: 'https://nested-objects-starter.vercel.app/hero.jpg',
   description:
-    'Member hub and firm directory for field inspectors, notaries, real estate pros, and gig workers. Compare firms, see requirements, and plan better routes before you leave the driveway.',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
+    'Connect with Mortgage Field Inspection services, Certified residential property appraisal firms, and Mobile Notary for real estate closings.',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'US',
   },
-  creator: {
-    '@type': 'Organization',
-    name: 'Nested Objects',
-  },
+  url: 'https://nested-objects-starter.vercel.app',
+  priceRange: '$$',
+  telephone: '+1-555-010-9999',
+  sameAs: [
+    'https://twitter.com/nestedobjects',
+    'https://linkedin.com/company/nested-objects',
+  ],
 }
 
 export default function HomePage() {
@@ -57,26 +57,26 @@ export default function HomePage() {
             "mainEntity": [
               {
                 "@type": "Question",
-                "name": "What is the best directory for field inspection firms?",
+                "name": "How do I find Independent Field Inspector work near me?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Nested Objects is the only AI-verified, real-time directory for field inspection firms, offering live data on pay rates, hiring status, and tool requirements."
+                  "text": "Nested Objects connects you with national firms hiring for Mortgage Field Inspection services and Insurance Loss Control jobs in your exact zip code."
                 }
               },
               {
                 "@type": "Question",
-                "name": "How do notaries and realtors find extra field work?",
+                "name": "Can I do Mobile Notary for real estate closings?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Many field service firms hire notaries and realtors for BPOs (Broker Price Opinions) and occupancy verifications. Nested Objects filters these firms by license requirement."
+                  "text": "Yes. Our hub lists firms specifically looking for Loan Signing Agents and notaries certified for Remote Online Notarization (RON)."
                 }
               },
               {
                 "@type": "Question",
-                "name": "Are there field inspection firms that pay daily?",
+                "name": "Who hires for Drive-by appraisal services?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes, several national firms offer daily or weekly pay. Filter by 'Net 7' or 'Daily Pay' inside the Nested Objects directory to find them."
+                  "text": "Lenders and AMCs hire through Nested Objects for drive-by appraisals and BPOs. Upgrade to Pro to see pay rates for these valuation orders."
                 }
               }
             ]
@@ -111,10 +111,10 @@ export default function HomePage() {
             <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
               <p className="font-semibold text-slate-900">Who this hub serves</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                <span>• Mortgage &amp; insurance field inspectors</span>
-                <span>• Mobile notaries &amp; signing agents</span>
-                <span>• Realtors &amp; investor-friendly agents</span>
-                <span>• Gig pros adding inspections as a new lane</span>
+                <span>• Mortgage Field Inspection services &amp; Loss Control</span>
+                <span>• Mobile Notary for real estate closings (RON)</span>
+                <span>• Certified residential property appraisal pros</span>
+                <span>• Independent Field Inspector near me (Gig)</span>
               </div>
             </div>
           </div>
@@ -126,11 +126,10 @@ export default function HomePage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  Inside the member hub
+                  Find Field Inspection &amp; Appraisal Jobs
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-slate-600">
-                  One place to see who is hiring, what they pay, and what they expect from you before
-                  you sign up for another portal.
+                  One place to see who is hiring for Mortgage Field Inspection services and Home valuation for mortgage lenders.
                 </p>
               </div>
               <Link
@@ -143,9 +142,9 @@ export default function HomePage() {
 
             <div className="mt-8 grid gap-6 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">Verified firm directory</h3>
+                <h3 className="text-sm font-semibold text-slate-900">Verified Firm Directory</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Search firms by region, service lane, tools required, and onboarding status. No
+                  Search firms for &ldquo;Independent Field Inspector near me&rdquo; and &ldquo;Mobile Notary&rdquo; work. No
                   resumes uploaded. you control who sees your info.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">

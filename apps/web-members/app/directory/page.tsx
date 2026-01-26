@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Script from 'next/script'
 import { BadgeCheck } from 'lucide-react'
 
@@ -262,13 +263,14 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
       {/* Top row: logo + name */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-4 sm:flex-nowrap">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50">
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50 relative">
             {firm.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={firm.logo_url}
                 alt={`${firm.name} logo`}
-                className="h-full w-full object-contain mix-blend-multiply"
+                fill
+                sizes="56px"
+                className="object-contain mix-blend-multiply p-1"
               />
             ) : (
               <span className="text-xs font-semibold tracking-[0.18em] text-slate-600">
@@ -586,12 +588,13 @@ export default function DirectoryPage() {
                 <p className="mb-3 mt-1 text-xs text-slate-600">
                   Firms operate nationwide. Check specific service areas in the listing details.
                 </p>
-                <div className="w-full border border-slate-200 bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <div className="w-full border border-slate-200 bg-white relative h-48">
+                  <Image
                     src="/directory-map.jpg"
                     alt="Map of US Service Coverage"
-                    className="w-full h-auto object-cover"
+                    fill
+                    sizes="(min-width: 1024px) 300px, 100vw"
+                    className="object-cover"
                   />
                 </div>
               </aside>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/components/auth-provider";
 
-export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?: string }) {
+export function OutsetaProfileWidget({ tab, planUid, accessToken }: { tab?: string; planUid?: string; accessToken?: string | null }) {
     const { isAuthenticated } = useAuth();
     const [outsetaReady, setOutsetaReady] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -14,6 +14,11 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
 
         const initOutseta = () => {
             if (typeof window !== 'undefined' && window.Outseta) {
+                // If we have an explicit token, ensure it is set before parsing
+                if (accessToken && window.Outseta.setAccessToken) {
+                    window.Outseta.setAccessToken(accessToken);
+                }
+
                 setOutsetaReady(true);
                 // Only parse if we have the container
                 if (containerRef.current && window.Outseta.c && window.Outseta.c.parse) {
@@ -40,7 +45,7 @@ export function OutsetaProfileWidget({ tab, planUid }: { tab?: string; planUid?:
         }, 100);
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [accessToken]); // dependency on accessToken to re-init if it changes logic
 
     // Re-trigger parse when tab or readiness changes
     useEffect(() => {

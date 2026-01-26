@@ -19,24 +19,36 @@ const contentContainerClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 export const metadata: Metadata = {
   metadataBase: new URL('https://nested-objects-starter.vercel.app'),
   title: {
-    default: 'Nested Objects Member Hub',
+    default: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
     template: '%s | Nested Objects',
   },
   description:
-    'Nested Objects is the AI powered member hub for field inspectors, notaries, realtors, and gig pros, helping you find firms, get trained, and land more work.',
+    'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals. Find verified firms and get hired.',
+  keywords: [
+    'Mortgage Field Inspection services',
+    'Independent Field Inspector near me',
+    'Insurance Loss Control Inspection',
+    'Remote Online Notarization (RON)',
+    'Mobile Notary for real estate closings',
+    'Loan Signing Agent',
+    'Certified residential property appraisal',
+    'Drive-by appraisal services',
+    'Home valuation for mortgage lenders',
+    'Gig work for realtors',
+  ],
   openGraph: {
     type: 'website',
     url: 'https://nested-objects-starter.vercel.app',
-    title: 'Nested Objects Member Hub',
+    title: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
     description:
-      'AI powered member hub for field inspectors, notaries, realtors, and gig pros.',
+      'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.',
     siteName: 'Nested Objects',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nested Objects Member Hub',
+    title: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
     description:
-      'AI powered member hub for field inspectors, notaries, realtors, and gig pros.',
+      'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.',
   },
 }
 

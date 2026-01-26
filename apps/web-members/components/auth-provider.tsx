@@ -19,6 +19,7 @@ type AuthContextValue = {
   planUid: string | null
   profileDisplayName: string | null
   profileAvatarUrl: string | null
+  accessToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
   hasAccess: (feature?: string) => boolean
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [planUid, setPlanUid] = useState<string | null>(null)
   const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -193,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             const accessToken = await Outseta.getAccessToken()
             if (accessToken) {
+              setAccessToken(accessToken)
               document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
             }
           } catch (e) {
@@ -216,6 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setUser(null)
           setPlanUid(null)
+          setAccessToken(null)
           setIsAuthenticated(false)
         }
       } catch (error) {
@@ -223,6 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) {
           setUser(null)
           setPlanUid(null)
+          setAccessToken(null)
           setIsAuthenticated(false)
         }
       } finally {
@@ -383,6 +388,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(null)
       setPlanUid(null)
+      setAccessToken(null)
       setIsAuthenticated(false)
     } catch (error) {
       console.error('Error during logout', error)
@@ -396,6 +402,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     planUid,
     profileDisplayName,
     profileAvatarUrl,
+    accessToken,
     isAuthenticated,
     isLoading,
     hasAccess,
