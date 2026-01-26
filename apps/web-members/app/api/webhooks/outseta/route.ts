@@ -1,7 +1,7 @@
 // =================================================================
 // /app/api/webhooks/outseta/route.ts
 // Receives webhooks from Outseta and syncs to Supabase profiles
-// Matches Nested Objects profiles table schema exactly
+// Handles BOTH Person-centric and Account-centric webhook payloads
 // =================================================================
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -9,7 +9,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
 // =================================================================
-// TYPES - Matching Outseta webhook payloads
+// TYPES
 // =================================================================
 
 interface OutsetaPerson {
@@ -26,6 +26,8 @@ interface OutsetaPerson {
   Created?: string;
   Updated?: string;
   LastLoginDateTime?: string;
+  // Person payloads include PersonAccount array
+  PersonAccount?: OutsetaPersonAccount[];
 }
 
 interface OutsetaPlan {
@@ -33,50 +35,48 @@ interface OutsetaPlan {
   Name: string;
   MonthlyRate?: number;
   AnnualRate?: number;
-  ContentGroups?: Array<{ Uid: string; Name: string }>;
 }
 
 interface OutsetaSubscription {
   Uid: string;
-  BillingRenewalTerm?: number; // 1=Monthly, 2=Annual
+  BillingRenewalTerm?: number;
   Plan?: OutsetaPlan;
   StartDate?: string;
   EndDate?: string;
   RenewalDate?: string;
-  Rate?: number;
+}
+
+interface OutsetaAccount {
+  Uid: string;
+  Name?: string;
+  AccountStage?: number;
+  AccountStageLabel?: string;
+  CurrentSubscription?: OutsetaSubscription;
+  LatestSubscription?: OutsetaSubscription;
+  Created?: string;
+  Updated?: string;
 }
 
 interface OutsetaPersonAccount {
   Uid: string;
-  Person: OutsetaPerson;
+  Person?: OutsetaPerson;
+  Account?: OutsetaAccount;
   IsPrimary: boolean;
   Created?: string;
   Updated?: string;
 }
 
-interface OutsetaAccount {
-  Uid: string;
-  Name: string;
-  AccountStage?: number;
-  // AccountStage: 1=Trialing, 2=Subscribing, 3=Canceling, 4=Expired, 5=Canceled, 6=PastDue
-  AccountStageLabel?: string;
+// Account-centric payload (e.g., Subscription Started)
+interface OutsetaAccountPayload extends OutsetaAccount {
   PersonAccount?: OutsetaPersonAccount[];
-  Subscriptions?: OutsetaSubscription[];
-  LatestSubscription?: OutsetaSubscription;
-  CurrentSubscription?: OutsetaSubscription;
-  Created?: string;
-  Updated?: string;
 }
 
-type OutsetaWebhookPayload = OutsetaAccount | OutsetaPerson;
+// The webhook can send either type
+type OutsetaWebhookPayload = OutsetaPerson | OutsetaAccountPayload;
 
-// Maps to your profiles table columns
-interface ProfileUpsertData {
-  // Outseta IDs
+interface ProfileUpdateData {
   outseta_person_uid: string;
   outseta_account_id: string | null;
-  
-  // User identity (user_email is your primary key)
   user_email: string;
   email: string;
   first_name: string | null;
@@ -84,8 +84,6 @@ interface ProfileUpsertData {
   full_name: string | null;
   display_name: string | null;
   phone: string | null;
-  
-  // Subscription info
   subscription_tier: 'free' | 'pro' | 'elite' | 'agency';
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
   subscription_start_date: string | null;
@@ -93,15 +91,9 @@ interface ProfileUpsertData {
   plan_uid: string | null;
   plan_name: string | null;
   billing_renewal_term: number | null;
-  
-  // Outseta timestamps
   outseta_created_at: string | null;
   outseta_updated_at: string | null;
-  
-  // Store full payload for reference
-  outseta_data: OutsetaAccount | OutsetaPerson;
-  
-  // Activity tracking
+  outseta_data: object;
   last_login_at: string | null;
   last_active_at: string;
 }
@@ -139,73 +131,68 @@ function verifyOutsetaSignature(
       .digest('hex');
     
     return signature === `sha256=${calculatedSignature}`;
-  } catch (error) {
-    console.error('Signature verification error:', error);
+  } catch {
     return false;
   }
 }
 
-function isAccountPayload(payload: OutsetaWebhookPayload): payload is OutsetaAccount {
-  return 'PersonAccount' in payload || 'AccountStage' in payload;
+/**
+ * Determine if this is a Person-centric or Account-centric payload
+ * Person payloads have Email at root level
+ * Account payloads have Name at root level and PersonAccount contains Person objects
+ */
+function isPersonPayload(payload: OutsetaWebhookPayload): payload is OutsetaPerson {
+  return 'Email' in payload && typeof payload.Email === 'string';
 }
 
-/**
- * Map Outseta AccountStage to your subscription_status
- */
-function mapAccountStageToStatus(stage?: number): ProfileUpsertData['subscription_status'] {
+function mapAccountStageToStatus(stage?: number): ProfileUpdateData['subscription_status'] {
   switch (stage) {
     case 1: return 'trialing';
-    case 2: return 'active';      // Subscribing
-    case 3: return 'canceled';    // Canceling
-    case 4: return 'canceled';    // Expired
-    case 5: return 'canceled';    // Canceled
-    case 6: return 'past_due';    // PastDue
+    case 2: return 'active';
+    case 3: return 'canceled';
+    case 4: return 'canceled';
+    case 5: return 'canceled';
+    case 6: return 'past_due';
     default: return 'active';
   }
 }
 
-/**
- * Map Outseta Plan name to your subscription_tier
- */
-function mapPlanToTier(planName?: string): ProfileUpsertData['subscription_tier'] {
+function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'] {
   if (!planName) return 'free';
-  
   const normalized = planName.toLowerCase();
   if (normalized.includes('agency')) return 'agency';
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
-  return 'free'; // Starter maps to free
+  return 'free';
 }
 
 /**
- * Map Outseta webhook payload to your exact profiles table schema
+ * Extract profile data from webhook payload
+ * Handles both Person Updated and Account/Subscription events
  */
-function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpsertData {
-  // Handle Account-centric payloads (most webhook events)
-  if (isAccountPayload(payload)) {
-    const account = payload as OutsetaAccount;
-    
-    // Find primary person
-    const personAccount = account.PersonAccount?.find(pa => pa.IsPrimary) 
-      || account.PersonAccount?.[0];
-    const person = personAccount?.Person;
-    
-    if (!person?.Email) {
-      throw new Error('No person with email found in account payload');
-    }
-    
-    // Get current subscription
-    const subscription = account.CurrentSubscription || account.LatestSubscription;
-    const plan = subscription?.Plan;
-    
+function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData {
+  
+  // =====================================================
+  // PERSON-CENTRIC PAYLOAD (Person Created/Updated)
+  // The Person is at root, Account info is nested inside PersonAccount
+  // =====================================================
+  if (isPersonPayload(payload)) {
+    const person = payload;
     const email = person.Email.toLowerCase().trim();
     
+    // Get account info from PersonAccount array if available
+    const primaryPersonAccount = person.PersonAccount?.find(pa => pa.IsPrimary) 
+      || person.PersonAccount?.[0];
+    const account = primaryPersonAccount?.Account;
+    
+    // For Person events, we may not have full subscription info
+    // We'll update what we can
+    const subscription = account?.CurrentSubscription || account?.LatestSubscription;
+    const plan = subscription?.Plan;
+    
     return {
-      // Outseta IDs
       outseta_person_uid: person.Uid,
-      outseta_account_id: account.Uid,
-      
-      // User identity
+      outseta_account_id: account?.Uid || null,
       user_email: email,
       email: email,
       first_name: person.FirstName || null,
@@ -213,41 +200,43 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpsertData 
       full_name: person.FullName || null,
       display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
       phone: person.PhoneMobile || person.PhoneWork || null,
-      
-      // Subscription
       subscription_tier: mapPlanToTier(plan?.Name),
-      subscription_status: mapAccountStageToStatus(account.AccountStage),
+      subscription_status: mapAccountStageToStatus(account?.AccountStage),
       subscription_start_date: subscription?.StartDate || null,
       subscription_end_date: subscription?.EndDate || null,
       plan_uid: plan?.Uid || null,
       plan_name: plan?.Name || null,
       billing_renewal_term: subscription?.BillingRenewalTerm || null,
-      
-      // Timestamps
       outseta_created_at: person.Created || null,
       outseta_updated_at: person.Updated || new Date().toISOString(),
-      
-      // Full payload
       outseta_data: payload,
-      
-      // Activity
       last_login_at: person.LastLoginDateTime || null,
       last_active_at: new Date().toISOString(),
     };
   }
   
-  // Handle Person-only payloads
-  const person = payload as OutsetaPerson;
+  // =====================================================
+  // ACCOUNT-CENTRIC PAYLOAD (Subscription Started/Updated/Cancelled)
+  // The Account is at root, Person info is nested inside PersonAccount
+  // =====================================================
+  const account = payload as OutsetaAccountPayload;
   
-  if (!person.Email) {
-    throw new Error('No email in person payload');
+  // Find primary person from PersonAccount array
+  const primaryPersonAccount = account.PersonAccount?.find(pa => pa.IsPrimary) 
+    || account.PersonAccount?.[0];
+  const person = primaryPersonAccount?.Person;
+  
+  if (!person?.Email) {
+    throw new Error(`No person email in account payload. Account UID: ${account.Uid}`);
   }
   
   const email = person.Email.toLowerCase().trim();
+  const subscription = account.CurrentSubscription || account.LatestSubscription;
+  const plan = subscription?.Plan;
   
   return {
     outseta_person_uid: person.Uid,
-    outseta_account_id: null,
+    outseta_account_id: account.Uid,
     user_email: email,
     email: email,
     first_name: person.FirstName || null,
@@ -255,13 +244,13 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpsertData 
     full_name: person.FullName || null,
     display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
     phone: person.PhoneMobile || person.PhoneWork || null,
-    subscription_tier: 'free',
-    subscription_status: 'active',
-    subscription_start_date: null,
-    subscription_end_date: null,
-    plan_uid: null,
-    plan_name: null,
-    billing_renewal_term: null,
+    subscription_tier: mapPlanToTier(plan?.Name),
+    subscription_status: mapAccountStageToStatus(account.AccountStage),
+    subscription_start_date: subscription?.StartDate || null,
+    subscription_end_date: subscription?.EndDate || null,
+    plan_uid: plan?.Uid || null,
+    plan_name: plan?.Name || null,
+    billing_renewal_term: subscription?.BillingRenewalTerm || null,
     outseta_created_at: person.Created || null,
     outseta_updated_at: person.Updated || new Date().toISOString(),
     outseta_data: payload,
@@ -287,25 +276,23 @@ export async function POST(request: NextRequest) {
     const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
     const signature = request.headers.get('x-hub-signature-256') || '';
     
-    if (webhookSecret) {
-      if (!verifyOutsetaSignature(signature, bodyText, webhookSecret)) {
-        console.error(`[${requestId}] Signature verification failed`);
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
+    if (webhookSecret && !verifyOutsetaSignature(signature, bodyText, webhookSecret)) {
+      console.error(`[${requestId}] Signature verification failed`);
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
     
     // Parse payload
     const payload: OutsetaWebhookPayload = JSON.parse(bodyText);
-    const payloadType = isAccountPayload(payload) ? 'Account' : 'Person';
+    const payloadType = isPersonPayload(payload) ? 'Person' : 'Account';
     console.log(`[${requestId}] Payload type: ${payloadType}`);
     
-    // Map to profile
+    // Map to profile data
     const profileData = mapOutsetaToProfile(payload);
-    console.log(`[${requestId}] Processing: ${profileData.email} (${profileData.subscription_tier})`);
+    console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
     
     const supabase = getSupabaseAdmin();
     
-    // Check if profile exists by email (your primary key)
+    // Check if profile exists
     const { data: existing } = await supabase
       .from('profiles')
       .select('id, user_email')
@@ -315,43 +302,50 @@ export async function POST(request: NextRequest) {
     let result;
     
     if (existing) {
-      // UPDATE existing profile
+      // UPDATE - only update fields we have data for
+      const updatePayload: Record<string, unknown> = {
+        outseta_person_uid: profileData.outseta_person_uid,
+        email: profileData.email,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        full_name: profileData.full_name,
+        display_name: profileData.display_name,
+        phone: profileData.phone,
+        outseta_updated_at: profileData.outseta_updated_at,
+        outseta_data: profileData.outseta_data,
+        last_active_at: profileData.last_active_at,
+      };
+      
+      // Only update these if we have values (don't overwrite with nulls)
+      if (profileData.outseta_account_id) updatePayload.outseta_account_id = profileData.outseta_account_id;
+      if (profileData.plan_uid) updatePayload.plan_uid = profileData.plan_uid;
+      if (profileData.plan_name) updatePayload.plan_name = profileData.plan_name;
+      if (profileData.subscription_start_date) updatePayload.subscription_start_date = profileData.subscription_start_date;
+      if (profileData.billing_renewal_term) updatePayload.billing_renewal_term = profileData.billing_renewal_term;
+      if (profileData.last_login_at) updatePayload.last_login_at = profileData.last_login_at;
+      
+      // Only update subscription info if we got it from an Account event
+      if (payloadType === 'Account' || profileData.plan_name) {
+        updatePayload.subscription_tier = profileData.subscription_tier;
+        updatePayload.subscription_status = profileData.subscription_status;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          outseta_person_uid: profileData.outseta_person_uid,
-          outseta_account_id: profileData.outseta_account_id,
-          email: profileData.email,
-          first_name: profileData.first_name,
-          last_name: profileData.last_name,
-          full_name: profileData.full_name,
-          display_name: profileData.display_name,
-          phone: profileData.phone,
-          subscription_tier: profileData.subscription_tier,
-          subscription_status: profileData.subscription_status,
-          subscription_start_date: profileData.subscription_start_date,
-          subscription_end_date: profileData.subscription_end_date,
-          plan_uid: profileData.plan_uid,
-          plan_name: profileData.plan_name,
-          billing_renewal_term: profileData.billing_renewal_term,
-          outseta_created_at: profileData.outseta_created_at,
-          outseta_updated_at: profileData.outseta_updated_at,
-          outseta_data: profileData.outseta_data,
-          last_login_at: profileData.last_login_at,
-          last_active_at: profileData.last_active_at,
-        })
+        .update(updatePayload)
         .eq('user_email', profileData.user_email)
-        .select('id, user_email, subscription_tier, plan_name')
+        .select('id, user_email, outseta_person_uid, subscription_tier, plan_name')
         .single();
       
       if (error) throw error;
       result = { operation: 'update', data };
+      
     } else {
       // INSERT new profile
       const { data, error } = await supabase
         .from('profiles')
         .insert(profileData)
-        .select('id, user_email, subscription_tier, plan_name')
+        .select('id, user_email, outseta_person_uid, subscription_tier, plan_name')
         .single();
       
       if (error) throw error;
@@ -359,7 +353,7 @@ export async function POST(request: NextRequest) {
     }
     
     const duration = Date.now() - startTime;
-    console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms: ${result.data?.user_email}`);
+    console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms`);
     
     return NextResponse.json({
       success: true,
@@ -369,7 +363,8 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error(`[${requestId}] Error:`, error);
+    const duration = Date.now() - startTime;
+    console.error(`[${requestId}] Error after ${duration}ms:`, error);
     return NextResponse.json(
       { error: 'Processing failed', details: (error as Error).message, requestId },
       { status: 500 }
