@@ -30,7 +30,6 @@ function MembershipContent() {
     if (isCurrentPlan) return
 
     if (!isAuthenticated) {
-      // Fallback for unauth: bounce to hosted page or open register widget
       if (typeof window !== 'undefined' && window.Outseta?.auth?.open) {
         window.Outseta.auth.open({
           widgetMode: 'register',
@@ -44,14 +43,17 @@ function MembershipContent() {
       return
     }
 
-    // Authenticated: Redirect to internal profile page with plan change params
-    // This keeps the user in the app and lets the embed handle the success state
-    router.push(`/profile?tab=planChange&stateProps=${encodeURIComponent(JSON.stringify({ planUid: plan.planUid, planPaymentTerm: plan.period === 'month' ? 'monthly' : 'annual' }))}`);
+    // Authenticated: Open profile widget to plan tab
+    if (typeof window !== 'undefined') {
+      // We can just open the profile. The user can navigate to "Plan" tab.
+      // Outseta API might allow opening specific tab, but standard open() is safest fallback.
+      ; (window as any).Outseta?.profile?.open({ tab: 'plan' })
+    }
   }
 
   const openManageBilling = () => {
     if (isAuthenticated) {
-      router.push('/profile')
+      ; (window as any).Outseta?.profile?.open({ tab: 'billing' })
     }
   }
 

@@ -149,10 +149,13 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               {visibleNavLinks.map((link) => {
                 if (link.label === 'Profile') {
                   return (
-                    <a
+                    <button
                       key={link.href}
-                      href="#"
-                      data-o-profile="1"
+                      type="button"
+                      onClick={() => {
+                        setIsNavOpen(false)
+                          ; (window as any).Outseta?.profile?.open()
+                      }}
                       className={buttonVariants({
                         variant: 'ghost',
                         size: 'sm',
@@ -161,7 +164,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                       })}
                     >
                       {link.label}
-                    </a>
+                    </button>
                   )
                 }
                 return (
