@@ -4,32 +4,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle } from 'lucide-react'
-import VisualReferenceLibrary, { TrainingResource } from '@/components/training/VisualReferenceLibrary'
-
-type Module = {
-    id: string
-    module_number: number
-    title: string
-    description: string
-    icon: string
-    estimated_hours: number
-    video_url: string
-}
-
-type Lesson = {
-    id: string
-    lesson_number: number
-    title: string
-    estimated_minutes: number
-    content_type: 'video' | 'text' | 'pdf'
-}
+import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle, Video, Mic } from 'lucide-react'
+import VisualReferenceLibrary from '@/components/training/VisualReferenceLibrary'
+import { TrainingModule, TrainingLesson, TrainingResource } from '@/types/training'
 
 export default function ModuleOverviewPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
-    const [module, setModule] = useState<Module | null>(null)
-    const [lessons, setLessons] = useState<Lesson[]>([])
+    const [module, setModule] = useState<TrainingModule | null>(null)
+    const [lessons, setLessons] = useState<TrainingLesson[]>([])
     const [resources, setResources] = useState<TrainingResource[]>([])
     const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
@@ -57,18 +40,30 @@ export default function ModuleOverviewPage() {
                     .eq('module_id', moduleId)
                     .order('lesson_number')
 
-                if (lessonData) setLessons(lessonData)
+                if (lessonData) setLessons(lessonData as TrainingLesson[])
 
-                // 3. Fetch Resources
-                // Note: In a real app, we might join with lessons to get lesson_number. 
-                // For now, we'll try to infer or just pass them through. 
-                // If the DB doesn't have lesson_id on resources, we'll just show them as General.
+                // 3. Fetch Resources with joined lesson data if possible, or just raw
+                // Note: supabase-js joins look like: .select('*, lesson:training_lessons(lesson_number)')
+                // But for simplicity/type-safety in this step, we'll fetch raw and manual join if needed, 
+                // or assume backend returns what we need if we set up a view.
+                // Here we'll just fetch raw resources and map lesson_number from our local lessons array.
                 const { data: resourceData } = await supabase
                     .from('training_resources')
                     .select('*')
                     .eq('module_id', moduleId)
 
-                if (resourceData) setResources(resourceData as TrainingResource[])
+                if (lessonData && resourceData) {
+                    const enrichedResources = resourceData.map((res: TrainingResource) => {
+                        const relatedLesson = lessonData.find((l: TrainingLesson) => l.id === res.lesson_id)
+                        return {
+                            ...res,
+                            lesson_number: relatedLesson ? relatedLesson.lesson_number : undefined
+                        }
+                    })
+                    setResources(enrichedResources)
+                } else if (resourceData) {
+                    setResources(resourceData as TrainingResource[])
+                }
 
                 // 4. Fetch Progress via API
                 try {
@@ -154,6 +149,11 @@ export default function ModuleOverviewPage() {
                         ) : (
                             lessons.map((lesson, index) => {
                                 const isCompleted = completedLessonIds.includes(lesson.id)
+                                // Icon logic
+                                let Icon = FileText;
+                                if (lesson.content_type === 'video' || lesson.video_url) Icon = Video;
+                                else if (lesson.content_type === 'audio' || lesson.audio_url) Icon = Mic;
+
                                 return (
                                     <Link
                                         key={lesson.id}
@@ -176,8 +176,8 @@ export default function ModuleOverviewPage() {
                                             </h3>
                                             <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
                                                 <span className="flex items-center gap-1">
-                                                    {lesson.content_type === 'video' ? <PlayCircle className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                                                    {lesson.content_type === 'video' ? 'Video Lesson' : 'Reading'}
+                                                    <Icon className="w-4 h-4" />
+                                                    {lesson.video_url ? 'Video Lesson' : lesson.audio_url ? 'Audio Lesson' : 'Reading'}
                                                 </span>
                                                 <span>•</span>
                                                 <span>{lesson.estimated_minutes} min</span>

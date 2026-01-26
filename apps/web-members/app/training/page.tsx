@@ -4,47 +4,38 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import { Lock, PlayCircle, CheckCircle } from 'lucide-react'
-import { basicFieldInspectionModules } from './basic/modules'
-import { advancedFieldInspectionModules } from './advanced/modules'
-
-// Generic Module Type
-type Module = {
-  id: string
-  title: string // e.g. "Module 1: ..."
-  description: string
-  icon?: string // Removing icon as it's not in our TS/data? Or we map it?
-  // Our modules.ts doesn't have 'icon' string, it has 'type'.
-  // We'll map 'type' to an icon or just use a default.
-  module_number?: number // We need to infer this from title or order?
-  unlock_requirement?: string
-  // ... other fields
-}
+import { TrainingModule } from '@/types/training'
 
 export default function TrainingPortalPage() {
   const [loading, setLoading] = useState(true)
+  const [modules, setModules] = useState<TrainingModule[]>([])
   const [completedModuleIds, setCompletedModuleIds] = useState<string[]>([])
 
-  // Combine modules for display? Or section them?
-  // Let's section them: Basic Track (1-4) vs Advanced (5-8).
-  const basicModules = basicFieldInspectionModules
-  const advancedModules = advancedFieldInspectionModules
-  const totalModules = basicModules.length + advancedModules.length
+  const supabase = createClient()
 
   useEffect(() => {
     async function fetchData() {
-      // Fetch Progress
       try {
+        setLoading(true)
+
+        // 1. Fetch Modules
+        const { data: moduleData, error } = await supabase
+          .from('training_modules')
+          .select('*')
+          .order('module_number')
+
+        if (error) throw error
+        if (moduleData) setModules(moduleData as TrainingModule[])
+
+        // 2. Fetch Progress
         const isDev = window.location.search.includes('dev=true') && process.env.NODE_ENV === 'development'
         const res = await fetch('/api/training/progress')
         if (res.ok) {
           const { completedModuleIds } = await res.json()
           setCompletedModuleIds(completedModuleIds || [])
-        } else if (isDev) {
-          // Mock dev data
-          setCompletedModuleIds(basicModules.slice(0, 2).map(m => m.id))
         }
       } catch (err) {
-        console.error(err)
+        console.error("Error loading training portal:", err)
       } finally {
         setLoading(false)
       }
@@ -52,33 +43,29 @@ export default function TrainingPortalPage() {
     fetchData()
   }, [])
 
+  // Split into tracks
+  // Basic: 1-4, Advanced: 5-8 (or anything > 4)
+  const basicModules = modules.filter(m => m.module_number <= 4)
+  const advancedModules = modules.filter(m => m.module_number > 4)
+  const totalModules = modules.length
+
   // Helper to check lock
-  const isLocked = (modIndex: number, track: 'basic' | 'advanced') => {
-    if (track === 'basic') {
-      if (modIndex === 0) return false
-      // Requires previous module in Basic track to be done
-      const prevMod = basicModules[modIndex - 1]
-      return !completedModuleIds.includes(prevMod.id)
-    }
-    if (track === 'advanced') {
-      // Module 1 (Index 0 of Advanced) requires ALL Basic to be done? 
-      // Or just Basic 4? usually ALL basic.
-      if (modIndex === 0) {
-        // Check if all Basic are done
-        const allBasicDone = basicModules.every(m => completedModuleIds.includes(m.id))
-        return !allBasicDone
-      }
-      const prevMod = advancedModules[modIndex - 1]
-      return !completedModuleIds.includes(prevMod.id)
-    }
-    return true
+  const isLocked = (mod: TrainingModule) => {
+    // Logic: A module is locked if the previous module is not completed.
+    // Module 1 is always unlocked.
+    if (mod.module_number === 1) return false
+
+    // Find previous module
+    const prevMod = modules.find(m => m.module_number === mod.module_number - 1)
+    if (!prevMod) return false // Should not happen if sequential
+
+    return !completedModuleIds.includes(prevMod.id)
   }
 
-  const renderModuleCard = (mod: any, index: number, track: 'basic' | 'advanced') => {
-    const locked = isLocked(index, track)
-    const modNum = track === 'basic' ? index + 1 : index + 5
+  const renderModuleCard = (mod: TrainingModule) => {
+    const locked = isLocked(mod)
     const isPassed = completedModuleIds.includes(mod.id)
-    const href = `/training/${track}/${mod.id}`
+    const href = `/training/${mod.id}` // Direct dynamic route
 
     return (
       <div
@@ -92,7 +79,7 @@ export default function TrainingPortalPage() {
       >
         <div className="flex items-start justify-between mb-4">
           <div className="p-2 bg-brand-micra rounded-lg text-brand-dark font-bold text-xl">
-            {modNum}
+            {mod.module_number}
           </div>
           {locked ? (
             <Lock className="w-5 h-5 text-slate-400" />
@@ -148,12 +135,12 @@ export default function TrainingPortalPage() {
             <div className="mt-6">
               <div className="flex justify-between text-xs font-semibold text-slate-600 mb-2">
                 <span>Certification Progress</span>
-                <span>{Math.round((completedModuleIds.length / totalModules) * 100)}%</span>
+                <span>{totalModules > 0 ? Math.round((completedModuleIds.length / totalModules) * 100) : 0}%</span>
               </div>
               <div className="h-2 w-full bg-brand-copper/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-brand-copper transition-all duration-500"
-                  style={{ width: `${(completedModuleIds.length / totalModules) * 100}%` }}
+                  style={{ width: `${totalModules > 0 ? (completedModuleIds.length / totalModules) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -171,8 +158,9 @@ export default function TrainingPortalPage() {
               Basic Track <span className="text-sm font-normal text-slate-500 bg-white px-2 py-1 rounded-md border">Modules 1-4</span>
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {basicModules.map((m, i) => renderModuleCard(m, i, 'basic'))}
+              {basicModules.map((m) => renderModuleCard(m))}
             </div>
+            {basicModules.length === 0 && <div className="text-slate-400 italic">No basic modules found. Check database seeding.</div>}
           </section>
 
           {/* Advanced Track */}
@@ -181,7 +169,7 @@ export default function TrainingPortalPage() {
               Advanced Track <span className="text-sm font-normal text-slate-500 bg-white px-2 py-1 rounded-md border">Modules 5-8</span>
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {advancedModules.map((m, i) => renderModuleCard(m, i, 'advanced'))}
+              {advancedModules.map((m) => renderModuleCard(m))}
             </div>
           </section>
         </div>

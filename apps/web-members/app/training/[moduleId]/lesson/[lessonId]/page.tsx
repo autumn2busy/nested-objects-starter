@@ -4,16 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { ArrowLeft, CheckCircle, ChevronRight, Play } from 'lucide-react'
-
-type Lesson = {
-    id: string
-    lesson_number: number
-    title: string
-    content_type: 'video' | 'text' | 'pdf'
-    content: string // URL for video, Markdown for text
-    estimated_minutes: number
-}
+import { ArrowLeft, CheckCircle, ChevronRight, Play, Mic, FileText, Video as VideoIcon } from 'lucide-react'
+import { TrainingLesson } from '@/types/training'
 
 export default function LessonPlayerPage() {
     const params = useParams()
@@ -21,7 +13,7 @@ export default function LessonPlayerPage() {
     const moduleId = params.moduleId as string
     const lessonId = params.lessonId as string
 
-    const [lesson, setLesson] = useState<Lesson | null>(null)
+    const [lesson, setLesson] = useState<TrainingLesson | null>(null)
     const [nextLessonId, setNextLessonId] = useState<string | null>(null)
     const [completed, setCompleted] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -54,9 +46,7 @@ export default function LessonPlayerPage() {
                             setCompleted(true)
                         }
                     }
-                } catch (err) {
-                    console.error(err)
-                }
+                } catch (err) { console.error(err) }
 
                 // 3. Find Next Lesson
                 const { data: allLessons } = await supabase
@@ -96,7 +86,6 @@ export default function LessonPlayerPage() {
 
             if (response.ok) {
                 setCompleted(true)
-                // Optional: Auto-redirect or just show success
                 if (nextLessonId) {
                     router.push(`/training/${moduleId}/lesson/${nextLessonId}`)
                 } else {
@@ -111,6 +100,11 @@ export default function LessonPlayerPage() {
     if (loading) return <div className="min-h-screen grid place-content-center text-slate-400">Loading Content...</div>
     if (!lesson) return <div className="min-h-screen grid place-content-center text-brand-copper">Lesson not found.</div>
 
+    // Helper: Determine effective content type
+    const hasVideo = !!lesson.video_url || (lesson.content_type === 'video' && lesson.content.includes('youtu'))
+    const hasAudio = !!lesson.audio_url
+    const videoSource = lesson.video_url || (lesson.content_type === 'video' ? lesson.content : '')
+
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
             {/* Top Nav */}
@@ -121,36 +115,75 @@ export default function LessonPlayerPage() {
                 >
                     <ArrowLeft className="w-4 h-4" /> Exit to Module
                 </Link>
-                <h1 className="text-sm font-bold text-slate-200 hidden sm:block">
-                    Lesson {lesson.lesson_number}: {lesson.title}
-                </h1>
-                <div className="w-20" /> {/* Spacer */}
+                <div className="hidden sm:flex items-center gap-2 text-sm text-slate-400">
+                    <div className="font-bold text-slate-200">Lesson {lesson.lesson_number}</div>
+                    <span className="opacity-50">/</span>
+                    <div className="max-w-[200px] truncate">{lesson.title}</div>
+                </div>
+                <div className="w-20" />
             </div>
 
             <div className="flex-grow flex flex-col mx-auto w-full max-w-5xl">
-                {/* Main Content Viewer */}
-                <div className="flex-grow bg-black relative aspect-video w-full max-h-[70vh]">
-                    {/* If video */}
-                    {lesson.content_type === 'video' && lesson.content.includes('youtu') ? (
-                        <iframe
-                            src={lesson.content.replace('watch?v=', 'embed/').split('&')[0]}
-                            className="w-full h-full absolute inset-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        />
-                    ) : (
-                        <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center h-full">
-                            <p className="mb-4">No video content available.</p>
-                            {/* Fallback for text content */}
-                            <div className="prose prose-invert max-w-none text-left w-full p-8">
-                                {lesson.content}
+                {/* Scrollable Content Area */}
+                <div className="flex-grow w-full bg-slate-50 overflow-y-auto">
+                    <div className="mx-auto max-w-4xl bg-white min-h-[50vh] shadow-sm my-8 rounded-xl overflow-hidden">
+
+                        {/* 1. MEDIA PLAYER (Video) */}
+                        {hasVideo && videoSource.includes('youtu') && (
+                            <div className="aspect-video w-full bg-black relative">
+                                <iframe
+                                    src={videoSource.replace('watch?v=', 'embed/').split('&')[0]}
+                                    className="w-full h-full absolute inset-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                        )}
+
+                        <div className="p-8 sm:p-12">
+                            {/* 2. AUDIO PLAYER (If Available) */}
+                            {hasAudio && (
+                                <div className="mb-8 bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-brand-copper rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                        <Play className="w-5 h-5 ml-1" />
+                                    </div>
+                                    <div className="flex-grow">
+                                        <div className="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                            <Mic className="w-3 h-3 text-slate-400" /> Audio Version
+                                        </div>
+                                        {/* Native Audio Element */}
+                                        <audio controls className="w-full h-8 mt-1 block accent-brand-copper">
+                                            <source src={lesson.audio_url} type="audio/mpeg" />
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 3. PRIMARY CONTENT (Text/HTML) */}
+                            <div className="max-w-none prose prose-slate lg:prose-lg">
+                                {/* Badge for Content Type */}
+                                <div className="not-prose flex gap-2 mb-6">
+                                    {hasVideo && <span className="text-xs font-bold px-2 py-1 bg-red-100 text-red-600 rounded uppercase flex items-center gap-1"><VideoIcon className="w-3 h-3" /> Video</span>}
+                                    {hasAudio && <span className="text-xs font-bold px-2 py-1 bg-purple-100 text-purple-600 rounded uppercase flex items-center gap-1"><Mic className="w-3 h-3" /> Audio</span>}
+                                    <span className="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded uppercase flex items-center gap-1"><FileText className="w-3 h-3" /> Text</span>
+                                </div>
+
+                                {/* Actual Content */}
+                                {lesson.content.trim().startsWith('<') ? (
+                                    <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+                                ) : (
+                                    <div className="whitespace-pre-wrap">
+                                        {lesson.content}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
-                {/* Controls / Metadata */}
-                <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-slate-800/50">
+                {/* Footer Controls */}
+                <div className="p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-slate-800/50 backdrop-blur-sm border-t border-slate-700/50">
                     <div>
                         <h2 className="text-xl font-bold text-white mb-1">{lesson.title}</h2>
                         <p className="text-slate-400 text-sm">Estimated time: {lesson.estimated_minutes} minutes</p>
@@ -159,12 +192,12 @@ export default function LessonPlayerPage() {
                     <button
                         onClick={handleMarkComplete}
                         className={`
-              flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-lg
-              ${completed
+                            flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-lg
+                            ${completed
                                 ? 'bg-green-600/20 text-green-400 border border-green-600/50 cursor-default'
                                 : 'bg-brand-copper hover:bg-brand-copperDark text-white'
                             }
-            `}
+                        `}
                     >
                         {completed ? (
                             <>

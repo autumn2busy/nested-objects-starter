@@ -1,14 +1,6 @@
 import Link from 'next/link'
 import { FileText, Image, Paperclip } from 'lucide-react'
-
-export type TrainingResource = {
-    id: string
-    title: string
-    description: string
-    file_path: string
-    file_type: string
-    lesson_number?: number
-}
+import { TrainingResource } from '@/types/training'
 
 interface VisualReferenceLibraryProps {
     resources: TrainingResource[]
