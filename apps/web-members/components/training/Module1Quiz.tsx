@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  Target, CheckCircle2, XCircle, ChevronRight, 
+import {
+  Target, CheckCircle2, XCircle, ChevronRight,
   Award, RotateCcw, Clock, AlertTriangle, BookOpen,
   ArrowRight, Home, Car, FileText, Users
 } from 'lucide-react';
@@ -294,24 +294,24 @@ const Module1Quiz = () => {
 
   const question = quizQuestions[currentQuestion];
   const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
-  
+
   const correctCount = answers.filter(a => a.isCorrect).length;
   const passingScore = Math.ceil(quizQuestions.length * 0.8); // 80%
   const passed = correctCount >= passingScore;
 
   const handleAnswer = (answerId) => {
     if (showFeedback) return;
-    
+
     setSelectedAnswer(answerId);
     setShowFeedback(true);
-    
+
     let isCorrect = false;
     if (question.type === 'true-false') {
       isCorrect = answerId === question.correctAnswer;
     } else {
       isCorrect = answerId === question.correctAnswer;
     }
-    
+
     setAnswers([...answers, {
       questionId: question.id,
       answer: answerId,
@@ -350,28 +350,27 @@ const Module1Quiz = () => {
   // Quiz Complete Screen
   if (quizComplete) {
     const timeSpent = Math.round((Date.now() - startTime) / 1000 / 60);
-    
+
     return (
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className={`p-8 text-center ${passed ? 'bg-emerald-50' : 'bg-red-50'}`}>
-          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${
-            passed ? 'bg-emerald-500' : 'bg-red-500'
-          }`}>
+          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${passed ? 'bg-emerald-500' : 'bg-red-500'
+            }`}>
             {passed ? (
               <Award className="w-10 h-10 text-white" />
             ) : (
               <XCircle className="w-10 h-10 text-white" />
             )}
           </div>
-          
+
           <h2 className={`text-2xl font-bold mt-4 ${passed ? 'text-emerald-900' : 'text-red-900'}`}>
             {passed ? 'Congratulations!' : 'Not Quite There'}
           </h2>
-          
+
           <p className={`text-lg mt-2 ${passed ? 'text-emerald-700' : 'text-red-700'}`}>
             You scored {correctCount} out of {quizQuestions.length} ({Math.round(correctCount / quizQuestions.length * 100)}%)
           </p>
-          
+
           <p className="text-sm text-slate-500 mt-2">
             Passing score: {passingScore}/{quizQuestions.length} (80%) • Time: {timeSpent} minutes
           </p>
@@ -385,7 +384,7 @@ const Module1Quiz = () => {
                 Module 1 Complete!
               </h3>
               <p className="text-sm text-emerald-700 mt-1">
-                You've demonstrated mastery of the orientation material. You're ready to move on to Module 2: Field Kit & Photo Standards.
+                You&apos;ve demonstrated mastery of the orientation material. You&apos;re ready to move on to Module 2: Field Kit & Photo Standards.
               </p>
             </div>
           ) : (
@@ -409,12 +408,10 @@ const Module1Quiz = () => {
               {quizQuestions.map((q, i) => {
                 const answer = answers[i];
                 return (
-                  <div key={q.id} className={`px-4 py-3 border-b border-slate-100 last:border-0 flex items-center gap-3 ${
-                    answer?.isCorrect ? 'bg-emerald-50/50' : 'bg-red-50/50'
-                  }`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      answer?.isCorrect ? 'bg-emerald-500' : 'bg-red-500'
+                  <div key={q.id} className={`px-4 py-3 border-b border-slate-100 last:border-0 flex items-center gap-3 ${answer?.isCorrect ? 'bg-emerald-50/50' : 'bg-red-50/50'
                     }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${answer?.isCorrect ? 'bg-emerald-500' : 'bg-red-500'
+                      }`}>
                       {answer?.isCorrect ? (
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       ) : (
@@ -426,11 +423,10 @@ const Module1Quiz = () => {
                         Q{q.id}: {q.question.substring(0, 60)}...
                       </p>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      q.type === 'scenario' ? 'bg-pink-100 text-pink-700' :
-                      q.type === 'true-false' ? 'bg-purple-100 text-purple-700' :
-                      'bg-blue-100 text-blue-700'
-                    }`}>
+                    <span className={`text-xs px-2 py-0.5 rounded ${q.type === 'scenario' ? 'bg-pink-100 text-pink-700' :
+                        q.type === 'true-false' ? 'bg-purple-100 text-purple-700' :
+                          'bg-blue-100 text-blue-700'
+                      }`}>
                       {q.type}
                     </span>
                   </div>
@@ -474,7 +470,7 @@ const Module1Quiz = () => {
             <span>~15 min</span>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-400">
             Question {currentQuestion + 1} of {quizQuestions.length}
@@ -483,9 +479,9 @@ const Module1Quiz = () => {
             {correctCount} correct so far
           </span>
         </div>
-        
+
         <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-emerald-500 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
@@ -495,26 +491,23 @@ const Module1Quiz = () => {
       <div className="p-6 space-y-6">
         {/* Question Type Badge */}
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-            question.type === 'scenario' ? 'bg-pink-100' :
-            question.type === 'true-false' ? 'bg-purple-100' :
-            'bg-blue-100'
-          }`}>
-            <TypeIcon className={`w-5 h-5 ${
-              question.type === 'scenario' ? 'text-pink-600' :
-              question.type === 'true-false' ? 'text-purple-600' :
-              'text-blue-600'
-            }`} />
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${question.type === 'scenario' ? 'bg-pink-100' :
+              question.type === 'true-false' ? 'bg-purple-100' :
+                'bg-blue-100'
+            }`}>
+            <TypeIcon className={`w-5 h-5 ${question.type === 'scenario' ? 'text-pink-600' :
+                question.type === 'true-false' ? 'text-purple-600' :
+                  'text-blue-600'
+              }`} />
           </div>
           <div>
-            <span className={`text-xs font-semibold uppercase tracking-wider ${
-              question.type === 'scenario' ? 'text-pink-600' :
-              question.type === 'true-false' ? 'text-purple-600' :
-              'text-blue-600'
-            }`}>
+            <span className={`text-xs font-semibold uppercase tracking-wider ${question.type === 'scenario' ? 'text-pink-600' :
+                question.type === 'true-false' ? 'text-purple-600' :
+                  'text-blue-600'
+              }`}>
               {question.type === 'scenario' ? `Scenario: ${question.category}` :
-               question.type === 'true-false' ? 'True or False' :
-               question.category}
+                question.type === 'true-false' ? 'True or False' :
+                  question.category}
             </span>
           </div>
         </div>
@@ -542,32 +535,30 @@ const Module1Quiz = () => {
                 const isSelected = selectedAnswer === value;
                 const isCorrect = value === question.correctAnswer;
                 const showResult = showFeedback && isSelected;
-                
+
                 return (
                   <button
                     key={String(value)}
                     onClick={() => handleAnswer(value)}
                     disabled={showFeedback}
-                    className={`w-full p-4 rounded-xl border text-left transition ${
-                      showResult
+                    className={`w-full p-4 rounded-xl border text-left transition ${showResult
                         ? isCorrect
                           ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
                           : 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
                         : showFeedback && isCorrect
-                        ? 'bg-emerald-50 border-emerald-300'
-                        : showFeedback
-                        ? 'bg-slate-50 border-slate-200 opacity-50'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
+                          ? 'bg-emerald-50 border-emerald-300'
+                          : showFeedback
+                            ? 'bg-slate-50 border-slate-200 opacity-50'
+                            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                        showResult
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${showResult
                           ? isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                           : showFeedback && isCorrect
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}>
                         {showResult ? (
                           isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
                         ) : (
@@ -588,32 +579,30 @@ const Module1Quiz = () => {
               const isSelected = selectedAnswer === option.id;
               const isCorrect = option.id === question.correctAnswer;
               const showResult = showFeedback && isSelected;
-              
+
               return (
                 <button
                   key={option.id}
                   onClick={() => handleAnswer(option.id)}
                   disabled={showFeedback}
-                  className={`w-full p-4 rounded-xl border text-left transition ${
-                    showResult
+                  className={`w-full p-4 rounded-xl border text-left transition ${showResult
                       ? isCorrect
                         ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
                         : 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
                       : showFeedback && isCorrect
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : showFeedback
-                      ? 'bg-slate-50 border-slate-200 opacity-50'
-                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
+                        ? 'bg-emerald-50 border-emerald-300'
+                        : showFeedback
+                          ? 'bg-slate-50 border-slate-200 opacity-50'
+                          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                      showResult
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${showResult
                         ? isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                         : showFeedback && isCorrect
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}>
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}>
                       {showResult ? (
                         isCorrect ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />
                       ) : (
@@ -630,11 +619,10 @@ const Module1Quiz = () => {
 
         {/* Feedback */}
         {showFeedback && (
-          <div className={`p-5 rounded-xl ${
-            (question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer)
+          <div className={`p-5 rounded-xl ${(question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer)
               ? 'bg-emerald-50 border border-emerald-200'
               : 'bg-red-50 border border-red-200'
-          }`}>
+            }`}>
             <div className="flex items-start gap-3">
               {(question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer) ? (
                 <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
@@ -642,11 +630,10 @@ const Module1Quiz = () => {
                 <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
               )}
               <div>
-                <h4 className={`font-bold ${
-                  (question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer)
+                <h4 className={`font-bold ${(question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer)
                     ? 'text-emerald-800'
                     : 'text-red-800'
-                }`}>
+                  }`}>
                   {(question.type === 'true-false' ? selectedAnswer === question.correctAnswer : selectedAnswer === question.correctAnswer)
                     ? 'Correct!'
                     : 'Incorrect'}

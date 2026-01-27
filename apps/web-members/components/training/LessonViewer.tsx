@@ -113,7 +113,7 @@ const LessonViewer = ({ lessonId = 4 }: LessonViewerProps) => {
         <div className="p-4 bg-slate-50 rounded-xl">
           <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">
             <Users className="w-4 h-4 inline mr-1" />
-            I'm coming from...
+            I&apos;m coming from...
           </label>
           <div className="flex flex-wrap gap-2">
             {audienceTypes.map((type) => (
@@ -121,8 +121,8 @@ const LessonViewer = ({ lessonId = 4 }: LessonViewerProps) => {
                 key={type.id}
                 onClick={() => setSelectedAudience(type.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${selectedAudience === type.id
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
               >
                 {type.icon} {type.label}
@@ -216,16 +216,16 @@ const LessonViewer = ({ lessonId = 4 }: LessonViewerProps) => {
                 <div
                   key={step.id}
                   className={`p-4 rounded-xl border transition ${completedSteps.has(step.id)
-                      ? 'bg-emerald-50 border-emerald-200'
-                      : 'bg-white border-slate-200'
+                    ? 'bg-emerald-50 border-emerald-200'
+                    : 'bg-white border-slate-200'
                     }`}
                 >
                   <div className="flex items-start gap-3">
                     <button
                       onClick={() => toggleStep(step.id)}
                       className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition ${completedSteps.has(step.id)
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                         }`}
                     >
                       {completedSteps.has(step.id) ? (

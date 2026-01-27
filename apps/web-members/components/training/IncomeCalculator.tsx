@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  DollarSign, TrendingUp, Calendar, Clock, 
+import {
+  DollarSign, TrendingUp, Calendar, Clock,
   Car, Smartphone, Shield, ChevronDown, ChevronUp,
   Zap, Target, Info, CheckCircle2
 } from 'lucide-react';
@@ -52,12 +52,12 @@ const IncomeCalculator = () => {
     const dailyIncome = inspectionsPerDay * avgPayPerInspection;
     const hourlyEquivalent = (inspectionsPerDay * avgPayPerInspection) / 8; // Assuming 8-hour day
     const yearlyIncome = monthlyIncome * 12;
-    
+
     // Compare to gig work (assuming $7.50 avg per delivery, 2.5 deliveries/hr, 8 hr day)
     const gigDailyIncome = 7.5 * 2.5 * 8;
     const gigMonthlyIncome = gigDailyIncome * daysPerMonth;
     const incomeIncrease = ((monthlyIncome - gigMonthlyIncome) / gigMonthlyIncome * 100).toFixed(0);
-    
+
     const totalStartupCost = startupCosts.reduce((sum, item) => sum + item.cost, 0);
     const daysToRecoup = Math.ceil(totalStartupCost / dailyIncome);
 
@@ -98,7 +98,7 @@ const IncomeCalculator = () => {
             Quick Start Income Calculator
           </h2>
           <p className="text-slate-400 text-sm max-w-xl">
-            Visualize your income potential transitioning from gig work to professional field services. 
+            Visualize your income potential transitioning from gig work to professional field services.
             Adjust the sliders to match your availability.
           </p>
         </div>
@@ -115,11 +115,10 @@ const IncomeCalculator = () => {
               <button
                 key={key}
                 onClick={() => applyPreset(key)}
-                className={`p-4 rounded-xl border transition-all text-left ${
-                  selectedPreset === key
+                className={`p-4 rounded-xl border transition-all text-left ${selectedPreset === key
                     ? 'bg-emerald-500/20 border-emerald-500/50 ring-2 ring-emerald-500/20'
                     : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
-                }`}
+                  }`}
               >
                 <div className="text-sm font-semibold text-white mb-1">{preset.label}</div>
                 <div className="text-xs text-slate-400">{preset.description}</div>
@@ -244,7 +243,7 @@ const IncomeCalculator = () => {
               {calculations.incomeIncrease > 0 ? '+' : ''}{calculations.incomeIncrease}% vs gig work
             </div>
           </div>
-          
+
           <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Daily Income
@@ -373,7 +372,7 @@ const IncomeCalculator = () => {
           >
             <h3 className="font-semibold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-400" />
-              Startup Costs (The "Professional Kit")
+              Startup Costs (The &quot;Professional Kit&quot;)
             </h3>
             <div className="flex items-center gap-3">
               <span className="text-emerald-400 font-bold">${calculations.totalStartupCost}</span>
@@ -384,11 +383,11 @@ const IncomeCalculator = () => {
               )}
             </div>
           </button>
-          
+
           {showStartupCosts && (
             <div className="px-5 pb-5 space-y-3">
               {startupCosts.map((item, index) => (
-                <div 
+                <div
                   key={index}
                   className="flex items-center justify-between py-3 border-b border-slate-700 last:border-0"
                 >
@@ -411,7 +410,7 @@ const IncomeCalculator = () => {
                   </div>
                 </div>
               ))}
-              
+
               <div className="mt-4 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
                 <div className="flex items-center justify-between">
                   <div>
@@ -434,8 +433,8 @@ const IncomeCalculator = () => {
           <div>
             <div className="text-sm font-semibold text-amber-400 mb-1">The Reality Check</div>
             <p className="text-sm text-slate-300">
-              Your income is tied to <strong>efficiency and routing</strong>, not just speed. 
-              Quality inspections = consistent work = long-term income. Cutting corners leads to 
+              Your income is tied to <strong>efficiency and routing</strong>, not just speed.
+              Quality inspections = consistent work = long-term income. Cutting corners leads to
               rejected reports and lost pay.
             </p>
           </div>
