@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
+import {
   BookOpen, Brain, Calculator, GitBranch, Play, Award,
   ChevronRight, Clock, Target, CheckCircle2, Lock,
   FileText, Camera, AlertTriangle, ArrowRight, Users
@@ -22,98 +22,98 @@ import Module1Quiz from '@/components/training/Module1Quiz';
 
 // Module structure
 const moduleSections = [
-  { 
-    id: 'overview', 
+  {
+    id: 'overview',
     type: 'video',
-    title: 'Module Overview', 
+    title: 'Module Overview',
     duration: '5:30',
     icon: Play,
     description: 'Introduction to field services and what you\'ll learn'
   },
-  { 
-    id: 'lesson-1', 
+  {
+    id: 'lesson-1',
     type: 'lesson',
-    title: 'Field Services as High-Velocity Income', 
+    title: 'Field Services as High-Velocity Income',
     duration: '12 min',
     icon: BookOpen,
     description: 'Shift from gig work to professional services'
   },
-  { 
-    id: 'calculator', 
+  {
+    id: 'calculator',
     type: 'tool',
-    title: 'Income Calculator', 
+    title: 'Income Calculator',
     duration: '5 min',
     icon: Calculator,
     description: 'Calculate your earning potential'
   },
-  { 
-    id: 'lesson-2', 
+  {
+    id: 'lesson-2',
     type: 'lesson',
-    title: 'Mastering Industry Terminology', 
+    title: 'Mastering Industry Terminology',
     duration: '10 min',
     icon: BookOpen,
     description: 'PCR, SLA, REO, and essential terms'
   },
-  { 
-    id: 'flashcards', 
+  {
+    id: 'flashcards',
     type: 'flashcards',
-    title: 'Terminology Flashcards', 
+    title: 'Terminology Flashcards',
     duration: '15 min',
     icon: Brain,
     description: '74 key terms to master'
   },
-  { 
-    id: 'lesson-3', 
+  {
+    id: 'lesson-3',
     type: 'lesson',
-    title: 'Scope of Practice', 
+    title: 'Scope of Practice',
     duration: '8 min',
     icon: BookOpen,
     description: 'Field Inspector vs. Home Inspector'
   },
-  { 
-    id: 'lesson-4', 
+  {
+    id: 'lesson-4',
     type: 'lesson',
-    title: 'The 6-Angle Rule', 
+    title: 'The 6-Angle Rule',
     duration: '15 min',
     icon: Camera,
     description: 'Technical photography standards'
   },
-  { 
-    id: 'lesson-5', 
+  {
+    id: 'lesson-5',
     type: 'lesson',
-    title: 'The Workflow', 
+    title: 'The Workflow',
     duration: '12 min',
     icon: BookOpen,
     description: 'From work order to payment'
   },
-  { 
-    id: 'lesson-6', 
+  {
+    id: 'lesson-6',
     type: 'lesson',
-    title: 'Avoiding Beginner Mistakes', 
+    title: 'Avoiding Beginner Mistakes',
     duration: '10 min',
     icon: AlertTriangle,
     description: 'Common pitfalls by background'
   },
-  { 
-    id: 'scenario-1', 
+  {
+    id: 'scenario-1',
     type: 'scenario',
-    title: 'Scenario: The Career Transition Trap', 
+    title: 'Scenario: The Career Transition Trap',
     duration: '10 min',
     icon: GitBranch,
     description: 'Interactive decision training (Realtor)'
   },
-  { 
-    id: 'scenario-2', 
+  {
+    id: 'scenario-2',
     type: 'scenario',
-    title: 'Scenario: The Gig Worker Mindset', 
+    title: 'Scenario: The Gig Worker Mindset',
     duration: '10 min',
     icon: GitBranch,
     description: 'Interactive decision training (Gig Worker)'
   },
-  { 
-    id: 'quiz', 
+  {
+    id: 'quiz',
     type: 'quiz',
-    title: 'Module 1 Assessment', 
+    title: 'Module 1 Assessment',
     duration: '15 min',
     icon: Target,
     description: '15 questions, 80% to pass'
@@ -168,8 +168,8 @@ export default function FieldInspectorTrainingPage() {
                 Orientation & Quick Start
               </h1>
               <p className="text-slate-300 max-w-xl">
-                Fast-track your transition into the mortgage field services industry. 
-                You already possess 60% of the required skills—this module teaches you 
+                Fast-track your transition into the mortgage field services industry.
+                You already possess 60% of the required skills—this module teaches you
                 the remaining 40%.
               </p>
 
@@ -196,7 +196,7 @@ export default function FieldInspectorTrainingPage() {
                 <span className="text-xl font-bold">{progress}%</span>
               </div>
               <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
-                <div 
+                <div
                   className="h-full bg-emerald-500 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
@@ -204,7 +204,7 @@ export default function FieldInspectorTrainingPage() {
               <div className="text-sm text-slate-400 mb-4">
                 {completedCount} of {totalCount} sections complete
               </div>
-              <button 
+              <button
                 onClick={() => {
                   // Find first incomplete section
                   const nextSection = moduleSections.find(s => !completedSections.has(s.id));
@@ -238,15 +238,13 @@ export default function FieldInspectorTrainingPage() {
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 ${
-                    isActive
+                  className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 ${isActive
                       ? 'bg-white border-2 border-emerald-500 shadow-sm'
                       : 'bg-white border border-slate-200 hover:border-slate-300'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    isComplete ? 'bg-emerald-100' : colors.bg
-                  }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isComplete ? 'bg-emerald-100' : colors.bg
+                    }`}>
                     {isComplete ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     ) : (
@@ -255,9 +253,8 @@ export default function FieldInspectorTrainingPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium truncate ${
-                        isActive ? 'text-emerald-700' : 'text-slate-900'
-                      }`}>
+                      <span className={`text-sm font-medium truncate ${isActive ? 'text-emerald-700' : 'text-slate-900'
+                        }`}>
                         {section.title}
                       </span>
                     </div>
@@ -308,10 +305,10 @@ export default function FieldInspectorTrainingPage() {
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Welcome Video</h3>
                   <p className="text-slate-500 max-w-md mx-auto mb-6">
-                    This 5-minute introduction explains the field services industry 
-                    and what you'll master in this certification program.
+                    This 5-minute introduction explains the field services industry
+                    and what you&apos;ll master in this certification program.
                   </p>
-                  <button 
+                  <button
                     onClick={() => markComplete('overview')}
                     className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition"
                   >
@@ -324,7 +321,7 @@ export default function FieldInspectorTrainingPage() {
                 <div className="p-6">
                   <IncomeCalculator />
                   <div className="mt-6 flex justify-end">
-                    <button 
+                    <button
                       onClick={() => markComplete('calculator')}
                       className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2"
                     >
@@ -339,7 +336,7 @@ export default function FieldInspectorTrainingPage() {
                 <div className="p-6">
                   <FlashcardDeck />
                   <div className="mt-6 flex justify-end">
-                    <button 
+                    <button
                       onClick={() => markComplete('flashcards')}
                       className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2"
                     >
@@ -354,7 +351,7 @@ export default function FieldInspectorTrainingPage() {
                 <div className="p-6">
                   <InteractiveScenario scenarioId="career-transition-trap" />
                   <div className="mt-6 flex justify-end">
-                    <button 
+                    <button
                       onClick={() => markComplete('scenario-1')}
                       className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2"
                     >
@@ -369,7 +366,7 @@ export default function FieldInspectorTrainingPage() {
                 <div className="p-6">
                   <InteractiveScenario scenarioId="gig-worker-mindset" />
                   <div className="mt-6 flex justify-end">
-                    <button 
+                    <button
                       onClick={() => markComplete('scenario-2')}
                       className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2"
                     >
@@ -380,12 +377,13 @@ export default function FieldInspectorTrainingPage() {
                 </div>
               )}
 
-              {activeSection === 'lesson-4' && (
+              {/* Dynamic Lesson Viewer for ALL lessons */}
+              {activeSection.startsWith('lesson-') && (
                 <div className="p-6">
-                  <LessonViewer lessonId={4} />
+                  <LessonViewer lessonId={parseInt(activeSection.split('-')[1])} />
                   <div className="mt-6 flex justify-end">
-                    <button 
-                      onClick={() => markComplete('lesson-4')}
+                    <button
+                      onClick={() => markComplete(activeSection)}
                       className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2"
                     >
                       Mark Complete
@@ -398,25 +396,6 @@ export default function FieldInspectorTrainingPage() {
               {activeSection === 'quiz' && (
                 <div className="p-6">
                   <Module1Quiz />
-                </div>
-              )}
-
-              {/* Placeholder for other lessons */}
-              {activeSection.startsWith('lesson-') && activeSection !== 'lesson-4' && (
-                <div className="p-8 text-center">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-6">
-                    <BookOpen className="w-10 h-10 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Interactive Lesson</h3>
-                  <p className="text-slate-500 max-w-md mx-auto mb-6">
-                    This lesson content is being loaded from your training materials.
-                  </p>
-                  <button 
-                    onClick={() => markComplete(activeSection)}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition"
-                  >
-                    Mark Complete
-                  </button>
                 </div>
               )}
             </div>
