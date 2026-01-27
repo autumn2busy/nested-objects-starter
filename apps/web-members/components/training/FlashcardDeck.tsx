@@ -102,7 +102,7 @@ const flashcardData = [
 ];
 
 // Category colors
-const categoryColors = {
+const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
   "Photography": { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
   "Client Interaction": { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200" },
   "Safety & Hazards": { bg: "bg-red-100", text: "text-red-700", border: "border-red-200" },
