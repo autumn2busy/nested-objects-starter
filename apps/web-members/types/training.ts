@@ -40,3 +40,21 @@ export type TrainingProgress = {
     quiz_score?: number
     completed_at?: string
 }
+
+export type TrainingFlashcard = {
+    id: string
+    module_id: string
+    front_content: string
+    back_content: string
+    order_index: number
+}
+
+export type TrainingQuestion = {
+    id: string
+    module_id: string
+    question_text: string
+    options: string[]
+    correct_answer: string
+    explanation?: string
+    order_index: number
+}

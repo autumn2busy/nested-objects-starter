@@ -6,7 +6,8 @@ import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle, Video, Mic, Layers } from 'lucide-react'
 import VisualReferenceLibrary from '@/components/training/VisualReferenceLibrary'
-import { TrainingModule, TrainingLesson, TrainingResource } from '@/types/training'
+import { TrainingModule, TrainingLesson, TrainingResource, TrainingFlashcard } from '@/types/training'
+import FlashcardDeck from '@/components/training/FlashcardDeck'
 
 export default function ModuleOverviewPage() {
     const params = useParams()
@@ -14,6 +15,7 @@ export default function ModuleOverviewPage() {
     const [module, setModule] = useState<TrainingModule | null>(null)
     const [lessons, setLessons] = useState<TrainingLesson[]>([])
     const [resources, setResources] = useState<TrainingResource[]>([])
+    const [flashcards, setFlashcards] = useState<TrainingFlashcard[]>([])
     const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
@@ -60,8 +62,16 @@ export default function ModuleOverviewPage() {
                 } else if (resourceData) {
                     setResources(resourceData as TrainingResource[])
                 }
+                // 4. Fetch Flashcards
+                const { data: fcData } = await supabase
+                    .from('training_flashcards')
+                    .select('*')
+                    .eq('module_id', moduleId)
+                    .order('order_index')
 
-                // 4. Fetch Progress via API
+                if (fcData) setFlashcards(fcData as TrainingFlashcard[])
+
+                // 5. Fetch Progress via API
                 try {
                     const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
                     if (res.ok) {
@@ -93,10 +103,11 @@ export default function ModuleOverviewPage() {
         ? Math.round((completedLessonIds.length / lessons.length) * 100)
         : 0
 
-    // Filter resources for Flashcards (simple heuristic for now: xlsx or labeled 'flashcard' in title)
-    // A real implementation would use a dedicated content type or table.
-    const flashcardResources = resources.filter(r => r.title.toLowerCase().includes('flashcard') || r.file_path.endsWith('.xlsx'))
-    const visualResources = resources.filter(r => !flashcardResources.includes(r))
+    // Exclude flashcard PDFs from visual resources if we have interactive ones, 
+    // or just leave them as downloads in visual library? 
+    // Let's keep potential PDF flashcards in visual library if they exist, 
+    // but the Flashcard Section is exclusively for interactive mode.
+    const visualResources = resources
 
     return (
         <main className="min-h-screen bg-slate-50 pb-20">
@@ -215,21 +226,11 @@ export default function ModuleOverviewPage() {
                         <p className="text-slate-500 mt-1">Flip through these cards to test your memory (Optional).</p>
                     </div>
 
-                    {flashcardResources.length > 0 ? (
-                        <div className="bg-slate-900 rounded-xl p-8 text-center text-white">
-                            <Layers className="w-12 h-12 mx-auto text-brand-copper mb-4" />
-                            <h3 className="text-xl font-bold mb-2">Interactive Flashcards Available</h3>
-                            <p className="text-slate-400 mb-6 max-w-lg mx-auto">
-                                We found {flashcardResources.length} flashcard sets for this module.
-                                Launch the interactive review mode to practice.
-                            </p>
-                            <button className="bg-brand-copper hover:bg-white hover:text-brand-copper text-white px-6 py-3 rounded-full font-bold transition-colors">
-                                Start Review Session
-                            </button>
-                        </div>
+                    {flashcards.length > 0 ? (
+                        <FlashcardDeck flashcards={flashcards} />
                     ) : (
                         <div className="bg-slate-100 rounded-xl p-8 text-center border border-dashed border-slate-300">
-                            <p className="text-slate-500 italic">No flashcards available for this module yet.</p>
+                            <p className="text-slate-500 italic">No interactive flashcards available for this module yet.</p>
                         </div>
                     )}
                 </section>

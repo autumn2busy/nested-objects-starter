@@ -38,15 +38,39 @@ create table if not exists public.training_resources (
   created_at timestamptz default now()
 );
 
--- 3. Training Progress Table
+-- 3. Training Flashcards Table (Interactive)
+create table if not exists public.training_flashcards (
+  id uuid default uuid_generate_v4() primary key,
+  module_id uuid references public.training_modules(id) not null,
+  front_content text not null,
+  back_content text not null,
+  order_index integer default 0,
+  created_at timestamptz default now()
+);
+
+-- 4. Training Questions Table (Assessment)
+create table if not exists public.training_questions (
+  id uuid default uuid_generate_v4() primary key,
+  module_id uuid references public.training_modules(id) not null,
+  question_text text not null,
+  question_type text check (question_type in ('multiple_choice', 'true_false')) default 'multiple_choice',
+  options jsonb not null, -- Array of strings or objects {id, text}
+  correct_answer text not null, -- Or index, or ID matching option
+  explanation text,
+  order_index integer default 0,
+  created_at timestamptz default now()
+);
+
+-- 5. Training Progress Table
 create table if not exists public.training_progress (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users(id) not null,
-  module_id text not null, -- Keeping as text for flexibility, though FK to training_modules is better strict practice
-  lesson_id text, -- Added to track granular lesson progress
+  module_id text not null, -- Keeping as text for flexibility
+  lesson_id text,
   resource_type text default 'lesson', -- 'lesson' or 'quiz'
   status text check (status in ('started', 'completed')) default 'started',
   quiz_score integer check (quiz_score >= 0 and quiz_score <= 100),
+  quiz_passed boolean,
   completed_at timestamptz,
   updated_at timestamptz default now(),
   
@@ -54,18 +78,33 @@ create table if not exists public.training_progress (
   unique(user_id, module_id, lesson_id, resource_type)
 );
 
--- 4. Row Level Security (RLS)
+-- 6. Quiz Attempts Table (Legacy/Dashboard Support)
+create table if not exists public.quiz_attempts (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users(id) not null,
+  module_id text not null,
+  passed boolean default false,
+  score integer,
+  completed_at timestamptz default now()
+);
+
+-- 7. Row Level Security (RLS)
 alter table public.training_modules enable row level security;
 alter table public.training_lessons enable row level security;
 alter table public.training_resources enable row level security;
+alter table public.training_flashcards enable row level security;
+alter table public.training_questions enable row level security;
 alter table public.training_progress enable row level security;
+alter table public.quiz_attempts enable row level security;
 
 -- Public Read Access for Content
 create policy "Public read access for modules" on public.training_modules for select using (true);
 create policy "Public read access for lessons" on public.training_lessons for select using (true);
 create policy "Public read access for resources" on public.training_resources for select using (true);
+create policy "Public read access for flashcards" on public.training_flashcards for select using (true);
+create policy "Public read access for questions" on public.training_questions for select using (true);
 
--- User Specific Access for Progress
+-- User Specific Access for Progress & Attempts
 create policy "Users can view own training progress"
   on public.training_progress for select
   using (auth.uid() = user_id);
@@ -78,7 +117,15 @@ create policy "Users can update own training progress"
   on public.training_progress for update
   using (auth.uid() = user_id);
 
--- 5. Trigger to update updated_at
+create policy "Users can view own quiz attempts"
+  on public.quiz_attempts for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own quiz attempts"
+  on public.quiz_attempts for insert
+  with check (auth.uid() = user_id);
+
+-- 8. Trigger to update updated_at
 create or replace function update_updated_at_column()
 returns trigger as $$
 begin

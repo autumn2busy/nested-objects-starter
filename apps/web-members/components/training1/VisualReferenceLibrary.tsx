@@ -61,9 +61,15 @@ export default function VisualReferenceLibrary({ resources }: VisualReferenceLib
                                                     className="object-cover w-full h-full"
                                                 />
                                             ) : (
-                                                <div className="text-slate-400 flex flex-col items-center gap-2">
-                                                    {res.file_type === 'pdf' ? <FileText className="w-8 h-8" /> : <Paperclip className="w-8 h-8" />}
-                                                    <span className="text-[10px] uppercase font-bold">{res.file_type}</span>
+                                                <div className={`flex flex-col items-center gap-2 ${res.file_type === 'pdf' ? 'text-red-500' :
+                                                        res.file_type === 'docx' ? 'text-blue-600' :
+                                                            res.file_type === 'xlsx' ? 'text-green-600' :
+                                                                'text-slate-400'
+                                                    }`}>
+                                                    {res.file_type === 'pdf' ? <FileText className="w-10 h-10" /> :
+                                                        res.file_type === 'docx' ? <FileText className="w-10 h-10" /> :
+                                                            <Paperclip className="w-10 h-10" />}
+                                                    <span className="text-[10px] uppercase font-bold text-slate-500">{res.file_type}</span>
                                                 </div>
                                             )}
 
