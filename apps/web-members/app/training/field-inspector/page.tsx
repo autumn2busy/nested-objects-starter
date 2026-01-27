@@ -133,6 +133,25 @@ export default function FieldInspectorTrainingPage() {
   const [activeSection, setActiveSection] = useState('overview');
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
 
+  // Load progress from localStorage on mount
+  React.useEffect(() => {
+    const saved = localStorage.getItem('field-inspector-progress');
+    if (saved) {
+      try {
+        setCompletedSections(new Set(JSON.parse(saved)));
+      } catch (e) {
+        console.error('Failed to parse progress', e);
+      }
+    }
+  }, []);
+
+  // Save progress to localStorage whenever it changes
+  React.useEffect(() => {
+    if (completedSections.size > 0) {
+      localStorage.setItem('field-inspector-progress', JSON.stringify(Array.from(completedSections)));
+    }
+  }, [completedSections]);
+
   const completedCount = completedSections.size;
   const totalCount = moduleSections.length;
   const progress = Math.round((completedCount / totalCount) * 100);
@@ -239,8 +258,8 @@ export default function FieldInspectorTrainingPage() {
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 ${isActive
-                      ? 'bg-white border-2 border-emerald-500 shadow-sm'
-                      : 'bg-white border border-slate-200 hover:border-slate-300'
+                    ? 'bg-white border-2 border-emerald-500 shadow-sm'
+                    : 'bg-white border border-slate-200 hover:border-slate-300'
                     }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isComplete ? 'bg-emerald-100' : colors.bg
