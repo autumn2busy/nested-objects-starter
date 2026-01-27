@@ -121,9 +121,9 @@ const FlashcardDeck = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [studyMode, setStudyMode] = useState('all');
-  const [starredCards, setStarredCards] = useState(new Set());
-  const [reviewCards, setReviewCards] = useState(new Set());
-  const [masteredCards, setMasteredCards] = useState(new Set());
+  const [starredCards, setStarredCards] = useState<Set<number>>(new Set());
+  const [reviewCards, setReviewCards] = useState<Set<number>>(new Set());
+  const [masteredCards, setMasteredCards] = useState<Set<number>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [shuffledCards, setShuffledCards] = useState<typeof flashcardData | null>(null);
@@ -186,7 +186,7 @@ const FlashcardDeck = () => {
     setIsFlipped(false);
   };
 
-  const toggleStar = (cardId) => {
+  const toggleStar = (cardId: number) => {
     setStarredCards(prev => {
       const newSet = new Set(prev);
       if (newSet.has(cardId)) {
@@ -311,8 +311,8 @@ const FlashcardDeck = () => {
                 key={mode.id}
                 onClick={() => { setStudyMode(mode.id); setCurrentIndex(0); setIsFlipped(false); }}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${studyMode === mode.id
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
                 {mode.label} ({mode.count})
@@ -383,8 +383,8 @@ const FlashcardDeck = () => {
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleStar(currentCard.id); }}
                     className={`p-2 rounded-full transition ${starredCards.has(currentCard.id)
-                        ? 'bg-yellow-500 text-white'
-                        : 'bg-slate-700 text-slate-400 hover:text-yellow-400'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-slate-700 text-slate-400 hover:text-yellow-400'
                       }`}
                   >
                     <Star className="w-4 h-4" fill={starredCards.has(currentCard.id) ? 'currentColor' : 'none'} />
@@ -417,8 +417,8 @@ const FlashcardDeck = () => {
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleStar(currentCard.id); }}
                     className={`p-2 rounded-full transition ${starredCards.has(currentCard.id)
-                        ? 'bg-yellow-500 text-white'
-                        : 'bg-emerald-800 text-emerald-300 hover:text-yellow-400'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-emerald-800 text-emerald-300 hover:text-yellow-400'
                       }`}
                   >
                     <Star className="w-4 h-4" fill={starredCards.has(currentCard.id) ? 'currentColor' : 'none'} />
@@ -460,12 +460,12 @@ const FlashcardDeck = () => {
                     key={card.id}
                     onClick={() => { setCurrentIndex(actualIndex); setIsFlipped(false); }}
                     className={`h-2 rounded-full transition-all ${actualIndex === currentIndex
-                        ? 'w-6 bg-emerald-500'
-                        : masteredCards.has(card.id)
-                          ? 'w-2 bg-emerald-300'
-                          : reviewCards.has(card.id)
-                            ? 'w-2 bg-amber-400'
-                            : 'w-2 bg-slate-300 hover:bg-slate-400'
+                      ? 'w-6 bg-emerald-500'
+                      : masteredCards.has(card.id)
+                        ? 'w-2 bg-emerald-300'
+                        : reviewCards.has(card.id)
+                          ? 'w-2 bg-amber-400'
+                          : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
                   />
                 );
