@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { 
-  Brain, ChevronLeft, ChevronRight, RotateCcw, 
+import {
+  Brain, ChevronLeft, ChevronRight, RotateCcw,
   Star, Check, X, Shuffle, BookOpen, Award,
   Eye, EyeOff, Filter, Search
 } from 'lucide-react';
@@ -126,22 +126,22 @@ const FlashcardDeck = () => {
   const [masteredCards, setMasteredCards] = useState(new Set());
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [shuffledCards, setShuffledCards] = useState(null);
+  const [shuffledCards, setShuffledCards] = useState<typeof flashcardData | null>(null);
 
   // Get unique categories
-  const categories = useMemo(() => 
+  const categories = useMemo(() =>
     [...new Set(flashcardData.map(c => c.category))].sort(),
-  []);
+    []);
 
   // Get filtered cards
   const filteredCards = useMemo(() => {
     let cards = shuffledCards || flashcardData;
-    
+
     // Filter by category
     if (selectedCategory !== 'all') {
       cards = cards.filter(card => card.category === selectedCategory);
     }
-    
+
     // Filter by study mode
     if (studyMode === 'starred') {
       cards = cards.filter(card => starredCards.has(card.id));
@@ -150,16 +150,16 @@ const FlashcardDeck = () => {
     } else if (studyMode === 'mastered') {
       cards = cards.filter(card => masteredCards.has(card.id));
     }
-    
+
     // Filter by search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      cards = cards.filter(card => 
+      cards = cards.filter(card =>
         card.question.toLowerCase().includes(query) ||
         card.answer.toLowerCase().includes(query)
       );
     }
-    
+
     return cards;
   }, [shuffledCards, selectedCategory, studyMode, starredCards, reviewCards, masteredCards, searchQuery]);
 
@@ -236,11 +236,11 @@ const FlashcardDeck = () => {
         <Brain className="w-12 h-12 text-slate-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-slate-900 mb-2">No Cards Found</h3>
         <p className="text-slate-500 mb-4">
-          {studyMode === 'starred' ? "You haven't starred any cards yet." : 
-           studyMode === 'review' ? "No cards marked for review." :
-           studyMode === 'mastered' ? "No cards mastered yet." :
-           searchQuery ? "No cards match your search." :
-           "No cards in this category."}
+          {studyMode === 'starred' ? "You haven't starred any cards yet." :
+            studyMode === 'review' ? "No cards marked for review." :
+              studyMode === 'mastered' ? "No cards mastered yet." :
+                searchQuery ? "No cards match your search." :
+                  "No cards in this category."}
         </p>
         <button
           onClick={() => { setStudyMode('all'); setSelectedCategory('all'); setSearchQuery(''); }}
@@ -268,7 +268,7 @@ const FlashcardDeck = () => {
               {flashcardData.length} terms to master
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 rounded-lg">
               <Check className="w-4 h-4 text-emerald-600" />
@@ -310,11 +310,10 @@ const FlashcardDeck = () => {
               <button
                 key={mode.id}
                 onClick={() => { setStudyMode(mode.id); setCurrentIndex(0); setIsFlipped(false); }}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
-                  studyMode === mode.id
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${studyMode === mode.id
                     ? 'bg-white text-slate-900 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 {mode.label} ({mode.count})
               </button>
@@ -383,11 +382,10 @@ const FlashcardDeck = () => {
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleStar(currentCard.id); }}
-                    className={`p-2 rounded-full transition ${
-                      starredCards.has(currentCard.id)
+                    className={`p-2 rounded-full transition ${starredCards.has(currentCard.id)
                         ? 'bg-yellow-500 text-white'
                         : 'bg-slate-700 text-slate-400 hover:text-yellow-400'
-                    }`}
+                      }`}
                   >
                     <Star className="w-4 h-4" fill={starredCards.has(currentCard.id) ? 'currentColor' : 'none'} />
                   </button>
@@ -418,11 +416,10 @@ const FlashcardDeck = () => {
                   </span>
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleStar(currentCard.id); }}
-                    className={`p-2 rounded-full transition ${
-                      starredCards.has(currentCard.id)
+                    className={`p-2 rounded-full transition ${starredCards.has(currentCard.id)
                         ? 'bg-yellow-500 text-white'
                         : 'bg-emerald-800 text-emerald-300 hover:text-yellow-400'
-                    }`}
+                      }`}
                   >
                     <Star className="w-4 h-4" fill={starredCards.has(currentCard.id) ? 'currentColor' : 'none'} />
                   </button>
@@ -462,15 +459,14 @@ const FlashcardDeck = () => {
                   <button
                     key={card.id}
                     onClick={() => { setCurrentIndex(actualIndex); setIsFlipped(false); }}
-                    className={`h-2 rounded-full transition-all ${
-                      actualIndex === currentIndex
+                    className={`h-2 rounded-full transition-all ${actualIndex === currentIndex
                         ? 'w-6 bg-emerald-500'
                         : masteredCards.has(card.id)
-                        ? 'w-2 bg-emerald-300'
-                        : reviewCards.has(card.id)
-                        ? 'w-2 bg-amber-400'
-                        : 'w-2 bg-slate-300 hover:bg-slate-400'
-                    }`}
+                          ? 'w-2 bg-emerald-300'
+                          : reviewCards.has(card.id)
+                            ? 'w-2 bg-amber-400'
+                            : 'w-2 bg-slate-300 hover:bg-slate-400'
+                      }`}
                   />
                 );
               })}
