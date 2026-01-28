@@ -575,7 +575,7 @@ const Module1Quiz = () => {
             </>
           ) : (
             // Multiple Choice / Scenario Options
-            question.options.map((option) => {
+            question.options?.map((option) => {
               const isSelected = selectedAnswer === option.id;
               const isCorrect = option.id === question.correctAnswer;
               const showResult = showFeedback && isSelected;
