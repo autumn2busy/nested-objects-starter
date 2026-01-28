@@ -644,7 +644,7 @@ const Module1Quiz = () => {
                 )}
                 {question.type !== 'true-false' && question.incorrectFeedback && selectedAnswer !== question.correctAnswer && (
                   <p className="text-sm text-red-700 mt-2">
-                    <strong>Why {selectedAnswer.toUpperCase()} is wrong:</strong> {question.incorrectFeedback[selectedAnswer]}
+                    <strong>Why {selectedAnswer.toUpperCase()} is wrong:</strong> {(question.incorrectFeedback as any)[selectedAnswer]}
                   </p>
                 )}
               </div>
