@@ -6,19 +6,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { PlayCircle, CheckCircle, Lock, ArrowLeft, FileText, Download, HelpCircle, AlertCircle, Video, Mic, Layers } from 'lucide-react'
+import { PlayCircle, CheckCircle, Lock, ArrowRight, Brain, Camera, FileText, Target, Play } from 'lucide-react'
 import VisualReferenceLibrary from '@/components/training/VisualReferenceLibrary'
-import { TrainingModule, TrainingLesson, TrainingResource, TrainingFlashcard } from '@/types/training'
+import { TrainingModule, TrainingResource, TrainingFlashcard } from '@/types/training'
 import FlashcardDeck from '@/components/training/FlashcardDeck'
 
 export default function ModuleOverviewPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
     const [module, setModule] = useState<TrainingModule | null>(null)
-    const [lessons, setLessons] = useState<TrainingLesson[]>([])
-    const [resources, setResources] = useState<TrainingResource[]>([])
-    const [flashcards, setFlashcards] = useState<TrainingFlashcard[]>([])
-    const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([])
+    const [stats, setStats] = useState({ total: 0, completed: 0 })
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
 
@@ -28,62 +25,31 @@ export default function ModuleOverviewPage() {
 
             try {
                 // 1. Fetch Module Details
-                const { data: mod, error: modError } = await supabase
+                const { data: mod } = await supabase
                     .from('training_modules')
                     .select('*')
                     .eq('id', moduleId)
                     .single()
 
-                if (modError) throw modError
                 setModule(mod)
 
-                // 2. Fetch Lessons
+                // 2. Fetch Progress Stats
                 const { data: lessonData } = await supabase
                     .from('training_lessons')
-                    .select('*')
-                    .eq('module_id', moduleId)
-                    .order('lesson_number')
-
-                if (lessonData) setLessons(lessonData as TrainingLesson[])
-
-                // 3. Fetch Resources with joined lesson data if possible, or just raw
-                const { data: resourceData } = await supabase
-                    .from('training_resources')
-                    .select('*')
+                    .select('id')
                     .eq('module_id', moduleId)
 
-                if (lessonData && resourceData) {
-                    const enrichedResources = resourceData.map((res: TrainingResource) => {
-                        const relatedLesson = lessonData.find((l: TrainingLesson) => l.id === res.lesson_id)
-                        return {
-                            ...res,
-                            lesson_number: relatedLesson ? relatedLesson.lesson_number : undefined
-                        }
-                    })
-                    setResources(enrichedResources)
-                } else if (resourceData) {
-                    setResources(resourceData as TrainingResource[])
+                const total = lessonData?.length || 0
+
+                // Get completed count via API or DB
+                const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
+                let completed = 0
+                if (res.ok) {
+                    const { progress } = await res.json()
+                    completed = progress?.filter((p: any) => p.status === 'completed').length || 0
                 }
-                // 4. Fetch Flashcards
-                const { data: fcData } = await supabase
-                    .from('training_flashcards')
-                    .select('*')
-                    .eq('module_id', moduleId)
-                    .order('order_index')
 
-                if (fcData) setFlashcards(fcData as TrainingFlashcard[])
-
-                // 5. Fetch Progress via API
-                try {
-                    const res = await fetch(`/api/training/progress?moduleId=${moduleId}`)
-                    if (res.ok) {
-                        const { progress } = await res.json()
-                        const pList = Array.isArray(progress) ? progress : []
-                        setCompletedLessonIds(pList.filter((p: any) => p.status === 'completed').map((p: any) => p.lesson_id))
-                    }
-                } catch (err) {
-                    console.error('Error fetching progress:', err)
-                }
+                setStats({ total, completed })
 
             } catch (error) {
                 console.error('Error fetching module:', error)
@@ -98,181 +64,108 @@ export default function ModuleOverviewPage() {
     if (loading) return <div className="p-12 text-center text-slate-500">Loading module...</div>
     if (!module) return <div className="p-12 text-center text-brand-copper">Module not found.</div>
 
-    const allLessonsCompleted = lessons.length > 0 && lessons.every(l => completedLessonIds.includes(l.id))
-
-    // Progress Calculation
-    const progressPercent = lessons.length > 0
-        ? Math.round((completedLessonIds.length / lessons.length) * 100)
-        : 0
-
-    // Exclude flashcard PDFs from visual resources if we have interactive ones, 
-    // or just leave them as downloads in visual library? 
-    // Let's keep potential PDF flashcards in visual library if they exist, 
-    // but the Flashcard Section is exclusively for interactive mode.
-    const visualResources = resources
+    const progressPercent = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0
 
     return (
-        <main className="min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
-            <div className="bg-white border-b border-brand-copper/20">
-                <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-                    <Link href="/training" className="inline-flex items-center text-sm text-slate-500 hover:text-brand-copper mb-4">
-                        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Curriculum
-                    </Link>
+        <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+            {/* Hero Section */}
+            <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-8 items-center md:items-start">
+                <div className="flex-1 space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-light text-brand-dark text-xs font-bold uppercase tracking-wider rounded-full">
+                        <Target className="w-3 h-3" /> Module {module.module_number}
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+                        {module.title}
+                    </h1>
+                    <p className="text-lg text-slate-600 leading-relaxed">
+                        {module.description}
+                    </p>
 
-                    <div className="flex items-start gap-4">
-                        <div className="text-4xl">{module.icon}</div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-brand-dark sm:text-3xl">
-                                Module {module.module_number}: {module.title}
-                            </h1>
-                            <p className="mt-2 text-slate-600 max-w-3xl">{module.description}</p>
-
-                            {/* Unlock Callout */}
-                            <div className="mt-4 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 w-fit">
-                                <Lock className="w-4 h-4" />
-                                <span>Complete all lessons to unlock the assessment.</span>
-                            </div>
+                    <div className="flex items-center gap-4 pt-2">
+                        <Link
+                            href={`/training/${moduleId}/lesson/lesson-1`} // Assuming Lesson 1 is always the start, dynamically could find first ID
+                            className="px-6 py-3 bg-brand-copper hover:bg-brand-copperDark text-white font-bold rounded-xl transition shadow-lg shadow-brand-copper/20 flex items-center gap-2"
+                        >
+                            <PlayCircle className="w-5 h-5" /> Start Module
+                        </Link>
+                        <div className="text-sm text-slate-500 font-medium">
+                            {stats.completed} of {stats.total} lessons completed
                         </div>
                     </div>
+                </div>
 
-                    {/* Progress Bar */}
-                    <div className="mt-8 max-w-md">
-                        <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
-                            <span>{progressPercent}% Complete</span>
-                            <span>{completedLessonIds.length}/{lessons.length} Lessons</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-brand-copper transition-all duration-500"
-                                style={{ width: `${progressPercent}%` }}
-                            />
-                        </div>
+                {/* Progress Circle (Visual Flair) */}
+                <div className="relative w-32 h-32 flex-shrink-0">
+                    <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                            cx="64"
+                            cy="64"
+                            r="56"
+                            stroke="currentColor"
+                            strokeWidth="12"
+                            fill="transparent"
+                            className="text-slate-100"
+                        />
+                        <circle
+                            cx="64"
+                            cy="64"
+                            r="56"
+                            stroke="currentColor"
+                            strokeWidth="12"
+                            fill="transparent"
+                            strokeDasharray={351.86}
+                            strokeDashoffset={351.86 - (351.86 * progressPercent) / 100}
+                            className="text-emerald-500 transition-all duration-1000 ease-out"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-900">
+                        <span className="text-2xl font-bold">{progressPercent}%</span>
+                        <span className="text-[10px] uppercase font-semibold text-slate-400">Complete</span>
                     </div>
                 </div>
             </div>
 
-            <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
-
-                {/* SECTION 1: LESSONS */}
-                <section>
-                    <div className="mb-6 border-b border-slate-200 pb-4">
-                        <h2 className="text-2xl font-bold text-brand-dark">Lessons: Learn the Concepts</h2>
-                        <p className="text-slate-500 mt-1">Foundational knowledge required for certification.</p>
+            {/* Quick Links Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-brand-copper/50 transition cursor-pointer group">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Brain className="w-6 h-6 text-blue-600" />
                     </div>
+                    <h3 className="font-bold text-slate-900 mb-2">Flashcards</h3>
+                    <p className="text-sm text-slate-500">Master key terminology with interactive cards.</p>
+                </div>
 
-                    <div className="space-y-4">
-                        {lessons.length === 0 ? (
-                            <div className="p-6 bg-white rounded-xl border border-dashed border-slate-300 text-center text-slate-500">
-                                No lessons published yet.
-                            </div>
-                        ) : (
-                            lessons.map((lesson) => {
-                                const isCompleted = completedLessonIds.includes(lesson.id)
-                                // Icon logic
-                                let Icon = FileText;
-                                if (lesson.content_type === 'video' || lesson.video_url) Icon = Video;
-                                else if (lesson.content_type === 'audio' || lesson.audio_url) Icon = Mic;
-
-                                return (
-                                    <Link
-                                        key={lesson.id}
-                                        href={`/training/${moduleId}/lesson/${lesson.id}`}
-                                        className="group flex items-center gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:border-brand-copper hover:shadow-lg transition-all"
-                                    >
-                                        <div className="flex-shrink-0">
-                                            {isCompleted ? (
-                                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                                                    <CheckCircle className="w-6 h-6" />
-                                                </div>
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-300 group-hover:border-brand-copper flex items-center justify-center text-sm font-bold text-slate-500 group-hover:text-brand-copper">
-                                                    {lesson.lesson_number}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-grow">
-                                            <h3 className="font-bold text-slate-800 text-lg group-hover:text-brand-copper">
-                                                {lesson.title}
-                                            </h3>
-                                            <div className="flex items-center gap-3 text-sm text-slate-500 mt-1">
-                                                <span className="flex items-center gap-1 font-medium bg-slate-100 px-2 py-0.5 rounded text-xs uppercase tracking-wide">
-                                                    <Icon className="w-3 h-3" />
-                                                    {lesson.video_url ? 'Video' : lesson.audio_url ? 'Audio' : 'Text'}
-                                                </span>
-                                                <span className="text-slate-300">•</span>
-                                                <span>{lesson.estimated_minutes} min read</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-brand-copper group-hover:text-white transition-colors">
-                                            <ArrowLeft className="w-4 h-4 rotate-180" />
-                                        </div>
-                                    </Link>
-                                )
-                            })
-                        )}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-brand-copper/50 transition cursor-pointer group">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Camera className="w-6 h-6 text-purple-600" />
                     </div>
-                </section>
+                    <h3 className="font-bold text-slate-900 mb-2">Visual Library</h3>
+                    <p className="text-sm text-slate-500">Reference guide for photos and defects.</p>
+                </div>
 
-                {/* SECTION 2: VISUAL REFERENCE LIBRARY (Secondary Support) */}
-                <section>
-                    <VisualReferenceLibrary resources={visualResources} />
-                </section>
-
-                {/* SECTION 3: FLASHCARDS (Reinforcement) */}
-                <section className="scroll-mt-24">
-                    <div className="mb-6 border-b border-slate-200 pb-4">
-                        <h2 className="text-2xl font-bold text-brand-dark">Flashcards: Reinforce Key Concepts</h2>
-                        <p className="text-slate-500 mt-1">Flip through these cards to test your memory (Optional).</p>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 hover:border-brand-copper/50 transition cursor-pointer group">
+                    <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <Target className="w-6 h-6 text-amber-600" />
                     </div>
-
-                    {flashcards.length > 0 ? (
-                        <FlashcardDeck flashcards={flashcards} />
-                    ) : (
-                        <div className="bg-slate-100 rounded-xl p-8 text-center border border-dashed border-slate-300">
-                            <p className="text-slate-500 italic">No interactive flashcards available for this module yet.</p>
-                        </div>
-                    )}
-                </section>
-
-                {/* SECTION 4: MODULE ASSESSMENT (Gate) */}
-                <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm ring-1 ring-slate-100">
-                    <div className="flex items-start gap-4">
-                        <div className={`p-4 rounded-full flex-shrink-0 ${allLessonsCompleted ? 'bg-brand-copper text-white' : 'bg-slate-100 text-slate-400'}`}>
-                            {allLessonsCompleted ? <HelpCircle className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
-                        </div>
-                        <div className="flex-grow">
-                            <h2 className="text-2xl font-bold text-brand-dark mb-2">Module Assessment: Readiness Check</h2>
-                            <p className="text-slate-600 mb-6 max-w-2xl text-lg">
-                                Verify your understanding to earn your certificate for this module.
-                            </p>
-
-                            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
-                                <p className="text-sm text-amber-800 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                    <span>This quiz only covers concepts explicitly taught in the lessons above.</span>
-                                </p>
-                            </div>
-
-                            {allLessonsCompleted ? (
-                                <Link
-                                    href={`/training/${moduleId}/quiz`}
-                                    className="inline-flex items-center justify-center px-8 py-4 bg-brand-copper hover:bg-brand-copperDark text-white font-bold rounded-lg transition-colors shadow-lg shadow-brand-copper/20 w-full sm:w-auto"
-                                >
-                                    Start Module Quiz
-                                </Link>
-                            ) : (
-                                <div className="inline-flex items-center gap-2 px-6 py-4 bg-slate-100 text-slate-400 font-bold rounded-lg cursor-not-allowed w-full sm:w-auto justify-center sm:justify-start">
-                                    <Lock className="w-4 h-4" /> Complete all lessons to unlock
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </section>
-
+                    <h3 className="font-bold text-slate-900 mb-2">Final Assessment</h3>
+                    <p className="text-sm text-slate-500">Test your knowledge to earn your certificate.</p>
+                </div>
             </div>
-        </main>
+
+            {/* Welcome Video Placeholder */}
+            <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl">
+                <div className="p-8 text-center text-white">
+                    <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm cursor-pointer hover:bg-brand-copper hover:text-white transition">
+                        <Play className="w-6 h-6 ml-1" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">Watch the Introduction</h3>
+                    <p className="text-slate-400 max-w-lg mx-auto">
+                        Get an overview of what you will learn in this module and how to get the most out of the platform.
+                    </p>
+                </div>
+            </div>
+        </div>
     )
 }
+

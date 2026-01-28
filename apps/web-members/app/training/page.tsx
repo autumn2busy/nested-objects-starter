@@ -1,64 +1,81 @@
+import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
-import { Shield, BookOpen, ChevronRight, Award } from 'lucide-react';
+import { Shield, BookOpen, ChevronRight, Award, Lock, Star } from 'lucide-react';
 
-export default function TrainingPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function TrainingPage() {
+    const supabase = createClient();
+
+    // Fetch Modules
+    const { data: modules } = await supabase
+        .from('training_modules')
+        .select('*')
+        .order('module_number');
+
+    // Fetch User Progress (Optional: simpler to just show "Start" for now, or fetch if needed)
+    // For now we'll keep it simple and scalable.
+
     return (
         <div className="min-h-screen bg-slate-50">
-            <header className="bg-slate-900 text-white py-12">
+            <header className="bg-slate-900 text-white py-12 border-b border-slate-800">
                 <div className="max-w-6xl mx-auto px-6">
-                    <h1 className="text-3xl font-bold mb-4">Training Center</h1>
-                    <p className="text-slate-400 max-w-2xl">
-                        Master the skills needed for mortgage field services, inspections, and property preservation.
+                    <div className="flex items-center gap-2 text-brand-copper font-bold uppercase tracking-wider text-xs mb-4">
+                        <Award className="w-4 h-4" /> Professional Certification
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">Training Center</h1>
+                    <p className="text-slate-400 max-w-2xl text-lg">
+                        Master the skills needed for mortgage field services, inspections, and property preservation through our enterprise-grade curriculum.
                     </p>
                 </div>
             </header>
 
             <main className="max-w-6xl mx-auto px-6 py-12">
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* Card 1: Field Inspector Certification (New) */}
-                    <Link href="/training/field-inspector" className="group block h-full">
-                        <div className="bg-white border-2 border-slate-200 rounded-2xl p-6 h-full transition-all group-hover:border-emerald-500 group-hover:shadow-lg">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                                    <Shield className="w-6 h-6 text-emerald-600" />
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {modules?.map((module) => (
+                        <Link
+                            key={module.id}
+                            href={`/training/${module.id}`}
+                            className="group block h-full"
+                        >
+                            <div className="bg-white border text-card-foreground shadow-sm rounded-2xl p-6 h-full transition-all hover:border-brand-copper hover:shadow-lg hover:-translate-y-1 relative overflow-hidden">
+                                {module.is_new && (
+                                    <span className="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+                                        NEW
+                                    </span>
+                                )}
+
+                                <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center mb-6 text-3xl shadow-inner group-hover:bg-brand-copper/10 transition-colors">
+                                    {module.icon || '📘'}
                                 </div>
-                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-                                    NEW
-                                </span>
-                            </div>
 
-                            <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition">
-                                Field Inspector Certification
-                            </h2>
-                            <p className="text-slate-500 mb-6">
-                                Complete certification path for new inspectors. Includes photography standards, 6-Angle Rule, and scenario-based training.
-                            </p>
+                                <div className="mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                    Module {module.module_number}
+                                </div>
 
-                            <div className="flex items-center text-emerald-600 font-semibold text-sm">
-                                Start Certification <ChevronRight className="w-4 h-4 ml-1" />
+                                <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-copper transition-colors">
+                                    {module.title}
+                                </h2>
+                                <p className="text-slate-500 mb-6 line-clamp-3 text-sm leading-relaxed">
+                                    {module.description}
+                                </p>
+
+                                <div className="flex items-center text-brand-copper font-bold text-sm mt-auto">
+                                    Start Module <ChevronRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                                </div>
                             </div>
+                        </Link>
+                    ))}
+
+                    {(!modules || modules.length === 0) && (
+                        <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                                <BookOpen className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-lg font-medium text-slate-900">No training modules available yet.</h3>
+                            <p className="text-slate-500">Check back soon for new content.</p>
                         </div>
-                    </Link>
-
-                    {/* Card 2: Basic Training (Placeholder) */}
-                    <Link href="/training/basic" className="group block h-full">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-6 h-full transition-all hover:border-blue-500 hover:shadow-md">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                                <BookOpen className="w-6 h-6 text-blue-600" />
-                            </div>
-
-                            <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition">
-                                Basic Training
-                            </h2>
-                            <p className="text-slate-500 mb-6">
-                                Fundamental concepts for property preservation and work order management.
-                            </p>
-
-                            <div className="flex items-center text-blue-600 font-semibold text-sm">
-                                View Modules <ChevronRight className="w-4 h-4 ml-1" />
-                            </div>
-                        </div>
-                    </Link>
+                    )}
                 </div>
             </main>
         </div>

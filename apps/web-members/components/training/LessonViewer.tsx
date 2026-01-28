@@ -21,9 +21,11 @@ const audienceTypes = [
 
 interface LessonViewerProps {
   lessonId?: number;
+  onComplete?: () => void;
+  isCompleted?: boolean;
 }
 
-const LessonViewer = ({ lessonId = 4 }: LessonViewerProps) => {
+const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonViewerProps) => {
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [selectedAudience, setSelectedAudience] = useState('gig-worker');
   const [expandedSections, setExpandedSections] = useState(new Set(['core-concept', 'steps']));
@@ -302,13 +304,23 @@ const LessonViewer = ({ lessonId = 4 }: LessonViewerProps) => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-          <button className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition">
-            ← Previous Section
-          </button>
-          <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition flex items-center gap-2">
-            {progress === 100 ? 'Mark Lesson Complete' : 'Continue'}
-            <ArrowRight className="w-4 h-4" />
+        <div className="flex items-center justify-end pt-4 border-t border-slate-200">
+          <button
+            onClick={() => onComplete && onComplete()}
+            className={`px-6 py-3 font-semibold rounded-xl transition flex items-center gap-2 ${isCompleted
+                ? 'bg-emerald-100 text-emerald-700 cursor-default'
+                : 'bg-emerald-500 hover:bg-emerald-400 text-white'
+              }`}
+          >
+            {isCompleted ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" /> Lesson Completed
+              </>
+            ) : (
+              <>
+                Mark Lesson Complete <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
       </div>
