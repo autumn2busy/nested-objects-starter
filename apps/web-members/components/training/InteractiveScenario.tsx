@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  AlertTriangle, CheckCircle2, XCircle, ChevronRight, 
+import {
+  AlertTriangle, CheckCircle2, XCircle, ChevronRight,
   RotateCcw, BookOpen, User, Briefcase, Car, Home,
   MessageSquare, Camera, FileText, Award, ArrowRight
 } from 'lucide-react';
@@ -277,12 +277,12 @@ const scenarios = {
   }
 };
 
-const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
+const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }: { scenarioId?: keyof typeof scenarios }) => {
   const scenario = scenarios[scenarioId];
   const [currentStage, setCurrentStage] = useState('intro'); // intro, decision, feedback, debrief
   const [currentDecisionIndex, setCurrentDecisionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [answers, setAnswers] = useState([]);
+  const [selectedOption, setSelectedOption] = useState<any>(null);
+  const [answers, setAnswers] = useState<{ decisionId: string; optionId: string; isCorrect: boolean }[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
 
   const currentDecision = scenario.decisions[currentDecisionIndex];
@@ -304,9 +304,9 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
     },
   };
 
-  const colors = accentColors[scenario.accentColor];
+  const colors = accentColors[scenario.accentColor as keyof typeof accentColors];
 
-  const handleOptionSelect = (option) => {
+  const handleOptionSelect = (option: any) => {
     setSelectedOption(option);
     setShowFeedback(true);
     setAnswers([...answers, { decisionId: currentDecision.id, optionId: option.id, isCorrect: option.isCorrect }]);
@@ -348,20 +348,19 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
           </div>
         </div>
         <p className="text-sm text-slate-600">{scenario.subtitle}</p>
-        
+
         {/* Progress Dots */}
         {currentStage === 'decision' && (
           <div className="flex items-center gap-2 mt-4">
             {scenario.decisions.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 rounded-full transition-all ${
-                  index < currentDecisionIndex
-                    ? 'w-8 bg-emerald-500'
-                    : index === currentDecisionIndex
+                className={`h-2 rounded-full transition-all ${index < currentDecisionIndex
+                  ? 'w-8 bg-emerald-500'
+                  : index === currentDecisionIndex
                     ? 'w-8 bg-slate-900'
                     : 'w-2 bg-slate-300'
-                }`}
+                  }`}
               />
             ))}
           </div>
@@ -448,30 +447,28 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
               {currentDecision.options.map((option) => {
                 const isSelected = selectedOption?.id === option.id;
                 const showResult = showFeedback && isSelected;
-                
+
                 return (
                   <button
                     key={option.id}
                     onClick={() => !showFeedback && handleOptionSelect(option)}
                     disabled={showFeedback}
-                    className={`w-full p-4 rounded-xl border text-left transition ${
-                      showResult
-                        ? option.isCorrect
-                          ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
-                          : 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
-                        : showFeedback
+                    className={`w-full p-4 rounded-xl border text-left transition ${showResult
+                      ? option.isCorrect
+                        ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                        : 'bg-red-50 border-red-500 ring-2 ring-red-500/20'
+                      : showFeedback
                         ? 'bg-slate-50 border-slate-200 opacity-50'
                         : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        showResult
-                          ? option.isCorrect
-                            ? 'bg-emerald-500 text-white'
-                            : 'bg-red-500 text-white'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${showResult
+                        ? option.isCorrect
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-red-500 text-white'
+                        : 'bg-slate-100 text-slate-600'
+                        }`}>
                         {showResult ? (
                           option.isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
                         ) : (
@@ -487,9 +484,8 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
 
             {/* Feedback */}
             {showFeedback && selectedOption && (
-              <div className={`p-5 rounded-xl ${
-                selectedOption.isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
-              }`}>
+              <div className={`p-5 rounded-xl ${selectedOption.isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
+                }`}>
                 <div className="flex items-start gap-3">
                   {selectedOption.isCorrect ? (
                     <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
@@ -529,10 +525,9 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
           <div className="space-y-6">
             {/* Score */}
             <div className="text-center p-6 bg-slate-50 rounded-xl">
-              <div className={`text-5xl font-bold ${
-                correctAnswers === totalDecisions ? 'text-emerald-600' :
+              <div className={`text-5xl font-bold ${correctAnswers === totalDecisions ? 'text-emerald-600' :
                 correctAnswers >= totalDecisions / 2 ? 'text-amber-600' : 'text-red-600'
-              }`}>
+                }`}>
                 {correctAnswers}/{totalDecisions}
               </div>
               <p className="text-slate-600 mt-2">Correct Decisions</p>
@@ -596,15 +591,15 @@ const InteractiveScenario = ({ scenarioId = 'career-transition-trap' }) => {
 };
 
 // Scenario Selector Component
-export const ScenarioSelector = ({ onSelect }) => {
+export const ScenarioSelector = ({ onSelect }: { onSelect: (id: string) => void }) => {
   return (
     <div className="grid md:grid-cols-2 gap-4">
       {Object.values(scenarios).map((scenario) => {
         const IconComponent = scenario.icon;
-        const colors = scenario.accentColor === 'amber' 
+        const colors = scenario.accentColor === 'amber'
           ? { bg: 'bg-amber-50', border: 'border-amber-200', icon: 'bg-amber-100', iconColor: 'text-amber-600' }
           : { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'bg-blue-100', iconColor: 'text-blue-600' };
-        
+
         return (
           <button
             key={scenario.id}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { BadgeCheck, MapPin } from 'lucide-react'
 
 // Simplified type
@@ -63,7 +64,14 @@ export function FirmsPreview({ filterTag }: { filterTag?: string }) {
                     <div className="flex items-center gap-3 mb-3">
                         <div className="h-10 w-10 flex items-center justify-center rounded bg-slate-50 border border-slate-100">
                             {firm.logo_url ? (
-                                <img src={firm.logo_url} alt="" className="h-8 w-8 object-contain mix-blend-multiply" />
+                                <Image
+                                    src={firm.logo_url}
+                                    alt=""
+                                    width={32}
+                                    height={32}
+                                    unoptimized
+                                    className="h-8 w-8 object-contain mix-blend-multiply"
+                                />
                             ) : (
                                 <span className="text-xs font-bold text-slate-400">{firm.name.substring(0, 2)}</span>
                             )}

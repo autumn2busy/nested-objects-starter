@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { FileText, Image, Paperclip } from 'lucide-react'
+import Image from 'next/image'
+import { FileText, Image as ImageIcon, Paperclip } from 'lucide-react'
 import { TrainingResource } from '@/types/training'
 
 interface VisualReferenceLibraryProps {
@@ -55,16 +56,18 @@ export default function VisualReferenceLibrary({ resources }: VisualReferenceLib
                                         <div className="aspect-video bg-slate-100 rounded-md flex items-center justify-center overflow-hidden relative group-hover:ring-2 ring-brand-copper/20 transition-all">
                                             {/* Preview Logic */}
                                             {res.file_type === 'image' || res.file_path.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                                <img
+                                                <Image
                                                     src={res.file_path}
                                                     alt={res.title}
-                                                    className="object-cover w-full h-full"
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover"
                                                 />
                                             ) : (
                                                 <div className={`flex flex-col items-center gap-2 ${res.file_type === 'pdf' ? 'text-red-500' :
-                                                        res.file_type === 'docx' ? 'text-blue-600' :
-                                                            res.file_type === 'xlsx' ? 'text-green-600' :
-                                                                'text-slate-400'
+                                                    res.file_type === 'docx' ? 'text-blue-600' :
+                                                        res.file_type === 'xlsx' ? 'text-green-600' :
+                                                            'text-slate-400'
                                                     }`}>
                                                     {res.file_type === 'pdf' ? <FileText className="w-10 h-10" /> :
                                                         res.file_type === 'docx' ? <FileText className="w-10 h-10" /> :

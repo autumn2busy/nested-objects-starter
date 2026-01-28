@@ -13,38 +13,42 @@ import {
  * learners visualize their income potential in field services.
  */
 
+
+
+// Presets from the PDF
+const presets = {
+  'part-time': { inspections: 4, days: 10, label: 'Part-Time (Side Hustle)', description: '10 days/month, 4 inspections/day' },
+  'full-time': { inspections: 6, days: 20, label: 'Full-Time (Efficient)', description: '20 days/month, 6 inspections/day' },
+  'high-volume': { inspections: 8, days: 22, label: 'High-Volume Pro', description: '22 days/month, 8 inspections/day' },
+};
+
+// Startup costs from the PDF
+const startupCosts = [
+  { item: 'ABC# Background Check', cost: 50, note: 'Via Shield Hub - required by most lenders', annual: true },
+  { item: 'Smartphone + Computer', cost: 0, note: 'You likely already have this', annual: false },
+  { item: 'Volt Stick', cost: 10, note: 'Non-contact voltage tester for vacant properties', annual: false },
+  { item: 'HUD Key Set', cost: 25, note: 'Universal keys for REO properties', annual: false },
+  { item: 'Blue Painter\'s Tape', cost: 5, note: 'For marking and photos', annual: false },
+];
+
+// Gig comparison data from PDF
+const gigComparison = {
+  avgPay: '$5-10',
+  efficiency: '2-3 deliveries/hr',
+  dailyPotential: '$120-180',
+  paymentFrequency: 'Weekly/Instant',
+  timeToFirstJob: '1-3 days',
+};
+
 const IncomeCalculator = () => {
   // User inputs
   const [inspectionsPerDay, setInspectionsPerDay] = useState(6);
   const [daysPerMonth, setDaysPerMonth] = useState(20);
   const [avgPayPerInspection, setAvgPayPerInspection] = useState(75);
   const [showStartupCosts, setShowStartupCosts] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('full-time');
+  const [selectedPreset, setSelectedPreset] = useState<keyof typeof presets | null>('full-time');
 
-  // Presets from the PDF
-  const presets = {
-    'part-time': { inspections: 4, days: 10, label: 'Part-Time (Side Hustle)', description: '10 days/month, 4 inspections/day' },
-    'full-time': { inspections: 6, days: 20, label: 'Full-Time (Efficient)', description: '20 days/month, 6 inspections/day' },
-    'high-volume': { inspections: 8, days: 22, label: 'High-Volume Pro', description: '22 days/month, 8 inspections/day' },
-  };
 
-  // Startup costs from the PDF
-  const startupCosts = [
-    { item: 'ABC# Background Check', cost: 50, note: 'Via Shield Hub - required by most lenders', annual: true },
-    { item: 'Smartphone + Computer', cost: 0, note: 'You likely already have this', annual: false },
-    { item: 'Volt Stick', cost: 10, note: 'Non-contact voltage tester for vacant properties', annual: false },
-    { item: 'HUD Key Set', cost: 25, note: 'Universal keys for REO properties', annual: false },
-    { item: 'Blue Painter\'s Tape', cost: 5, note: 'For marking and photos', annual: false },
-  ];
-
-  // Gig comparison data from PDF
-  const gigComparison = {
-    avgPay: '$5-10',
-    efficiency: '2-3 deliveries/hr',
-    dailyPotential: '$120-180',
-    paymentFrequency: 'Weekly/Instant',
-    timeToFirstJob: '1-3 days',
-  };
 
   // Calculations
   const calculations = useMemo(() => {
@@ -74,7 +78,7 @@ const IncomeCalculator = () => {
   }, [inspectionsPerDay, daysPerMonth, avgPayPerInspection]);
 
   // Apply preset
-  const applyPreset = (presetKey) => {
+  const applyPreset = (presetKey: keyof typeof presets) => {
     setSelectedPreset(presetKey);
     setInspectionsPerDay(presets[presetKey].inspections);
     setDaysPerMonth(presets[presetKey].days);
@@ -114,10 +118,10 @@ const IncomeCalculator = () => {
             {Object.entries(presets).map(([key, preset]) => (
               <button
                 key={key}
-                onClick={() => applyPreset(key)}
+                onClick={() => applyPreset(key as keyof typeof presets)}
                 className={`p-4 rounded-xl border transition-all text-left ${selectedPreset === key
-                    ? 'bg-emerald-500/20 border-emerald-500/50 ring-2 ring-emerald-500/20'
-                    : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                  ? 'bg-emerald-500/20 border-emerald-500/50 ring-2 ring-emerald-500/20'
+                  : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
                   }`}
               >
                 <div className="text-sm font-semibold text-white mb-1">{preset.label}</div>
@@ -240,7 +244,7 @@ const IncomeCalculator = () => {
               ${calculations.monthlyIncome.toLocaleString()}
             </div>
             <div className="text-xs text-slate-400 mt-1">
-              {calculations.incomeIncrease > 0 ? '+' : ''}{calculations.incomeIncrease}% vs gig work
+              {Number(calculations.incomeIncrease) > 0 ? '+' : ''}{calculations.incomeIncrease}% vs gig work
             </div>
           </div>
 
