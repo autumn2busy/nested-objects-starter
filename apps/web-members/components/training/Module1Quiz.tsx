@@ -337,7 +337,7 @@ const Module1Quiz = () => {
     setQuizComplete(false);
   };
 
-  const getTypeIcon = (type) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
       case 'scenario': return Users;
       case 'true-false': return CheckCircle2;
