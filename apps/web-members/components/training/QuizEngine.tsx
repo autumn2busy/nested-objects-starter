@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { TrainingQuestion } from '@/types/training'
-import { CheckCircle, XCircle, arrowRight, ArrowRight, RotateCcw } from 'lucide-react'
+import { CheckCircle, XCircle, ArrowRight, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
 type QuizEngineProps = {
