@@ -3,6 +3,6 @@
 
 export { default as IncomeCalculator } from './IncomeCalculator';
 export { default as FlashcardDeck } from './FlashcardDeck';
-export { default as InteractiveScenario, ScenarioSelector } from './InteractiveScenario';
+export { default as InteractiveScenario } from './InteractiveScenario';
 export { default as LessonViewer } from './LessonViewer';
-export { default as Module1Quiz } from './Module1Quiz';
+export { default as DynamicQuiz } from './DynamicQuiz';
