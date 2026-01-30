@@ -3,6 +3,18 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 const OPENAI_TIMEOUT_MS = 60_000
 
+// Polyfill for pdf-parse which relies on DOMMatrix (missing in Node)
+if (typeof global.DOMMatrix === 'undefined') {
+    // @ts-ignore
+    global.DOMMatrix = class DOMMatrix {
+        constructor() { }
+        // Add basic methods if needed by pdf.js
+        transform() { return this; }
+        translate() { return this; }
+        scale() { return this; }
+    }
+}
+
 export async function POST(req: Request) {
     try {
         const formData = await req.formData()
