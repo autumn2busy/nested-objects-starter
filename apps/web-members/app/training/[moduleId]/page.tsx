@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -149,6 +149,7 @@ export default function ModuleOverviewPage() {
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set())
     const [quizPassed, setQuizPassed] = useState(false)
     const [selectedAudience, setSelectedAudience] = useState<AudienceType>(null)
+    const mainRef = useRef<HTMLElement>(null) // Ref for scrolling
 
     const supabase = createClient()
 
@@ -172,6 +173,13 @@ export default function ModuleOverviewPage() {
         }
         fetchData()
     }, [moduleId, supabase])
+
+    // Scroll to top on view/lesson change
+    useEffect(() => {
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0
+        }
+    }, [activeView, activeLessonId])
 
     // Load/save progress
     useEffect(() => {
@@ -329,92 +337,95 @@ export default function ModuleOverviewPage() {
                         <span className="text-sm text-slate-500 flex items-center gap-1"><Clock className="w-4 h-4" />{currentLesson.estimated_minutes} min</span>
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900">{currentLesson.title}</h1>
-                    <div className="mt-4 flex items-center gap-3">
-                        <span className="text-xs text-slate-500">Progress</span>
-                        <div className="flex-1 h-1.5 bg-emerald-200 rounded-full"><div className={`h-full bg-emerald-500 rounded-full ${isComplete ? 'w-full' : 'w-0'}`} /></div>
-                        <span className="text-xs text-emerald-600 font-medium">{isComplete ? '100%' : '0%'}</span>
-                    </div>
                 </div>
 
                 <AudienceSelector selected={selectedAudience} onSelect={handleAudienceSelect} />
 
-                {content?.coreConcept && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
-                        <h3 className="font-bold text-emerald-800 mb-2 flex items-center gap-2"><Target className="w-5 h-5" />Core Concept</h3>
-                        <p className="text-emerald-700 text-lg">{content.coreConcept}</p>
-                    </div>
-                )}
-
-                {content?.introduction && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-                        {content.introduction.hook && <p className="text-xl font-medium text-slate-900 italic">&quot;{content.introduction.hook}&quot;</p>}
-                        {content.introduction.context && <p className="text-slate-600">{content.introduction.context}</p>}
-                        {content.introduction.yourRole && <div className="bg-slate-50 rounded-lg p-4"><p className="text-sm text-slate-500 uppercase font-bold mb-1">Your Role</p><p className="text-slate-700">{content.introduction.yourRole}</p></div>}
-                    </div>
-                )}
-
-                {content?.sections?.map((section: any) => (
-                    <div key={section.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                        <div className="p-6 border-b border-slate-100">
-                            <h3 className="text-lg font-bold text-slate-900">{section.title}</h3>
-                            {section.content && <p className="text-slate-600 mt-1">{section.content}</p>}
+                {
+                    content?.coreConcept && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+                            <h3 className="font-bold text-emerald-800 mb-2 flex items-center gap-2"><Target className="w-5 h-5" />Core Concept</h3>
+                            <p className="text-emerald-700 text-lg">{content.coreConcept}</p>
                         </div>
-                        <div className="p-6">
-                            {(section.type === 'comparison-table' || section.type === 'info-table') && section.data && (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
-                                        <tbody>{section.data.rows?.map((row: string[], i: number) => <tr key={i} className="border-b last:border-0">{row.map((cell, j) => <td key={j} className={`px-4 py-3 ${j === 0 ? 'font-medium' : ''}`}>{cell}</td>)}</tr>)}</tbody>
-                                    </table>
-                                </div>
-                            )}
-                            {section.type === 'glossary' && section.terms?.map((term: any, i: number) => (
-                                <div key={i} className={`p-4 rounded-lg mb-3 ${term.critical ? 'bg-red-50 border border-red-200' : 'bg-slate-50'}`}>
-                                    <div className="flex items-center gap-2 mb-1"><h4 className="font-bold">{term.term}</h4>{term.critical && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">CRITICAL</span>}</div>
-                                    <p className="text-slate-700">{term.definition}</p>{term.usage && <p className="text-sm text-slate-500 mt-2 italic">Example: {term.usage}</p>}
-                                </div>
-                            ))}
-                            {section.type === 'steps' && section.steps?.map((step: any, i: number) => (
-                                <div key={i} className="flex gap-4 mb-4">
-                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold flex-shrink-0">{step.number || i + 1}</div>
-                                    <div><h4 className="font-semibold">{step.title}</h4><p className="text-slate-600 mt-1">{step.content}</p>{step.timeEstimate && <p className="text-xs text-slate-400 mt-1">⏱ {step.timeEstimate}</p>}</div>
-                                </div>
-                            ))}
-                            {section.type === 'tips' && <div className="grid md:grid-cols-2 gap-4">{section.tips?.map((tip: any, i: number) => <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-4"><h4 className="font-semibold text-amber-800 flex items-center gap-2"><Lightbulb className="w-4 h-4" />{tip.title}</h4><p className="text-amber-700 text-sm mt-1">{tip.content}</p></div>)}</div>}
-                            {section.type === 'danger-list' && section.items?.map((item: any, i: number) => (
-                                <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
-                                    <h4 className="font-bold text-red-800 flex items-center gap-2"><AlertOctagon className="w-4 h-4" />{item.item}</h4>
-                                    {item.detail && <p className="text-red-700 text-sm mt-1">{item.detail}</p>}
-                                    {item.bad && <p className="text-sm mt-2"><span className="text-red-600 font-medium">✗ Wrong:</span> {item.bad}</p>}
-                                    {item.good && <p className="text-sm"><span className="text-emerald-600 font-medium">✓ Right:</span> {item.good}</p>}
-                                </div>
-                            ))}
-                            {section.type === 'six-angle' && section.angles && (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {section.angles.map((a: any) => (
-                                        <div key={a.number} className="bg-slate-50 rounded-xl p-4 border">
-                                            <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold">{a.number}</div><h4 className="font-bold">{a.name}</h4></div>
-                                            <p className="text-sm text-slate-600 mb-2">{a.purpose}</p>
-                                            <p className="text-xs text-emerald-600 flex items-start gap-1"><Zap className="w-3 h-3 mt-0.5 flex-shrink-0" />{a.tip}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {section.callout && <div className="mt-4"><Callout type={section.callout.type} title={section.callout.title} content={section.callout.content} /></div>}
-                        </div>
-                    </div>
-                ))}
+                    )
+                }
 
-                {content?.audienceGuidance && selectedAudience && content.audienceGuidance[selectedAudience] && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                        <h3 className="font-bold text-blue-800 mb-4 flex items-center gap-2"><Users className="w-5 h-5" />{content.audienceGuidance[selectedAudience].title}</h3>
-                        <div className="space-y-3">
-                            <div><span className="text-xs font-bold text-blue-600 uppercase">Your Edge</span><p className="text-blue-700">{content.audienceGuidance[selectedAudience].edge}</p></div>
-                            <div><span className="text-xs font-bold text-blue-600 uppercase">Focus On</span><p className="text-blue-700">{content.audienceGuidance[selectedAudience].focus}</p></div>
-                            <div className="bg-amber-100 rounded-lg p-3"><span className="text-xs font-bold text-amber-700 uppercase">⚠️ Watch Out</span><p className="text-amber-800">{content.audienceGuidance[selectedAudience].warning}</p></div>
+                {
+                    content?.introduction && (
+                        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+                            {content.introduction.hook && <p className="text-xl font-medium text-slate-900 italic">&quot;{content.introduction.hook}&quot;</p>}
+                            {content.introduction.context && <p className="text-slate-600">{content.introduction.context}</p>}
+                            {content.introduction.yourRole && <div className="bg-slate-50 rounded-lg p-4"><p className="text-sm text-slate-500 uppercase font-bold mb-1">Your Role</p><p className="text-slate-700">{content.introduction.yourRole}</p></div>}
                         </div>
-                    </div>
-                )}
+                    )
+                }
+
+                {
+                    content?.sections?.map((section: any) => (
+                        <div key={section.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="p-6 border-b border-slate-100">
+                                <h3 className="text-lg font-bold text-slate-900">{section.title}</h3>
+                                {section.content && <p className="text-slate-600 mt-1">{section.content}</p>}
+                            </div>
+                            <div className="p-6">
+                                {(section.type === 'comparison-table' || section.type === 'info-table') && section.data && (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
+                                            <tbody>{section.data.rows?.map((row: string[], i: number) => <tr key={i} className="border-b last:border-0">{row.map((cell, j) => <td key={j} className={`px-4 py-3 ${j === 0 ? 'font-medium' : ''}`}>{cell}</td>)}</tr>)}</tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                {section.type === 'glossary' && section.terms?.map((term: any, i: number) => (
+                                    <div key={i} className={`p-4 rounded-lg mb-3 ${term.critical ? 'bg-red-50 border border-red-200' : 'bg-slate-50'}`}>
+                                        <div className="flex items-center gap-2 mb-1"><h4 className="font-bold">{term.term}</h4>{term.critical && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">CRITICAL</span>}</div>
+                                        <p className="text-slate-700">{term.definition}</p>{term.usage && <p className="text-sm text-slate-500 mt-2 italic">Example: {term.usage}</p>}
+                                    </div>
+                                ))}
+                                {section.type === 'steps' && section.steps?.map((step: any, i: number) => (
+                                    <div key={i} className="flex gap-4 mb-4">
+                                        <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold flex-shrink-0">{step.number || i + 1}</div>
+                                        <div><h4 className="font-semibold">{step.title}</h4><p className="text-slate-600 mt-1">{step.content}</p>{step.timeEstimate && <p className="text-xs text-slate-400 mt-1">⏱ {step.timeEstimate}</p>}</div>
+                                    </div>
+                                ))}
+                                {section.type === 'tips' && <div className="grid md:grid-cols-2 gap-4">{section.tips?.map((tip: any, i: number) => <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-4"><h4 className="font-semibold text-amber-800 flex items-center gap-2"><Lightbulb className="w-4 h-4" />{tip.title}</h4><p className="text-amber-700 text-sm mt-1">{tip.content}</p></div>)}</div>}
+                                {section.type === 'danger-list' && section.items?.map((item: any, i: number) => (
+                                    <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
+                                        <h4 className="font-bold text-red-800 flex items-center gap-2"><AlertOctagon className="w-4 h-4" />{item.item}</h4>
+                                        {item.detail && <p className="text-red-700 text-sm mt-1">{item.detail}</p>}
+                                        {item.bad && <p className="text-sm mt-2"><span className="text-red-600 font-medium">✗ Wrong:</span> {item.bad}</p>}
+                                        {item.good && <p className="text-sm"><span className="text-emerald-600 font-medium">✓ Right:</span> {item.good}</p>}
+                                    </div>
+                                ))}
+                                {section.type === 'six-angle' && section.angles && (
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {section.angles.map((a: any) => (
+                                            <div key={a.number} className="bg-slate-50 rounded-xl p-4 border">
+                                                <div className="flex items-center gap-3 mb-3"><div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold">{a.number}</div><h4 className="font-bold">{a.name}</h4></div>
+                                                <p className="text-sm text-slate-600 mb-2">{a.purpose}</p>
+                                                <p className="text-xs text-emerald-600 flex items-start gap-1"><Zap className="w-3 h-3 mt-0.5 flex-shrink-0" />{a.tip}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {section.callout && <div className="mt-4"><Callout type={section.callout.type} title={section.callout.title} content={section.callout.content} /></div>}
+                            </div>
+                        </div>
+                    ))
+                }
+
+                {
+                    content?.audienceGuidance && selectedAudience && content.audienceGuidance[selectedAudience] && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                            <h3 className="font-bold text-blue-800 mb-4 flex items-center gap-2"><Users className="w-5 h-5" />{content.audienceGuidance[selectedAudience].title}</h3>
+                            <div className="space-y-3">
+                                <div><span className="text-xs font-bold text-blue-600 uppercase">Your Edge</span><p className="text-blue-700">{content.audienceGuidance[selectedAudience].edge}</p></div>
+                                <div><span className="text-xs font-bold text-blue-600 uppercase">Focus On</span><p className="text-blue-700">{content.audienceGuidance[selectedAudience].focus}</p></div>
+                                <div className="bg-amber-100 rounded-lg p-3"><span className="text-xs font-bold text-amber-700 uppercase">⚠️ Watch Out</span><p className="text-amber-800">{content.audienceGuidance[selectedAudience].warning}</p></div>
+                            </div>
+                        </div>
+                    )
+                }
 
                 {content?.knowledgeCheck && <KnowledgeCheck question={content.knowledgeCheck.question} options={content.knowledgeCheck.options} correctIndex={content.knowledgeCheck.correctIndex} explanation={content.knowledgeCheck.explanation} />}
 
@@ -427,14 +438,14 @@ export default function ModuleOverviewPage() {
                     <button onClick={() => currentIndex > 0 && setActiveLessonId(lessons[currentIndex - 1].id)} disabled={currentIndex === 0} className="px-4 py-2 text-slate-600 hover:text-slate-900 disabled:opacity-50 flex items-center gap-2"><ChevronLeft className="w-4 h-4" />Previous</button>
                     <button onClick={() => { markLessonComplete(currentLesson.id); currentIndex < lessons.length - 1 ? setActiveLessonId(lessons[currentIndex + 1].id) : setActiveView('overview') }} className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-2">{isComplete ? 'Continue' : 'Mark Complete'}<ArrowRight className="w-4 h-4" /></button>
                 </div>
-            </div>
+            </div >
         )
     }
 
     return (
         <div className="min-h-screen bg-slate-50 flex">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto">
+            <main ref={mainRef} className="flex-1 overflow-y-auto">
                 <div className="max-w-4xl mx-auto px-6 py-8">
                     {activeView === 'overview' && <Overview />}
                     {activeView === 'lesson' && <LessonContent />}
