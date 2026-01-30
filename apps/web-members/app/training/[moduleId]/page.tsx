@@ -176,6 +176,7 @@ export default function ModuleOverviewPage() {
 
     // Scroll to top on view/lesson change
     useEffect(() => {
+        window.scrollTo(0, 0)
         if (mainRef.current) {
             mainRef.current.scrollTop = 0
         }
