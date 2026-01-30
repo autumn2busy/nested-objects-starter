@@ -8,13 +8,13 @@ import {
     PlayCircle, CheckCircle, Lock, ArrowRight, Brain,
     Target, BookOpen, Zap, Award, ChevronRight, ChevronLeft,
     Clock, Users, Calculator, X, AlertTriangle, Lightbulb,
-    AlertOctagon, Check, Info, Shield, Car, Home, Search, FileText
+    AlertOctagon, Check, Info, Shield
 } from 'lucide-react'
 
 import FlashcardDeck from '@/components/training/FlashcardDeck'
 import IncomeCalculator from '@/components/training/IncomeCalculator'
 import InteractiveScenario from '@/components/training/InteractiveScenario'
-import Module1Quiz from '@/components/training/Module1Quiz'
+import DynamicQuiz from '@/components/training/DynamicQuiz'
 
 // Types
 interface TrainingModule {
@@ -151,6 +151,11 @@ export default function ModuleOverviewPage() {
     const [selectedAudience, setSelectedAudience] = useState<AudienceType>(null)
     const mainRef = useRef<HTMLElement>(null) // Ref for scrolling
 
+    // Dynamic Data State
+    const [flashcards, setFlashcards] = useState<any[]>([])
+    const [quizQuestions, setQuizQuestions] = useState<any[]>([])
+    const [scenarios, setScenarios] = useState<any[]>([])
+
     const supabase = createClient()
 
     // Fetch module and lessons
@@ -168,6 +173,51 @@ export default function ModuleOverviewPage() {
 
                 const { data: lessonData } = await supabase.from('training_lessons').select('*').eq('module_id', mod.id).order('lesson_number')
                 setLessons(lessonData || [])
+
+                // --- FETCH DYNAMIC CONTENT ---
+
+                // 1. Fetch Scenarios
+                const { data: scenarioData } = await supabase
+                    .from('scenarios')
+                    .select('*')
+                    .eq('module_id', mod.id)
+                    .order('display_order')
+                setScenarios(scenarioData || [])
+
+                // 2. Fetch Quiz Questions
+                const { data: quizData } = await supabase
+                    .from('quiz_questions')
+                    .select('*')
+                    .eq('module_id', mod.id)
+                    .order('question_number')
+                setQuizQuestions(quizData || [])
+
+                // 3. Fetch Flashcards (via Decks and Sections)
+                // First get relevant decks for this module
+                const { data: deckData } = await supabase
+                    .from('flashcard_decks')
+                    .select('id, section:module_sections!inner(module_id)')
+                    .eq('section.module_id', mod.id)
+
+                if (deckData && deckData.length > 0) {
+                    const deckIds = deckData.map(d => d.id)
+                    const { data: cardData } = await supabase
+                        .from('flashcards')
+                        .select('*')
+                        .in('deck_id', deckIds)
+                        .order('display_order')
+
+                    if (cardData) {
+                        // Map to component format
+                        setFlashcards(cardData.map(c => ({
+                            id: c.id,
+                            front: c.term,
+                            back: c.definition,
+                            category: c.category || 'General'
+                        })))
+                    }
+                }
+
             } catch (err) { setError('Failed to load module') }
             finally { setLoading(false) }
         }
@@ -202,7 +252,7 @@ export default function ModuleOverviewPage() {
         const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed)
     }
 
-    const handleQuizComplete = (passed: boolean) => { if (passed) { setQuizPassed(true); saveProgress(completedLessons, true) } }
+    const handleQuizComplete = (score: number, passed: boolean) => { if (passed) { setQuizPassed(true); saveProgress(completedLessons, true) } }
     const handleAudienceSelect = (a: AudienceType) => { setSelectedAudience(a); if (a) localStorage.setItem('nested_objects_audience', a); else localStorage.removeItem('nested_objects_audience') }
 
     // Calculations
@@ -251,8 +301,8 @@ export default function ModuleOverviewPage() {
                     onClick={() => canTakeQuiz && setActiveView('quiz')}
                     disabled={!canTakeQuiz}
                     className={`w-full text-left p-3 rounded-lg transition-all ${canTakeQuiz
-                            ? 'bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:shadow-sm cursor-pointer'
-                            : 'bg-slate-50 border border-slate-200 cursor-not-allowed opacity-75'
+                        ? 'bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:shadow-sm cursor-pointer'
+                        : 'bg-slate-50 border border-slate-200 cursor-not-allowed opacity-75'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -286,7 +336,7 @@ export default function ModuleOverviewPage() {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                             <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{module.estimated_duration_minutes} min</span>
                             <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" />{lessons.length} lessons</span>
-                            <span className="flex items-center gap-1"><Brain className="w-4 h-4" />74 flashcards</span>
+                            {flashcards.length > 0 && <span className="flex items-center gap-1"><Brain className="w-4 h-4" />{flashcards.length} flashcards</span>}
                         </div>
                         <button onClick={() => { if (lessons.length > 0) { setActiveLessonId(lessons[0].id); setActiveView('lesson') } }}
                             className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-2">
@@ -300,15 +350,26 @@ export default function ModuleOverviewPage() {
                 </div>
             </div>
             <div className="grid md:grid-cols-4 gap-4">
-                {[{ view: 'flashcards', icon: Brain, color: 'amber', title: 'Flashcards', desc: 'Master 74 key terms' },
-                { view: 'calculator', icon: Calculator, color: 'emerald', title: 'Income Calculator', desc: 'Project your earnings' },
-                { view: 'scenario', icon: Users, color: 'pink', title: 'Scenarios', desc: 'Practice decisions' }
-                ].map(item => (
-                    <button key={item.view} onClick={() => setActiveView(item.view as ActiveView)} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
-                        <div className={`w-12 h-12 bg-${item.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}><item.icon className={`w-6 h-6 text-${item.color}-600`} /></div>
-                        <h3 className="font-bold text-slate-900 mb-1">{item.title}</h3><p className="text-sm text-slate-500">{item.desc}</p>
+                {/* Dynamically render cards only if data exists for them (or if they are standard features) */}
+                {flashcards.length > 0 && (
+                    <button onClick={() => setActiveView('flashcards')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
+                        <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><Brain className="w-6 h-6 text-amber-600" /></div>
+                        <h3 className="font-bold text-slate-900 mb-1">Flashcards</h3><p className="text-sm text-slate-500">Master {flashcards.length} key terms</p>
                     </button>
-                ))}
+                )}
+
+                <button onClick={() => setActiveView('calculator')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><Calculator className="w-6 h-6 text-emerald-600" /></div>
+                    <h3 className="font-bold text-slate-900 mb-1">Income Calculator</h3><p className="text-sm text-slate-500">Project your earnings</p>
+                </button>
+
+                {scenarios.length > 0 && (
+                    <button onClick={() => setActiveView('scenario')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
+                        <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><Users className="w-6 h-6 text-pink-600" /></div>
+                        <h3 className="font-bold text-slate-900 mb-1">Scenarios</h3><p className="text-sm text-slate-500">{scenarios.length} Practice Decisions</p>
+                    </button>
+                )}
+
                 <button onClick={() => canTakeQuiz && setActiveView('quiz')} disabled={!canTakeQuiz} className={`p-6 rounded-xl border transition text-left ${canTakeQuiz ? 'bg-white hover:shadow-md' : 'bg-slate-50 opacity-60 cursor-not-allowed'}`}>
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${canTakeQuiz ? 'bg-red-100' : 'bg-slate-200'}`}>{canTakeQuiz ? <Award className="w-6 h-6 text-red-600" /> : <Lock className="w-6 h-6 text-slate-400" />}</div>
                     <h3 className="font-bold text-slate-900 mb-1">Assessment</h3><p className="text-sm text-slate-500">{quizPassed ? '✓ Passed' : canTakeQuiz ? 'Earn certificate' : `${requiredForQuiz - completedLessons.size} more lessons`}</p>
@@ -457,10 +518,10 @@ export default function ModuleOverviewPage() {
                 <div className="max-w-4xl mx-auto px-6 py-8">
                     {activeView === 'overview' && <Overview />}
                     {activeView === 'lesson' && <LessonContent />}
-                    {activeView === 'flashcards' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Flashcards</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><FlashcardDeck /></div>}
+                    {activeView === 'flashcards' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Flashcards</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><FlashcardDeck cards={flashcards} /></div>}
                     {activeView === 'calculator' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Income Calculator</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><IncomeCalculator /></div>}
-                    {activeView === 'scenario' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Interactive Scenarios</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><InteractiveScenario /></div>}
-                    {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><Module1Quiz onComplete={handleQuizComplete} /></div>}
+                    {activeView === 'scenario' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Interactive Scenarios</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><InteractiveScenario scenarios={scenarios} /></div>}
+                    {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><DynamicQuiz questions={quizQuestions} onComplete={handleQuizComplete} /></div>}
                 </div>
             </main>
         </div>
