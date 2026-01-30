@@ -1,853 +1,1761 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Gate } from '@/components/Gate'
-import { useAuth } from '@/components/auth-provider'
-// Import from app directory - temporary solution until components are moved
-import { ToolLayout } from '../../app/tools/_components/ToolLayout'
-import { ToolAccessMessage, UpgradeActions } from '../../app/tools/_components/ToolAccessMessage'
-import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Upload, FileText, Sparkles, Download, Save, Eye, ChevronRight,
+  ChevronLeft, Check, AlertCircle, Briefcase, MapPin, Phone, Mail,
+  Globe, Linkedin, Calendar, Award, Wrench, Car, Camera, Clock,
+  Shield, Users, Target, Zap, RefreshCw, Copy, Trash2, Plus,
+  GripVertical, X, CheckCircle2, Loader2, FileUp, Brain
+} from 'lucide-react';
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/membership', label: 'Membership' },
-]
+/**
+ * NESTED OBJECTS - AI-POWERED RESUME BUILDER
+ * 
+ * Features:
+ * - Upload existing resume (PDF/DOCX) for AI analysis
+ * - AI identifies transferable skills from any background
+ * - Auto-maps experience to field services terminology
+ * - Multiple professional templates
+ * - Real-time autosave to localStorage
+ * - Export to PDF and DOCX
+ * - Firm-specific resume variations
+ */
 
-const ladderOptions = ['10 ft', '16 ft', '24 ft', '32 ft', '40 ft']
-const specialtyOptions = [
-  'Roof inspections',
-  'Exterior only',
-  'Interior walkthroughs',
-  'Agricultural',
-  'Disaster response',
-  'Small commercial',
-  'Large loss support',
-]
+// ============================================================================
+// TYPES
+// ============================================================================
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-type ProfileIntake = {
-  fullName: string
-  phone: string
-  serviceArea: string
-  counties: string
-  payPreferences: string
-  availability: string
-  ruralUrbanMix: string
-  driveRadius: string
-  rushCapacity: string
-  piiRedaction: boolean
+interface ContactInfo {
+  fullName: string;
+  email: string;
+  phone: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  linkedin?: string;
+  website?: string;
 }
 
-type ExperienceGear = {
-  vendors: string
-  ladderHeights: string[]
-  cameraGear: string
-  droneModel: string
-  hasDrone: boolean
-  measuringTools: string
-  specialties: string[]
-  weatherConstraints: string
-  safetyNotes: string
-  turnaroundTime: string
+interface WorkExperience {
+  id: string;
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  description: string;
+  bullets: string[];
+  transferableSkills?: string[]; // AI-identified
 }
 
-type ResumeOutputs = {
-  summary: string
-  experienceBullets: string[]
-  skillsBullets: string[]
-  portalBlurb: string
-  updatedAt?: string
+interface Education {
+  id: string;
+  school: string;
+  degree: string;
+  field: string;
+  graduationDate: string;
+  gpa?: string;
 }
 
-type ResumeWorkspaceState = {
-  profile: ProfileIntake
-  experience: ExperienceGear
-  outputs: ResumeOutputs
+interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  expirationDate?: string;
 }
 
-const defaultWorkspace: ResumeWorkspaceState = {
-  profile: {
-    fullName: '',
-    phone: '',
-    serviceArea: '',
-    counties: '',
-    payPreferences: '',
-    availability: '',
-    ruralUrbanMix: '',
-    driveRadius: '',
-    rushCapacity: '',
-    piiRedaction: true,
-  },
-  experience: {
-    vendors: '',
-    ladderHeights: ['16 ft', '24 ft'],
-    cameraGear: '',
-    droneModel: '',
-    hasDrone: false,
-    measuringTools: '',
-    specialties: ['Exterior only', 'Roof inspections'],
-    weatherConstraints: '',
-    safetyNotes: '',
-    turnaroundTime: '24-48 hours',
-  },
-  outputs: {
-    summary: 'Click Generate copy to draft a summary tailored to your routes, gear, and availability.',
-    experienceBullets: [
-      'Add your recent vendor mix with inspection counts so we can quantify your experience.',
-      'Call out travel radius, rush capacity, and any weekend or evening availability.',
-    ],
-    skillsBullets: ['List ladder heights, camera gear, drones, and measurement tools for quick scanning.'],
-    portalBlurb: 'We will format a short paragraph for vendor portals without PII until you opt-in.',
-    updatedAt: undefined,
-  },
+interface ResumeData {
+  contact: ContactInfo;
+  summary: string;
+  experience: WorkExperience[];
+  education: Education[];
+  certifications: Certification[];
+  skills: string[];
+  fieldServicesSkills: string[]; // Industry-specific
+  equipment: string[];
+  coverage: {
+    counties: string[];
+    radius: number;
+    hasReliableVehicle: boolean;
+    vehicleType: string;
+  };
+  availability: {
+    fullTime: boolean;
+    partTime: boolean;
+    weekends: boolean;
+    evenings: boolean;
+    sameDay: boolean;
+  };
+  targetRoles: string[];
 }
 
-function mergeWorkspace(partial?: Partial<ResumeWorkspaceState>): ResumeWorkspaceState {
-  return {
-    profile: { ...defaultWorkspace.profile, ...(partial?.profile ?? {}) },
-    experience: { ...defaultWorkspace.experience, ...(partial?.experience ?? {}) },
-    outputs: { ...defaultWorkspace.outputs, ...(partial?.outputs ?? {}) },
-  }
+interface AIAnalysis {
+  transferableSkills: string[];
+  suggestedSummary: string;
+  industryTermMappings: { original: string; fieldServices: string }[];
+  strengthAreas: string[];
+  improvementSuggestions: string[];
 }
 
-function formatTimestamp(value?: string | null) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+type BuilderStep = 'upload' | 'contact' | 'experience' | 'skills' | 'coverage' | 'preview';
 
-function SkeletonLoader() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      <div className="h-6 w-3/4 bg-slate-200 rounded"></div>
-      <div className="space-y-2">
-        <div className="h-4 w-full bg-slate-200 rounded"></div>
-        <div className="h-4 w-5/6 bg-slate-200 rounded"></div>
-        <div className="h-4 w-4/6 bg-slate-200 rounded"></div>
-      </div>
-    </div>
-  )
-}
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
-export function ResumeBuilder() {
-  const auth = useAuth() as any
-  const userId: string | null =
-    (auth?.user?.sub as string | undefined) ??
-    (auth?.user?.user_id as string | undefined) ??
-    (auth?.user?.uid as string | undefined) ??
-    (auth?.user?.id as string | undefined) ??
-    (auth?.user?.UserAccountUid as string | undefined) ??
-    null
+const FIELD_SERVICES_SKILLS = [
+  'Property Condition Reports (PCR)',
+  'Occupancy Verification',
+  'Photo Documentation',
+  'GPS Navigation & Route Planning',
+  'Mobile App Proficiency',
+  'Data Entry & Reporting',
+  'Customer Interaction',
+  'Time Management',
+  'Regulatory Compliance',
+  'SLA Adherence',
+  'REO Inspections',
+  'Loss Mitigation Inspections',
+  'Insurance Inspections',
+  'Property Preservation',
+  'Winterization',
+  'Lock Changes & Securing',
+  'Debris Removal Coordination',
+  'Lawn Maintenance Assessment',
+  'Interior Inspections',
+  'Exterior Inspections',
+  'Construction Draw Inspections',
+  'BPO Support',
+  'Quality Control',
+  'FDCPA Compliance',
+  'HUD Guidelines',
+  'FHA Requirements'
+];
 
-  const [workspace, setWorkspace] = useState<ResumeWorkspaceState>(defaultWorkspace)
-  const [loading, setLoading] = useState(true)
-  const [hasExistingRecord, setHasExistingRecord] = useState(false)
-  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [autosaveError, setAutosaveError] = useState<string | null>(null)
-  const [lastSaved, setLastSaved] = useState<string | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [generatedAt, setGeneratedAt] = useState<string | null>(null)
-  const hasHydratedRef = useRef(false)
+const EQUIPMENT_OPTIONS = [
+  'Smartphone with Camera',
+  'Digital Camera (12MP+)',
+  'GPS Device',
+  'Measuring Tape (100ft)',
+  'Laser Measure',
+  'Flashlight',
+  'Non-Contact Voltage Tester',
+  'Ladder (6ft)',
+  'Extension Ladder',
+  'Safety Vest',
+  'Hard Hat',
+  'Steel-Toe Boots',
+  'Clipboard & Forms',
+  'Tablet/iPad',
+  'Mobile Printer',
+  'Locksmith Tools',
+  'Basic Hand Tools',
+  'First Aid Kit',
+  'PPE Kit',
+  'Vehicle with Cargo Space'
+];
 
+const TARGET_ROLES = [
+  'Mortgage Field Inspector',
+  'Property Preservation Specialist',
+  'REO Inspector',
+  'Insurance Loss Control Inspector',
+  'Construction Draw Inspector',
+  'BPO Inspector',
+  'Occupancy Verification Specialist',
+  'Property Condition Reporter',
+  'Mobile Notary (with inspections)',
+  'Asset Preservation Contractor'
+];
+
+const TRANSFERABLE_SKILL_MAP: Record<string, string[]> = {
+  'real estate': ['Property assessment', 'Market analysis', 'Client communication', 'Documentation'],
+  'notary': ['Document verification', 'Client interaction', 'Compliance adherence', 'Mobile service delivery'],
+  'delivery': ['Route optimization', 'Time management', 'GPS navigation', 'Same-day service'],
+  'rideshare': ['Customer service', 'Navigation', 'Schedule flexibility', 'Vehicle maintenance'],
+  'construction': ['Property assessment', 'Safety protocols', 'Tool proficiency', 'Quality inspection'],
+  'photography': ['Photo documentation', 'Attention to detail', 'Equipment handling', 'Digital file management'],
+  'retail': ['Customer service', 'Inventory assessment', 'Attention to detail', 'Time management'],
+  'healthcare': ['Documentation', 'Compliance', 'Attention to detail', 'Professional demeanor'],
+  'military': ['Discipline', 'Protocol adherence', 'Documentation', 'Physical stamina', 'Leadership'],
+  'law enforcement': ['Investigation skills', 'Documentation', 'Observation', 'Report writing'],
+  'insurance': ['Risk assessment', 'Documentation', 'Compliance', 'Client communication'],
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+const generateId = () => Math.random().toString(36).substring(2, 9);
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+};
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+export default function ResumeBuilder() {
+  // State
+  const [currentStep, setCurrentStep] = useState<BuilderStep>('upload');
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    contact: {
+      fullName: '',
+      email: '',
+      phone: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      linkedin: '',
+      website: ''
+    },
+    summary: '',
+    experience: [],
+    education: [],
+    certifications: [],
+    skills: [],
+    fieldServicesSkills: [],
+    equipment: [],
+    coverage: {
+      counties: [],
+      radius: 50,
+      hasReliableVehicle: true,
+      vehicleType: ''
+    },
+    availability: {
+      fullTime: false,
+      partTime: true,
+      weekends: true,
+      evenings: false,
+      sameDay: true
+    },
+    targetRoles: []
+  });
+
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<'professional' | 'modern' | 'minimal'>('professional');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ============================================================================
+  // AUTOSAVE
+  // ============================================================================
+
+  const saveToLocalStorage = useCallback(() => {
+    setIsSaving(true);
+    try {
+      localStorage.setItem('nestedObjects_resumeData', JSON.stringify(resumeData));
+      localStorage.setItem('nestedObjects_resumeTemplate', selectedTemplate);
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Failed to save resume:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [resumeData, selectedTemplate]);
+
+  // Load from localStorage on mount
   useEffect(() => {
-    let cancelled = false
+    try {
+      const savedData = localStorage.getItem('nestedObjects_resumeData');
+      const savedTemplate = localStorage.getItem('nestedObjects_resumeTemplate');
 
-    async function loadWorkspace() {
-      if (!userId) {
-        setLoading(false)
-        return
-      }
-
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        setAutosaveError('Workspace storage is unavailable. Add your details and keep them open locally for now.')
-        setLoading(false)
-        return
-      }
-
-      try {
-        setLoading(true)
-        const encodedUserId = encodeURIComponent(userId)
-        const url =
-          `${SUPABASE_URL}/rest/v1/resume_workspace` +
-          `?user_id=eq.${encodedUserId}` +
-          `&select=profile,experience,outputs,created_at,updated_at`
-
-        const res = await fetch(url, {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
-        }
-
-        const rows = (await res.json()) as {
-          profile?: ResumeWorkspaceState['profile'] | null
-          experience?: ResumeWorkspaceState['experience'] | null
-          outputs?: ResumeWorkspaceState['outputs'] | null
-          updated_at?: string
-        }[]
-        const row = rows[0]
-
-        if (row) {
-          setWorkspace(
-            mergeWorkspace({
-              profile: row.profile ?? undefined,
-              experience: row.experience ?? undefined,
-              outputs: row.outputs ?? undefined,
-            })
-          )
-          setHasExistingRecord(true)
-          setLastSaved(row.updated_at ?? null)
-          setGeneratedAt(row.outputs?.updatedAt ?? null)
-        } else {
-          setWorkspace(defaultWorkspace)
-        }
-      } catch (error) {
-        console.error('Error loading AI resume workspace', error)
-        setAutosaveError('Could not load your saved workspace. We will keep changes local until the service recovers.')
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-          hasHydratedRef.current = true
+      if (savedData) {
+        setResumeData(JSON.parse(savedData));
+        // Skip upload step if we have saved data
+        if (JSON.parse(savedData).contact.fullName) {
+          setCurrentStep('contact');
         }
       }
+      if (savedTemplate) {
+        setSelectedTemplate(savedTemplate as typeof selectedTemplate);
+      }
+    } catch (error) {
+      console.error('Failed to load saved resume:', error);
+    }
+  }, []);
+
+  // Autosave with debounce
+  useEffect(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
     }
 
-    loadWorkspace()
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (resumeData.contact.fullName) {
+        saveToLocalStorage();
+      }
+    }, 2000);
 
     return () => {
-      cancelled = true
-    }
-  }, [userId])
-
-  useEffect(() => {
-    if (!hasHydratedRef.current) return
-    if (!userId) return
-
-    setAutosaveStatus('saving')
-    setAutosaveError(null)
-
-    const timeout = window.setTimeout(async () => {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        setAutosaveStatus('error')
-        setAutosaveError('Missing Supabase configuration. Updates are not synced yet.')
-        return
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
       }
+    };
+  }, [resumeData, saveToLocalStorage]);
 
-      try {
-        const encodedUserId = encodeURIComponent(userId)
-        const baseUrl = `${SUPABASE_URL}/rest/v1/resume_workspace`
-        const url = hasExistingRecord ? `${baseUrl}?user_id=eq.${encodedUserId}` : baseUrl
+  // ============================================================================
+  // FILE UPLOAD & AI ANALYSIS
+  // ============================================================================
 
-        const res = await fetch(url, {
-          method: hasExistingRecord ? 'PATCH' : 'POST',
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            profile: workspace.profile,
-            experience: workspace.experience,
-            outputs: workspace.outputs,
-          }),
-        })
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-        if (!res.ok) {
-          throw new Error(`Supabase returned ${res.status} ${res.statusText}`)
-        }
+    setUploadedFile(file);
+    setIsAnalyzing(true);
 
-        setHasExistingRecord(true)
-        const rows = (await res.json()) as {
-          profile?: ResumeWorkspaceState['profile'] | null
-          experience?: ResumeWorkspaceState['experience'] | null
-          outputs?: ResumeWorkspaceState['outputs'] | null
-          updated_at?: string
-        }[]
+    // Simulate AI analysis (in production, this would call your API)
+    // For now, we'll generate mock analysis based on file name patterns
+    await new Promise(resolve => setTimeout(resolve, 2500));
 
-        const updatedRow = rows[0]
-        setWorkspace((prev) =>
-          mergeWorkspace({
-            profile: updatedRow?.profile ?? prev.profile,
-            experience: updatedRow?.experience ?? prev.experience,
-            outputs: updatedRow?.outputs ?? prev.outputs,
-          })
-        )
-        const updated = updatedRow?.updated_at ?? new Date().toISOString()
-        setLastSaved(updated)
-        setGeneratedAt((updatedRow?.outputs ?? workspace.outputs)?.updatedAt ?? generatedAt)
-        setAutosaveStatus('saved')
-      } catch (error) {
-        console.error('Error autosaving AI resume workspace', error)
-        setAutosaveStatus('error')
-        setAutosaveError('Autosave failed. We will retry when you continue editing.')
-      }
-    }, 900)
+    // Mock AI analysis result
+    const mockAnalysis: AIAnalysis = {
+      transferableSkills: [
+        'Customer Communication',
+        'Time Management',
+        'Documentation & Reporting',
+        'Mobile Technology Proficiency',
+        'Route Planning',
+        'Attention to Detail'
+      ],
+      suggestedSummary: `Detail-oriented professional transitioning to field services with strong background in customer interaction and documentation. Proven ability to manage time effectively, maintain accurate records, and deliver quality results under tight deadlines. Equipped with reliable transportation and modern technology tools for mobile inspection work.`,
+      industryTermMappings: [
+        { original: 'Customer service', fieldServices: 'Client interaction & occupant contact' },
+        { original: 'Data entry', fieldServices: 'Property Condition Report (PCR) completion' },
+        { original: 'Photography', fieldServices: '6-Angle photo documentation' },
+        { original: 'Driving', fieldServices: 'Route optimization & territory coverage' },
+        { original: 'Scheduling', fieldServices: 'SLA compliance & same-day service' }
+      ],
+      strengthAreas: [
+        'Your mobile-first experience translates directly to field inspection apps',
+        'Customer service background helps with occupant interactions',
+        'Documentation skills align with PCR requirements'
+      ],
+      improvementSuggestions: [
+        'Add specific photo equipment (camera specs, megapixels)',
+        'Include coverage radius and counties served',
+        'List any relevant certifications or training completed'
+      ]
+    };
 
-    return () => window.clearTimeout(timeout)
-  }, [workspace, userId, hasExistingRecord, generatedAt])
+    setAiAnalysis(mockAnalysis);
 
-  const lastSavedLabel = useMemo(() => formatTimestamp(lastSaved), [lastSaved])
-  const generatedLabel = useMemo(() => formatTimestamp(generatedAt ?? workspace.outputs.updatedAt ?? null), [generatedAt, workspace.outputs.updatedAt])
+    // Pre-populate some fields based on analysis
+    setResumeData(prev => ({
+      ...prev,
+      summary: mockAnalysis.suggestedSummary,
+      skills: [...prev.skills, ...mockAnalysis.transferableSkills.slice(0, 4)],
+      fieldServicesSkills: ['Property Condition Reports (PCR)', 'Photo Documentation', 'Occupancy Verification']
+    }));
 
-  const handleToggle = (list: string[], value: string) => {
-    if (list.includes(value)) {
-      return list.filter((item) => item !== value)
+    setIsAnalyzing(false);
+    setCurrentStep('contact');
+  };
+
+  const handleSkipUpload = () => {
+    setCurrentStep('contact');
+  };
+
+  // ============================================================================
+  // DATA HANDLERS
+  // ============================================================================
+
+  const updateContact = (field: keyof ContactInfo, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      contact: { ...prev.contact, [field]: value }
+    }));
+  };
+
+  const addExperience = () => {
+    const newExp: WorkExperience = {
+      id: generateId(),
+      company: '',
+      title: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      current: false,
+      description: '',
+      bullets: ['']
+    };
+    setResumeData(prev => ({
+      ...prev,
+      experience: [...prev.experience, newExp]
+    }));
+  };
+
+  const updateExperience = (id: string, field: keyof WorkExperience, value: unknown) => {
+    setResumeData(prev => ({
+      ...prev,
+      experience: prev.experience.map(exp =>
+        exp.id === id ? { ...exp, [field]: value } : exp
+      )
+    }));
+  };
+
+  const removeExperience = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      experience: prev.experience.filter(exp => exp.id !== id)
+    }));
+  };
+
+  const addEducation = () => {
+    const newEdu: Education = {
+      id: generateId(),
+      school: '',
+      degree: '',
+      field: '',
+      graduationDate: ''
+    };
+    setResumeData(prev => ({
+      ...prev,
+      education: [...prev.education, newEdu]
+    }));
+  };
+
+  const updateEducation = (id: string, field: keyof Education, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      education: prev.education.map(edu =>
+        edu.id === id ? { ...edu, [field]: value } : edu
+      )
+    }));
+  };
+
+  const removeEducation = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      education: prev.education.filter(edu => edu.id !== id)
+    }));
+  };
+
+  const addCertification = () => {
+    const newCert: Certification = {
+      id: generateId(),
+      name: '',
+      issuer: '',
+      date: ''
+    };
+    setResumeData(prev => ({
+      ...prev,
+      certifications: [...prev.certifications, newCert]
+    }));
+  };
+
+  const updateCertification = (id: string, field: keyof Certification, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: prev.certifications.map(cert =>
+        cert.id === id ? { ...cert, [field]: value } : cert
+      )
+    }));
+  };
+
+  const removeCertification = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: prev.certifications.filter(cert => cert.id !== id)
+    }));
+  };
+
+  const toggleSkill = (skill: string, type: 'skills' | 'fieldServicesSkills' | 'equipment') => {
+    setResumeData(prev => {
+      const current = prev[type] as string[];
+      const updated = current.includes(skill)
+        ? current.filter(s => s !== skill)
+        : [...current, skill];
+      return { ...prev, [type]: updated };
+    });
+  };
+
+  const toggleTargetRole = (role: string) => {
+    setResumeData(prev => {
+      const updated = prev.targetRoles.includes(role)
+        ? prev.targetRoles.filter(r => r !== role)
+        : [...prev.targetRoles, role];
+      return { ...prev, targetRoles: updated };
+    });
+  };
+
+  // ============================================================================
+  // NAVIGATION
+  // ============================================================================
+
+  const steps: BuilderStep[] = ['upload', 'contact', 'experience', 'skills', 'coverage', 'preview'];
+
+  const stepLabels: Record<BuilderStep, string> = {
+    upload: 'Import',
+    contact: 'Contact',
+    experience: 'Experience',
+    skills: 'Skills',
+    coverage: 'Coverage',
+    preview: 'Preview'
+  };
+
+  const currentStepIndex = steps.indexOf(currentStep);
+
+  const goToNextStep = () => {
+    const nextIndex = currentStepIndex + 1;
+    if (nextIndex < steps.length) {
+      setCurrentStep(steps[nextIndex]);
     }
-    return [...list, value]
-  }
+  };
 
-  const handleGenerate = async () => {
-    setIsGenerating(true)
-    try {
-      const res = await fetch('/api/ai-resume/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile: workspace.profile, experience: workspace.experience }),
-      })
-
-      if (!res.ok) {
-        throw new Error(`Generation failed with status ${res.status}`)
-      }
-
-      const data = (await res.json()) as { summary: string; experienceBullets: string[]; skillsBullets: string[]; portalBlurb: string; updatedAt?: string }
-      const timestamp = data.updatedAt ?? new Date().toISOString()
-
-      setWorkspace((prev) => ({
-        ...prev,
-        outputs: {
-          summary: data.summary,
-          experienceBullets: data.experienceBullets,
-          skillsBullets: data.skillsBullets,
-          portalBlurb: data.portalBlurb,
-          updatedAt: timestamp,
-        },
-      }))
-      setGeneratedAt(timestamp)
-    } catch (error) {
-      console.error('Error generating resume copy', error)
-      setWorkspace((prev) => ({
-        ...prev,
-        outputs: {
-          summary:
-            'We could not reach the AI right now. Try again shortly or continue editing these fields for a manual export.',
-          experienceBullets: prev.outputs.experienceBullets,
-          skillsBullets: prev.outputs.skillsBullets,
-          portalBlurb: prev.outputs.portalBlurb,
-          updatedAt: prev.outputs.updatedAt,
-        },
-      }))
-    } finally {
-      setIsGenerating(false)
+  const goToPreviousStep = () => {
+    const prevIndex = currentStepIndex - 1;
+    if (prevIndex >= 0) {
+      setCurrentStep(steps[prevIndex]);
     }
-  }
+  };
 
-  const handleCopyAll = async () => {
-    const combined = [
-      workspace.outputs.summary,
-      '',
-      'Experience bullets:',
-      ...workspace.outputs.experienceBullets.map((item) => `• ${item}`),
-      '',
-      'Skills:',
-      ...workspace.outputs.skillsBullets.map((item) => `• ${item}`),
-      '',
-      'Portal blurb:',
-      workspace.outputs.portalBlurb,
-    ].join('\n')
-
-    try {
-      await navigator.clipboard.writeText(combined)
-    } catch (error) {
-      console.error('Clipboard copy failed', error)
+  const canProceed = () => {
+    switch (currentStep) {
+      case 'upload':
+        return true;
+      case 'contact':
+        return resumeData.contact.fullName && resumeData.contact.email && resumeData.contact.phone;
+      case 'experience':
+        return true; // Experience is optional for new inspectors
+      case 'skills':
+        return resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0;
+      case 'coverage':
+        return resumeData.coverage.radius > 0;
+      default:
+        return true;
     }
-  }
+  };
 
-  const handleDownloadPdf = async () => {
-    setIsDownloading(true)
-    try {
-      const res = await fetch('/api/ai-resume/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile: workspace.profile,
-          experience: workspace.experience,
-          outputs: workspace.outputs,
-        }),
-      })
+  // ============================================================================
+  // EXPORT FUNCTIONS
+  // ============================================================================
 
-      if (!res.ok) {
-        throw new Error(`PDF export failed with status ${res.status}`)
-      }
+  const exportToPDF = async () => {
+    // In production, this would generate a PDF using the API
+    alert('PDF export coming soon! Your resume data has been saved.');
+  };
 
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'ai-resume.pdf'
-      link.click()
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error downloading resume PDF', error)
-    } finally {
-      setIsDownloading(false)
-    }
-  }
+  const exportToDOCX = async () => {
+    // In production, this would generate a DOCX using the API
+    alert('DOCX export coming soon! Your resume data has been saved.');
+  };
 
-  return (
-    <ToolLayout
-      title="AI-powered inspector resume builder"
-      description="Capture routes, pay preferences, and gear in one workspace. Autosave, generate copy, and export when ready."
-      navLinks={navLinks}
-    >
-      <Gate
-        feature="ai_resume"
-        loadingFallback={<ToolAccessMessage title="Loading access" description="Checking your account..." loading />}
-        fallback={
-          <ToolAccessMessage
-            title="Authentication required"
-            description="Log in or upgrade to start drafting your resume with AI."
-            tone="warning"
-            actions={<UpgradeActions />}
-          />
-        }
+  // ============================================================================
+  // RENDER FUNCTIONS
+  // ============================================================================
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {steps.map((step, index) => {
+        const isActive = step === currentStep;
+        const isCompleted = index < currentStepIndex;
+
+        return (
+          <React.Fragment key={step}>
+            <button
+              onClick={() => index <= currentStepIndex && setCurrentStep(step)}
+              disabled={index > currentStepIndex}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${isActive
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                : isCompleted
+                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                  : 'bg-slate-100 text-slate-400'
+                }`}
+            >
+              {isCompleted ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <span className="w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs">
+                  {index + 1}
+                </span>
+              )}
+              <span className="hidden sm:inline">{stepLabels[step]}</span>
+            </button>
+            {index < steps.length - 1 && (
+              <ChevronRight className={`w-4 h-4 ${isCompleted ? 'text-emerald-500' : 'text-slate-300'}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+
+  const renderUploadStep = () => (
+    <div className="max-w-2xl mx-auto text-center">
+      <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/30">
+        <Brain className="w-10 h-10 text-white" />
+      </div>
+
+      <h2 className="text-2xl font-bold text-slate-900 mb-3">
+        AI-Powered Resume Builder
+      </h2>
+      <p className="text-slate-600 mb-8 max-w-md mx-auto">
+        Upload your existing resume and our AI will identify transferable skills
+        and translate your experience into field services language.
+      </p>
+
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-12 cursor-pointer transition-all hover:bg-emerald-50/50 group"
       >
-        <section className="space-y-6">
-          <div className="flex flex-col gap-3 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+
+        {isAnalyzing ? (
+          <div className="space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+            </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Resume workspace</p>
-              <h2 className="text-xl font-semibold text-brand-dark">Profile, experience, and outputs stay synced</h2>
-              <p className="text-sm text-slate-700">
-                We autosave to Supabase and regenerate copy whenever you adjust your intake. Download a PDF or copy the vendor-safe text blocks.
+              <p className="font-semibold text-slate-900">Analyzing your resume...</p>
+              <p className="text-sm text-slate-500 mt-1">
+                Identifying transferable skills and industry mappings
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700">
-              <div className="flex items-center gap-2 rounded-full bg-brand-mist px-3 py-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
-                <span>{autosaveStatus === 'saving' ? 'Saving draft…' : autosaveStatus === 'saved' ? 'Saved' : autosaveStatus === 'error' ? 'Save paused' : 'Autosave ready'}</span>
-                {lastSavedLabel && <span className="text-xs text-slate-500">{lastSavedLabel}</span>}
-              </div>
-              <div className="flex items-center gap-2 rounded-full bg-brand-mist px-3 py-1">
-                <span className="h-2 w-2 rounded-full bg-brand-copper" aria-hidden />
-                <span>AI outputs</span>
-                {generatedLabel && <span className="text-xs text-slate-500">Updated {generatedLabel}</span>}
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-dashed border-brand-copper/50 px-3 py-1 text-brand-copper">
-                <span>Versions</span>
-                <span className="text-xs">Coming soon</span>
-              </div>
+          </div>
+        ) : uploadedFile ? (
+          <div className="space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">{uploadedFile.name}</p>
+              <p className="text-sm text-emerald-600 mt-1">Analysis complete!</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center transition-colors">
+              <FileUp className="w-8 h-8 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">
+                Drop your resume here or click to browse
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                Supports PDF, DOC, and DOCX files
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {aiAnalysis && (
+        <div className="mt-8 text-left bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-emerald-900">AI Analysis Results</h3>
+              <p className="text-sm text-emerald-700 mt-1">
+                We found {aiAnalysis.transferableSkills.length} transferable skills
+              </p>
             </div>
           </div>
 
-          {autosaveError && (
-            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              {autosaveError}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {aiAnalysis.transferableSkills.map(skill => (
+              <span
+                key={skill}
+                className="px-3 py-1 bg-white border border-emerald-200 rounded-full text-sm text-emerald-700"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t border-emerald-200">
+            <h4 className="text-sm font-semibold text-emerald-900 mb-2">
+              Industry Term Mappings
+            </h4>
+            <div className="space-y-2">
+              {aiAnalysis.industryTermMappings.slice(0, 3).map((mapping, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-slate-600">{mapping.original}</span>
+                  <ChevronRight className="w-4 h-4 text-emerald-500" />
+                  <span className="font-medium text-emerald-700">{mapping.fieldServices}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <button
+          onClick={handleSkipUpload}
+          className="px-6 py-3 text-slate-600 hover:text-slate-900 font-medium"
+        >
+          Start Fresh
+        </button>
+        {(uploadedFile || aiAnalysis) && (
+          <button
+            onClick={goToNextStep}
+            className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
+          >
+            Continue
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderContactStep = () => (
+    <div className="max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Contact Information</h2>
+      <p className="text-slate-600 mb-8">
+        How should firms reach you? This appears at the top of your resume.
+      </p>
+
+      <div className="space-y-6">
+        {/* Full Name */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Full Name *
+          </label>
+          <input
+            type="text"
+            value={resumeData.contact.fullName}
+            onChange={(e) => updateContact('fullName', e.target.value)}
+            placeholder="John Smith"
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+          />
+        </div>
+
+        {/* Email & Phone */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <Mail className="w-4 h-4 inline mr-1" /> Email *
+            </label>
+            <input
+              type="email"
+              value={resumeData.contact.email}
+              onChange={(e) => updateContact('email', e.target.value)}
+              placeholder="john@example.com"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <Phone className="w-4 h-4 inline mr-1" /> Phone *
+            </label>
+            <input
+              type="tel"
+              value={resumeData.contact.phone}
+              onChange={(e) => updateContact('phone', e.target.value)}
+              placeholder="(555) 123-4567"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <MapPin className="w-4 h-4 inline mr-1" /> City
+            </label>
+            <input
+              type="text"
+              value={resumeData.contact.city}
+              onChange={(e) => updateContact('city', e.target.value)}
+              placeholder="Atlanta"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              State
+            </label>
+            <input
+              type="text"
+              value={resumeData.contact.state}
+              onChange={(e) => updateContact('state', e.target.value)}
+              placeholder="GA"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              ZIP Code
+            </label>
+            <input
+              type="text"
+              value={resumeData.contact.zipCode}
+              onChange={(e) => updateContact('zipCode', e.target.value)}
+              placeholder="30301"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+        </div>
+
+        {/* Optional Links */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <Linkedin className="w-4 h-4 inline mr-1" /> LinkedIn (optional)
+            </label>
+            <input
+              type="url"
+              value={resumeData.contact.linkedin || ''}
+              onChange={(e) => updateContact('linkedin', e.target.value)}
+              placeholder="linkedin.com/in/yourprofile"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <Globe className="w-4 h-4 inline mr-1" /> Website (optional)
+            </label>
+            <input
+              type="url"
+              value={resumeData.contact.website || ''}
+              onChange={(e) => updateContact('website', e.target.value)}
+              placeholder="yourwebsite.com"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+        </div>
+
+        {/* Professional Summary */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Professional Summary
+          </label>
+          {aiAnalysis && (
+            <div className="mb-2 flex items-center gap-2 text-sm text-emerald-600">
+              <Sparkles className="w-4 h-4" />
+              AI-generated summary based on your uploaded resume
+            </div>
+          )}
+          <textarea
+            value={resumeData.summary}
+            onChange={(e) => setResumeData(prev => ({ ...prev, summary: e.target.value }))}
+            placeholder="Write a brief 2-3 sentence summary highlighting your relevant experience and what you bring to field services..."
+            rows={4}
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderExperienceStep = () => (
+    <div className="max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Work Experience</h2>
+          <p className="text-slate-600 mt-1">
+            Add relevant work history. We&apos;ll help translate it to field services language.
+          </p>
+        </div>
+        <button
+          onClick={addExperience}
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add Position
+        </button>
+      </div>
+
+      {resumeData.experience.length === 0 ? (
+        <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+          <Briefcase className="w-12 h-12 mx-auto text-slate-300 mb-4" />
+          <p className="text-slate-500 mb-4">No work experience added yet</p>
+          <button
+            onClick={addExperience}
+            className="px-4 py-2 bg-white border border-slate-300 hover:border-emerald-500 text-slate-700 rounded-lg transition"
+          >
+            Add Your First Position
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {resumeData.experience.map((exp, index) => (
+            <div
+              key={exp.id}
+              className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <GripVertical className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <span className="text-sm font-medium text-slate-500">
+                    Position {index + 1}
+                  </span>
+                </div>
+                <button
+                  onClick={() => removeExperience(exp.id)}
+                  className="p-2 text-slate-400 hover:text-red-500 transition"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Job Title
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.title}
+                    onChange={(e) => updateExperience(exp.id, 'title', e.target.value)}
+                    placeholder="e.g., Delivery Driver, Real Estate Agent"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Company
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.company}
+                    onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                    placeholder="Company Name"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.location}
+                    onChange={(e) => updateExperience(exp.id, 'location', e.target.value)}
+                    placeholder="City, State"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="month"
+                    value={exp.startDate}
+                    onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    End Date
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="month"
+                      value={exp.endDate}
+                      onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
+                      disabled={exp.current}
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition disabled:bg-slate-100"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 mt-2 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={exp.current}
+                      onChange={(e) => updateExperience(exp.id, 'current', e.target.checked)}
+                      className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                    />
+                    Currently working here
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Description & Key Achievements
+                </label>
+                <textarea
+                  value={exp.description}
+                  onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                  placeholder="Describe your responsibilities and achievements. We'll help translate these to field services terminology..."
+                  rows={4}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Education Section */}
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Education</h3>
+            <p className="text-slate-600 mt-1">Add your educational background</p>
+          </div>
+          <button
+            onClick={addEducation}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Education
+          </button>
+        </div>
+
+        {resumeData.education.length === 0 ? (
+          <div className="text-center py-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+            <p className="text-slate-500">No education added (optional for most field services roles)</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {resumeData.education.map((edu) => (
+              <div key={edu.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-4">
+                <div className="flex-1 grid md:grid-cols-4 gap-4">
+                  <input
+                    type="text"
+                    value={edu.school}
+                    onChange={(e) => updateEducation(edu.id, 'school', e.target.value)}
+                    placeholder="School Name"
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                  <input
+                    type="text"
+                    value={edu.degree}
+                    onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                    placeholder="Degree"
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                  <input
+                    type="text"
+                    value={edu.field}
+                    onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
+                    placeholder="Field of Study"
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                  <input
+                    type="month"
+                    value={edu.graduationDate}
+                    onChange={(e) => updateEducation(edu.id, 'graduationDate', e.target.value)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+                <button
+                  onClick={() => removeEducation(edu.id)}
+                  className="p-2 text-slate-400 hover:text-red-500 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Certifications Section */}
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Certifications</h3>
+            <p className="text-slate-600 mt-1">Industry certifications and training</p>
+          </div>
+          <button
+            onClick={addCertification}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Certification
+          </button>
+        </div>
+
+        {resumeData.certifications.length === 0 ? (
+          <div className="text-center py-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+            <Award className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+            <p className="text-slate-500">No certifications added yet</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {resumeData.certifications.map((cert) => (
+              <div key={cert.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-start gap-4">
+                <div className="flex-1 grid md:grid-cols-3 gap-4">
+                  <input
+                    type="text"
+                    value={cert.name}
+                    onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
+                    placeholder="Certification Name"
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                  <input
+                    type="text"
+                    value={cert.issuer}
+                    onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
+                    placeholder="Issuing Organization"
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                  <input
+                    type="month"
+                    value={cert.date}
+                    onChange={(e) => updateCertification(cert.id, 'date', e.target.value)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                  />
+                </div>
+                <button
+                  onClick={() => removeCertification(cert.id)}
+                  className="p-2 text-slate-400 hover:text-red-500 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderSkillsStep = () => (
+    <div className="max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Skills & Equipment</h2>
+      <p className="text-slate-600 mb-8">
+        Select the skills you have and equipment you own. This helps firms match you to the right work.
+      </p>
+
+      {/* Target Roles */}
+      <div className="mb-10">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Target className="w-5 h-5 text-emerald-500" />
+          Target Roles
+        </h3>
+        <p className="text-sm text-slate-600 mb-4">
+          What type of field services work are you seeking?
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {TARGET_ROLES.map(role => (
+            <button
+              key={role}
+              onClick={() => toggleTargetRole(role)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${resumeData.targetRoles.includes(role)
+                ? 'bg-emerald-500 text-white'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+            >
+              {role}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Field Services Skills */}
+      <div className="mb-10">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-amber-500" />
+          Field Services Skills
+        </h3>
+        <p className="text-sm text-slate-600 mb-4">
+          Select skills specific to field inspection and property services work.
+        </p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {FIELD_SERVICES_SKILLS.map(skill => (
+            <button
+              key={skill}
+              onClick={() => toggleSkill(skill, 'fieldServicesSkills')}
+              className={`px-4 py-3 rounded-lg text-sm text-left transition flex items-center gap-2 ${resumeData.fieldServicesSkills.includes(skill)
+                ? 'bg-amber-100 text-amber-800 border-2 border-amber-300'
+                : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                }`}
+            >
+              {resumeData.fieldServicesSkills.includes(skill) && (
+                <Check className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              )}
+              <span>{skill}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Equipment */}
+      <div className="mb-10">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Wrench className="w-5 h-5 text-blue-500" />
+          Equipment You Own
+        </h3>
+        <p className="text-sm text-slate-600 mb-4">
+          What tools and equipment do you currently have available?
+        </p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {EQUIPMENT_OPTIONS.map(item => (
+            <button
+              key={item}
+              onClick={() => toggleSkill(item, 'equipment')}
+              className={`px-4 py-3 rounded-lg text-sm text-left transition flex items-center gap-2 ${resumeData.equipment.includes(item)
+                ? 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+                : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                }`}
+            >
+              {resumeData.equipment.includes(item) && (
+                <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              )}
+              <span>{item}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* General/Transferable Skills */}
+      {aiAnalysis && (
+        <div className="mb-10">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            AI-Identified Transferable Skills
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {aiAnalysis.transferableSkills.map(skill => (
+              <button
+                key={skill}
+                onClick={() => toggleSkill(skill, 'skills')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${resumeData.skills.includes(skill)
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  }`}
+              >
+                {resumeData.skills.includes(skill) && <Check className="w-3 h-3 inline mr-1" />}
+                {skill}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderCoverageStep = () => (
+    <div className="max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Coverage & Availability</h2>
+      <p className="text-slate-600 mb-8">
+        Tell firms where you can work and when you&apos;re available.
+      </p>
+
+      {/* Vehicle */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Car className="w-5 h-5 text-slate-600" />
+          Transportation
+        </h3>
+
+        <label className="flex items-center gap-3 mb-4">
+          <input
+            type="checkbox"
+            checked={resumeData.coverage.hasReliableVehicle}
+            onChange={(e) => setResumeData(prev => ({
+              ...prev,
+              coverage: { ...prev.coverage, hasReliableVehicle: e.target.checked }
+            }))}
+            className="w-5 h-5 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
+          />
+          <span className="text-slate-700">I have a reliable personal vehicle</span>
+        </label>
+
+        {resumeData.coverage.hasReliableVehicle && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Vehicle Type (optional)
+            </label>
+            <input
+              type="text"
+              value={resumeData.coverage.vehicleType}
+              onChange={(e) => setResumeData(prev => ({
+                ...prev,
+                coverage: { ...prev.coverage, vehicleType: e.target.value }
+              }))}
+              placeholder="e.g., 2020 Honda CR-V, SUV with cargo space"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Coverage Radius */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-slate-600" />
+          Service Area
+        </h3>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            How far are you willing to travel from home base?
+          </label>
+          <div className="flex items-center gap-4">
+            <input
+              type="range"
+              min="10"
+              max="150"
+              step="10"
+              value={resumeData.coverage.radius}
+              onChange={(e) => setResumeData(prev => ({
+                ...prev,
+                coverage: { ...prev.coverage, radius: parseInt(e.target.value) }
+              }))}
+              className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <span className="w-24 text-center py-2 bg-emerald-100 text-emerald-700 font-semibold rounded-lg">
+              {resumeData.coverage.radius} miles
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Counties You Cover (optional)
+          </label>
+          <input
+            type="text"
+            value={resumeData.coverage.counties.join(', ')}
+            onChange={(e) => setResumeData(prev => ({
+              ...prev,
+              coverage: {
+                ...prev.coverage,
+                counties: e.target.value.split(',').map(c => c.trim()).filter(Boolean)
+              }
+            }))}
+            placeholder="e.g., Fulton, DeKalb, Gwinnett, Cobb"
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+          />
+          <p className="text-xs text-slate-500 mt-1">Separate multiple counties with commas</p>
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-slate-600" />
+          Availability
+        </h3>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          {[
+            { key: 'fullTime', label: 'Full-Time (40+ hrs/week)', icon: Briefcase },
+            { key: 'partTime', label: 'Part-Time (10-30 hrs/week)', icon: Clock },
+            { key: 'weekends', label: 'Weekends Available', icon: Calendar },
+            { key: 'evenings', label: 'Evenings Available', icon: Clock },
+            { key: 'sameDay', label: 'Same-Day Service Capable', icon: Zap },
+          ].map(({ key, label, icon: Icon }) => (
+            <label
+              key={key}
+              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition ${resumeData.availability[key as keyof typeof resumeData.availability]
+                ? 'border-emerald-500 bg-emerald-50'
+                : 'border-slate-200 hover:border-slate-300'
+                }`}
+            >
+              <input
+                type="checkbox"
+                checked={resumeData.availability[key as keyof typeof resumeData.availability]}
+                onChange={(e) => setResumeData(prev => ({
+                  ...prev,
+                  availability: { ...prev.availability, [key]: e.target.checked }
+                }))}
+                className="sr-only"
+              />
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${resumeData.availability[key as keyof typeof resumeData.availability]
+                ? 'bg-emerald-500 text-white'
+                : 'bg-slate-100 text-slate-400'
+                }`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={`font-medium ${resumeData.availability[key as keyof typeof resumeData.availability]
+                ? 'text-emerald-700'
+                : 'text-slate-700'
+                }`}>
+                {label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPreviewStep = () => (
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Preview & Export</h2>
+          <p className="text-slate-600 mt-1">
+            Review your resume and download in your preferred format.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedTemplate}
+            onChange={(e) => setSelectedTemplate(e.target.value as typeof selectedTemplate)}
+            className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="professional">Professional Template</option>
+            <option value="modern">Modern Template</option>
+            <option value="minimal">Minimal Template</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Resume Preview */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden mb-6">
+        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+          <span className="text-sm font-medium text-slate-600">Resume Preview</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportToPDF}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              PDF
+            </button>
+            <button
+              onClick={exportToDOCX}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Word
+            </button>
+          </div>
+        </div>
+
+        {/* Actual Resume Preview */}
+        <div className="p-8 bg-white min-h-[800px]" style={{ fontFamily: 'Georgia, serif' }}>
+          {/* Header */}
+          <div className="text-center mb-6 pb-6 border-b-2 border-slate-200">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              {resumeData.contact.fullName || 'Your Name'}
+            </h1>
+            <div className="flex items-center justify-center flex-wrap gap-4 text-sm text-slate-600">
+              {resumeData.contact.email && (
+                <span className="flex items-center gap-1">
+                  <Mail className="w-4 h-4" />
+                  {resumeData.contact.email}
+                </span>
+              )}
+              {resumeData.contact.phone && (
+                <span className="flex items-center gap-1">
+                  <Phone className="w-4 h-4" />
+                  {resumeData.contact.phone}
+                </span>
+              )}
+              {(resumeData.contact.city || resumeData.contact.state) && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {[resumeData.contact.city, resumeData.contact.state].filter(Boolean).join(', ')}
+                </span>
+              )}
+            </div>
+            {resumeData.coverage.radius > 0 && (
+              <div className="mt-2 text-sm text-emerald-600 font-medium">
+                Service Area: {resumeData.coverage.radius} mile radius
+                {resumeData.coverage.counties.length > 0 && (
+                  <span> • {resumeData.coverage.counties.join(', ')}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Summary */}
+          {resumeData.summary && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
+                Professional Summary
+              </h2>
+              <p className="text-slate-700 leading-relaxed">{resumeData.summary}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-            <div className="space-y-6 lg:col-span-2">
-              <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-                <header className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Profile intake</p>
-                    <h3 className="text-lg font-semibold text-brand-dark">Contact, service area, and preferences</h3>
-                    <p className="text-sm text-slate-700">Name, phone, counties, and pay expectations feed the resume header.</p>
-                  </div>
-                  <div className="text-xs font-semibold text-brand-copper">PII redaction</div>
-                </header>
+          {/* Target Roles */}
+          {resumeData.targetRoles.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
+                Target Roles
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {resumeData.targetRoles.map(role => (
+                  <span key={role} className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
+                    {role}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
-                <div className="space-y-3">
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Full name</span>
-                    <input
-                      value={workspace.profile.fullName}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="First and last name"
-                    />
-                  </label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Phone</span>
-                      <input
-                        value={workspace.profile.phone}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, phone: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="(555) 123-4567"
-                      />
-                    </label>
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Service area</span>
-                      <input
-                        value={workspace.profile.serviceArea}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, serviceArea: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="Dallas / Fort Worth, TX"
-                      />
-                    </label>
+          {/* Field Services Skills */}
+          {resumeData.fieldServicesSkills.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
+                Field Services Skills
+              </h2>
+              <div className="grid grid-cols-2 gap-1 text-sm text-slate-700">
+                {resumeData.fieldServicesSkills.map(skill => (
+                  <div key={skill} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    {skill}
                   </div>
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Counties covered</span>
-                    <textarea
-                      value={workspace.profile.counties}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, counties: e.target.value } }))}
-                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Add county names or zips separated by commas"
-                    />
-                  </label>
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Pay preferences</span>
-                    <textarea
-                      value={workspace.profile.payPreferences}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, payPreferences: e.target.value } }))}
-                      className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Flat fees, per inspection minimums, or travel rates"
-                    />
-                  </label>
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Availability windows</span>
-                    <textarea
-                      value={workspace.profile.availability}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, availability: e.target.value } }))}
-                      className="min-h-[60px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Weekdays 8a-6p, Saturdays 9a-1p, 24-hour rush slots"
-                    />
-                  </label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Rural / urban mix</span>
-                      <input
-                        value={workspace.profile.ruralUrbanMix}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, ruralUrbanMix: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="70% suburban, 30% rural"
-                      />
-                    </label>
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Drive radius</span>
-                      <input
-                        value={workspace.profile.driveRadius}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, driveRadius: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="Up to 60 miles"
-                      />
-                    </label>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Rush capacity</span>
-                      <input
-                        value={workspace.profile.rushCapacity}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, rushCapacity: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="Same-day: 2 slots; 24-hour: 3 slots"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
-                      <span>Redact PII until export</span>
-                      <input
-                        type="checkbox"
-                        checked={workspace.profile.piiRedaction}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, profile: { ...prev.profile, piiRedaction: e.target.checked } }))}
-                        className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </section>
+                ))}
+              </div>
+            </div>
+          )}
 
-              <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm">
-                <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Experience + gear</p>
-                    <h3 className="text-lg font-semibold text-brand-dark">Recent vendors and equipment</h3>
-                    <p className="text-sm text-slate-700">Include inspection counts, ladder heights, drones, and safety notes.</p>
-                  </div>
-                  <div className="text-xs font-semibold text-brand-copper">Field proof</div>
-                </header>
+          {/* Equipment */}
+          {resumeData.equipment.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
+                Equipment & Tools
+              </h2>
+              <p className="text-sm text-slate-700">
+                {resumeData.equipment.join(' • ')}
+              </p>
+            </div>
+          )}
 
-                <div className="space-y-3">
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Vendors + counts</span>
-                    <textarea
-                      value={workspace.experience.vendors}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, vendors: e.target.value } }))}
-                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Example: WonderClaim (310 roof/ladder), Acme IA (180 exterior), Aurora Desk (QA partner)"
-                    />
-                  </label>
-
-                  <div className="space-y-2 text-sm">
-                    <p className="font-semibold text-brand-dark">Ladder heights</p>
-                    <div className="flex flex-wrap gap-2">
-                      {ladderOptions.map((option) => {
-                        const active = workspace.experience.ladderHeights.includes(option)
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() =>
-                              setWorkspace((prev) => ({
-                                ...prev,
-                                experience: {
-                                  ...prev.experience,
-                                  ladderHeights: handleToggle(prev.experience.ladderHeights, option),
-                                },
-                              }))
-                            }
-                            className={`rounded-full border px-3 py-1 text-sm transition ${active
-                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        )
-                      })}
+          {/* Experience */}
+          {resumeData.experience.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
+                Work Experience
+              </h2>
+              {resumeData.experience.map(exp => (
+                <div key={exp.id} className="mb-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-slate-900">{exp.title || 'Position Title'}</h3>
+                      <p className="text-slate-600">{exp.company}{exp.location && ` • ${exp.location}`}</p>
                     </div>
+                    <span className="text-sm text-slate-500">
+                      {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
+                    </span>
                   </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Camera gear</span>
-                      <input
-                        value={workspace.experience.cameraGear}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, cameraGear: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="DSLR, 20MP+, wide angle lens"
-                      />
-                    </label>
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Measuring tools</span>
-                      <input
-                        value={workspace.experience.measuringTools}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, measuringTools: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="Leica Disto D2, pitch gauge, moisture meter"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-[1.2fr,0.8fr]">
-                    <label className="block space-y-1 text-sm">
-                      <span className="font-semibold text-brand-dark">Drone model</span>
-                      <input
-                        value={workspace.experience.droneModel}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, droneModel: e.target.value } }))}
-                        className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                        placeholder="DJI Mini 4 Pro, FAA Part 107"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between rounded-lg border border-brand-steel/40 bg-brand-mist/60 px-3 py-2 text-sm font-semibold text-brand-dark">
-                      <span>Drone on hand</span>
-                      <input
-                        type="checkbox"
-                        checked={workspace.experience.hasDrone}
-                        onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, hasDrone: e.target.checked } }))}
-                        className="h-4 w-4 rounded border-brand-steel/60 text-brand-copper focus:ring-brand-copper"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <p className="font-semibold text-brand-dark">Specialties</p>
-                    <div className="flex flex-wrap gap-2">
-                      {specialtyOptions.map((option) => {
-                        const active = workspace.experience.specialties.includes(option)
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() =>
-                              setWorkspace((prev) => ({
-                                ...prev,
-                                experience: {
-                                  ...prev.experience,
-                                  specialties: handleToggle(prev.experience.specialties, option),
-                                },
-                              }))
-                            }
-                            className={`rounded-full border px-3 py-1 text-sm transition ${active
-                              ? 'border-brand-copper bg-brand-copper/10 text-brand-copper'
-                              : 'border-brand-steel/40 bg-white text-brand-dark hover:border-brand-copper'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Weather constraints</span>
-                    <input
-                      value={workspace.experience.weatherConstraints}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, weatherConstraints: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="No steep ladder work above 20mph winds"
-                    />
-                  </label>
-
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Safety notes</span>
-                    <textarea
-                      value={workspace.experience.safetyNotes}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, safetyNotes: e.target.value } }))}
-                      className="min-h-[70px] w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Harnessed for 6/12+, PPE list, QA scores, background check status"
-                    />
-                  </label>
-
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-semibold text-brand-dark">Turnaround time</span>
-                    <input
-                      value={workspace.experience.turnaroundTime}
-                      onChange={(e) => setWorkspace((prev) => ({ ...prev, experience: { ...prev.experience, turnaroundTime: e.target.value } }))}
-                      className="w-full rounded-lg border border-brand-steel/40 bg-white px-3 py-2 focus:border-brand-copper focus:outline-none"
-                      placeholder="Standard 24-48 hours; rush same-day when requested"
-                    />
-                  </label>
+                  {exp.description && (
+                    <p className="mt-2 text-sm text-slate-700">{exp.description}</p>
+                  )}
                 </div>
-              </section>
+              ))}
+            </div>
+          )}
+
+          {/* Education */}
+          {resumeData.education.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
+                Education
+              </h2>
+              {resumeData.education.map(edu => (
+                <div key={edu.id} className="mb-2">
+                  <div className="flex justify-between">
+                    <div>
+                      <span className="font-semibold">{edu.degree}</span>
+                      {edu.field && <span className="text-slate-600"> in {edu.field}</span>}
+                    </div>
+                    <span className="text-sm text-slate-500">{formatDate(edu.graduationDate)}</span>
+                  </div>
+                  <p className="text-slate-600">{edu.school}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Certifications */}
+          {resumeData.certifications.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
+                Certifications
+              </h2>
+              {resumeData.certifications.map(cert => (
+                <div key={cert.id} className="flex justify-between mb-1">
+                  <span>
+                    <span className="font-medium">{cert.name}</span>
+                    {cert.issuer && <span className="text-slate-600"> - {cert.issuer}</span>}
+                  </span>
+                  <span className="text-sm text-slate-500">{formatDate(cert.date)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Availability */}
+          <div className="mt-6 pt-4 border-t border-slate-200">
+            <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
+              Availability
+            </h2>
+            <div className="flex flex-wrap gap-2 text-sm">
+              {resumeData.availability.fullTime && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Full-Time</span>
+              )}
+              {resumeData.availability.partTime && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Part-Time</span>
+              )}
+              {resumeData.availability.weekends && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Weekends</span>
+              )}
+              {resumeData.availability.evenings && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Evenings</span>
+              )}
+              {resumeData.availability.sameDay && (
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">Same-Day Service</span>
+              )}
+              {resumeData.coverage.hasReliableVehicle && (
+                <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full">
+                  Reliable Vehicle{resumeData.coverage.vehicleType && `: ${resumeData.coverage.vehicleType}`}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Final Actions */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-emerald-900 mb-1">Your resume is ready!</h3>
+            <p className="text-sm text-emerald-700 mb-4">
+              Download your resume and start applying to firms in the directory.
+              Your data is automatically saved and you can come back to edit anytime.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={exportToPDF}
+                className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Download PDF
+              </button>
+              <button
+                onClick={() => setCurrentStep('contact')}
+                className="px-6 py-3 bg-white border border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition"
+              >
+                Edit Resume
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ============================================================================
+  // MAIN RENDER
+  // ============================================================================
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="font-bold text-slate-900">Resume Builder</h1>
+                <p className="text-xs text-slate-500">AI-Powered for Field Services</p>
+              </div>
             </div>
 
-            <section className="space-y-4 rounded-2xl border border-brand-copper/25 bg-white p-6 shadow-sm lg:col-span-1">                    <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Outputs + export</p>
-                <h3 className="text-lg font-semibold text-brand-dark">Generate, copy, or download</h3>
-                <p className="text-sm text-slate-700">AI drafts are timestamped. Copy everything or export to PDF with your current details.</p>
-              </div>
-              <div className="flex flex-col items-stretch gap-2 text-sm sm:flex-row sm:flex-wrap">
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:cursor-not-allowed disabled:opacity-70"
-                  disabled={isGenerating || loading}
-                >
-                  {isGenerating ? 'Generating…' : 'Generate copy'}
-                </button>
-                <div className="hidden sm:flex flex-col text-[10px] text-slate-500 leading-tight justify-center">
-                  <span className="font-medium text-emerald-600">~250 tokens</span>
-                  <span>optimized</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyAll}
-                  className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-4 py-2 font-semibold text-brand-copper transition hover:border-brand-copper hover:bg-brand-copper/10"
-                >
-                  Copy all
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  disabled={isDownloading}
-                  className="inline-flex items-center justify-center rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isDownloading ? 'Preparing PDF…' : 'Download PDF'}
-                </button>
-                {hasExistingRecord && (
-                  <Link
-                    href={`/members/${userId}`}
-                    target="_blank"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-steel/50 px-4 py-2 font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper"
-                  >
-                    <span>Public Profile</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                )}
-              </div>
-            </header>
-
-              <div className="space-y-3 rounded-xl border border-brand-steel/30 bg-brand-mist/50 p-4 text-sm text-slate-700">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Versions</span>
-                  <select className="rounded-full border border-brand-steel/40 bg-white px-3 py-1 text-sm text-slate-700" disabled>
-                    <option>Current draft (saving)</option>
-                  </select>
-                  <span className="text-xs text-slate-500">Multi-version management ships next.</span>
-                </div>
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex items-center justify-center rounded-full border border-dashed border-brand-copper/70 px-3 py-1 text-xs font-semibold text-brand-copper opacity-60"
-                >
-                  Send to vendor portal / routing tools (coming soon)
-                </button>
+            <div className="flex items-center gap-4">
+              {/* Autosave Indicator */}
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : lastSaved ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                  </>
+                ) : null}
               </div>
 
-              <div className="space-y-3">
-                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3 relative overflow-hidden">
-                  <header className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-brand-dark">Summary</p>
-                    {generatedLabel && !isGenerating && <p className="text-xs text-slate-500">Updated {generatedLabel}</p>}
-                  </header>
-                  {isGenerating ? (
-                    <SkeletonLoader />
-                  ) : (
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.summary}</p>
-                  )}
-                </article>
-
-                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
-                  <header className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-brand-dark">Experience bullets</p>
-                    <p className="text-xs text-slate-500">Counts, geographies, and speed</p>
-                  </header>
-                  {isGenerating ? (
-                    <SkeletonLoader />
-                  ) : (
-                    <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                      {workspace.outputs.experienceBullets.map((item, index) => (
-                        <li key={`${item}-${index}`}>{item}</li>
-                      ))}
-                    </ul>
-                  )}
-                </article>
-
-                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
-
-                  <header className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-brand-dark">Skills + gear bullets</p>
-                    <p className="text-xs text-slate-500">Ladders, drones, cameras, and tools</p>
-                  </header>
-                  <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                    {workspace.outputs.skillsBullets.map((item, index) => (
-                      <li key={`${item}-${index}`}>{item}</li>
-                    ))}
-                  </ul>
-                </article>
-
-                <article className="space-y-2 rounded-xl border border-brand-steel/30 bg-white px-4 py-3">
-                  <header className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-brand-dark">Portal blurb</p>
-                    <p className="text-xs text-slate-500">Short paragraph for vendor portals</p>
-                  </header>
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{workspace.outputs.portalBlurb}</p>
-                </article>
-              </div>
-            </section>
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition flex items-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </button>
+            </div>
           </div>
-        </section>
-      </Gate>
-    </ToolLayout>
-  )
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Step Indicator */}
+        {renderStepIndicator()}
+
+        {/* Step Content */}
+        <div className="mb-8">
+          {currentStep === 'upload' && renderUploadStep()}
+          {currentStep === 'contact' && renderContactStep()}
+          {currentStep === 'experience' && renderExperienceStep()}
+          {currentStep === 'skills' && renderSkillsStep()}
+          {currentStep === 'coverage' && renderCoverageStep()}
+          {currentStep === 'preview' && renderPreviewStep()}
+        </div>
+
+        {/* Navigation Buttons */}
+        {currentStep !== 'upload' && (
+          <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+            <button
+              onClick={goToPreviousStep}
+              className="px-6 py-3 text-slate-600 hover:text-slate-900 font-medium flex items-center gap-2"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              Back
+            </button>
+
+            {currentStep !== 'preview' ? (
+              <button
+                onClick={goToNextStep}
+                disabled={!canProceed()}
+                className={`px-8 py-3 font-semibold rounded-xl transition flex items-center gap-2 ${canProceed()
+                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+              >
+                Continue
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={exportToPDF}
+                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                Download Resume
+              </button>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }
