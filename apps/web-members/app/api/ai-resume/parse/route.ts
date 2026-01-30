@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import mammoth from 'mammoth'
-import pdf from 'pdf-parse'
+// @ts-ignore
+import pdf from 'pdf-parse/lib/pdf-parse.js'
 
 const OPENAI_TIMEOUT_MS = 45_000
 
