@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { 
-    PlayCircle, CheckCircle, Lock, ArrowRight, Brain, 
-    Target, BookOpen, Zap, Award, ChevronRight, ChevronLeft, 
-    Clock, Users, Calculator, X, AlertTriangle, Lightbulb, 
+import {
+    PlayCircle, CheckCircle, Lock, ArrowRight, Brain,
+    Target, BookOpen, Zap, Award, ChevronRight, ChevronLeft,
+    Clock, Users, Calculator, X, AlertTriangle, Lightbulb,
     AlertOctagon, Check, Info, Shield, Car, Home, Search, FileText
 } from 'lucide-react'
 
@@ -77,13 +77,12 @@ const AudienceSelector = ({ selected, onSelect }: { selected: AudienceType; onSe
     ]
     return (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <p className="text-sm text-slate-600 mb-3 flex items-center gap-2"><Users className="w-4 h-4" />I'M COMING FROM...</p>
+            <p className="text-sm text-slate-600 mb-3 flex items-center gap-2"><Users className="w-4 h-4" />I&apos;M COMING FROM...</p>
             <div className="flex flex-wrap gap-2">
                 {audiences.map(a => (
                     <button key={a.id} onClick={() => onSelect(selected === a.id ? null : a.id as AudienceType)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-                            selected === a.id ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
-                        }`}><span>{a.emoji}</span>{a.label}</button>
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${selected === a.id ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                            }`}><span>{a.emoji}</span>{a.label}</button>
                 ))}
             </div>
         </div>
@@ -94,12 +93,12 @@ const AudienceSelector = ({ selected, onSelect }: { selected: AudienceType; onSe
 const KnowledgeCheck = ({ question, options, correctIndex, explanation }: { question: string; options: string[]; correctIndex: number; explanation: string }) => {
     const [selected, setSelected] = useState<number | null>(null)
     const [revealed, setRevealed] = useState(false)
-    
+
     const handleSelect = (i: number) => {
         if (revealed) return
         setSelected(i); setRevealed(true)
     }
-    
+
     return (
         <div className="bg-slate-900 rounded-xl p-6 text-white">
             <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-3"><Lightbulb className="w-4 h-4" />KNOWLEDGE CHECK</div>
@@ -117,9 +116,8 @@ const KnowledgeCheck = ({ question, options, correctIndex, explanation }: { ques
                         <button key={i} onClick={() => handleSelect(i)} disabled={revealed}
                             className={`w-full p-3 rounded-lg border text-left transition ${style}`}>
                             <div className="flex items-center gap-3">
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                    revealed && isCorrect ? 'bg-emerald-500' : revealed && selected === i ? 'bg-red-500' : 'bg-slate-700'
-                                }`}>
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${revealed && isCorrect ? 'bg-emerald-500' : revealed && selected === i ? 'bg-red-500' : 'bg-slate-700'
+                                    }`}>
                                     {revealed && isCorrect ? <Check className="w-4 h-4" /> : revealed && selected === i ? <X className="w-4 h-4" /> : String.fromCharCode(65 + i)}
                                 </div>
                                 <span className="text-sm">{opt}</span>
@@ -141,7 +139,7 @@ const KnowledgeCheck = ({ question, options, correctIndex, explanation }: { ques
 export default function ModuleOverviewPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
-    
+
     const [module, setModule] = useState<TrainingModule | null>(null)
     const [lessons, setLessons] = useState<TrainingLesson[]>([])
     const [loading, setLoading] = useState(true)
@@ -151,7 +149,7 @@ export default function ModuleOverviewPage() {
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set())
     const [quizPassed, setQuizPassed] = useState(false)
     const [selectedAudience, setSelectedAudience] = useState<AudienceType>(null)
-    
+
     const supabase = createClient()
 
     // Fetch module and lessons
@@ -166,7 +164,7 @@ export default function ModuleOverviewPage() {
                 }
                 if (!mod) { setError('Module not found'); setLoading(false); return }
                 setModule(mod)
-                
+
                 const { data: lessonData } = await supabase.from('training_lessons').select('*').eq('module_id', mod.id).order('lesson_number')
                 setLessons(lessonData || [])
             } catch (err) { setError('Failed to load module') }
@@ -183,18 +181,18 @@ export default function ModuleOverviewPage() {
             if (saved) { const p = JSON.parse(saved); setCompletedLessons(new Set(p.completedLessons || [])); setQuizPassed(p.quizPassed || false) }
             const aud = localStorage.getItem('nested_objects_audience')
             if (aud) setSelectedAudience(aud as AudienceType)
-        } catch {}
+        } catch { }
     }, [module])
 
     const saveProgress = (completed: Set<string>, passed: boolean) => {
         if (!module) return
         localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({ completedLessons: Array.from(completed), quizPassed: passed }))
     }
-    
+
     const markLessonComplete = (id: string) => {
         const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed)
     }
-    
+
     const handleQuizComplete = (passed: boolean) => { if (passed) { setQuizPassed(true); saveProgress(completedLessons, true) } }
     const handleAudienceSelect = (a: AudienceType) => { setSelectedAudience(a); if (a) localStorage.setItem('nested_objects_audience', a); else localStorage.removeItem('nested_objects_audience') }
 
@@ -287,8 +285,8 @@ export default function ModuleOverviewPage() {
             </div>
             <div className="grid md:grid-cols-4 gap-4">
                 {[{ view: 'flashcards', icon: Brain, color: 'amber', title: 'Flashcards', desc: 'Master 74 key terms' },
-                  { view: 'calculator', icon: Calculator, color: 'emerald', title: 'Income Calculator', desc: 'Project your earnings' },
-                  { view: 'scenario', icon: Users, color: 'pink', title: 'Scenarios', desc: 'Practice decisions' }
+                { view: 'calculator', icon: Calculator, color: 'emerald', title: 'Income Calculator', desc: 'Project your earnings' },
+                { view: 'scenario', icon: Users, color: 'pink', title: 'Scenarios', desc: 'Practice decisions' }
                 ].map(item => (
                     <button key={item.view} onClick={() => setActiveView(item.view as ActiveView)} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
                         <div className={`w-12 h-12 bg-${item.color}-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}><item.icon className={`w-6 h-6 text-${item.color}-600`} /></div>
@@ -322,7 +320,7 @@ export default function ModuleOverviewPage() {
         if (!currentLesson) return null
         const content = parseLessonContent(currentLesson.content)
         const isComplete = completedLessons.has(currentLesson.id)
-        
+
         return (
             <div className="space-y-6">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
@@ -349,7 +347,7 @@ export default function ModuleOverviewPage() {
 
                 {content?.introduction && (
                     <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-                        {content.introduction.hook && <p className="text-xl font-medium text-slate-900 italic">"{content.introduction.hook}"</p>}
+                        {content.introduction.hook && <p className="text-xl font-medium text-slate-900 italic">&quot;{content.introduction.hook}&quot;</p>}
                         {content.introduction.context && <p className="text-slate-600">{content.introduction.context}</p>}
                         {content.introduction.yourRole && <div className="bg-slate-50 rounded-lg p-4"><p className="text-sm text-slate-500 uppercase font-bold mb-1">Your Role</p><p className="text-slate-700">{content.introduction.yourRole}</p></div>}
                     </div>
