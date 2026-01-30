@@ -1,0 +1,1 @@
+INSERT INTO "public"."flashcard_decks" ("id", "section_id", "title", "description", "created_at") VALUES ('a1b2c3d4-e5f6-7890-abcd-000000000010', 'a1b2c3d4-e5f6-7890-abcd-000000000201', 'Module 1: Field Inspector Fundamentals', 'Essential terminology, photography standards, and professional protocols for field inspectors.', '2026-01-29 23:43:11.85101+00');

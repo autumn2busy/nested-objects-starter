@@ -4,12 +4,11 @@ import {
   AlertTriangle, Lightbulb, Target, Users, Clock,
   Play, ArrowRight, Award, Camera, FileText
 } from 'lucide-react';
-import { lessonsData } from './lessons.data';
 import VideoPlayer from './VideoPlayer';
 
 /**
  * NESTED OBJECTS - INTERACTIVE LESSON VIEWER
- * Dynamic viewer for all 6 lessons in Module 1
+ * Dynamic viewer accepting lesson data from Supabase
  */
 
 const audienceTypes = [
@@ -19,24 +18,61 @@ const audienceTypes = [
   { id: 'inspector', label: 'Existing Inspector', icon: '🔍', color: 'emerald' },
 ];
 
-interface LessonViewerProps {
-  lessonId?: number;
-  onComplete?: () => void;
-  isCompleted?: boolean;
+export interface LessonContent {
+  subtitle?: string;
+  duration?: string;
+  videoUrl?: string;
+  coreConcept: string;
+  sixAngleSequence?: any[];
+  steps: Array<{
+    id: string;
+    title: string;
+    content: string;
+    critical?: boolean;
+  }>;
+  audienceWarnings?: Record<string, { mistake: string; correct: string }>;
+  quickWin?: string;
+  warningSign?: string;
 }
 
-const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonViewerProps) => {
+export interface Lesson {
+  id: string;
+  title: string;
+  lesson_number: number;
+  content: LessonContent;
+  is_completed?: boolean;
+}
+
+interface LessonViewerProps {
+  lesson: Lesson;
+  moduleId: string;
+  onComplete?: () => void;
+}
+
+const LessonViewer = ({ lesson, moduleId, onComplete }: LessonViewerProps) => {
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [selectedAudience, setSelectedAudience] = useState('gig-worker');
   const [expandedSections, setExpandedSections] = useState(new Set(['core-concept', 'steps']));
 
-  const lesson = lessonsData[lessonId];
+  // Destructure content from the JSON field
+  // Provide defaults to prevent crashes if content is missing
+  const {
+    subtitle = "Lesson",
+    duration = "5 min",
+    videoUrl,
+    coreConcept,
+    sixAngleSequence,
+    steps = [],
+    audienceWarnings = {},
+    quickWin,
+    warningSign
+  } = lesson.content || {};
 
   // Reset state when lesson changes
   useEffect(() => {
     setCompletedSteps(new Set());
     setExpandedSections(new Set(['core-concept', 'steps']));
-  }, [lessonId]);
+  }, [lesson.id]);
 
   if (!lesson) {
     return <div className="p-8 text-center text-slate-500">Lesson content not found.</div>;
@@ -66,22 +102,28 @@ const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonV
     });
   };
 
-  const progress = (completedSteps.size / lesson.steps.length) * 100;
-  const audienceWarning = lesson.audienceWarnings[selectedAudience];
+  const calculateProgress = () => {
+    if (!steps || steps.length === 0) return 0;
+    return (completedSteps.size / steps.length) * 100;
+  };
+
+  const progress = calculateProgress();
+  const audienceWarning = audienceWarnings[selectedAudience];
+  const isCompleted = lesson.is_completed || false; // This would come from user_progress table join ideally
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-6 transition-all">
         <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-2">
           <BookOpen className="w-4 h-4" />
-          {lesson.subtitle}
+          {subtitle}
         </div>
         <h1 className="text-2xl font-bold tracking-tight mb-2">{lesson.title}</h1>
         <div className="flex items-center gap-4 text-sm text-slate-300">
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            {lesson.duration}
+            {duration}
           </span>
           <span className="flex items-center gap-1">
             <Target className="w-4 h-4" />
@@ -107,8 +149,8 @@ const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonV
       <div className="p-6 space-y-6">
 
         {/* Video Player Integration */}
-        {lesson.videoUrl && (
-          <VideoPlayer url={lesson.videoUrl} title={lesson.title} />
+        {videoUrl && (
+          <VideoPlayer url={videoUrl} title={lesson.title} />
         )}
 
         {/* Audience Selector */}
@@ -134,39 +176,41 @@ const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonV
         </div>
 
         {/* Core Concept */}
-        <section>
-          <button
-            onClick={() => toggleSection('core-concept')}
-            className="w-full flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200 hover:bg-emerald-100 transition"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
+        {coreConcept && (
+          <section>
+            <button
+              onClick={() => toggleSection('core-concept')}
+              className="w-full flex items-center justify-between p-4 bg-emerald-50 rounded-xl border border-emerald-200 hover:bg-emerald-100 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-semibold text-emerald-900">Core Concept</span>
               </div>
-              <span className="font-semibold text-emerald-900">Core Concept</span>
-            </div>
-            <ChevronDown className={`w-5 h-5 text-emerald-600 transition-transform ${expandedSections.has('core-concept') ? 'rotate-180' : ''
-              }`} />
-          </button>
+              <ChevronDown className={`w-5 h-5 text-emerald-600 transition-transform ${expandedSections.has('core-concept') ? 'rotate-180' : ''
+                }`} />
+            </button>
 
-          {expandedSections.has('core-concept') && (
-            <div className="mt-3 p-4 bg-slate-50 rounded-xl">
-              <p className="text-slate-700 leading-relaxed text-lg">
-                {lesson.coreConcept}
-              </p>
-            </div>
-          )}
-        </section>
+            {expandedSections.has('core-concept') && (
+              <div className="mt-3 p-4 bg-slate-50 rounded-xl">
+                <p className="text-slate-700 leading-relaxed text-lg">
+                  {coreConcept}
+                </p>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* The 6-Angle Sequence (Lesson 4 Special Render) */}
-        {lesson.sixAngleSequence && (
+        {sixAngleSequence && (
           <section>
             <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <Camera className="w-5 h-5 text-slate-600" />
               The 6-Angle Sequence
             </h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {lesson.sixAngleSequence.map((angle) => (
+              {sixAngleSequence.map((angle: any) => (
                 <div
                   key={angle.angle}
                   className="p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-300 hover:shadow-md transition group"
@@ -193,72 +237,74 @@ const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonV
         )}
 
         {/* Step-by-Step Instructions */}
-        <section>
-          <button
-            onClick={() => toggleSection('steps')}
-            className="w-full flex items-center justify-between p-4 bg-slate-100 rounded-xl hover:bg-slate-200 transition"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
+        {steps.length > 0 && (
+          <section>
+            <button
+              onClick={() => toggleSection('steps')}
+              className="w-full flex items-center justify-between p-4 bg-slate-100 rounded-xl hover:bg-slate-200 transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="font-semibold text-slate-900">Step-by-Step Instructions</span>
+                  <span className="text-sm text-slate-500 ml-2">
+                    {completedSteps.size}/{steps.length} completed
+                  </span>
+                </div>
               </div>
-              <div className="text-left">
-                <span className="font-semibold text-slate-900">Step-by-Step Instructions</span>
-                <span className="text-sm text-slate-500 ml-2">
-                  {completedSteps.size}/{lesson.steps.length} completed
-                </span>
-              </div>
-            </div>
-            <ChevronDown className={`w-5 h-5 text-slate-600 transition-transform ${expandedSections.has('steps') ? 'rotate-180' : ''
-              }`} />
-          </button>
-          {expandedSections.has('steps') && (
-            <div className="mt-3 space-y-2">
-              {lesson.steps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={`p-4 rounded-xl border transition ${completedSteps.has(step.id)
-                    ? 'bg-emerald-50 border-emerald-200'
-                    : 'bg-white border-slate-200'
-                    }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => toggleStep(step.id)}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition ${completedSteps.has(step.id)
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                        }`}
-                    >
-                      {completedSteps.has(step.id) ? (
-                        <CheckCircle2 className="w-4 h-4" />
-                      ) : (
-                        <span className="text-sm font-bold">{index + 1}</span>
-                      )}
-                    </button>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className={`font-semibold ${completedSteps.has(step.id) ? 'text-emerald-800' : 'text-slate-900'
-                          }`}>
-                          {step.title}
-                        </h4>
-                        {step.critical && (
-                          <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded">
-                            CRITICAL
-                          </span>
+              <ChevronDown className={`w-5 h-5 text-slate-600 transition-transform ${expandedSections.has('steps') ? 'rotate-180' : ''
+                }`} />
+            </button>
+            {expandedSections.has('steps') && (
+              <div className="mt-3 space-y-2">
+                {steps.map((step: any, index: number) => (
+                  <div
+                    key={step.id || index}
+                    className={`p-4 rounded-xl border transition ${completedSteps.has(step.id)
+                      ? 'bg-emerald-50 border-emerald-200'
+                      : 'bg-white border-slate-200'
+                      }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={() => toggleStep(step.id)}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition ${completedSteps.has(step.id)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
+                      >
+                        {completedSteps.has(step.id) ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          <span className="text-sm font-bold">{index + 1}</span>
                         )}
+                      </button>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className={`font-semibold ${completedSteps.has(step.id) ? 'text-emerald-800' : 'text-slate-900'
+                            }`}>
+                            {step.title}
+                          </h4>
+                          {step.critical && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded">
+                              CRITICAL
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm mt-1 whitespace-pre-wrap ${completedSteps.has(step.id) ? 'text-emerald-700' : 'text-slate-600'
+                          }`}>
+                          {step.content}
+                        </p>
                       </div>
-                      <p className={`text-sm mt-1 whitespace-pre-wrap ${completedSteps.has(step.id) ? 'text-emerald-700' : 'text-slate-600'
-                        }`}>
-                        {step.content}
-                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Audience-Specific Warning */}
         {audienceWarning && (
@@ -285,31 +331,37 @@ const LessonViewer = ({ lessonId = 4, onComplete, isCompleted = false }: LessonV
         )}
 
         {/* Quick Win & Warning */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="w-5 h-5 text-emerald-600" />
-              <span className="font-semibold text-emerald-900">Quick Win</span>
-            </div>
-            <p className="text-sm text-emerald-800">{lesson.quickWin}</p>
-          </div>
+        {(quickWin || warningSign) && (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {quickWin && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                  <span className="font-semibold text-emerald-900">Quick Win</span>
+                </div>
+                <p className="text-sm text-emerald-800">{quickWin}</p>
+              </div>
+            )}
 
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              <span className="font-semibold text-red-900">Warning Signs</span>
-            </div>
-            <p className="text-sm text-red-800">{lesson.warningSign}</p>
+            {warningSign && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <span className="font-semibold text-red-900">Warning Signs</span>
+                </div>
+                <p className="text-sm text-red-800">{warningSign}</p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Navigation */}
         <div className="flex items-center justify-end pt-4 border-t border-slate-200">
           <button
             onClick={() => onComplete && onComplete()}
             className={`px-6 py-3 font-semibold rounded-xl transition flex items-center gap-2 ${isCompleted
-                ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-white'
+              ? 'bg-emerald-100 text-emerald-700 cursor-default'
+              : 'bg-emerald-500 hover:bg-emerald-400 text-white'
               }`}
           >
             {isCompleted ? (
