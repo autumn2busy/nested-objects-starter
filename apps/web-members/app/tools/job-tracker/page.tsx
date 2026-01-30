@@ -151,7 +151,7 @@ export default function JobTrackerPage() {
                 <div className="w-16 h-16 bg-brand-copper/10 text-brand-copper rounded-full flex items-center justify-center mx-auto mb-4">
                   <Briefcase className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900">You don't have any saved jobs</h3>
+                <h3 className="text-lg font-semibold text-slate-900">You don&apos;t have any saved jobs</h3>
                 <p className="text-slate-500 max-w-sm mx-auto mt-2 mb-6">Save jobs from across the web or add them manually to track your progress.</p>
                 <Button onClick={() => setIsModalOpen(true)} className="gap-2 bg-brand-copper text-white hover:bg-brand-copperDark">
                   <Plus className="w-4 h-4" /> Add a new job
@@ -176,10 +176,10 @@ export default function JobTrackerPage() {
                       value={job.status}
                       onChange={(e) => updateStatus(job.id, e.target.value as JobStage)}
                       className={`text-xs font-semibold px-2 py-1 rounded-md border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset w-full max-w-[140px] ${job.status === 'Bookmarked' ? 'bg-slate-100 text-slate-700 ring-slate-600/20' :
-                          job.status === 'Applied' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
-                            job.status === 'Interviewing' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
-                              job.status === 'Accepted' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
-                                'bg-amber-50 text-amber-700 ring-amber-600/20'
+                        job.status === 'Applied' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                          job.status === 'Interviewing' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
+                            job.status === 'Accepted' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
+                              'bg-amber-50 text-amber-700 ring-amber-600/20'
                         }`}
                     >
                       {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
