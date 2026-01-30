@@ -247,15 +247,22 @@ export default function ModuleOverviewPage() {
                 })}
             </div>
             <div className="px-4 pb-4">
-                <div className={`p-3 rounded-lg ${canTakeQuiz ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50 border border-slate-200'}`}>
+                <button
+                    onClick={() => canTakeQuiz && setActiveView('quiz')}
+                    disabled={!canTakeQuiz}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${canTakeQuiz
+                            ? 'bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:shadow-sm cursor-pointer'
+                            : 'bg-slate-50 border border-slate-200 cursor-not-allowed opacity-75'
+                        }`}
+                >
                     <div className="flex items-center gap-2">
                         {canTakeQuiz ? <Award className="w-4 h-4 text-emerald-600" /> : <Lock className="w-4 h-4 text-slate-400" />}
                         <span className={`text-sm font-medium ${canTakeQuiz ? 'text-emerald-700' : 'text-slate-500'}`}>
                             {quizPassed ? 'Assessment Passed ✓' : canTakeQuiz ? 'Assessment Unlocked' : 'Assessment Locked'}
                         </span>
                     </div>
-                    {!canTakeQuiz && !quizPassed && <p className="text-xs text-slate-400 mt-1">Complete {requiredForQuiz - completedLessons.size} more lessons</p>}
-                </div>
+                    {!canTakeQuiz && !quizPassed && <p className="text-xs text-slate-400 mt-1 pl-6">Complete {requiredForQuiz - completedLessons.size} more lessons</p>}
+                </button>
             </div>
         </aside>
     )
