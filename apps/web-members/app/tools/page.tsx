@@ -11,6 +11,24 @@ export default function ToolsIndexPage() {
 
   const tools = [
     {
+      title: '💼 Clients & vendors',
+      description: 'Manage point of contacts, pay dates, and portal links for every firm you work with.',
+      href: '/tools/clients',
+      cta: 'Manage clients →',
+    },
+    {
+      title: '🏢 Company tracker',
+      description: 'Build your target list of firms and track your application status.',
+      href: '/tools/companies',
+      cta: 'Track companies →',
+    },
+    {
+      title: '💰 Income calculator',
+      description: 'Visualize your potential earnings based on inspection volume and days worked.',
+      href: '/tools/income-calculator',
+      cta: 'Calculate income →',
+    },
+    {
       title: '🤖 AI concierge',
       description:
         'Ask questions about firms, requirements, and inspection workflows in plain language.',
@@ -25,10 +43,10 @@ export default function ToolsIndexPage() {
       cta: 'Build my resume →',
     },
     {
-      title: '📍 Job tracking',
+      title: '📍 Job tracker',
       description:
-        'Track inspections, due dates, and pay so nothing slips through the cracks.',
-      href: '/dashboard/job-tracker',
+        'Track applications, interviews, and offers in a simple pipeline.',
+      href: '/tools/job-tracker',
       cta: 'Open job tracker →',
     },
     {

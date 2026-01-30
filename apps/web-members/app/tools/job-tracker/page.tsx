@@ -1,604 +1,238 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Plus, Search, MoreHorizontal, ChevronRight, Briefcase, MapPin, DollarSign, Calendar, Star } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-import { Gate } from '@/components/Gate'
-import type { MemberJob, MemberJobStatus } from '@/types/member-jobs'
+type JobStage = 'Bookmarked' | 'Applying' | 'Applied' | 'Interviewing' | 'Negotiating' | 'Accepted'
 
-import { ToolAccessMessage, UpgradeActions } from '../_components/ToolAccessMessage'
-import { ToolLayout } from '../_components/ToolLayout'
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/membership', label: 'Membership' },
-]
-
-const statusOptions: { value: MemberJobStatus; label: string; description?: string }[] = [
-  { value: 'interested', label: 'Interested', description: 'Saved to review later' },
-  { value: 'applied', label: 'Applied', description: 'Application submitted' },
-  { value: 'interviewing', label: 'Interviewing', description: 'In conversation with the firm' },
-  { value: 'offer', label: 'Offer', description: 'Offer received or pending acceptance' },
-  { value: 'closed', label: 'Closed', description: 'No longer pursuing' },
-]
-
-type JobFormState = {
+type Job = {
+  id: string
   title: string
   company: string
   location: string
-  source_url: string
-  job_id: string
-  pay: string
-  status: MemberJobStatus
-  notes: string
+  salary: string
+  status: JobStage
+  dateSaved: string
+  dateApplied?: string
+  followUpDate?: string
+  excitement: number // 1-5
 }
 
-const defaultForm: JobFormState = {
-  title: '',
-  company: '',
-  location: '',
-  source_url: '',
-  job_id: '',
-  pay: '',
-  status: 'interested',
-  notes: '',
-}
-
-function statusBadgeClasses(status: MemberJobStatus) {
-  switch (status) {
-    case 'applied':
-      return 'bg-brand-copper/10 text-brand-dark border border-brand-copper/40'
-    case 'interviewing':
-      return 'bg-brand-teal text-white'
-    case 'offer':
-      return 'bg-brand-teal/80 text-white'
-    case 'closed':
-      return 'bg-brand-steel/15 text-brand-dark border border-brand-steel/40'
-    default:
-      return 'bg-brand-sand text-brand-dark border border-brand-steel/30'
-  }
-}
+const STAGES: JobStage[] = ['Bookmarked', 'Applying', 'Applied', 'Interviewing', 'Negotiating', 'Accepted']
 
 export default function JobTrackerPage() {
-  const [jobs, setJobs] = useState<MemberJob[]>([])
-  const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<'all' | MemberJobStatus>('all')
-  const [formState, setFormState] = useState<JobFormState>(defaultForm)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [actionId, setActionId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const fetchJobs = async () => {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/member-jobs')
-      const payload = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        throw new Error(payload?.error || 'Could not load saved jobs')
-      }
-
-      setJobs(Array.isArray(payload) ? payload : payload.jobs ?? [])
-    } catch (err) {
-      console.error(err)
-      setError('Could not load your tracked jobs yet. Please refresh.')
-    } finally {
-      setLoading(false)
-    }
+  // Stats
+  const stats = {
+    bookmarked: jobs.filter(j => j.status === 'Bookmarked').length,
+    applied: jobs.filter(j => j.status === 'Applied').length,
+    interviewing: jobs.filter(j => j.status === 'Interviewing').length,
+    offers: jobs.filter(j => j.status === 'Accepted').length // or Negotiating
   }
 
   useEffect(() => {
-    void fetchJobs()
+    const saved = localStorage.getItem('teal_job_tracker')
+    if (saved) {
+      setJobs(JSON.parse(saved))
+    }
   }, [])
 
-  const summary = useMemo(() => {
-    const active = jobs.filter((job) => job.status !== 'closed').length
-    const interviewing = jobs.filter((job) => job.status === 'interviewing').length
-    const offers = jobs.filter((job) => job.status === 'offer').length
-
-    const weekStart = (() => {
-      const now = new Date()
-      const copy = new Date(now)
-      const day = copy.getDay()
-      const diff = copy.getDate() - day
-      copy.setDate(diff)
-      copy.setHours(0, 0, 0, 0)
-      return copy
-    })()
-
-    const weekEnd = (() => {
-      const start = new Date(weekStart)
-      start.setDate(start.getDate() + 6)
-      start.setHours(23, 59, 59, 999)
-      return start
-    })()
-
-    const createdThisWeek = jobs.filter((job) => {
-      const createdAt = new Date(job.created_at)
-      return createdAt >= weekStart && createdAt <= weekEnd
-    }).length
-
-    return { active, interviewing, offers, createdThisWeek }
-  }, [jobs])
-
-  const filteredJobs = useMemo(() => {
-    const list = statusFilter === 'all' ? jobs : jobs.filter((job) => job.status === statusFilter)
-
-    return [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-  }, [jobs, statusFilter])
-
-  const updateForm = (field: keyof JobFormState, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }))
+  const saveToLocal = (newJobs: Job[]) => {
+    setJobs(newJobs)
+    localStorage.setItem('teal_job_tracker', JSON.stringify(newJobs))
   }
 
-  const resetForm = () => {
-    setFormState(defaultForm)
-    setEditingId(null)
-  }
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setSaving(true)
-    setError(null)
-
-    const payload = {
-      job_id: formState.job_id || null,
-      title: formState.title || null,
-      company: formState.company || null,
-      location: formState.location || null,
-      source_url: formState.source_url || null,
-      pay: formState.pay || null,
-      status: formState.status,
-      notes: formState.notes || null,
+  const addJob = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    const newJob: Job = {
+      id: crypto.randomUUID(),
+      title: formData.get('title') as string,
+      company: formData.get('company') as string,
+      location: formData.get('location') as string || 'Remote',
+      salary: formData.get('salary') as string || '$0',
+      status: 'Bookmarked',
+      dateSaved: new Date().toLocaleDateString(),
+      excitement: 3
     }
-
-    try {
-      const res = await fetch(editingId ? `/api/member-jobs/${editingId}` : '/api/member-jobs', {
-        method: editingId ? 'PATCH' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        setError(data?.error || 'Could not save this job entry yet.')
-        return
-      }
-
-      await fetchJobs()
-      resetForm()
-    } catch (err) {
-      console.error(err)
-      setError('Something went wrong saving your job. Please try again.')
-    } finally {
-      setSaving(false)
-    }
+    saveToLocal([newJob, ...jobs])
+    setIsModalOpen(false)
   }
 
-  const handleUpdate = async (id: string, updates: Partial<MemberJob>) => {
-    try {
-      setActionId(id)
-      setError(null)
-      const res = await fetch(`/api/member-jobs/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-
-      const payload = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        setError(payload?.error || 'Could not update job entry.')
-        return
-      }
-
-      await fetchJobs()
-    } catch (err) {
-      console.error(err)
-      setError('Could not update job entry.')
-    } finally {
-      setActionId(null)
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    try {
-      setActionId(id)
-      setError(null)
-      const res = await fetch(`/api/member-jobs/${id}`, { method: 'DELETE' })
-      const payload = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        setError(payload?.error || 'Could not delete job entry.')
-        return
-      }
-
-      await fetchJobs()
-    } catch (err) {
-      console.error(err)
-      setError('Could not delete job entry.')
-    } finally {
-      setActionId(null)
-    }
-  }
-
-  const beginEdit = (job: MemberJob) => {
-    setEditingId(job.id)
-    setFormState({
-      title: job.title || '',
-      company: job.company || '',
-      location: job.location || '',
-      source_url: job.source_url || '',
-      job_id: job.job_id || '',
-      pay: job.pay || '',
-      status: job.status,
-      notes: job.notes || '',
-    })
+  const updateStatus = (id: string, newStatus: JobStage) => {
+    const updated = jobs.map(j => j.id === id ? { ...j, status: newStatus } : j)
+    saveToLocal(updated)
   }
 
   return (
-    <ToolLayout
-      title="Job tracker"
-      description="Save jobs, log where you applied, and track interviews and offers with notes in one place."
-      navLinks={navLinks}
-    >
-      <Gate
-        feature="job_tracker"
-        loadingFallback={<ToolAccessMessage title="Loading access" description="Checking your account..." loading />}
-        fallback={
-          <ToolAccessMessage
-            title="Authentication required"
-            description="Log in or upgrade to start tracking applications and offers."
-            tone="warning"
-            actions={<UpgradeActions />}
-          />
-        }
-      >
-        <div className="space-y-6">
-          <section className="rounded-none border border-brand-steel/30 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Job tracker</p>
-                <h2 className="text-xl font-semibold text-brand-dark">Pipeline at a glance</h2>
+    <main className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link href="/tools" className="text-xl font-bold text-brand-dark flex items-center gap-2">
+              <div className="w-8 h-8 bg-brand-copper text-white rounded-lg flex items-center justify-center">
+                <Briefcase className="w-5 h-5" />
               </div>
-              <div className="flex flex-wrap gap-3 text-xs">
-                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
-                  Active: <span className="font-semibold text-brand-dark">{summary.active}</span>
-                </div>
-                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
-                  Interviews: <span className="font-semibold text-brand-dark">{summary.interviewing}</span>
-                </div>
-                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
-                  Offers: <span className="font-semibold text-brand-dark">{summary.offers}</span>
-                </div>
-                <div className="rounded-none border border-brand-steel/30 bg-brand-sand px-3 py-2">
-                  Added this week: <span className="font-semibold text-brand-dark">{summary.createdThisWeek}</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-none border border-brand-steel/30 bg-white p-6 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
-                    {editingId ? 'Edit job' : 'Add a job'}
-                  </p>
-                  <h2 className="text-xl font-semibold text-brand-dark">
-                    {editingId ? 'Update tracked job' : 'Save a new job'}
-                  </h2>
-                </div>
-                {editingId && (
-                  <button
-                    type="button"
-                    className="text-xs font-semibold text-brand-steel underline"
-                    onClick={resetForm}
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-                <div className="space-y-3">
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Job title</span>
-                    <input
-                      value={formState.title}
-                      onChange={(e) => updateForm('title', e.target.value)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Property inspector - Atlanta"
-                    />
-                  </label>
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Company</span>
-                    <input
-                      value={formState.company}
-                      onChange={(e) => updateForm('company', e.target.value)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Acme Field Services"
-                    />
-                  </label>
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Location</span>
-                    <input
-                      value={formState.location}
-                      onChange={(e) => updateForm('location', e.target.value)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="Atlanta, GA (Remote friendly)"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Job link</span>
-                    <input
-                      value={formState.source_url}
-                      onChange={(e) => updateForm('source_url', e.target.value)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="https://example.com/job/123"
-                    />
-                  </label>
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Job ID or reference</span>
-                    <input
-                      value={formState.job_id}
-                      onChange={(e) => updateForm('job_id', e.target.value)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                      placeholder="REQ-9481"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Status</span>
-                    <select
-                      value={formState.status}
-                      onChange={(e) => updateForm('status', e.target.value as MemberJobStatus)}
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    >
-                      {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="space-y-1 text-sm text-brand-dark">
-                    <span className="block font-semibold">Pay or rate</span>
-                    <input
-                      value={formState.pay}
-                      onChange={(e) => updateForm('pay', e.target.value)}
-                      placeholder="$250 per inspection"
-                      className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    />
-                  </label>
-                </div>
-
-                <label className="space-y-1 text-sm text-brand-dark">
-                  <span className="block font-semibold">Notes</span>
-                  <textarea
-                    value={formState.notes}
-                    onChange={(e) => updateForm('notes', e.target.value)}
-                    rows={4}
-                    className="w-full rounded-none border border-brand-steel/30 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                    placeholder="Scripts, contacts, follow-up dates, or interview prep"
-                  />
-                </label>
-
-                {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="submit"
-                    className="rounded-none bg-brand-copper px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:opacity-70"
-                    disabled={saving}
-                  >
-                    {saving ? 'Saving…' : editingId ? 'Save changes' : 'Save job'}
-                  </button>
-                  <Link
-                    href="/tools"
-                    className="rounded-none border border-brand-steel/40 bg-white px-4 py-2 text-sm font-semibold text-brand-dark transition hover:border-brand-copper"
-                  >
-                    View all tools
-                  </Link>
-                </div>
-              </form>
-            </section>
-
-            <section className="rounded-none border border-brand-steel/30 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Job list</p>
-                  <h2 className="text-xl font-semibold text-brand-dark">Filter and update</h2>
-                </div>
-                <div className="flex flex-wrap gap-2 text-sm">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as MemberJobStatus | 'all')}
-                    className="rounded-none border border-brand-steel/40 bg-white px-3 py-2 text-sm focus:border-brand-copper focus:outline-none"
-                  >
-                    <option value="all">All statuses</option>
-                    {statusOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {loading ? (
-                <p className="mt-4 text-sm text-brand-steel">Loading jobs…</p>
-              ) : filteredJobs.length === 0 ? (
-                <p className="mt-4 text-sm text-brand-steel">No jobs match these filters yet.</p>
-              ) : (
-                <div className="mt-4 space-y-4">
-                  <div className="hidden md:block">
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-sm text-brand-dark">
-                        <thead>
-                          <tr className="border-b border-brand-steel/20 text-left text-xs uppercase tracking-[0.12em] text-brand-steel">
-                            <th className="px-3 py-2">Title</th>
-                            <th className="px-3 py-2">Company</th>
-                            <th className="px-3 py-2">Status</th>
-                            <th className="px-3 py-2">Location</th>
-                            <th className="px-3 py-2">Pay</th>
-                            <th className="px-3 py-2">Source</th>
-                            <th className="px-3 py-2">Notes</th>
-                            <th className="px-3 py-2">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-brand-steel/15">
-                          {filteredJobs.map((job) => (
-                            <tr key={job.id}>
-                              <td className="px-3 py-3 font-semibold">{job.title || 'Untitled job'}</td>
-                              <td className="px-3 py-3 text-brand-steel">{job.company || '—'}</td>
-                              <td className="px-3 py-3">
-                                <span className={`inline-flex rounded-none px-3 py-1 text-xs font-semibold ${statusBadgeClasses(job.status)}`}>
-                                  {statusOptions.find((s) => s.value === job.status)?.label || job.status}
-                                </span>
-                              </td>
-                              <td className="px-3 py-3 text-brand-steel">{job.location || '—'}</td>
-                              <td className="px-3 py-3 text-brand-steel">{job.pay || '—'}</td>
-                              <td className="px-3 py-3 text-brand-steel">
-                                {job.source_url ? (
-                                  <a
-                                    href={job.source_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-brand-copper underline"
-                                  >
-                                    View job
-                                  </a>
-                                ) : (
-                                  '—'
-                                )}
-                              </td>
-                              <td className="px-3 py-3 text-brand-steel">
-                                {job.notes ? job.notes.slice(0, 60) + (job.notes.length > 60 ? '…' : '') : '—'}
-                              </td>
-                              <td className="px-3 py-3">
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdate(job.id, { status: 'applied' })}
-                                    className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
-                                    disabled={actionId === job.id}
-                                  >
-                                    Mark applied
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdate(job.id, { status: 'offer' })}
-                                    className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
-                                    disabled={actionId === job.id}
-                                  >
-                                    Log offer
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => beginEdit(job)}
-                                    className="rounded-none border border-brand-steel/40 px-3 py-1 text-xs font-semibold text-brand-dark transition hover:border-brand-copper"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(job.id)}
-                                    className="rounded-none border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 transition hover:border-red-400"
-                                    disabled={actionId === job.id}
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 md:hidden">
-                    {filteredJobs.map((job) => (
-                      <div key={job.id} className="rounded-none border border-brand-steel/25 bg-brand-sand p-4 shadow-sm">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-brand-dark">{job.title || 'Untitled job'}</p>
-                            <p className="text-xs text-brand-steel">{job.company || 'No company listed'}</p>
-                          </div>
-                          <span className={`inline-flex rounded-none px-3 py-1 text-[11px] font-semibold ${statusBadgeClasses(job.status)}`}>
-                            {statusOptions.find((s) => s.value === job.status)?.label || job.status}
-                          </span>
-                        </div>
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-brand-steel">
-                          <span>Location: {job.location || '—'}</span>
-                          <span>Pay: {job.pay || '—'}</span>
-                          <span>Job ID: {job.job_id || '—'}</span>
-                          <span>
-                            Link: {' '}
-                            {job.source_url ? (
-                              <a href={job.source_url} target="_blank" rel="noreferrer" className="text-brand-copper underline">
-                                Open
-                              </a>
-                            ) : (
-                              '—'
-                            )}
-                          </span>
-                        </div>
-                        {job.notes && <p className="mt-2 text-xs text-brand-dark">{job.notes}</p>}
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                          <button
-                            type="button"
-                            onClick={() => handleUpdate(job.id, { status: 'applied' })}
-                            className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
-                            disabled={actionId === job.id}
-                          >
-                            Mark applied
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleUpdate(job.id, { status: 'offer' })}
-                            className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
-                            disabled={actionId === job.id}
-                          >
-                            Log offer
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => beginEdit(job)}
-                            className="rounded-none border border-brand-steel/40 px-3 py-1 font-semibold text-brand-dark transition hover:border-brand-copper"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(job.id)}
-                            className="rounded-none border border-red-200 bg-red-50 px-3 py-1 font-semibold text-red-700 transition hover:border-red-400"
-                            disabled={actionId === job.id}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </section>
+              Job Tracker
+            </Link>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+              <Link href="#" className="text-brand-copper border-b-2 border-brand-copper pb-4 -mb-4">Jobs</Link>
+              <Link href="/tools/companies" className="hover:text-brand-dark transition-colors">Companies</Link>
+              <Link href="/tools/clients" className="hover:text-brand-dark transition-colors">People</Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-brand-copper hover:bg-brand-copperDark text-white gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add a New Job
+            </Button>
           </div>
         </div>
-      </Gate>
-    </ToolLayout>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Pipeline Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-0 mb-8 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          {STAGES.map((stage, i) => {
+            const count = jobs.filter(j => j.status === stage).length
+            const isLast = i === STAGES.length - 1
+            return (
+              <div key={stage} className={`p-4 flex flex-col items-center justify-center relative ${!isLast ? 'border-r border-slate-100' : ''}`}>
+                {!isLast && (
+                  <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-slate-200 bg-white rounded-full">
+                    <ChevronRight className="w-6 h-6" />
+                  </div>
+                )}
+                <span className="text-2xl font-bold text-slate-900 mb-1">{count}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{stage}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
+          {/* Toolbar */}
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input placeholder="Search jobs..." className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-copper/50 w-64" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">Group by: None</Button>
+              <Button variant="outline" size="sm">Columns</Button>
+              <Button variant="outline" size="sm">Menu</Button>
+            </div>
+          </div>
+
+          {/* Table Header */}
+          <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50/50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="col-span-4 pl-8">Job Position</div>
+            <div className="col-span-2">Company</div>
+            <div className="col-span-1">Salary</div>
+            <div className="col-span-2">Status</div>
+            <div className="col-span-1">Date Saved</div>
+            <div className="col-span-2 text-right">Excitement</div>
+          </div>
+
+          {/* Table Body */}
+          <div className="divide-y divide-slate-100">
+            {jobs.length === 0 ? (
+              <div className="py-20 text-center">
+                <div className="w-16 h-16 bg-brand-copper/10 text-brand-copper rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900">You don't have any saved jobs</h3>
+                <p className="text-slate-500 max-w-sm mx-auto mt-2 mb-6">Save jobs from across the web or add them manually to track your progress.</p>
+                <Button onClick={() => setIsModalOpen(true)} className="gap-2 bg-brand-copper text-white hover:bg-brand-copperDark">
+                  <Plus className="w-4 h-4" /> Add a new job
+                </Button>
+              </div>
+            ) : (
+              jobs.map(job => (
+                <div key={job.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors group">
+                  <div className="col-span-4 flex items-center gap-3">
+                    <input type="checkbox" className="rounded border-slate-300 text-brand-copper focus:ring-brand-copper" />
+                    <div>
+                      <div className="font-semibold text-brand-dark">{job.title}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        {job.location}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-span-2 text-sm text-slate-700 font-medium">{job.company}</div>
+                  <div className="col-span-1 text-sm text-slate-500">{job.salary}</div>
+                  <div className="col-span-2">
+                    <select
+                      value={job.status}
+                      onChange={(e) => updateStatus(job.id, e.target.value as JobStage)}
+                      className={`text-xs font-semibold px-2 py-1 rounded-md border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset w-full max-w-[140px] ${job.status === 'Bookmarked' ? 'bg-slate-100 text-slate-700 ring-slate-600/20' :
+                          job.status === 'Applied' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                            job.status === 'Interviewing' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
+                              job.status === 'Accepted' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
+                                'bg-amber-50 text-amber-700 ring-amber-600/20'
+                        }`}
+                    >
+                      {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-1 text-sm text-slate-500">{job.dateSaved}</div>
+                  <div className="col-span-2 flex justify-end gap-1">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${star <= job.excitement ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add Job Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Add a New Job</h2>
+            <form onSubmit={addJob} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
+                <input name="title" required placeholder="e.g. Field Inspector" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Company</label>
+                <input name="company" required placeholder="e.g. Acme Corp" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+                  <input name="location" placeholder="e.g. Remote" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Salary (Optional)</label>
+                  <input name="salary" placeholder="e.g. $60k" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-brand-copper text-white hover:bg-brand-copperDark">Save Job</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
   )
 }
