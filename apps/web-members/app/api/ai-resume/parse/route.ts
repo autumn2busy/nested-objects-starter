@@ -1,139 +1,288 @@
-import { NextResponse } from 'next/server'
+// app/api/ai-resume/parse/route.ts
+// Fixed PDF parsing API route for AI Resume Builder
 
-export const dynamic = 'force-dynamic'
-const OPENAI_TIMEOUT_MS = 60_000
+import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
 
-// Polyfill for pdf-parse which relies on DOMMatrix (missing in Node)
-if (typeof global.DOMMatrix === 'undefined') {
-    // @ts-ignore
-    global.DOMMatrix = class DOMMatrix {
-        constructor() { }
-        // Add basic methods if needed by pdf.js
-        transform() { return this; }
-        translate() { return this; }
-        scale() { return this; }
+// Initialize OpenAI
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+})
+
+// Field services role mapping for resume translation
+const FIELD_SERVICES_ROLES = {
+    keywords: [
+        'inspector', 'field services', 'property preservation', 'mortgage field',
+        'notary', 'signing agent', 'real estate', 'appraisal', 'surveyor',
+        'delivery driver', 'courier', 'logistics', 'route', 'gig worker'
+    ],
+    skills: {
+        'driving': 'Route optimization and territory management',
+        'photography': 'Property documentation and forensic photography',
+        'customer service': 'Professional occupant interaction and de-escalation',
+        'attention to detail': 'Accurate PCR completion and compliance documentation',
+        'time management': 'SLA adherence and multi-stop routing efficiency',
+        'mobile apps': 'InspectorADE, Focus, and field service software proficiency',
+        'documentation': 'Objective reporting and regulatory compliance',
+        'navigation': 'GPS-based territory coverage and property location',
+        'communication': 'Coordinator relations and professional correspondence',
+        'physical stamina': 'All-weather field work and property walk-arounds'
+    },
+    roleTranslations: {
+        'delivery driver': 'Field Inspector Candidate (Routing Expert)',
+        'uber driver': 'Field Inspector Candidate (Navigation Specialist)',
+        'notary': 'Field Inspector Candidate (Verification Expert)',
+        'real estate agent': 'Field Inspector Candidate (Property Knowledge)',
+        'realtor': 'Field Inspector Candidate (Property Knowledge)',
+        'customer service': 'Field Inspector Candidate (Client Relations)',
+        'warehouse': 'Field Inspector Candidate (Logistics Background)',
+        'retail': 'Field Inspector Candidate (Documentation Skills)'
     }
 }
 
-export async function POST(req: Request) {
+// Parse PDF using pdf-parse library with error handling
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     try {
-        const formData = await req.formData()
-        const file = formData.get('file') as File | null
-
-        if (!file) {
-            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
-        }
-
-        let textContent = ''
-
-        if (file.type === 'application/pdf') {
-            try {
-                // Lazy load pdf-parse to avoid cold-start crashes
-                const pdf = require('pdf-parse')
-
-                const arrayBuffer = await file.arrayBuffer()
-                const buffer = Buffer.from(arrayBuffer)
-                const data = await pdf(buffer)
-                textContent = data.text
-            } catch (err: any) {
-                console.error('PDF parsing failed:', err)
-                return NextResponse.json(
-                    { error: `PDF parsing failed on server: ${err.message}` },
-                    { status: 500 }
-                )
+        // Dynamic import to handle edge runtime issues
+        const pdfParse = (await import('pdf-parse')).default
+        
+        // pdf-parse options for better compatibility
+        const options = {
+            // Limit pages for faster processing
+            max: 10,
+            // Custom page renderer to handle edge cases
+            pagerender: function(pageData: any) {
+                return pageData.getTextContent().then(function(textContent: any) {
+                    let text = ''
+                    for (let item of textContent.items) {
+                        text += item.str + ' '
+                    }
+                    return text
+                })
             }
-        } else if (
-            file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            file.name.endsWith('.docx')
-        ) {
-            try {
-                // Lazy load mammoth
-                const mammoth = require('mammoth')
-
-                const arrayBuffer = await file.arrayBuffer()
-                const buffer = Buffer.from(arrayBuffer)
-                const result = await mammoth.extractRawText({ buffer })
-                textContent = result.value
-            } catch (err: any) {
-                console.error('DOCX parsing failed:', err)
-                return NextResponse.json(
-                    { error: `DOCX parsing failed on server: ${err.message}` },
-                    { status: 500 }
-                )
-            }
-        } else {
-            return NextResponse.json({ error: 'Unsupported file type. Use PDF or DOCX.' }, { status: 400 })
         }
+        
+        const data = await pdfParse(buffer, options)
+        return data.text || ''
+    } catch (pdfError: any) {
+        console.error('PDF parse error:', pdfError)
+        
+        // Fallback: Try alternative parsing approach
+        try {
+            const pdfParse = (await import('pdf-parse')).default
+            // Simpler approach without custom renderer
+            const data = await pdfParse(buffer)
+            return data.text || ''
+        } catch (fallbackError) {
+            console.error('Fallback PDF parse also failed:', fallbackError)
+            throw new Error('Unable to extract text from PDF. Please try a different file or paste your resume text directly.')
+        }
+    }
+}
 
-        // Truncate if too long to save tokens/avoid limits (approx 20k chars is enough for most resumes)
-        textContent = textContent.slice(0, 25000)
+// Extract text from various file types
+async function extractText(file: File): Promise<string> {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const fileType = file.type.toLowerCase()
+    const fileName = file.name.toLowerCase()
+    
+    // Handle PDF files
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+        return await extractTextFromPDF(buffer)
+    }
+    
+    // Handle plain text files
+    if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+        return buffer.toString('utf-8')
+    }
+    
+    // Handle Word documents (.docx)
+    if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.endsWith('.docx')) {
+        try {
+            const mammoth = (await import('mammoth')).default
+            const result = await mammoth.extractRawText({ buffer })
+            return result.value || ''
+        } catch (docxError) {
+            console.error('DOCX parse error:', docxError)
+            throw new Error('Unable to extract text from Word document. Please try PDF or plain text.')
+        }
+    }
+    
+    // Handle older Word documents (.doc)
+    if (fileType === 'application/msword' || fileName.endsWith('.doc')) {
+        throw new Error('Older .doc format not supported. Please save as .docx or PDF and try again.')
+    }
+    
+    throw new Error(`Unsupported file type: ${fileType}. Please upload a PDF, DOCX, or TXT file.`)
+}
 
-        const apiKey =
-            process.env.OPENAI_API_KEY ||
-            process.env.OPENAI_KEY ||
-            process.env.NEXT_PUBLIC_OPENAI_API_KEY
+// Analyze resume with OpenAI
+async function analyzeResume(resumeText: string): Promise<any> {
+    const prompt = `You are an expert career counselor specializing in mortgage field services, property inspections, and related gig economy roles.
 
-        if (!apiKey) {
+Analyze this resume and extract/translate the experience for field services careers.
+
+RESUME TEXT:
+${resumeText}
+
+Provide a JSON response with this exact structure:
+{
+    "originalProfile": {
+        "name": "extracted name or 'Not specified'",
+        "email": "extracted email or null",
+        "phone": "extracted phone or null",
+        "location": "extracted location or null",
+        "currentRole": "most recent job title",
+        "yearsExperience": number or 0
+    },
+    "transferableSkills": [
+        {
+            "originalSkill": "skill from resume",
+            "fieldServicesTranslation": "how this applies to field inspection work",
+            "relevanceScore": 1-10
+        }
+    ],
+    "experienceTranslations": [
+        {
+            "originalRole": "job title from resume",
+            "originalCompany": "company name",
+            "duration": "time period",
+            "fieldServicesRelevance": "how this experience translates",
+            "keyTakeaways": ["relevant accomplishment 1", "relevant accomplishment 2"]
+        }
+    ],
+    "recommendedPath": {
+        "suggestedRole": "Field Inspector | Property Preservation Specialist | etc",
+        "readinessLevel": "Ready Now | Training Needed | Significant Prep Required",
+        "strengths": ["strength 1", "strength 2", "strength 3"],
+        "gaps": ["gap 1", "gap 2"],
+        "nextSteps": ["action 1", "action 2", "action 3"]
+    },
+    "fieldServicesResume": {
+        "professionalSummary": "2-3 sentence summary positioning them for field services",
+        "coreCompetencies": ["competency 1", "competency 2", "competency 3", "competency 4", "competency 5", "competency 6"],
+        "experienceBullets": ["translated bullet 1", "translated bullet 2", "translated bullet 3", "translated bullet 4"]
+    }
+}
+
+Focus on translating their experience into field services terminology:
+- Driving experience → Route optimization, territory management
+- Customer interaction → Occupant communication, professional demeanor
+- Documentation → PCR completion, compliance reporting
+- Time management → SLA adherence, efficient scheduling
+- Mobile app usage → Field service software proficiency
+- Physical work → Property walk-arounds, all-weather fieldwork`
+
+    const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+            {
+                role: 'system',
+                content: 'You are an expert career counselor. Always respond with valid JSON only, no markdown or explanation.'
+            },
+            {
+                role: 'user',
+                content: prompt
+            }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+        response_format: { type: "json_object" }
+    })
+
+    const content = response.choices[0]?.message?.content
+    if (!content) {
+        throw new Error('No response from AI analysis')
+    }
+
+    try {
+        return JSON.parse(content)
+    } catch (parseError) {
+        console.error('Failed to parse AI response:', content)
+        throw new Error('AI response was not valid JSON')
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        // Check for API key
+        if (!process.env.OPENAI_API_KEY) {
             return NextResponse.json(
-                { error: 'AI service unavailable (missing key). Request manual entry.' },
-                { status: 503 }
+                { error: 'OpenAI API key not configured' },
+                { status: 500 }
             )
         }
 
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS)
+        const formData = await request.formData()
+        const file = formData.get('file') as File | null
+        const textInput = formData.get('text') as string | null
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o',
-                temperature: 0.2,
-                messages: [
-                    {
-                        role: 'system',
-                        content: `You are a resume parser. Extract data into this JSON structure:
-{
-  "contact": { "fullName": "", "email": "", "phone": "", "city": "", "state": "", "zipCode": "", "linkedin": "", "website": "" },
-  "summary": "Professional summary...",
-  "experience": [{ "company": "", "title": "", "location": "", "startDate": "YYYY-MM", "endDate": "YYYY-MM", "current": boolean, "description": "", "bullets": [""] }],
-  "skills": ["skill1"],
-  "education": [{ "school": "", "degree": "", "field": "", "graduationDate": "YYYY" }],
-  "certifications": [{ "name": "", "issuer": "", "date": "YYYY" }]
-}
-Identify 4-6 transferable skills relevant to field inspection (e.g. attention to detail, route planning).
-Return ONLY valid JSON.`,
-                    },
-                    { role: 'user', content: `Resume text:\n${textContent}` },
-                ],
-            }),
-            signal: controller.signal,
-        }).finally(() => clearTimeout(timeoutId))
+        let resumeText = ''
 
-        if (!response.ok) {
-            throw new Error(`OpenAI API error: ${response.status}`)
+        // Handle file upload
+        if (file && file.size > 0) {
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                return NextResponse.json(
+                    { error: 'File too large. Maximum size is 5MB.' },
+                    { status: 400 }
+                )
+            }
+
+            try {
+                resumeText = await extractText(file)
+            } catch (extractError: any) {
+                return NextResponse.json(
+                    { error: extractError.message || 'Failed to extract text from file' },
+                    { status: 400 }
+                )
+            }
+        }
+        // Handle pasted text
+        else if (textInput && textInput.trim().length > 0) {
+            resumeText = textInput.trim()
+        }
+        else {
+            return NextResponse.json(
+                { error: 'Please upload a file or paste your resume text' },
+                { status: 400 }
+            )
         }
 
-        const completion = await response.json()
-        const content = completion.choices?.[0]?.message?.content
-
-        if (!content) {
-            throw new Error('No content from OpenAI')
+        // Validate extracted text
+        if (resumeText.length < 50) {
+            return NextResponse.json(
+                { error: 'Resume text too short. Please provide more content or try a different file.' },
+                { status: 400 }
+            )
         }
 
-        // Clean markdown code blocks if present
-        const cleaned = content.replace(/^```json\n?/, '').replace(/\n?```$/, '')
-        const parsedData = JSON.parse(cleaned)
+        // Analyze with OpenAI
+        const analysis = await analyzeResume(resumeText)
 
-        return NextResponse.json(parsedData)
-    } catch (error) {
-        console.error('Resume parsing error:', error)
+        return NextResponse.json({
+            success: true,
+            analysis,
+            extractedLength: resumeText.length
+        })
+
+    } catch (error: any) {
+        console.error('Resume parse error:', error)
         return NextResponse.json(
-            { error: 'Failed to parse resume. Please enter details manually.' },
+            { error: error.message || 'An unexpected error occurred' },
             { status: 500 }
         )
     }
+}
+
+// Handle OPTIONS for CORS
+export async function OPTIONS() {
+    return new NextResponse(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        },
+    })
 }
