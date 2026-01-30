@@ -327,7 +327,14 @@ export default function ResumeBuilder() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to parse resume');
+        let errorMessage = 'Failed to parse resume';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = `Server error: ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const parsedData = await response.json();
@@ -354,9 +361,9 @@ export default function ResumeBuilder() {
 
       setAiAnalysis(mockAnalysis);
       setCurrentStep('contact');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error parsing resume:', error);
-      alert('Could not parse resume. Please try again or enter details manually.');
+      alert(error.message || 'Could not parse resume. Please try again or enter details manually.');
     } finally {
       setIsAnalyzing(false);
     }
