@@ -317,52 +317,49 @@ export default function ResumeBuilder() {
     setUploadedFile(file);
     setIsAnalyzing(true);
 
-    // Simulate AI analysis (in production, this would call your API)
-    // For now, we'll generate mock analysis based on file name patterns
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    // Mock AI analysis result
-    const mockAnalysis: AIAnalysis = {
-      transferableSkills: [
-        'Customer Communication',
-        'Time Management',
-        'Documentation & Reporting',
-        'Mobile Technology Proficiency',
-        'Route Planning',
-        'Attention to Detail'
-      ],
-      suggestedSummary: `Detail-oriented professional transitioning to field services with strong background in customer interaction and documentation. Proven ability to manage time effectively, maintain accurate records, and deliver quality results under tight deadlines. Equipped with reliable transportation and modern technology tools for mobile inspection work.`,
-      industryTermMappings: [
-        { original: 'Customer service', fieldServices: 'Client interaction & occupant contact' },
-        { original: 'Data entry', fieldServices: 'Property Condition Report (PCR) completion' },
-        { original: 'Photography', fieldServices: '6-Angle photo documentation' },
-        { original: 'Driving', fieldServices: 'Route optimization & territory coverage' },
-        { original: 'Scheduling', fieldServices: 'SLA compliance & same-day service' }
-      ],
-      strengthAreas: [
-        'Your mobile-first experience translates directly to field inspection apps',
-        'Customer service background helps with occupant interactions',
-        'Documentation skills align with PCR requirements'
-      ],
-      improvementSuggestions: [
-        'Add specific photo equipment (camera specs, megapixels)',
-        'Include coverage radius and counties served',
-        'List any relevant certifications or training completed'
-      ]
-    };
+      const response = await fetch('/api/ai-resume/parse', {
+        method: 'POST',
+        body: formData,
+      });
 
-    setAiAnalysis(mockAnalysis);
+      if (!response.ok) {
+        throw new Error('Failed to parse resume');
+      }
 
-    // Pre-populate some fields based on analysis
-    setResumeData(prev => ({
-      ...prev,
-      summary: mockAnalysis.suggestedSummary,
-      skills: [...prev.skills, ...mockAnalysis.transferableSkills.slice(0, 4)],
-      fieldServicesSkills: ['Property Condition Reports (PCR)', 'Photo Documentation', 'Occupancy Verification']
-    }));
+      const parsedData = await response.json();
 
-    setIsAnalyzing(false);
-    setCurrentStep('contact');
+      setResumeData(prev => ({
+        ...prev,
+        contact: { ...prev.contact, ...parsedData.contact },
+        summary: parsedData.summary || prev.summary,
+        experience: parsedData.experience?.map((exp: any) => ({ ...exp, id: generateId() })) || [],
+        education: parsedData.education?.map((edu: any) => ({ ...edu, id: generateId() })) || [],
+        certifications: parsedData.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || [],
+        skills: [...new Set([...prev.skills, ...(parsedData.skills || [])])],
+      }));
+
+      // Mock analysis for now (or could be returned from API too if we expand it)
+      // Keeping this consistent with previous behavior for transferable skills
+      const mockAnalysis: AIAnalysis = {
+        transferableSkills: parsedData.skills?.slice(0, 6) || ['Detail Oriented', 'Communication'],
+        suggestedSummary: parsedData.summary || 'Summary derived from your resume.',
+        industryTermMappings: [],
+        strengthAreas: ['Resume parsed successfully'],
+        improvementSuggestions: ['Review parsed data for accuracy']
+      };
+
+      setAiAnalysis(mockAnalysis);
+      setCurrentStep('contact');
+    } catch (error) {
+      console.error('Error parsing resume:', error);
+      alert('Could not parse resume. Please try again or enter details manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleSkipUpload = () => {
