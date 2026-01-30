@@ -1,129 +1,44 @@
 // app/api/ai-resume/parse/route.ts
-// Fixed PDF parsing API route for AI Resume Builder
+// AI Resume Parser - No external dependencies version
+// Uses fetch for OpenAI API, handles PDF via built-in methods
 
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-})
 
 // Field services role mapping for resume translation
-const FIELD_SERVICES_ROLES = {
-    keywords: [
-        'inspector', 'field services', 'property preservation', 'mortgage field',
-        'notary', 'signing agent', 'real estate', 'appraisal', 'surveyor',
-        'delivery driver', 'courier', 'logistics', 'route', 'gig worker'
-    ],
-    skills: {
-        'driving': 'Route optimization and territory management',
-        'photography': 'Property documentation and forensic photography',
-        'customer service': 'Professional occupant interaction and de-escalation',
-        'attention to detail': 'Accurate PCR completion and compliance documentation',
-        'time management': 'SLA adherence and multi-stop routing efficiency',
-        'mobile apps': 'InspectorADE, Focus, and field service software proficiency',
-        'documentation': 'Objective reporting and regulatory compliance',
-        'navigation': 'GPS-based territory coverage and property location',
-        'communication': 'Coordinator relations and professional correspondence',
-        'physical stamina': 'All-weather field work and property walk-arounds'
-    },
-    roleTranslations: {
-        'delivery driver': 'Field Inspector Candidate (Routing Expert)',
-        'uber driver': 'Field Inspector Candidate (Navigation Specialist)',
-        'notary': 'Field Inspector Candidate (Verification Expert)',
-        'real estate agent': 'Field Inspector Candidate (Property Knowledge)',
-        'realtor': 'Field Inspector Candidate (Property Knowledge)',
-        'customer service': 'Field Inspector Candidate (Client Relations)',
-        'warehouse': 'Field Inspector Candidate (Logistics Background)',
-        'retail': 'Field Inspector Candidate (Documentation Skills)'
-    }
-}
+const FIELD_SERVICES_CONTEXT = `
+You are an expert career counselor specializing in mortgage field services, property inspections, and related gig economy roles.
 
-// Parse PDF using pdf-parse library with error handling
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-    try {
-        // Dynamic import to handle edge runtime issues
-        const pdfParse = (await import('pdf-parse')).default
-        
-        // pdf-parse options for better compatibility
-        const options = {
-            // Limit pages for faster processing
-            max: 10,
-            // Custom page renderer to handle edge cases
-            pagerender: function(pageData: any) {
-                return pageData.getTextContent().then(function(textContent: any) {
-                    let text = ''
-                    for (let item of textContent.items) {
-                        text += item.str + ' '
-                    }
-                    return text
-                })
-            }
-        }
-        
-        const data = await pdfParse(buffer, options)
-        return data.text || ''
-    } catch (pdfError: any) {
-        console.error('PDF parse error:', pdfError)
-        
-        // Fallback: Try alternative parsing approach
-        try {
-            const pdfParse = (await import('pdf-parse')).default
-            // Simpler approach without custom renderer
-            const data = await pdfParse(buffer)
-            return data.text || ''
-        } catch (fallbackError) {
-            console.error('Fallback PDF parse also failed:', fallbackError)
-            throw new Error('Unable to extract text from PDF. Please try a different file or paste your resume text directly.')
-        }
-    }
-}
+Key terminology to use in translations:
+- PCR (Property Condition Report) - The primary deliverable
+- SLA (Service Level Agreement) - Deadlines
+- REO (Real Estate Owned) - Bank-owned properties
+- Loss Draft - Insurance repair verification
+- Occupancy Determination - Verifying if property is occupied/vacant
+- 6-Angle Rule - Standard photo documentation sequence
 
-// Extract text from various file types
-async function extractText(file: File): Promise<string> {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const fileType = file.type.toLowerCase()
-    const fileName = file.name.toLowerCase()
-    
-    // Handle PDF files
-    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-        return await extractTextFromPDF(buffer)
-    }
-    
-    // Handle plain text files
-    if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
-        return buffer.toString('utf-8')
-    }
-    
-    // Handle Word documents (.docx)
-    if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.endsWith('.docx')) {
-        try {
-            const mammoth = (await import('mammoth')).default
-            const result = await mammoth.extractRawText({ buffer })
-            return result.value || ''
-        } catch (docxError) {
-            console.error('DOCX parse error:', docxError)
-            throw new Error('Unable to extract text from Word document. Please try PDF or plain text.')
-        }
-    }
-    
-    // Handle older Word documents (.doc)
-    if (fileType === 'application/msword' || fileName.endsWith('.doc')) {
-        throw new Error('Older .doc format not supported. Please save as .docx or PDF and try again.')
-    }
-    
-    throw new Error(`Unsupported file type: ${fileType}. Please upload a PDF, DOCX, or TXT file.`)
-}
+Skill translations:
+- Driving/delivery → Route optimization, territory management
+- Customer service → Professional occupant interaction, de-escalation
+- Documentation → PCR completion, compliance reporting
+- Time management → SLA adherence, efficient scheduling
+- Mobile apps → InspectorADE, Focus software proficiency
+- Photography → Property documentation, forensic photography
+`
 
-// Analyze resume with OpenAI
-async function analyzeResume(resumeText: string): Promise<any> {
-    const prompt = `You are an expert career counselor specializing in mortgage field services, property inspections, and related gig economy roles.
+// Call OpenAI API directly via fetch
+async function analyzeResumeWithOpenAI(resumeText: string): Promise<any> {
+    const apiKey = process.env.OPENAI_API_KEY
+    
+    if (!apiKey) {
+        throw new Error('OpenAI API key not configured')
+    }
+
+    const prompt = `${FIELD_SERVICES_CONTEXT}
 
 Analyze this resume and extract/translate the experience for field services careers.
 
 RESUME TEXT:
-${resumeText}
+${resumeText.substring(0, 8000)}
 
 Provide a JSON response with this exact structure:
 {
@@ -165,32 +80,41 @@ Provide a JSON response with this exact structure:
     }
 }
 
-Focus on translating their experience into field services terminology:
-- Driving experience → Route optimization, territory management
-- Customer interaction → Occupant communication, professional demeanor
-- Documentation → PCR completion, compliance reporting
-- Time management → SLA adherence, efficient scheduling
-- Mobile app usage → Field service software proficiency
-- Physical work → Property walk-arounds, all-weather fieldwork`
+Respond with valid JSON only, no markdown formatting or explanation.`
 
-    const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-            {
-                role: 'system',
-                content: 'You are an expert career counselor. Always respond with valid JSON only, no markdown or explanation.'
-            },
-            {
-                role: 'user',
-                content: prompt
-            }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-        response_format: { type: "json_object" }
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are an expert career counselor. Always respond with valid JSON only, no markdown or explanation.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000,
+            response_format: { type: "json_object" }
+        })
     })
 
-    const content = response.choices[0]?.message?.content
+    if (!response.ok) {
+        const errorText = await response.text()
+        console.error('OpenAI API error:', errorText)
+        throw new Error(`OpenAI API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content
+
     if (!content) {
         throw new Error('No response from AI analysis')
     }
@@ -203,16 +127,134 @@ Focus on translating their experience into field services terminology:
     }
 }
 
+// Extract text from file based on type
+async function extractTextFromFile(file: File): Promise<string> {
+    const fileName = file.name.toLowerCase()
+    const fileType = file.type.toLowerCase()
+    
+    // Handle plain text files
+    if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+        return await file.text()
+    }
+    
+    // Handle PDF files - extract via basic text extraction
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+        try {
+            const arrayBuffer = await file.arrayBuffer()
+            const uint8Array = new Uint8Array(arrayBuffer)
+            const decoder = new TextDecoder('utf-8', { fatal: false })
+            const rawText = decoder.decode(uint8Array)
+            
+            let extractedText = ''
+            
+            // Method 1: Extract text between stream markers
+            const streamMatches = rawText.match(/stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g)
+            if (streamMatches) {
+                for (const match of streamMatches) {
+                    const content = match.replace(/stream[\r\n]+/, '').replace(/[\r\n]+endstream/, '')
+                    const readable = content.replace(/[^\x20-\x7E\n\r]/g, ' ').replace(/\s+/g, ' ').trim()
+                    if (readable.length > 20 && /[a-zA-Z]{3,}/.test(readable)) {
+                        extractedText += readable + '\n'
+                    }
+                }
+            }
+            
+            // Method 2: Find text in parentheses (PDF text objects)
+            const textMatches = rawText.match(/\(([^)]{2,100})\)/g)
+            if (textMatches) {
+                const parenText = textMatches
+                    .map(m => m.slice(1, -1))
+                    .filter(t => t.length > 2 && /[a-zA-Z]/.test(t) && !/^[\d\s.]+$/.test(t))
+                    .join(' ')
+                    .replace(/\\[nrt]/g, ' ')
+                    .replace(/\s+/g, ' ')
+                
+                if (parenText.length > extractedText.length) {
+                    extractedText = parenText
+                }
+            }
+            
+            // Method 3: Look for BT/ET text blocks
+            const btMatches = rawText.match(/BT[\s\S]*?ET/g)
+            if (btMatches) {
+                let btText = ''
+                for (const block of btMatches) {
+                    const tjMatches = block.match(/\(([^)]+)\)\s*Tj/g)
+                    if (tjMatches) {
+                        btText += tjMatches.map(m => m.replace(/\)\s*Tj/, '').replace(/\(/, '')).join(' ')
+                    }
+                }
+                if (btText.length > extractedText.length) {
+                    extractedText = btText
+                }
+            }
+            
+            // Clean up the extracted text
+            extractedText = extractedText
+                .replace(/[^\x20-\x7E\n]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+            
+            if (extractedText.length > 100 && /[a-zA-Z]{4,}/.test(extractedText)) {
+                return extractedText
+            }
+            
+            // If extraction got some text but not enough, return what we have with a note
+            if (extractedText.length > 20) {
+                return extractedText + '\n\n[Note: Some text may not have been extracted from this PDF]'
+            }
+            
+            throw new Error('PDF_EXTRACTION_LIMITED')
+            
+        } catch (pdfError: any) {
+            if (pdfError.message === 'PDF_EXTRACTION_LIMITED') {
+                throw new Error(
+                    'Could not extract text from this PDF. Please copy and paste your resume text directly into the text box below.'
+                )
+            }
+            throw pdfError
+        }
+    }
+    
+    // Handle DOCX (basic extraction from XML)
+    if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.endsWith('.docx')) {
+        try {
+            const arrayBuffer = await file.arrayBuffer()
+            const uint8Array = new Uint8Array(arrayBuffer)
+            const decoder = new TextDecoder('utf-8', { fatal: false })
+            const rawText = decoder.decode(uint8Array)
+            
+            // DOCX files contain XML with text in <w:t> tags
+            const textMatches = rawText.match(/<w:t[^>]*>([^<]+)<\/w:t>/g)
+            if (textMatches && textMatches.length > 0) {
+                const text = textMatches
+                    .map(m => m.replace(/<[^>]+>/g, ''))
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                
+                if (text.length > 100) {
+                    return text
+                }
+            }
+            
+            throw new Error('DOCX_EXTRACTION_LIMITED')
+            
+        } catch (docxError: any) {
+            if (docxError.message === 'DOCX_EXTRACTION_LIMITED') {
+                throw new Error(
+                    'Could not extract text from this Word document. Please copy and paste your resume text directly into the text box below.'
+                )
+            }
+            throw docxError
+        }
+    }
+    
+    throw new Error(`Unsupported file type. Please upload a PDF, DOCX, or TXT file, or paste your resume text directly.`)
+}
+
 export async function POST(request: NextRequest) {
     try {
-        // Check for API key
-        if (!process.env.OPENAI_API_KEY) {
-            return NextResponse.json(
-                { error: 'OpenAI API key not configured' },
-                { status: 500 }
-            )
-        }
-
         const formData = await request.formData()
         const file = formData.get('file') as File | null
         const textInput = formData.get('text') as string | null
@@ -230,7 +272,7 @@ export async function POST(request: NextRequest) {
             }
 
             try {
-                resumeText = await extractText(file)
+                resumeText = await extractTextFromFile(file)
             } catch (extractError: any) {
                 return NextResponse.json(
                     { error: extractError.message || 'Failed to extract text from file' },
@@ -252,13 +294,13 @@ export async function POST(request: NextRequest) {
         // Validate extracted text
         if (resumeText.length < 50) {
             return NextResponse.json(
-                { error: 'Resume text too short. Please provide more content or try a different file.' },
+                { error: 'Resume text too short. Please provide more content or try pasting your resume text directly.' },
                 { status: 400 }
             )
         }
 
         // Analyze with OpenAI
-        const analysis = await analyzeResume(resumeText)
+        const analysis = await analyzeResumeWithOpenAI(resumeText)
 
         return NextResponse.json({
             success: true,
