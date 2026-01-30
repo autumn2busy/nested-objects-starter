@@ -80,7 +80,7 @@ export default function CompaniesPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900">No companies saved yet</h3>
                         <p className="text-slate-500 max-w-sm mx-auto mt-2 mb-6">Start building your target list of field service firms.</p>
-                        <Button onClick={() => setIsModalOpen(true)} variant="outline" className="gap-2">
+                        <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="gap-2">
                             <Plus className="w-4 h-4" /> Add your first company
                         </Button>
                     </div>
@@ -104,9 +104,9 @@ export default function CompaniesPage() {
                                 )}
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${company.status === 'Target' ? 'bg-blue-100 text-blue-700' :
-                                            company.status === 'Applying' ? 'bg-amber-100 text-amber-700' :
-                                                company.status === 'Interviewing' ? 'bg-purple-100 text-purple-700' :
-                                                    'bg-slate-100 text-slate-600'
+                                        company.status === 'Applying' ? 'bg-amber-100 text-amber-700' :
+                                            company.status === 'Interviewing' ? 'bg-purple-100 text-purple-700' :
+                                                'bg-slate-100 text-slate-600'
                                         }`}>
                                         {company.status}
                                     </span>

@@ -128,9 +128,9 @@ export default function JobTrackerPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">Group by: None</Button>
-              <Button variant="outline" size="sm">Columns</Button>
-              <Button variant="outline" size="sm">Menu</Button>
+              <Button variant="secondary" size="sm">Group by: None</Button>
+              <Button variant="secondary" size="sm">Columns</Button>
+              <Button variant="secondary" size="sm">Menu</Button>
             </div>
           </div>
 

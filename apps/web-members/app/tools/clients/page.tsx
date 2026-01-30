@@ -87,7 +87,7 @@ export default function ClientsPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900">No clients added</h3>
                         <p className="text-slate-500 max-w-sm mx-auto mt-2 mb-6">Keep track of your vendor contacts, pay dates, and portal links.</p>
-                        <Button onClick={() => setIsModalOpen(true)} variant="outline" className="gap-2">
+                        <Button onClick={() => setIsModalOpen(true)} variant="secondary" className="gap-2">
                             <Plus className="w-4 h-4" /> Add your first client
                         </Button>
                     </div>
@@ -236,7 +236,7 @@ export default function ClientsPage() {
                                 <label htmlFor="signedDocs" className="text-sm font-medium text-slate-700">Documents Signed & Submitted</label>
                             </div>
                             <div className="col-span-2 flex justify-end gap-3 pt-4 border-t border-slate-100 mt-2">
-                                <Button variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                                <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                                 <Button className="bg-brand-copper text-white hover:bg-brand-copperDark" onClick={saveClient}>Save Client</Button>
                             </div>
                         </div>
