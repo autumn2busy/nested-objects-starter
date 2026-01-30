@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 const OPENAI_TIMEOUT_MS = 60_000
 
 export async function POST(req: Request) {
@@ -14,10 +15,19 @@ export async function POST(req: Request) {
 
         let textContent = ''
 
-        if (file.type === 'application/pdf') {
+        const normalizedName = file.name.toLowerCase()
+        const isPdf =
+            file.type === 'application/pdf' ||
+            file.type === 'application/x-pdf' ||
+            normalizedName.endsWith('.pdf')
+        const isDocx =
+            file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            normalizedName.endsWith('.docx')
+
+        if (isPdf) {
             try {
                 // Lazy load pdf-parse to avoid cold-start crashes
-                const pdf = require('pdf-parse')
+                const { default: pdf } = await import('pdf-parse')
 
                 const arrayBuffer = await file.arrayBuffer()
                 const buffer = Buffer.from(arrayBuffer)
@@ -30,13 +40,10 @@ export async function POST(req: Request) {
                     { status: 500 }
                 )
             }
-        } else if (
-            file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            file.name.endsWith('.docx')
-        ) {
+        } else if (isDocx) {
             try {
                 // Lazy load mammoth
-                const mammoth = require('mammoth')
+                const { default: mammoth } = await import('mammoth')
 
                 const arrayBuffer = await file.arrayBuffer()
                 const buffer = Buffer.from(arrayBuffer)
