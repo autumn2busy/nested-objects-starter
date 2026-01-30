@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import mammoth from 'mammoth'
-const pdf = require('pdf-parse')
 
-const OPENAI_TIMEOUT_MS = 45_000
+export const dynamic = 'force-dynamic'
+const OPENAI_TIMEOUT_MS = 60_000
 
 export async function POST(req: Request) {
     try {
@@ -16,18 +15,40 @@ export async function POST(req: Request) {
         let textContent = ''
 
         if (file.type === 'application/pdf') {
-            const arrayBuffer = await file.arrayBuffer()
-            const buffer = Buffer.from(arrayBuffer)
-            const data = await pdf(buffer)
-            textContent = data.text
+            try {
+                // Lazy load pdf-parse to avoid cold-start crashes
+                const pdf = require('pdf-parse')
+
+                const arrayBuffer = await file.arrayBuffer()
+                const buffer = Buffer.from(arrayBuffer)
+                const data = await pdf(buffer)
+                textContent = data.text
+            } catch (err: any) {
+                console.error('PDF parsing failed:', err)
+                return NextResponse.json(
+                    { error: `PDF parsing failed on server: ${err.message}` },
+                    { status: 500 }
+                )
+            }
         } else if (
             file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
             file.name.endsWith('.docx')
         ) {
-            const arrayBuffer = await file.arrayBuffer()
-            const buffer = Buffer.from(arrayBuffer)
-            const result = await mammoth.extractRawText({ buffer })
-            textContent = result.value
+            try {
+                // Lazy load mammoth
+                const mammoth = require('mammoth')
+
+                const arrayBuffer = await file.arrayBuffer()
+                const buffer = Buffer.from(arrayBuffer)
+                const result = await mammoth.extractRawText({ buffer })
+                textContent = result.value
+            } catch (err: any) {
+                console.error('DOCX parsing failed:', err)
+                return NextResponse.json(
+                    { error: `DOCX parsing failed on server: ${err.message}` },
+                    { status: 500 }
+                )
+            }
         } else {
             return NextResponse.json({ error: 'Unsupported file type. Use PDF or DOCX.' }, { status: 400 })
         }
