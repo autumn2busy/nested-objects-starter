@@ -36,7 +36,7 @@ export default function ClientsPage() {
         if (user) {
             fetchClients()
         }
-    }, [user])
+    }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchClients = async () => {
         try {

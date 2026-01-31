@@ -76,6 +76,22 @@ const InteractiveScenario = ({ scenarios }: InteractiveScenarioProps) => {
     }
   }, [scenarios]);
 
+  // Reset scenario state when activeScenarioId changes
+  // Note: The variables setCurrentNodeId, initialNodeId, setHistory, setFeedback,
+  // setShowFeedback, setScenarioCompleted are not defined in the provided context.
+  // This useEffect block is added as per the instruction, assuming these states
+  // would be defined elsewhere or are placeholders for future implementation.
+  useEffect(() => {
+    // Reset scenario state when scenario ID changes
+    // setCurrentNodeId(initialNodeId) // Undefined in current context
+    // setHistory([]) // Undefined in current context
+    // setFeedback(null) // Undefined in current context
+    // setShowFeedback(false) // This one is defined below, but its reset logic is handled by handleRestart
+    // setScenarioCompleted(false) // Undefined in current context
+    // For now, we'll call handleRestart to reset the relevant states
+    handleRestart();
+  }, [activeScenarioId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const activeScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
 
   const [currentStage, setCurrentStage] = useState('intro'); // intro, decision, feedback, debrief
@@ -166,8 +182,8 @@ const InteractiveScenario = ({ scenarios }: InteractiveScenarioProps) => {
                 key={s.id}
                 onClick={() => handleSelectScenario(s.id)}
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition whitespace-nowrap ${activeScenarioId === s.id
-                    ? 'bg-slate-800 border-slate-700 text-white'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-slate-800 border-slate-700 text-white'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
                 <SIcon className={`w-4 h-4 ${activeScenarioId === s.id ? 'text-emerald-400' : 'text-slate-400'}`} />

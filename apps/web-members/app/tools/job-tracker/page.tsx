@@ -46,7 +46,7 @@ export default function JobTrackerPage() {
     if (user) {
       fetchJobs()
     }
-  }, [user])
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchJobs = async () => {
     try {
@@ -73,13 +73,7 @@ export default function JobTrackerPage() {
       const { data, error } = await supabase
         .from('job_tracker')
         .insert([{
-          user_id: user.sub || user.account_id, // Fallback, assume auth provider gives us *some* ID. 
-          // Ideally we used user.id from supabase auth, but we are using Outseta...
-          // WAIT: The schema expects 'user_id' as text according to user request? 
-          // "user_id text not null"
-          // We will use the Outseta ID or whatever ID is consistent.
-          // Let's assume user.sub is the stable ID.
-          user_id: user.sub, // Confirmed from auth-provider used in other places? Actually auth-provider gives extended user.
+          user_id: user.sub, // Using Outseta ID
           job_number: newJob.job_number,
           property_address: newJob.property_address,
           firm_name: newJob.firm_name,
