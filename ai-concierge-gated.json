@@ -1,0 +1,361 @@
+{
+    "name": "AI Concierge (Gated) - FIXED",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "ai-concierge",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "e9b28ffc-77b2-4d87-a694-a4d1f3b22d7b",
+            "name": "Webhook Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1.1,
+            "position": [
+                -656,
+                160
+            ],
+            "webhookId": "09bd7aab-28f2-485f-89aa-360e9c8772b8"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extract and decode JWT\nconst body = $input.item.json.body;\n\nif (!body.jwt || !body.prompt) {\n  return [{ json: { error: 'Missing jwt or prompt', valid: false } }];\n}\n\ntry {\n  // Decode Outseta JWT (base64 decode middle part)\n  const jwt = body.jwt;\n  const parts = jwt.split('.');\n  const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());\n  \n  // Extract tier from Outseta JWT structure\n  let tier = 'free';\n  if (payload.Account?.SubscriptionPlan?.Uid) {\n    const planUid = payload.Account.SubscriptionPlan.Uid.toLowerCase();\n    if (planUid.includes('agency')) tier = 'agency';\n    else if (planUid.includes('elite')) tier = 'elite';\n    else if (planUid.includes('pro')) tier = 'pro';\n  }\n  \n  return [{ \n    json: {\n      valid: true,\n      user_id: payload.uid,\n      outseta_uid: payload.uid,\n      tier: tier,\n      prompt: body.prompt\n    }\n  }];\n} catch (error) {\n  return [{ json: { error: 'Invalid JWT', valid: false } }];\n}\n"
+            },
+            "id": "235bf61b-0e78-4cb9-9ae9-448f7cc1dc05",
+            "name": "Validate & Decode JWT",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -448,
+                160
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.valid }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "2f6f40ea-2fa4-4c0f-9adc-9f1a74cc9f82",
+            "name": "Is Valid?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                -224,
+                160
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { error: $json.error || 'Invalid request' } }}",
+                "options": {}
+            },
+            "id": "f820b47c-40ae-44b6-80a4-856d01416eee",
+            "name": "Return Error - Invalid",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Tier limits\nconst limits = {\n  free: 5,\n  pro: 50,\n  elite: 200,\n  agency: 999999\n};\n\n// Get usage data from HTTP Request response\nconst usageResponse = $input.first().json;\n\n// Handle both fullResponse format and direct format\nconst callCount = parseInt(usageResponse.call_count || usageResponse.body?.call_count) || 0;\n\n// Get user data from earlier node\nconst userData = $('Validate & Decode JWT').first().json;\nconst tier = userData.tier;\n\nconst limit = limits[tier] || 0;\nconst allowed = callCount < limit;\n\nreturn [{\n  json: {\n    user_id: userData.user_id,\n    outseta_uid: userData.outseta_uid,\n    tier: tier,\n    prompt: userData.prompt,\n    call_count: callCount,\n    limit: limit,\n    remaining: Math.max(0, limit - callCount),\n    allowed: allowed\n  }\n}];"
+            },
+            "id": "faebefd9-8d64-4661-8b69-102f1a9b012e",
+            "name": "Calculate Quota",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                432,
+                272
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.allowed }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "3126aab3-5a6a-46d6-8e11-eda15a3b32c1",
+            "name": "Has Quota?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                656,
+                272
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { error: 'Quota exceeded. You have used all ' + $json.limit + ' AI calls this month. Upgrade to Pro for more.', tier: $json.tier, limit: $json.limit, call_count: $json.call_count } }}",
+                "options": {}
+            },
+            "id": "cea9edd8-ea53-4a26-a4c0-3a03b8c3b688",
+            "name": "Return Error - Quota",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                880,
+                112
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.groq.com/openai/v1/chat/completions",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "groqApi",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"model\": \"llama3-70b-8192\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an AI concierge for Nested Objects, a platform serving Gig Economy field service workers (Mortgage Field Inspectors, Property Preservation Specialists, Notaries). \\n\\nCRITICAL: You are NOT speaking to licensed Home Inspectors (real estate transaction inspections). Do NOT recommend certifications/tools specific to Home Inspectors (e.g. ASHI, InterNACHI) unless explicitly asked. \\n\\nHelp members with: career guidance, finding firms, training, industry requirements (background checks, ABC#), and business growth. Be direct, practical, encouraging, and specific. Keep responses concise and actionable.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.prompt }}\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1000\n}",
+                "options": {}
+            },
+            "id": "8dc7aa11-aa04-4045-8b91-e22230287bc1",
+            "name": "Call Groq AI",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                880,
+                368
+            ],
+            "credentials": {
+                "groqApi": {
+                    "id": "qFg32H9JPGlwitUF",
+                    "name": "Groq API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extract response from Groq\nconst groqResponse = $input.first().json;\n\n// Get user/quota data from the \"Has Quota?\" node (carries forward all the data)\nconst quotaData = $('Has Quota?').first().json;\n\nreturn [{\n  json: {\n    // Data for logging\n    user_id: quotaData.user_id,\n    outseta_uid: quotaData.outseta_uid,\n    tier: quotaData.tier,\n    prompt_tokens: groqResponse.usage?.prompt_tokens || 0,\n    completion_tokens: groqResponse.usage?.completion_tokens || 0,\n    total_tokens: groqResponse.usage?.total_tokens || 0,\n    model: groqResponse.model || 'llama3-70b-8192',\n    // Response to return\n    response: groqResponse.choices[0]?.message?.content || 'No response',\n    remaining: quotaData.remaining - 1\n  }\n}];\n"
+            },
+            "id": "e8b99389-f25e-4c81-9b7a-66ff19a42660",
+            "name": "Prepare Response",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1088,
+                368
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ { response: $json.response, tokens_used: $json.total_tokens, remaining_calls: $json.remaining } }}",
+                "options": {}
+            },
+            "id": "c362f557-0ff7-4df8-bd82-4cfb52b64bbb",
+            "name": "Return Success",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1744,
+                368
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://lzzghrjjsyzlvofpidis.supabase.co/rest/v1/rpc/get_ai_usage_count",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"p_outseta_uid\": \"{{ $json.outseta_uid }}\",\n  \"p_feature\": \"concierge\"\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                208,
+                272
+            ],
+            "id": "cfc76da1-13d8-47e9-a343-f2c42c2b2bfc",
+            "name": "Check Current Usage",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "R41subGe6XLLKBey",
+                    "name": "Supabase Production"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://lzzghrjjsyzlvofpidis.supabase.co/rest/v1/ai_usage",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Prefer",
+                            "value": "return=minimal"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"user_id\": \"{{ $json.user_id }}\",\n  \"outseta_uid\": \"{{ $json.outseta_uid }}\",\n  \"feature\": \"concierge\",\n  \"tier\": \"{{ $json.tier }}\",\n  \"prompt_tokens\": {{ $json.prompt_tokens || 0 }},\n  \"completion_tokens\": {{ $json.completion_tokens || 0 }},\n  \"total_tokens\": {{ $json.total_tokens || 0 }},\n  \"model\": \"{{ $json.model }}\"\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                1520,
+                368
+            ],
+            "id": "f213ab4d-93e8-49a9-ae54-4a6a19a44353",
+            "name": "Log Usage to Supabase",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "R41subGe6XLLKBey",
+                    "name": "Supabase Production"
+                }
+            }
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Webhook Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Validate & Decode JWT",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate & Decode JWT": {
+            "main": [
+                [
+                    {
+                        "node": "Is Valid?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Is Valid?": {
+            "main": [
+                [
+                    {
+                        "node": "Check Current Usage",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Return Error - Invalid",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calculate Quota": {
+            "main": [
+                [
+                    {
+                        "node": "Has Quota?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Has Quota?": {
+            "main": [
+                [
+                    {
+                        "node": "Call Groq AI",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Return Error - Quota",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call Groq AI": {
+            "main": [
+                [
+                    {
+                        "node": "Prepare Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prepare Response": {
+            "main": [
+                [
+                    {
+                        "node": "Log Usage to Supabase",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Check Current Usage": {
+            "main": [
+                [
+                    {
+                        "node": "Calculate Quota",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log Usage to Supabase": {
+            "main": [
+                [
+                    {
+                        "node": "Return Success",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "versionId": "3005399d-347e-4e57-8522-f45770a36ff3",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "67fff6fedb2560bb0cc951bbef12209da21d57f116f06769290d3af2f8aff3c2"
+    },
+    "id": "A385xCbSe7rpe1a4a-KZ4",
+    "tags": []
+}

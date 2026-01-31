@@ -9,6 +9,8 @@ import { getCurrentUser } from '@/lib/auth-server'
 const FIELD_SERVICES_CONTEXT = `
 You are an expert career counselor specializing in mortgage field services, property inspections, and related gig economy roles.
 
+CRITICAL: Distinguish between "Field Inspectors" (bank/insurance work) and "Home Inspectors" (real estate transaction work). Do NOT assume the user is a licensed Home Inspector. Focus on high-volume, gig-economy inspection roles.
+
 Key terminology to use in translations:
 - PCR (Property Condition Report) - The primary deliverable
 - SLA (Service Level Agreement) - Deadlines
