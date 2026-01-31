@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 
+
+export const dynamic = 'force-dynamic'
+
 type WorkOrder = {
   id: string
   user_id: string
