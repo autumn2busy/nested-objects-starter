@@ -357,6 +357,7 @@ const formatDate = (dateStr: string) => {
 // ============================================================================
 // COMPONENT
 // ============================================================================
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 export default function ResumeBuilder() {
   // State

@@ -74,7 +74,7 @@ const InteractiveScenario = ({ scenarios }: InteractiveScenarioProps) => {
     if (scenarios && scenarios.length > 0 && !activeScenarioId) {
       setActiveScenarioId(scenarios[0].id);
     }
-  }, [scenarios]);
+  }, [scenarios, activeScenarioId]);
 
   // Reset scenario state when activeScenarioId changes
   // Note: The variables setCurrentNodeId, initialNodeId, setHistory, setFeedback,

@@ -287,7 +287,7 @@ export default function HomePage() {
                   <div className="absolute -top-3 right-6 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
                     {testimonial.metric}
                   </div>
-                  <p className="text-slate-700 italic mb-4">"{testimonial.quote}"</p>
+                  <p className="text-slate-700 italic mb-4">&quot;{testimonial.quote}&quot;</p>
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500">
                       {testimonial.author[0]}

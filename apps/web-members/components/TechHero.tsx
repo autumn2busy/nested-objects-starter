@@ -69,7 +69,7 @@ export function TechHero() {
 
                 {/* Subhead */}
                 <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-                    The interactive map below isn't just data—it's opportunity.
+                    The interactive map below isn&apos;t just data—it&apos;s opportunity.
                     Filter by <strong>pay rate</strong>, <strong>volume</strong>, and <strong>requirements</strong> to find the field service firms actively recruiting in your zip code.
                 </p>
 
