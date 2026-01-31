@@ -358,10 +358,12 @@ export default function ModuleOverviewPage() {
                     </button>
                 )}
 
-                <button onClick={() => setActiveView('calculator')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><Calculator className="w-6 h-6 text-emerald-600" /></div>
-                    <h3 className="font-bold text-slate-900 mb-1">Income Calculator</h3><p className="text-sm text-slate-500">Project your earnings</p>
-                </button>
+                {module.module_number === 1 && (
+                    <button onClick={() => setActiveView('calculator')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
+                        <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><Calculator className="w-6 h-6 text-emerald-600" /></div>
+                        <h3 className="font-bold text-slate-900 mb-1">Income Calculator</h3><p className="text-sm text-slate-500">Project your earnings</p>
+                    </button>
+                )}
 
                 {scenarios.length > 0 && (
                     <button onClick={() => setActiveView('scenario')} className="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-md transition text-left group">
