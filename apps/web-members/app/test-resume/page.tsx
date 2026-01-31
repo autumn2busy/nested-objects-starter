@@ -51,7 +51,7 @@ export default function TestResumePage() {
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Example: I have 5 years of experience as a property inspector in residential real estate. I'm certified in HUD inspections and have completed over 1,000 inspections. I'm looking to create a resume for senior inspector positions..."
+        placeholder="Example: I have 5 years of experience as a property inspector in residential real estate. I&apos;m certified in HUD inspections and have completed over 1,000 inspections. I&apos;m looking to create a resume for senior inspector positions..."
         className="w-full h-48 p-4 border rounded-lg mb-4 font-mono text-sm"
         disabled={loading}
       />
