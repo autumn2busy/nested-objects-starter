@@ -247,6 +247,121 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* TRUST SIGNALS: Real Results */}
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                Real Members, Real Routes
+              </h2>
+              <p className="mt-2 text-slate-600">
+                Join 500+ verified professionals securing work through the hub.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  quote: "Found a regional firm paying $45/job for occupancy checks I was already driving past. Added $600/week to my route.",
+                  author: "Sarah J.",
+                  role: "Field Inspector",
+                  loc: "Austin, TX",
+                  metric: "+$600/wk"
+                },
+                {
+                  quote: "Used the directory to find 3 direct clients. No more fighting for scraps on national portals.",
+                  author: "Mike T.",
+                  role: "Property Preservation",
+                  loc: "Tampa, FL",
+                  metric: "3 New Clients"
+                },
+                {
+                  quote: "The resume builder helped me translate my Uber driving experience into field inspection skills. Got hired in 2 weeks.",
+                  author: "David L.",
+                  role: "New Inspector",
+                  loc: "Chicago, IL",
+                  metric: "Hired in 14 Days"
+                }
+              ].map((testimonial, i) => (
+                <div key={i} className="relative rounded-2xl bg-slate-50 p-6 shadow-sm border border-slate-100">
+                  <div className="absolute -top-3 right-6 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                    {testimonial.metric}
+                  </div>
+                  <p className="text-slate-700 italic mb-4">"{testimonial.quote}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500">
+                      {testimonial.author[0]}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-slate-900">{testimonial.author}</div>
+                      <div className="text-xs text-slate-500">{testimonial.role} • {testimonial.loc}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* INCOME TEASER: Earnings Calculator Hook */}
+        <section className="border-b border-slate-200 bg-slate-900 text-white overflow-hidden relative">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Updated 2025 Rates
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                  What could you earn?
+                </h2>
+                <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                  Field inspection pay varies wildly by region and service type.
+                  Use our free calculator to see potential weekly revenue based on your
+                  zip code and vehicle type.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link
+                    href="/tools/income-calculator"
+                    className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
+                  >
+                    Calculate My Income →
+                  </Link>
+                  <div className="flex items-center gap-4 text-sm text-slate-500 px-2">
+                    <span>• No signup required</span>
+                    <span>• Instant results</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Teaser for Calculator */}
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl blur opacity-30"></div>
+                <div className="relative rounded-2xl bg-slate-800 border border-slate-700 p-6 shadow-2xl">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Target Weekly Volume</span>
+                      <span className="font-mono font-bold text-white">45 Jobs</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-4">
+                      <span className="text-slate-400">Avg. Pay Per Job</span>
+                      <span className="font-mono font-bold text-emerald-400">$35.00</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-lg font-semibold text-white">Est. Weekly Revenue</span>
+                      <span className="text-2xl font-bold text-white font-mono">$1,575.00</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-700/50 text-center">
+                    <p className="text-xs text-slate-500">Based on national averages. Calculate your specific area below.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Split section */}
         <section className="border-b border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">

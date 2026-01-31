@@ -64,14 +64,13 @@ export function TechHero() {
 
                 {/* Headline */}
                 <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-white mb-6 max-w-4xl mx-auto drop-shadow-2xl">
-                    The <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Live Database</span> for <br className="hidden md:block" /> Field Professionals.
+                    See Who Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Hiring Now</span> in <br className="hidden md:block" /> Your Area.
                 </h1>
 
                 {/* Subhead */}
                 <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Stop relying on static PDF lists and forum rumors.
-                    Plug into real-time intel on who is hiring, what they pay,
-                    and where the routes are.
+                    The interactive map below isn't just data—it's opportunity.
+                    Filter by <strong>pay rate</strong>, <strong>volume</strong>, and <strong>requirements</strong> to find the field service firms actively recruiting in your zip code.
                 </p>
 
                 {/* CTA Buttons */}
