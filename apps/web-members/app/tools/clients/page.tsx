@@ -2,59 +2,100 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, Users, Mail, Phone, FileText, Calendar, ExternalLink, Trash2 } from 'lucide-react'
+import { Plus, Users, Mail, Phone, ExternalLink, Trash2, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/components/auth-provider'
 
 type Client = {
     id: string
+    user_id: string
     name: string
-    contactName: string
-    email: string
-    phone: string
-    payFrequency: string
-    portalLink: string
-    signedDocs: boolean
-    notes: string
-    active: boolean
+    primary_contact: string | null
+    email: string | null
+    phone: string | null
+    payment_terms: string | null
+    website: string | null
+    relationship_status: 'active' | 'inactive' | 'pending'
+    notes: string | null
+    entity_type: string
 }
 
 export default function ClientsPage() {
+    const { user } = useAuth()
+    const supabase = createClient()
     const [clients, setClients] = useState<Client[]>([])
+    const [isLoading, setIsLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [newClient, setNewClient] = useState<Partial<Client>>({ active: true, signedDocs: false })
+    const [newClient, setNewClient] = useState<Partial<Client>>({
+        relationship_status: 'active',
+        entity_type: 'firm'
+    })
 
     useEffect(() => {
-        const saved = localStorage.getItem('my_clients')
-        if (saved) {
-            setClients(JSON.parse(saved))
+        if (user) {
+            fetchClients()
         }
-    }, [])
+    }, [user])
 
-    const saveClient = () => {
-        if (!newClient.name) return
-        const client: Client = {
-            id: crypto.randomUUID(),
-            name: newClient.name,
-            contactName: newClient.contactName || '',
-            email: newClient.email || '',
-            phone: newClient.phone || '',
-            payFrequency: newClient.payFrequency || '',
-            portalLink: newClient.portalLink || '',
-            signedDocs: newClient.signedDocs || false,
-            notes: newClient.notes || '',
-            active: newClient.active !== false
+    const fetchClients = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('client_vendor_tracker')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            setClients(data as Client[])
+        } catch (error) {
+            console.error('Error fetching clients:', error)
+        } finally {
+            setIsLoading(false)
         }
-        const updated = [client, ...clients]
-        setClients(updated)
-        localStorage.setItem('my_clients', JSON.stringify(updated))
-        setNewClient({ active: true, signedDocs: false })
-        setIsModalOpen(false)
     }
 
-    const deleteClient = (id: string) => {
-        const updated = clients.filter(c => c.id !== id)
-        setClients(updated)
-        localStorage.setItem('my_clients', JSON.stringify(updated))
+    const saveClient = async () => {
+        if (!newClient.name || !user) return
+
+        try {
+            const payload = {
+                user_id: user.sub,
+                name: newClient.name,
+                primary_contact: newClient.primary_contact,
+                email: newClient.email,
+                phone: newClient.phone,
+                payment_terms: newClient.payment_terms,
+                website: newClient.website,
+                relationship_status: newClient.relationship_status || 'active',
+                entity_type: newClient.entity_type || 'firm',
+                notes: newClient.notes
+            }
+
+            const { data, error } = await supabase
+                .from('client_vendor_tracker')
+                .insert([payload])
+                .select()
+
+            if (error) throw error
+
+            setClients([data[0] as Client, ...clients])
+            setNewClient({ relationship_status: 'active', entity_type: 'firm' })
+            setIsModalOpen(false)
+        } catch (error) {
+            console.error('Error saving client:', error)
+            alert('Failed to save client')
+        }
+    }
+
+    const deleteClient = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this client?')) return
+        try {
+            const { error } = await supabase.from('client_vendor_tracker').delete().eq('id', id)
+            if (error) throw error
+            setClients(clients.filter(c => c.id !== id))
+        } catch (error) {
+            console.error('Error deleting client:', error)
+        }
     }
 
     return (
@@ -80,7 +121,7 @@ export default function ClientsPage() {
             </div>
 
             <div className="max-w-6xl mx-auto px-6 py-12">
-                {clients.length === 0 ? (
+                {clients.length === 0 && !isLoading ? (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                         <div className="w-16 h-16 bg-brand-copper/10 text-brand-copper rounded-full flex items-center justify-center mx-auto mb-4">
                             <Users className="w-8 h-8" />
@@ -94,22 +135,22 @@ export default function ClientsPage() {
                 ) : (
                     <div className="grid gap-4">
                         {clients.map(client => (
-                            <div key={client.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row gap-6 md:items-center justify-between">
+                            <div key={client.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row gap-6 md:items-center justify-between hover:shadow-md transition-all">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
                                         <h3 className="font-bold text-xl text-slate-900">{client.name}</h3>
-                                        {client.signedDocs && (
+                                        {client.relationship_status === 'active' && (
                                             <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                                                Docs Signed
+                                                Active
                                             </span>
                                         )}
                                     </div>
 
                                     <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                                        {client.contactName && (
+                                        {client.primary_contact && (
                                             <div className="flex items-center gap-1.5">
                                                 <Users className="w-4 h-4 text-slate-400" />
-                                                {client.contactName}
+                                                {client.primary_contact}
                                             </div>
                                         )}
                                         {client.email && (
@@ -128,29 +169,29 @@ export default function ClientsPage() {
                                 </div>
 
                                 <div className="flex flex-wrap md:flex-col lg:flex-row gap-4 md:items-end lg:items-center">
-                                    {client.payFrequency && (
+                                    {client.payment_terms && (
                                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
                                             <Calendar className="w-4 h-4 text-slate-400" />
                                             <div className="text-xs font-medium text-slate-600">
-                                                Pays: <span className="text-slate-900">{client.payFrequency}</span>
+                                                Pays: <span className="text-slate-900">{client.payment_terms}</span>
                                             </div>
                                         </div>
                                     )}
 
                                     <div className="flex items-center gap-2">
-                                        {client.portalLink && (
+                                        {client.website && (
                                             <a
-                                                href={client.portalLink}
+                                                href={client.website.startsWith('http') ? client.website : `https://${client.website}`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="flex items-center gap-2 text-sm font-medium text-brand-copper hover:underline bg-brand-mist/30 px-3 py-1.5 rounded-lg transition-colors hover:bg-brand-mist/50"
                                             >
-                                                Vendor Portal <ExternalLink className="w-3 h-3" />
+                                                Portal <ExternalLink className="w-3 h-3" />
                                             </a>
                                         )}
                                         <button
                                             onClick={() => deleteClient(client.id)}
-                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -182,8 +223,8 @@ export default function ClientsPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Point of Contact</label>
                                 <input
                                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper focus:border-transparent outline-none"
-                                    value={newClient.contactName || ''}
-                                    onChange={e => setNewClient({ ...newClient, contactName: e.target.value })}
+                                    value={newClient.primary_contact || ''}
+                                    onChange={e => setNewClient({ ...newClient, primary_contact: e.target.value })}
                                     placeholder="e.g. Jane Doe"
                                 />
                             </div>
@@ -191,8 +232,8 @@ export default function ClientsPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Pay Dates / Frequency</label>
                                 <input
                                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper focus:border-transparent outline-none"
-                                    value={newClient.payFrequency || ''}
-                                    onChange={e => setNewClient({ ...newClient, payFrequency: e.target.value })}
+                                    value={newClient.payment_terms || ''}
+                                    onChange={e => setNewClient({ ...newClient, payment_terms: e.target.value })}
                                     placeholder="e.g. Net 30, Every Friday"
                                 />
                             </div>
@@ -220,20 +261,22 @@ export default function ClientsPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Vendor Portal Link</label>
                                 <input
                                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper focus:border-transparent outline-none"
-                                    value={newClient.portalLink || ''}
-                                    onChange={e => setNewClient({ ...newClient, portalLink: e.target.value })}
+                                    value={newClient.website || ''}
+                                    onChange={e => setNewClient({ ...newClient, website: e.target.value })}
                                     placeholder="https://portal.example.com"
                                 />
                             </div>
-                            <div className="col-span-2 flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    id="signedDocs"
-                                    className="rounded border-slate-300 text-brand-copper focus:ring-brand-copper"
-                                    checked={newClient.signedDocs}
-                                    onChange={e => setNewClient({ ...newClient, signedDocs: e.target.checked })}
-                                />
-                                <label htmlFor="signedDocs" className="text-sm font-medium text-slate-700">Documents Signed & Submitted</label>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                <select
+                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper focus:border-transparent outline-none"
+                                    value={newClient.relationship_status}
+                                    onChange={e => setNewClient({ ...newClient, relationship_status: e.target.value as any })}
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
                             </div>
                             <div className="col-span-2 flex justify-end gap-3 pt-4 border-t border-slate-100 mt-2">
                                 <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>

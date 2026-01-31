@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
 
 interface OutsetaJWTPayload {
@@ -12,6 +12,7 @@ interface OutsetaJWTPayload {
   exp: number
   iss: string
   aud: string
+  [key: string]: any
 }
 
 // Plan UID mapping (same as client-side)
@@ -39,37 +40,20 @@ export const FEATURE_ACCESS: Record<string, string[]> = {
   white_label: [PLAN_UIDS.AGENCY]
 }
 
+// Outseta JWKS URL
+const JWKS_URL = 'https://nested-objects.outseta.com/.well-known/jwks'
+const JWKS = createRemoteJWKSet(new URL(JWKS_URL))
+
 /**
- * Verify an Outseta JWT token
- * 
- * For production use, you should fetch and cache Outseta's public key from:
- * https://nested-objects.outseta.com/.well-known/jwks
- * 
- * For now, we'll decode without verification (for development only)
- * TODO: Add proper JWT verification with Outseta's public key
+ * Verify an Outseta JWT token using JWKS
  */
 export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPayload | null> {
   try {
-    // Decode the JWT without verification (DEVELOPMENT ONLY)
-    // In production, you should verify the signature using Outseta's public key
-    const decoded = jwt.decode(token) as OutsetaJWTPayload | null
-    
-    if (!decoded) {
-      return null
-    }
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: 'https://nested-objects.outseta.com'
+    })
 
-    // Check if token is expired
-    const now = Math.floor(Date.now() / 1000)
-    if (decoded.exp && decoded.exp < now) {
-      return null
-    }
-
-    // Verify issuer matches Outseta domain
-    if (!decoded.iss || !decoded.iss.includes('outseta.com')) {
-      return null
-    }
-
-    return decoded
+    return payload as unknown as OutsetaJWTPayload
   } catch (error) {
     console.error('Error verifying Outseta token:', error)
     return null
