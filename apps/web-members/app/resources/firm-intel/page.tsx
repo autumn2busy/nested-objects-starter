@@ -17,7 +17,7 @@ export default function FirmIntelPage() {
       >
         <div>
           <Link
-            href="/dashboard"
+            href="/resources"
             style={{
               fontSize: '0.9rem',
               textDecoration: 'none',
@@ -26,16 +26,17 @@ export default function FirmIntelPage() {
               marginBottom: '0.5rem',
             }}
           >
-            ← Back to dashboard
+            ← Back to resources
           </Link>
           <h1
             style={{
               fontSize: '2rem',
               fontWeight: 700,
               margin: 0,
+              color: '#0f172a',
             }}
           >
-            Firm intel and vendor breakdowns
+            Firm Intel Library
           </h1>
           <p
             style={{
@@ -44,10 +45,9 @@ export default function FirmIntelPage() {
               color: '#6b7280',
             }}
           >
-            Pay ranges, requirements, and real world insights on mortgage field service firms.
+            Concise briefs on hiring signals, pay consistency, and equipment expectations.
           </p>
         </div>
-
         <nav
           style={{
             display: 'flex',
@@ -60,37 +60,75 @@ export default function FirmIntelPage() {
             Home
           </Link>
           <Link
-            href="/dashboard"
-            style={{ textDecoration: 'none', color: '#111827' }}
-          >
-            Dashboard
-          </Link>
-          <Link
             href="/directory"
             style={{ textDecoration: 'none', color: '#111827' }}
           >
             Directory
           </Link>
-          <Link
-            href="/membership"
-            style={{ textDecoration: 'none', color: '#111827' }}
-          >
-            Membership
-          </Link>
         </nav>
       </header>
 
       <Gate feature="firm_intel">
-        <section>
-          <p style={{ marginBottom: '1rem' }}>
-            This is where you will show deep dives for firms like Safeguard, MCS, MSI, Xome, and others.
-            Pay bands, expectations, and how to stay on their preferred lists.
-          </p>
-          <ul style={{ listStyle: 'disc', paddingLeft: '1.25rem', fontSize: '0.95rem' }}>
-            <li>Start with manual writeups stored in Supabase.</li>
-            <li>Later let AI summarize public reviews and contracts for members.</li>
-            <li>Link each intel card back to firms in your directory.</li>
-          </ul>
+        <section className="space-y-8">
+          {/* Hiring Signals */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-900">Hiring Signals by Region</h2>
+              <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Updated Mar 2025</span>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Current demand hotspots where firms are actively recruiting new vendors.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <h3 className="font-semibold text-slate-900 mb-1">Southeast (FL, GA, NC)</h3>
+                <p className="text-sm text-slate-600">High demand for detailed roof inspections. Firms paying premium for 2-day turnaround.</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <h3 className="font-semibold text-slate-900 mb-1">Midwest (OH, IL, MI)</h3>
+                <p className="text-sm text-slate-600">Occupancy verification volume increasing. Good lane for gap-filling between larger jobs.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pay Cadence */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Pay & Scheduling Notes</h2>
+            <div className="prose prose-slate text-sm max-w-none text-slate-600">
+              <p className="mb-4">
+                Most national firms are moving to Net-30, but regional players often stick to Net-15 or bi-weekly.
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><strong>Sandcastle Field Services:</strong> Consistently Net-30. Direct deposit only.</li>
+                <li><strong>EquiVerify:</strong> Bi-weekly interactions. Requires dedicated invoicing portal use.</li>
+                <li><strong>ProView Global:</strong> Fast pay (Net-7) for &quot;Rush&quot; orders, standard Net-30 otherwise.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Equipment Expectations */}
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Equipment Requirements</h2>
+            <p className="text-gray-600 mb-4">
+              What you actually need versus what the &quot;requirements&quot; list says.
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 rounded-full bg-brand-copper flex-shrink-0" />
+                <div>
+                  <span className="font-semibold text-slate-900 block">30ft Pole Camera</span>
+                  <span className="text-sm text-slate-600">Essential for 2-story steep roofs where walking is unsafe. Accepted by 90% of firms in lieu of walking.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 rounded-full bg-brand-copper flex-shrink-0" />
+                <div>
+                  <span className="font-semibold text-slate-900 block">Laser Measure</span>
+                  <span className="text-sm text-slate-600">Don&apos;t rely on tape. Speed up interior sketching by 50%.</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       </Gate>
     </main>

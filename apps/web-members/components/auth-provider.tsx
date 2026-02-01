@@ -62,6 +62,7 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   // Training
   basic_training: 'L9nbKV9Z',     // Starter+
   advanced_training: 'NmdnNO90',  // Elite+
+  training_safety: 'L9nbKV9Z',    // Starter+ (Safety guides)
 
   // Tools
   ai_concierge: 'rQVqlLm6',       // Pro+
@@ -71,6 +72,8 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   job_routing: 'NmdnNO90',        // Elite+
   weather_tool: 'L9nbKV9Z',       // Starter+
   ai_resume: 'rQVqlLm6',          // Pro+
+  readiness_guides: 'L9nbKV9Z',   // Starter+ (Checklists)
+  tools_templates: 'rQVqlLm6',    // Pro+ (AI prompts, etc)
 
   // Monetization / partners
   sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay

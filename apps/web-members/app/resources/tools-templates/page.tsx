@@ -1,9 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Gate } from '@/components/Gate' // Assuming Gate is appropriate here, or remove if public
-import { Card } from '@/components/ui/card'
-import { FileText, Calculator, MessageSquare } from 'lucide-react'
+import { Gate } from '@/components/Gate'
 
 export default function ToolsTemplatesPage() {
     return (
@@ -35,9 +33,10 @@ export default function ToolsTemplatesPage() {
                             fontSize: '2rem',
                             fontWeight: 700,
                             margin: 0,
+                            color: '#0f172a',
                         }}
                     >
-                        Tools & templates
+                        Tools & Templates
                     </h1>
                     <p
                         style={{
@@ -46,10 +45,9 @@ export default function ToolsTemplatesPage() {
                             color: '#6b7280',
                         }}
                     >
-                        Downloadable forms, AI prompts, and calculators to streamline your field work.
+                        Downloadable assets to speed up your routing, reporting, and disputes.
                     </p>
                 </div>
-
                 <nav
                     style={{
                         display: 'flex',
@@ -62,70 +60,63 @@ export default function ToolsTemplatesPage() {
                         Home
                     </Link>
                     <Link
-                        href="/tools"
-                        style={{ textDecoration: 'none', color: '#111827', fontWeight: 600 }}
+                        href="/dashboard"
+                        style={{ textDecoration: 'none', color: '#111827' }}
                     >
-                        Go to App Tools
+                        Dashboard
                     </Link>
                 </nav>
             </header>
 
             <Gate feature="tools_templates">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {/* Job Packet Builder */}
-                    <Card className="p-6 flex flex-col gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                            <FileText size={20} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Job Packet Builder</h3>
-                            <p className="text-sm text-gray-600 mt-2">
-                                Create print-ready job packets with map views, contact info, and custom notes for your daily route.
+                <section className="space-y-8">
+                    {/* Downloads Grid */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* Job Packet Builder */}
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
+                            <h2 className="text-lg font-bold text-slate-900 mb-2">Job Packet Builder</h2>
+                            <p className="text-sm text-gray-600 mb-4 flex-grow">
+                                A checklist and folder structure template to keep every order organized from assignment to payment.
                             </p>
-                        </div>
-                        <div className="mt-auto pt-4">
-                            <Link href="/tools" className="text-sm font-semibold text-brand-copper hover:underline">
-                                Launch builder →
-                            </Link>
-                        </div>
-                    </Card>
-
-                    {/* Route ROI Worksheet */}
-                    <Card className="p-6 flex flex-col gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-                            <Calculator size={20} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Route ROI Worksheet</h3>
-                            <p className="text-sm text-gray-600 mt-2">
-                                A spreadsheet template to calculate your true profit per mile after fuel and vehicle wear and tear.
-                            </p>
-                        </div>
-                        <div className="mt-auto pt-4">
-                            <button className="text-sm font-semibold text-brand-copper hover:underline">
-                                Download Excel (.xlsx) ↓
+                            <button className="text-sm font-semibold text-brand-copper border border-brand-copper/30 rounded-lg py-2 hover:bg-brand-mist transition">
+                                Download ZIP Template
                             </button>
                         </div>
-                    </Card>
 
-                    {/* AI Prompt Library */}
-                    <Card className="p-6 flex flex-col gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                            <MessageSquare size={20} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">AI Prompt Library</h3>
-                            <p className="text-sm text-gray-600 mt-2">
-                                Copy-paste prompts for ChatGPT to help write claim narratives, dispute chargebacks, and draft emails.
+                        {/* Route ROI Worksheet */}
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col">
+                            <h2 className="text-lg font-bold text-slate-900 mb-2">Route ROI Calculator</h2>
+                            <p className="text-sm text-gray-600 mb-4 flex-grow">
+                                Excel sheet to calculate your true profit per mile after gas, wear-and-tear, and taxes.
                             </p>
+                            <button className="text-sm font-semibold text-brand-copper border border-brand-copper/30 rounded-lg py-2 hover:bg-brand-mist transition">
+                                Download Excel Sheet
+                            </button>
                         </div>
-                        <div className="mt-auto pt-4">
-                            <Link href="/concierge" className="text-sm font-semibold text-brand-copper hover:underline">
-                                View prompts →
-                            </Link>
+                    </div>
+
+                    {/* AI Prompts */}
+                    <div className="rounded-xl border border-gray-200 bg-slate-900 text-slate-50 p-6 shadow-lg">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold">AI Prompt Library</h2>
+                            <span className="bg-brand-copper text-white text-xs font-bold px-2 py-1 rounded">PRO</span>
                         </div>
-                    </Card>
-                </div>
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="font-semibold text-brand-copper mb-2">Dispute a Rejection</h3>
+                                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 font-mono text-xs text-slate-300">
+                                    &quot;Write a professional email to a vendor manager disputing a &apos;kickback&apos; for [Missing Photo]. Explain that the property was inaccessible due to [Reason] and reference the time-stamped photo included in the original report at [Time].&quot;
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-brand-copper mb-2">Ask for More Zones</h3>
+                                <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 font-mono text-xs text-slate-300">
+                                    &quot;Draft a message to [Firm Name] inquiring about open coverage in [County Name]. Mention my 98% on-time score and readiness to take on rush orders in that area.&quot;
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </Gate>
         </main>
     )
