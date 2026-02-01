@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 type Role = "system" | "user" | "assistant";
 
@@ -142,7 +143,7 @@ export default function ChatWidget({ context }: ChatWidgetProps) {
                 m.role
               )}`}
             >
-              {m.content}
+              <MarkdownRenderer content={m.content} role={m.role} />
             </div>
           </div>
         ))}
