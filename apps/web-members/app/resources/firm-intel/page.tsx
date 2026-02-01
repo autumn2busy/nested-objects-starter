@@ -74,19 +74,19 @@ export default function FirmIntelPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-slate-900">Hiring Signals by Region</h2>
-              <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Updated Mar 2025</span>
+              <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Updated Feb 2026</span>
             </div>
             <p className="text-gray-600 mb-6">
               Current demand hotspots where firms are actively recruiting new vendors.
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                <h3 className="font-semibold text-slate-900 mb-1">Southeast (FL, GA, NC)</h3>
-                <p className="text-sm text-slate-600">High demand for detailed roof inspections. Firms paying premium for 2-day turnaround.</p>
+                <h3 className="font-semibold text-slate-900 mb-1">Bureau Veritas (Texas & Remote)</h3>
+                <p className="text-sm text-slate-600">High demand for Petroleum and construction inspectors in TX ($21-$35/hr). Remote building inspector roles also trending ($60+/hr).</p>
               </div>
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                <h3 className="font-semibold text-slate-900 mb-1">Midwest (OH, IL, MI)</h3>
-                <p className="text-sm text-slate-600">Occupancy verification volume increasing. Good lane for gap-filling between larger jobs.</p>
+                <h3 className="font-semibold text-slate-900 mb-1">Safeguard Properties (National)</h3>
+                <p className="text-sm text-slate-600">Actively recruiting mobile notaries and preservation crews for seasonal grass/snow maintenance. Elite Contractor Network expansion.</p>
               </div>
             </div>
           </div>
@@ -96,12 +96,12 @@ export default function FirmIntelPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-4">Pay & Scheduling Notes</h2>
             <div className="prose prose-slate text-sm max-w-none text-slate-600">
               <p className="mb-4">
-                Most national firms are moving to Net-30, but regional players often stick to Net-15 or bi-weekly.
+                Field service pay varies significantly by role and payment structure (hourly vs. by-the-job).
               </p>
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Sandcastle Field Services:</strong> Consistently Net-30. Direct deposit only.</li>
-                <li><strong>EquiVerify:</strong> Bi-weekly interactions. Requires dedicated invoicing portal use.</li>
-                <li><strong>ProView Global:</strong> Fast pay (Net-7) for &quot;Rush&quot; orders, standard Net-30 otherwise.</li>
+                <li><strong>Safeguard Properties:</strong> vendors average ~$46k/yr. Invoice via &quot;Vendor Web&quot; portal.</li>
+                <li><strong>Bureau Veritas:</strong> Specialized roles (Electrical/Instrumentation) pay premium ($48-$57/hr). General inspections ~$30/hr.</li>
+                <li><strong>Best Choice Roofing:</strong> Subcontractors paid &quot;by the job&quot; (piece rate). High volume potential ($100k+) for equipped crews.</li>
               </ul>
             </div>
           </div>
@@ -110,21 +110,28 @@ export default function FirmIntelPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Equipment Requirements</h2>
             <p className="text-gray-600 mb-4">
-              What you actually need versus what the &quot;requirements&quot; list says.
+              What you actually need to get the job done for these firms.
             </p>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className="mt-1 h-2 w-2 rounded-full bg-brand-copper flex-shrink-0" />
                 <div>
-                  <span className="font-semibold text-slate-900 block">30ft Pole Camera</span>
-                  <span className="text-sm text-slate-600">Essential for 2-story steep roofs where walking is unsafe. Accepted by 90% of firms in lieu of walking.</span>
+                  <span className="font-semibold text-slate-900 block">Mobile Tech (Safeguard)</span>
+                  <span className="text-sm text-slate-600">Must run &quot;SafeView Preserve&quot; app (iOS/Android). Digital camera backup often required.</span>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="mt-1 h-2 w-2 rounded-full bg-brand-copper flex-shrink-0" />
                 <div>
-                  <span className="font-semibold text-slate-900 block">Laser Measure</span>
-                  <span className="text-sm text-slate-600">Don&apos;t rely on tape. Speed up interior sketching by 50%.</span>
+                  <span className="font-semibold text-slate-900 block">NDT & Safety Gear (Bureau Veritas)</span>
+                  <span className="text-sm text-slate-600">Specialized NDT tools (Ultrasonic, Radiographic) plus standard PPE for industrial sites.</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-2 w-2 rounded-full bg-brand-copper flex-shrink-0" />
+                <div>
+                  <span className="font-semibold text-slate-900 block">Installation Crew Tools (Best Choice)</span>
+                  <span className="text-sm text-slate-600">Vendor supplied: Nail guns, compressor, OSHA-compliant scaffolding/ladders, and transport.</span>
                 </div>
               </div>
             </div>
