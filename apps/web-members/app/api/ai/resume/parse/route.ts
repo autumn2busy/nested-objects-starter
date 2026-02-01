@@ -150,8 +150,8 @@ export async function POST(request: Request) {
  * Extract text from PDF file using pdf-parse
  */
 async function extractPdfText(file: File): Promise<string> {
-  // pdf-parse uses CommonJS, need to use require
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // pdf-parse is CommonJS-only, require is necessary here
+  // eslint-disable-next-line
   const pdfParse = require('pdf-parse');
   
   const arrayBuffer = await file.arrayBuffer();
