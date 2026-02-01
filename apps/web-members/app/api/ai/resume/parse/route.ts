@@ -150,8 +150,9 @@ export async function POST(request: Request) {
  * Extract text from PDF file using pdf-parse
  */
 async function extractPdfText(file: File): Promise<string> {
-  // Dynamic import to avoid bundling issues
-  const pdfParse = (await import('pdf-parse')).default;
+  // pdf-parse uses CommonJS, need to use require
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const pdfParse = require('pdf-parse');
   
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -164,7 +165,7 @@ async function extractPdfText(file: File): Promise<string> {
  * Extract text from DOCX file using mammoth
  */
 async function extractDocxText(file: File): Promise<string> {
-  // Dynamic import to avoid bundling issues
+  // mammoth works with dynamic import
   const mammoth = await import('mammoth');
   
   const arrayBuffer = await file.arrayBuffer();
