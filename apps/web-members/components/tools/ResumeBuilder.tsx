@@ -6,6 +6,7 @@ import {
   Shield, Users, Target, Zap, RefreshCw, Copy, Trash2, Plus,
   GripVertical, X, CheckCircle2, Loader2, FileUp, Brain
 } from 'lucide-react';
+import { useAuth } from '@/components/auth-provider';
 
 /**
  * NESTED OBJECTS - AI-POWERED RESUME BUILDER
@@ -201,6 +202,9 @@ const formatDate = (dateStr: string) => {
 
 
 export default function ResumeBuilder() {
+  // Auth hook
+  const { accessToken } = useAuth();
+
   // State
   const [currentStep, setCurrentStep] = useState<BuilderStep>('upload');
   const [resumeData, setResumeData] = useState<ResumeData>({
@@ -317,11 +321,18 @@ export default function ResumeBuilder() {
     setIsAnalyzing(true);
 
     try {
+      if (!accessToken) {
+        throw new Error('Please log in to use the AI Resume Builder.');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
       const response = await fetch('/api/ai/resume/parse', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
         body: formData,
       });
 
@@ -348,10 +359,9 @@ export default function ResumeBuilder() {
         skills: [...new Set([...prev.skills, ...(parsedData.skills || [])])],
       }));
 
-      // Mock analysis for now (or could be returned from API too if we expand it)
-      // Keeping this consistent with previous behavior for transferable skills
+      // Use AI analysis if returned, otherwise create mock
       const mockAnalysis: AIAnalysis = {
-        transferableSkills: parsedData.skills?.slice(0, 6) || ['Detail Oriented', 'Communication'],
+        transferableSkills: parsedData.transferableSkills || parsedData.skills?.slice(0, 6) || ['Detail Oriented', 'Communication'],
         suggestedSummary: parsedData.summary || 'Summary derived from your resume.',
         industryTermMappings: [],
         strengthAreas: ['Resume parsed successfully'],
