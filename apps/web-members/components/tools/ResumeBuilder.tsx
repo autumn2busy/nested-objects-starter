@@ -320,7 +320,7 @@ export default function ResumeBuilder() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/ai-resume/parse', {
+      const response = await fetch('/api/ai/resume/parse', {
         method: 'POST',
         body: formData,
       });
