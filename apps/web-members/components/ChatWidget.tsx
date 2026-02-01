@@ -17,7 +17,10 @@ type ChatWidgetProps = {
   }
 }
 
+import { useAuth } from "@/components/auth-provider";
+
 export default function ChatWidget({ context }: ChatWidgetProps) {
+  const { accessToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -62,7 +65,10 @@ export default function ChatWidget({ context }: ChatWidgetProps) {
     try {
       const res = await fetch("/api/ai/concierge", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           messages: nextMessages,
           context: context // Inject context
