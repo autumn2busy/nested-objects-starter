@@ -79,7 +79,7 @@ export default function ReadinessGuidesPage() {
                     <div className="rounded-xl border border-gray-200 bg-white p-6">
                         <h2 className="text-xl font-bold mb-4">Load-out and safety checks</h2>
                         <p className="text-gray-600 mb-4">
-                            Before you leave the driveway, ensure your vehicle and gear are ready for the day's route.
+                            Before you leave the driveway, ensure your vehicle and gear are ready for the day&apos;s route.
                         </p>
                         <ul className="list-disc pl-5 space-y-2 text-gray-700">
                             <li>Vehicle inspection checklist (Tires, Fluids, Fuel)</li>
@@ -101,13 +101,13 @@ export default function ReadinessGuidesPage() {
                             <div className="p-4 bg-gray-50 rounded-lg">
                                 <h3 className="font-semibold text-sm mb-2">Standard Confirmation Text</h3>
                                 <p className="font-mono text-xs text-gray-800 bg-white p-2 border rounded">
-                                    "Hi [Name], this is [Your Name] regarding the inspection at [Address]. I'm scheduled to arrive between [Time Window]. Please reply C to confirm or let me know if we need to reschedule."
+                                    &quot;Hi [Name], this is [Your Name] regarding the inspection at [Address]. I&apos;m scheduled to arrive between [Time Window]. Please reply C to confirm or let me know if we need to reschedule.&quot;
                                 </p>
                             </div>
                             <div className="p-4 bg-gray-50 rounded-lg">
                                 <h3 className="font-semibold text-sm mb-2">Voicemail Script</h3>
                                 <p className="font-mono text-xs text-gray-800 bg-white p-2 border rounded">
-                                    "Hello, I am calling for [Name] regarding a required property inspection at [Address]. My name is [Your Name]. Please call me back at [Number] to confirm access details. Thank you."
+                                    &quot;Hello, I am calling for [Name] regarding a required property inspection at [Address]. My name is [Your Name]. Please call me back at [Number] to confirm access details. Thank you.&quot;
                                 </p>
                             </div>
                         </div>

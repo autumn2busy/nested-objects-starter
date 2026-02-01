@@ -105,7 +105,7 @@ export default function TrainingSafetyPage() {
                         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h3 className="font-bold text-lg mb-2">Photo Framing Tips</h3>
                             <p className="text-sm text-gray-600 mb-4">
-                                Visual examples of "Good vs. Bad" photos for adjusters.
+                                Visual examples of &quot;Good vs. Bad&quot; photos for adjusters.
                             </p>
                             <Link href="/training/modules/photography" className="text-sm font-semibold text-brand-copper hover:underline">
                                 View gallery →

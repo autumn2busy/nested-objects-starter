@@ -91,7 +91,7 @@ export default function HomePage() {
         <section className="relative border-b border-slate-200 overflow-hidden">
           {/* background image sits directly under the section. spans full width */}
           <div
-            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-[900ms] ease-out ${roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
+            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-1000 ease-out ${roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
               }`}
           >
 
