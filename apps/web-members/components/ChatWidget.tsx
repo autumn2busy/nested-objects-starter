@@ -60,7 +60,7 @@ export default function ChatWidget({ context }: ChatWidgetProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/ai-chat", {
+      const res = await fetch("/api/ai/concierge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
