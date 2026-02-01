@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 /**
  * AI Resume Parser - /api/ai/resume/parse
  * 
- * Sends uploaded resume file to n8n for text extraction and AI processing.
- * This avoids serverless compatibility issues with pdf-parse and mammoth.
+ * Accepts uploaded resume (PDF/DOCX/TXT), converts to base64,
+ * sends to n8n for text extraction + AI parsing via Groq.
  * 
- * The n8n workflow handles:
- * 1. File decoding (base64 → binary)
- * 2. Text extraction (PDF/DOCX/TXT)
- * 3. AI parsing via Groq
+ * NO local file parsing libraries (pdf-parse, mammoth, etc).
+ * All extraction happens in the n8n workflow to avoid Vercel
+ * serverless compatibility issues.
+ * 
+ * Deployed to: app/api/ai/resume/parse/route.ts
  */
 
 // Maximum file size: 5MB
@@ -24,7 +24,7 @@ const ALLOWED_TYPES = [
   'text/plain',
 ];
 
-// File extension to MIME type mapping (for browsers that don't set correct MIME)
+// Extension fallback map (some browsers send generic MIME)
 const EXTENSION_TO_MIME: Record<string, string> = {
   '.pdf': 'application/pdf',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -34,9 +34,10 @@ const EXTENSION_TO_MIME: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
-    const headersList = headers();
-    const auth = headersList.get('authorization');
-    
+    // ---- AUTH CHECK ----
+    // Read auth directly from request.headers (avoids Next.js headers() async issues)
+    const auth = request.headers.get('authorization');
+
     if (!auth) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in to use the AI Resume Builder.' },
@@ -44,8 +45,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Parse multipart form data
-    const formData = await request.formData();
+    // ---- PARSE FORM DATA ----
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (formError: any) {
+      console.error('[Resume Parse] FormData parse error:', formError?.message);
+      return NextResponse.json(
+        { error: 'Invalid request format. Please upload a file.' },
+        { status: 400 }
+      );
+    }
+
     const file = formData.get('file') as File | null;
 
     if (!file) {
@@ -55,16 +66,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine file type (use extension as fallback if MIME is generic)
+    // ---- DETERMINE FILE TYPE ----
     let fileType = file.type;
     if (!fileType || fileType === 'application/octet-stream') {
-      const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-      fileType = EXTENSION_TO_MIME[ext] || file.type;
+      const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+      fileType = EXTENSION_TO_MIME[ext] || file.type || 'application/octet-stream';
     }
 
     console.log(`[Resume Parse] File: ${file.name}, Type: ${fileType}, Size: ${file.size}`);
 
-    // Validate file size
+    // ---- VALIDATE SIZE ----
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: 'File too large. Maximum size is 5MB.' },
@@ -72,17 +83,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate file type
+    // ---- VALIDATE TYPE ----
     if (!ALLOWED_TYPES.includes(fileType)) {
       return NextResponse.json(
-        { error: `Invalid file type. Please upload a PDF, DOCX, or TXT file.` },
+        { error: `Invalid file type (${fileType}). Please upload a PDF, DOCX, or TXT file.` },
         { status: 400 }
       );
     }
 
-    // Get n8n webhook URL
+    // ---- CHECK N8N CONFIG ----
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-    
+
     if (!n8nWebhookUrl) {
       console.error('[Resume Parse] N8N_AI_RESUME_WEBHOOK_URL not set');
       return NextResponse.json(
@@ -91,13 +102,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert file to base64 for transport
+    // ---- CONVERT FILE TO BASE64 ----
     const arrayBuffer = await file.arrayBuffer();
     const base64Data = Buffer.from(arrayBuffer).toString('base64');
 
-    console.log(`[Resume Parse] Sending ${base64Data.length} bytes to n8n...`);
+    console.log(`[Resume Parse] Sending to n8n (${base64Data.length} base64 chars)...`);
 
-    // Send to n8n for extraction and AI processing
+    // ---- SEND TO N8N ----
     const n8nResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -111,27 +122,31 @@ export async function POST(request: Request) {
       }),
     });
 
-    // Handle n8n response
+    // ---- HANDLE N8N RESPONSE ----
     if (!n8nResponse.ok) {
-      let errorData;
+      let errorData: any;
       try {
         errorData = await n8nResponse.json();
       } catch {
-        errorData = { error: `Processing failed with status ${n8nResponse.status}` };
+        errorData = { error: `Processing failed (status ${n8nResponse.status})` };
       }
-      console.error('[Resume Parse] n8n error:', errorData);
+      console.error('[Resume Parse] n8n error:', JSON.stringify(errorData));
+      const status = n8nResponse.status >= 400 && n8nResponse.status < 600
+        ? n8nResponse.status
+        : 500;
       return NextResponse.json(
         { error: errorData.error || 'Failed to analyze resume. Please try again.' },
-        { status: n8nResponse.status >= 400 && n8nResponse.status < 600 ? n8nResponse.status : 500 }
+        { status }
       );
     }
 
+    // ---- RETURN PARSED RESULT ----
     const result = await n8nResponse.json();
     console.log('[Resume Parse] Success');
     return NextResponse.json(result);
 
   } catch (error: any) {
-    console.error('[Resume Parse] Error:', error?.message || error);
+    console.error('[Resume Parse] Unhandled error:', error?.message || error);
     return NextResponse.json(
       { error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
@@ -140,7 +155,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * GET - Health check
+ * GET - Health check / feature status
  */
 export async function GET() {
   return NextResponse.json({
