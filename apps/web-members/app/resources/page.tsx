@@ -8,7 +8,7 @@ const resourceHighlights = [
     description:
       'Step-by-step checklists for inspections, photo sets, and lender requests so you can roll out without surprises.',
     items: ['Load-out and safety checks', 'Pre-call scripts and templates', 'Turnaround and upload standards'],
-    cta: { label: 'Open readiness guides', href: '/tools' },
+    cta: { label: 'Open readiness guides', href: '/resources/readiness-guides' },
   },
   {
     title: 'Firm intel library',
@@ -22,14 +22,14 @@ const resourceHighlights = [
     description:
       'Practical refreshers for roof work, interior documentation, and respectful tenant interactions—built by people who do the work.',
     items: ['Route planning walkthroughs', 'Hazard spotting and PPE', 'Photo framing tips for adjusters'],
-    cta: { label: 'Browse training', href: '/training' },
+    cta: { label: 'Browse training', href: '/resources/training-safety' },
   },
   {
     title: 'Tools & templates',
     description:
       'Downloadable forms, AI prompts, and calculators that make your prep faster and more consistent from job to job.',
     items: ['Job packet builder', 'Route ROI worksheet', 'AI prompt library for firm questions'],
-    cta: { label: 'See member tools', href: '/tools' },
+    cta: { label: 'See member tools', href: '/resources/tools-templates' },
   },
 ]
 
