@@ -247,7 +247,7 @@ export default function ResumeBuilder() {
     // Clear localStorage
     localStorage.removeItem('nestedObjects_resumeData');
     localStorage.removeItem('nestedObjects_resumeTemplate');
-    
+
     // Reset state
     setResumeData(INITIAL_RESUME_DATA);
     setAiAnalysis(null);
@@ -256,7 +256,7 @@ export default function ResumeBuilder() {
     setSelectedTemplate('professional');
     setLastSaved(null);
     setShowResetConfirm(false);
-    
+
     // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -365,13 +365,13 @@ export default function ResumeBuilder() {
         skills: [...new Set([...prev.skills, ...(data.skills || [])])],
       }));
 
-      // Set AI analysis
+      // Map real AI analysis data
       const analysis: AIAnalysis = {
         transferableSkills: data.transferableSkills || data.skills?.slice(0, 6) || [],
         suggestedSummary: data.summary || '',
         industryTermMappings: data.industryTermMappings || [],
-        strengthAreas: data.strengthAreas || ['Resume parsed successfully'],
-        improvementSuggestions: data.improvementSuggestions || ['Review parsed data for accuracy']
+        strengthAreas: data.strengthAreas || [],
+        improvementSuggestions: data.improvementSuggestions || []
       };
 
       setAiAnalysis(analysis);
