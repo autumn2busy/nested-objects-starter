@@ -4,10 +4,13 @@ import { headers } from 'next/headers';
 /**
  * AI Resume Parser - /api/ai/resume/parse
  * 
- * Accepts uploaded resume files (PDF, DOCX, TXT), extracts text,
- * and sends to n8n webhook for AI processing via Groq.
+ * Sends uploaded resume file to n8n for text extraction and AI processing.
+ * This avoids serverless compatibility issues with pdf-parse and mammoth.
  * 
- * Returns structured resume data for the ResumeBuilder component.
+ * The n8n workflow handles:
+ * 1. File decoding (base64 → binary)
+ * 2. Text extraction (PDF/DOCX/TXT)
+ * 3. AI parsing via Groq
  */
 
 // Maximum file size: 5MB
@@ -16,10 +19,18 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 // Allowed MIME types
 const ALLOWED_TYPES = [
   'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-  'application/msword', // .doc
-  'text/plain', // .txt
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'text/plain',
 ];
+
+// File extension to MIME type mapping (for browsers that don't set correct MIME)
+const EXTENSION_TO_MIME: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword',
+  '.txt': 'text/plain',
+};
 
 export async function POST(request: Request) {
   try {
@@ -33,7 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Parse the multipart form data
+    // Parse multipart form data
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -44,6 +55,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Determine file type (use extension as fallback if MIME is generic)
+    let fileType = file.type;
+    if (!fileType || fileType === 'application/octet-stream') {
+      const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+      fileType = EXTENSION_TO_MIME[ext] || file.type;
+    }
+
+    console.log(`[Resume Parse] File: ${file.name}, Type: ${fileType}, Size: ${file.size}`);
+
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
@@ -53,92 +73,65 @@ export async function POST(request: Request) {
     }
 
     // Validate file type
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(fileType)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Please upload a PDF, DOCX, or TXT file.' },
+        { error: `Invalid file type. Please upload a PDF, DOCX, or TXT file.` },
         { status: 400 }
       );
     }
 
-    // Extract text from the file
-    let extractedText = '';
-    
-    try {
-      if (file.type === 'text/plain') {
-        // Plain text - read directly
-        extractedText = await file.text();
-      } else if (file.type === 'application/pdf') {
-        // PDF - use pdf-parse
-        extractedText = await extractPdfText(file);
-      } else if (
-        file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.type === 'application/msword'
-      ) {
-        // DOCX/DOC - use mammoth
-        extractedText = await extractDocxText(file);
-      }
-    } catch (extractError) {
-      console.error('Text extraction error:', extractError);
-      return NextResponse.json(
-        { error: 'Could not read the file. Please try a different format or enter details manually.' },
-        { status: 422 }
-      );
-    }
-
-    if (!extractedText || extractedText.trim().length < 50) {
-      return NextResponse.json(
-        { error: 'Could not extract enough text from the file. Please try a different file or enter details manually.' },
-        { status: 422 }
-      );
-    }
-
-    // Get n8n webhook URL from environment (same webhook handles parse and generate)
+    // Get n8n webhook URL
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
     
     if (!n8nWebhookUrl) {
-      console.error('N8N_AI_RESUME_WEBHOOK_URL environment variable is not set');
+      console.error('[Resume Parse] N8N_AI_RESUME_WEBHOOK_URL not set');
       return NextResponse.json(
         { error: 'Resume parser is not configured. Please contact support.' },
         { status: 500 }
       );
     }
 
-    // Send extracted text to n8n for AI processing
+    // Convert file to base64 for transport
+    const arrayBuffer = await file.arrayBuffer();
+    const base64Data = Buffer.from(arrayBuffer).toString('base64');
+
+    console.log(`[Resume Parse] Sending ${base64Data.length} bytes to n8n...`);
+
+    // Send to n8n for extraction and AI processing
     const n8nResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        request_type: 'parse',
         jwt: auth.replace('Bearer ', ''),
-        resumeText: extractedText.trim(),
+        fileData: base64Data,
         fileName: file.name,
-        fileType: file.type,
+        fileType: fileType,
+        fileSizeBytes: file.size,
       }),
     });
 
+    // Handle n8n response
     if (!n8nResponse.ok) {
       let errorData;
       try {
         errorData = await n8nResponse.json();
       } catch {
-        errorData = { error: `AI processing failed with status ${n8nResponse.status}` };
+        errorData = { error: `Processing failed with status ${n8nResponse.status}` };
       }
-      
-      console.error('n8n processing error:', errorData);
+      console.error('[Resume Parse] n8n error:', errorData);
       return NextResponse.json(
         { error: errorData.error || 'Failed to analyze resume. Please try again.' },
-        { status: n8nResponse.status }
+        { status: n8nResponse.status >= 400 && n8nResponse.status < 600 ? n8nResponse.status : 500 }
       );
     }
 
-    const parsedResume = await n8nResponse.json();
+    const result = await n8nResponse.json();
+    console.log('[Resume Parse] Success');
+    return NextResponse.json(result);
 
-    // Return the structured resume data
-    return NextResponse.json(parsedResume);
-
-  } catch (error) {
-    console.error('Resume parse error:', error);
+  } catch (error: any) {
+    console.error('[Resume Parse] Error:', error?.message || error);
     return NextResponse.json(
       { error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
@@ -147,44 +140,13 @@ export async function POST(request: Request) {
 }
 
 /**
- * Extract text from PDF file using pdf-parse
- */
-async function extractPdfText(file: File): Promise<string> {
-  // pdf-parse is CommonJS-only, require is necessary here
-  // eslint-disable-next-line
-  const pdfParse = require('pdf-parse');
-  
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  
-  const pdfData = await pdfParse(buffer);
-  return pdfData.text;
-}
-
-/**
- * Extract text from DOCX file using mammoth
- */
-async function extractDocxText(file: File): Promise<string> {
-  // mammoth works with dynamic import
-  const mammoth = await import('mammoth');
-  
-  const arrayBuffer = await file.arrayBuffer();
-  
-  const result = await mammoth.extractRawText({ arrayBuffer });
-  return result.value;
-}
-
-/**
- * GET - Check if parse endpoint is available
+ * GET - Health check
  */
 export async function GET() {
-  const webhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-  
   return NextResponse.json({
-    available: !!webhookUrl,
+    available: !!process.env.N8N_AI_RESUME_WEBHOOK_URL,
     feature: 'AI Resume Parser',
-    status: webhookUrl ? 'active' : 'not_configured',
     acceptedTypes: ['PDF', 'DOCX', 'TXT'],
-    maxSizeMB: 5
+    maxSizeMB: 5,
   });
 }

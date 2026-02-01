@@ -4,8 +4,9 @@ import {
   ChevronLeft, Check, AlertCircle, Briefcase, MapPin, Phone, Mail,
   Globe, Linkedin, Calendar, Award, Wrench, Car, Camera, Clock,
   Shield, Users, Target, Zap, RefreshCw, Copy, Trash2, Plus,
-  GripVertical, X, CheckCircle2, Loader2, FileUp, Brain
+  GripVertical, X, CheckCircle2, Loader2, FileUp, Brain, RotateCcw
 } from 'lucide-react';
+import { useAuth } from '@/components/auth-provider';
 
 /**
  * NESTED OBJECTS - AI-POWERED RESUME BUILDER
@@ -45,7 +46,7 @@ interface WorkExperience {
   current: boolean;
   description: string;
   bullets: string[];
-  transferableSkills?: string[]; // AI-identified
+  transferableSkills?: string[];
 }
 
 interface Education {
@@ -72,7 +73,7 @@ interface ResumeData {
   education: Education[];
   certifications: Certification[];
   skills: string[];
-  fieldServicesSkills: string[]; // Industry-specific
+  fieldServicesSkills: string[];
   equipment: string[];
   coverage: {
     counties: string[];
@@ -103,6 +104,40 @@ type BuilderStep = 'upload' | 'contact' | 'experience' | 'skills' | 'coverage' |
 // ============================================================================
 // CONSTANTS
 // ============================================================================
+
+const INITIAL_RESUME_DATA: ResumeData = {
+  contact: {
+    fullName: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    linkedin: '',
+    website: ''
+  },
+  summary: '',
+  experience: [],
+  education: [],
+  certifications: [],
+  skills: [],
+  fieldServicesSkills: [],
+  equipment: [],
+  coverage: {
+    counties: [],
+    radius: 50,
+    hasReliableVehicle: true,
+    vehicleType: ''
+  },
+  availability: {
+    fullTime: false,
+    partTime: true,
+    weekends: true,
+    evenings: false,
+    sameDay: true
+  },
+  targetRoles: []
+};
 
 const FIELD_SERVICES_SKILLS = [
   'Property Condition Reports (PCR)',
@@ -169,20 +204,6 @@ const TARGET_ROLES = [
   'Asset Preservation Contractor'
 ];
 
-const TRANSFERABLE_SKILL_MAP: Record<string, string[]> = {
-  'real estate': ['Property assessment', 'Market analysis', 'Client communication', 'Documentation'],
-  'notary': ['Document verification', 'Client interaction', 'Compliance adherence', 'Mobile service delivery'],
-  'delivery': ['Route optimization', 'Time management', 'GPS navigation', 'Same-day service'],
-  'rideshare': ['Customer service', 'Navigation', 'Schedule flexibility', 'Vehicle maintenance'],
-  'construction': ['Property assessment', 'Safety protocols', 'Tool proficiency', 'Quality inspection'],
-  'photography': ['Photo documentation', 'Attention to detail', 'Equipment handling', 'Digital file management'],
-  'retail': ['Customer service', 'Inventory assessment', 'Attention to detail', 'Time management'],
-  'healthcare': ['Documentation', 'Compliance', 'Attention to detail', 'Professional demeanor'],
-  'military': ['Discipline', 'Protocol adherence', 'Documentation', 'Physical stamina', 'Leadership'],
-  'law enforcement': ['Investigation skills', 'Documentation', 'Observation', 'Report writing'],
-  'insurance': ['Risk assessment', 'Documentation', 'Compliance', 'Client communication'],
-};
-
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
@@ -199,44 +220,13 @@ const formatDate = (dateStr: string) => {
 // COMPONENT
 // ============================================================================
 
-
 export default function ResumeBuilder() {
+  // Auth hook
+  const { accessToken } = useAuth();
+
   // State
   const [currentStep, setCurrentStep] = useState<BuilderStep>('upload');
-  const [resumeData, setResumeData] = useState<ResumeData>({
-    contact: {
-      fullName: '',
-      email: '',
-      phone: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      linkedin: '',
-      website: ''
-    },
-    summary: '',
-    experience: [],
-    education: [],
-    certifications: [],
-    skills: [],
-    fieldServicesSkills: [],
-    equipment: [],
-    coverage: {
-      counties: [],
-      radius: 50,
-      hasReliableVehicle: true,
-      vehicleType: ''
-    },
-    availability: {
-      fullTime: false,
-      partTime: true,
-      weekends: true,
-      evenings: false,
-      sameDay: true
-    },
-    targetRoles: []
-  });
-
+  const [resumeData, setResumeData] = useState<ResumeData>(INITIAL_RESUME_DATA);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -244,9 +234,34 @@ export default function ResumeBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<'professional' | 'modern' | 'minimal'>('professional');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ============================================================================
+  // RESET FUNCTION
+  // ============================================================================
+
+  const resetAllData = () => {
+    // Clear localStorage
+    localStorage.removeItem('nestedObjects_resumeData');
+    localStorage.removeItem('nestedObjects_resumeTemplate');
+    
+    // Reset state
+    setResumeData(INITIAL_RESUME_DATA);
+    setAiAnalysis(null);
+    setUploadedFile(null);
+    setCurrentStep('upload');
+    setSelectedTemplate('professional');
+    setLastSaved(null);
+    setShowResetConfirm(false);
+    
+    // Clear file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // ============================================================================
   // AUTOSAVE
@@ -272,9 +287,10 @@ export default function ResumeBuilder() {
       const savedTemplate = localStorage.getItem('nestedObjects_resumeTemplate');
 
       if (savedData) {
-        setResumeData(JSON.parse(savedData));
-        // Skip upload step if we have saved data
-        if (JSON.parse(savedData).contact.fullName) {
+        const parsed = JSON.parse(savedData);
+        setResumeData(parsed);
+        // Skip upload step if we have saved data with a name
+        if (parsed.contact?.fullName) {
           setCurrentStep('contact');
         }
       }
@@ -317,52 +333,53 @@ export default function ResumeBuilder() {
     setIsAnalyzing(true);
 
     try {
+      if (!accessToken) {
+        throw new Error('Please log in to use the AI Resume Builder.');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
       const response = await fetch('/api/ai/resume/parse', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        let errorMessage = 'Failed to parse resume';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          errorMessage = `Server error: ${response.status}`;
-        }
-        throw new Error(errorMessage);
+        throw new Error(data.error || 'Failed to parse resume');
       }
 
-      const parsedData = await response.json();
-
+      // Update resume data with parsed content
       setResumeData(prev => ({
         ...prev,
-        contact: { ...prev.contact, ...parsedData.contact },
-        summary: parsedData.summary || prev.summary,
-        experience: parsedData.experience?.map((exp: any) => ({ ...exp, id: generateId() })) || [],
-        education: parsedData.education?.map((edu: any) => ({ ...edu, id: generateId() })) || [],
-        certifications: parsedData.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || [],
-        skills: [...new Set([...prev.skills, ...(parsedData.skills || [])])],
+        contact: { ...prev.contact, ...data.contact },
+        summary: data.summary || prev.summary,
+        experience: data.experience?.map((exp: any) => ({ ...exp, id: generateId() })) || prev.experience,
+        education: data.education?.map((edu: any) => ({ ...edu, id: generateId() })) || prev.education,
+        certifications: data.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || prev.certifications,
+        skills: [...new Set([...prev.skills, ...(data.skills || [])])],
       }));
 
-      // Mock analysis for now (or could be returned from API too if we expand it)
-      // Keeping this consistent with previous behavior for transferable skills
-      const mockAnalysis: AIAnalysis = {
-        transferableSkills: parsedData.skills?.slice(0, 6) || ['Detail Oriented', 'Communication'],
-        suggestedSummary: parsedData.summary || 'Summary derived from your resume.',
-        industryTermMappings: [],
-        strengthAreas: ['Resume parsed successfully'],
-        improvementSuggestions: ['Review parsed data for accuracy']
+      // Set AI analysis
+      const analysis: AIAnalysis = {
+        transferableSkills: data.transferableSkills || data.skills?.slice(0, 6) || [],
+        suggestedSummary: data.summary || '',
+        industryTermMappings: data.industryTermMappings || [],
+        strengthAreas: data.strengthAreas || ['Resume parsed successfully'],
+        improvementSuggestions: data.improvementSuggestions || ['Review parsed data for accuracy']
       };
 
-      setAiAnalysis(mockAnalysis);
+      setAiAnalysis(analysis);
       setCurrentStep('contact');
     } catch (error: any) {
       console.error('Error parsing resume:', error);
       alert(error.message || 'Could not parse resume. Please try again or enter details manually.');
+      setUploadedFile(null);
     } finally {
       setIsAnalyzing(false);
     }
@@ -533,7 +550,7 @@ export default function ResumeBuilder() {
       case 'contact':
         return resumeData.contact.fullName && resumeData.contact.email && resumeData.contact.phone;
       case 'experience':
-        return true; // Experience is optional for new inspectors
+        return true;
       case 'skills':
         return resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0;
       case 'coverage':
@@ -549,24 +566,11 @@ export default function ResumeBuilder() {
 
   const exportToPDF = async () => {
     try {
-      // Lazy load jsPDF to avoid server-side issues
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       let yPos = 20;
-
-      // Helper for text wrapping
-      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, fontStyle: string = 'normal') => {
-        doc.setFontSize(fontSize);
-        doc.setFont('helvetica', fontStyle);
-        const lines = doc.splitTextToSize(text, maxWidth);
-        doc.text(lines, x, y);
-        // Calculate height: lines specific height logic for jsPDF
-        // default line height factor is 1.15
-        const lineHeight = fontSize * 1.15 * 0.3527777778; // px to mm approx conversion for unit
-        return lines.length * 5; // simplified mm estimate
-      };
 
       // Header
       doc.setFontSize(24);
@@ -636,7 +640,6 @@ export default function ResumeBuilder() {
         yPos += 7;
 
         resumeData.experience.forEach(exp => {
-          // Check for page break
           if (yPos > 250) {
             doc.addPage();
             yPos = 20;
@@ -655,7 +658,6 @@ export default function ResumeBuilder() {
           doc.text(`${exp.title} | ${exp.location}`, margin, yPos);
           yPos += 7;
 
-          // Bullets
           if (exp.bullets && exp.bullets.length > 0) {
             doc.setFont('helvetica', 'normal');
             exp.bullets.forEach(bullet => {
@@ -678,7 +680,6 @@ export default function ResumeBuilder() {
 
       // Education
       if (resumeData.education.length > 0) {
-        // Check for page break
         if (yPos > 250) {
           doc.addPage();
           yPos = 20;
@@ -713,7 +714,6 @@ export default function ResumeBuilder() {
   };
 
   const exportToDOCX = async () => {
-    // In production, this would generate a DOCX using the API
     alert('DOCX export coming soon! Your resume data has been saved.');
   };
 
@@ -778,7 +778,7 @@ export default function ResumeBuilder() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.doc,.docx,.txt"
           onChange={handleFileUpload}
           className="hidden"
         />
@@ -795,7 +795,7 @@ export default function ResumeBuilder() {
               </p>
             </div>
           </div>
-        ) : uploadedFile ? (
+        ) : uploadedFile && aiAnalysis ? (
           <div className="space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-emerald-600" />
@@ -815,7 +815,7 @@ export default function ResumeBuilder() {
                 Drop your resume here or click to browse
               </p>
               <p className="text-sm text-slate-500 mt-1">
-                Supports PDF, DOC, and DOCX files
+                Supports PDF, DOC, DOCX, and TXT files
               </p>
             </div>
           </div>
@@ -845,20 +845,22 @@ export default function ResumeBuilder() {
             ))}
           </div>
 
-          <div className="pt-4 border-t border-emerald-200">
-            <h4 className="text-sm font-semibold text-emerald-900 mb-2">
-              Industry Term Mappings
-            </h4>
-            <div className="space-y-2">
-              {aiAnalysis.industryTermMappings.slice(0, 3).map((mapping, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-600">{mapping.original}</span>
-                  <ChevronRight className="w-4 h-4 text-emerald-500" />
-                  <span className="font-medium text-emerald-700">{mapping.fieldServices}</span>
-                </div>
-              ))}
+          {aiAnalysis.industryTermMappings.length > 0 && (
+            <div className="pt-4 border-t border-emerald-200">
+              <h4 className="text-sm font-semibold text-emerald-900 mb-2">
+                Industry Term Mappings
+              </h4>
+              <div className="space-y-2">
+                {aiAnalysis.industryTermMappings.slice(0, 3).map((mapping, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <span className="text-slate-600">{mapping.original}</span>
+                    <ChevronRight className="w-4 h-4 text-emerald-500" />
+                    <span className="font-medium text-emerald-700">{mapping.fieldServices}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -869,7 +871,7 @@ export default function ResumeBuilder() {
         >
           Start Fresh
         </button>
-        {(uploadedFile || aiAnalysis) && (
+        {aiAnalysis && (
           <button
             onClick={goToNextStep}
             className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
@@ -890,7 +892,6 @@ export default function ResumeBuilder() {
       </p>
 
       <div className="space-y-6">
-        {/* Full Name */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Full Name *
@@ -904,7 +905,6 @@ export default function ResumeBuilder() {
           />
         </div>
 
-        {/* Email & Phone */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -932,7 +932,6 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Location */}
         <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -972,7 +971,6 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Optional Links */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -1000,7 +998,6 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Professional Summary */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Professional Summary
@@ -1159,7 +1156,7 @@ export default function ResumeBuilder() {
                 <textarea
                   value={exp.description}
                   onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
-                  placeholder="Describe your responsibilities and achievements. We'll help translate these to field services terminology..."
+                  placeholder="Describe your responsibilities and achievements..."
                   rows={4}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-none"
                 />
@@ -1383,8 +1380,8 @@ export default function ResumeBuilder() {
         </div>
       </div>
 
-      {/* General/Transferable Skills */}
-      {aiAnalysis && (
+      {/* AI-Identified Skills */}
+      {aiAnalysis && aiAnalysis.transferableSkills.length > 0 && (
         <div className="mb-10">
           <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-500" />
@@ -1601,8 +1598,8 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Actual Resume Preview */}
-        <div className="p-8 bg-white min-h-[800px]" style={{ fontFamily: 'Georgia, serif' }}>
+        {/* Resume Content Preview */}
+        <div className="p-8 bg-white min-h-[600px]" style={{ fontFamily: 'Georgia, serif' }}>
           {/* Header */}
           <div className="text-center mb-6 pb-6 border-b-2 border-slate-200">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
@@ -1628,14 +1625,6 @@ export default function ResumeBuilder() {
                 </span>
               )}
             </div>
-            {resumeData.coverage.radius > 0 && (
-              <div className="mt-2 text-sm text-emerald-600 font-medium">
-                Service Area: {resumeData.coverage.radius} mile radius
-                {resumeData.coverage.counties.length > 0 && (
-                  <span> • {resumeData.coverage.counties.join(', ')}</span>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Summary */}
@@ -1648,48 +1637,19 @@ export default function ResumeBuilder() {
             </div>
           )}
 
-          {/* Target Roles */}
-          {resumeData.targetRoles.length > 0 && (
+          {/* Skills */}
+          {(resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0) && (
             <div className="mb-6">
               <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-                Target Roles
+                Skills
               </h2>
               <div className="flex flex-wrap gap-2">
-                {resumeData.targetRoles.map(role => (
-                  <span key={role} className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
-                    {role}
+                {[...resumeData.fieldServicesSkills, ...resumeData.skills].map(skill => (
+                  <span key={skill} className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm">
+                    {skill}
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Field Services Skills */}
-          {resumeData.fieldServicesSkills.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-                Field Services Skills
-              </h2>
-              <div className="grid grid-cols-2 gap-1 text-sm text-slate-700">
-                {resumeData.fieldServicesSkills.map(skill => (
-                  <div key={skill} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-500" />
-                    {skill}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Equipment */}
-          {resumeData.equipment.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-                Equipment & Tools
-              </h2>
-              <p className="text-sm text-slate-700">
-                {resumeData.equipment.join(' • ')}
-              </p>
             </div>
           )}
 
@@ -1717,74 +1677,6 @@ export default function ResumeBuilder() {
               ))}
             </div>
           )}
-
-          {/* Education */}
-          {resumeData.education.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
-                Education
-              </h2>
-              {resumeData.education.map(edu => (
-                <div key={edu.id} className="mb-2">
-                  <div className="flex justify-between">
-                    <div>
-                      <span className="font-semibold">{edu.degree}</span>
-                      {edu.field && <span className="text-slate-600"> in {edu.field}</span>}
-                    </div>
-                    <span className="text-sm text-slate-500">{formatDate(edu.graduationDate)}</span>
-                  </div>
-                  <p className="text-slate-600">{edu.school}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Certifications */}
-          {resumeData.certifications.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
-                Certifications
-              </h2>
-              {resumeData.certifications.map(cert => (
-                <div key={cert.id} className="flex justify-between mb-1">
-                  <span>
-                    <span className="font-medium">{cert.name}</span>
-                    {cert.issuer && <span className="text-slate-600"> - {cert.issuer}</span>}
-                  </span>
-                  <span className="text-sm text-slate-500">{formatDate(cert.date)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Availability */}
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-              Availability
-            </h2>
-            <div className="flex flex-wrap gap-2 text-sm">
-              {resumeData.availability.fullTime && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Full-Time</span>
-              )}
-              {resumeData.availability.partTime && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Part-Time</span>
-              )}
-              {resumeData.availability.weekends && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Weekends</span>
-              )}
-              {resumeData.availability.evenings && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Evenings</span>
-              )}
-              {resumeData.availability.sameDay && (
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">Same-Day Service</span>
-              )}
-              {resumeData.coverage.hasReliableVehicle && (
-                <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full">
-                  Reliable Vehicle{resumeData.coverage.vehicleType && `: ${resumeData.coverage.vehicleType}`}
-                </span>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1798,7 +1690,6 @@ export default function ResumeBuilder() {
             <h3 className="font-semibold text-emerald-900 mb-1">Your resume is ready!</h3>
             <p className="text-sm text-emerald-700 mb-4">
               Download your resume and start applying to firms in the directory.
-              Your data is automatically saved and you can come back to edit anytime.
             </p>
             <div className="flex items-center gap-3">
               <button
@@ -1827,6 +1718,33 @@ export default function ResumeBuilder() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Reset All Data?</h3>
+            <p className="text-slate-600 mb-6">
+              This will clear all saved resume data and start fresh. This action cannot be undone.
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={resetAllData}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Reset All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4">
@@ -1857,6 +1775,16 @@ export default function ResumeBuilder() {
                 ) : null}
               </div>
 
+              {/* Reset Button */}
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition flex items-center gap-2"
+                title="Reset all data"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+
               <button
                 onClick={() => setShowPreview(!showPreview)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition flex items-center gap-2"
@@ -1871,10 +1799,8 @@ export default function ResumeBuilder() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Step Indicator */}
         {renderStepIndicator()}
 
-        {/* Step Content */}
         <div className="mb-8">
           {currentStep === 'upload' && renderUploadStep()}
           {currentStep === 'contact' && renderContactStep()}
