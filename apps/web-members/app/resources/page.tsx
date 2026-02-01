@@ -4,6 +4,13 @@ import Link from 'next/link'
 
 const resourceHighlights = [
   {
+    title: 'Industry news',
+    description:
+      'Stay current with mortgage market trends, regulatory updates, and field service industry news updated hourly from trusted sources.',
+    items: ['Mortgage market updates', 'Real estate trends', 'Regulatory changes'],
+    cta: { label: 'Read latest news', href: '/resources/industry-news' },
+  },
+  {
     title: 'Route readiness guides',
     description:
       'Step-by-step checklists for inspections, photo sets, and lender requests so you can roll out without surprises.',
