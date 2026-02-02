@@ -83,7 +83,7 @@ export default function RootLayout({
           <>
             <Script id="outseta-config" strategy="beforeInteractive">
               {`
-                var o_options = {
+                window.o_options = {
                   domain: 'nested-objects.outseta.com',
                   load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
                   tokenStorage: 'local'

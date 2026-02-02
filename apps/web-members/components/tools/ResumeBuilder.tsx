@@ -360,8 +360,8 @@ export default function ResumeBuilder() {
         email: data.contact?.email || '',
         phone: data.contact?.phone || '',
         // Attempt to parse city/state from location if provided
-        city: data.contact?.location?.split(',')[0]?.trim() || '',
-        state: data.contact?.location?.split(',')[1]?.trim() || '',
+        city: String(data.contact?.location || '').split(',')[0]?.trim() || '',
+        state: String(data.contact?.location || '').split(',')[1]?.trim() || '',
         linkedin: data.contact?.linkedIn || data.contact?.linkedin || '',
         website: data.contact?.website || ''
       };
@@ -373,15 +373,21 @@ export default function ResumeBuilder() {
         let current = false;
 
         if (exp.dates) {
-          const parts = exp.dates.split(/[-–]/).map((s: string) => s.trim());
-          if (parts.length > 0) startDate = parts[0];
-          if (parts.length > 1) {
-            if (parts[1].toLowerCase().includes('present')) {
-              current = true;
-              endDate = ''; // Or 'Present' depending on UI needs, but usually boolean handles 'Present' label
-            } else {
-              endDate = parts[1];
+          const dateStr = String(exp.dates); // Ensure it's a string
+          if (dateStr.includes('-') || dateStr.includes('–')) {
+            const parts = dateStr.split(/[-–]/).map((s: string) => s.trim());
+            if (parts.length > 0) startDate = parts[0];
+            if (parts.length > 1) {
+              if (parts[1].toLowerCase().includes('present')) {
+                current = true;
+                endDate = '';
+              } else {
+                endDate = parts[1];
+              }
             }
+          } else {
+            // If it's just a single date string (e.g. "2020")
+            startDate = dateStr;
           }
         }
 
