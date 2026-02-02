@@ -1,64 +1,95 @@
 import { NextResponse } from 'next/server'
+import Parser from 'rss-parser'
 
-export const revalidate = 3600 // Cache for 1 hour (ISR)
+export const revalidate = 1800 // Cache for 30 minutes (RSS feeds update less frequently)
 
-interface GNewsArticle {
+// Industry-specific RSS feeds for mortgage and real estate news
+const RSS_FEEDS = [
+    {
+        url: 'https://www.housingwire.com/feed/',
+        name: 'HousingWire',
+    },
+    {
+        url: 'https://www.inman.com/feed/',
+        name: 'Inman',
+    },
+    {
+        url: 'https://www.mpamag.com/us/rss',
+        name: 'Mortgage Professional America',
+    },
+    {
+        url: 'https://themortgagereports.com/feed',
+        name: 'The Mortgage Reports',
+    },
+]
+
+interface FeedItem {
+    title?: string
+    link?: string
+    contentSnippet?: string
+    content?: string
+    pubDate?: string
+    isoDate?: string
+    enclosure?: { url?: string }
+    'media:content'?: { $?: { url?: string } }
+}
+
+interface ParsedArticle {
+    source: string
     title: string
-    description: string
+    description: string | null
     url: string
     image: string | null
     publishedAt: string
-    source: {
-        name: string
-        url: string
-    }
 }
 
 export async function GET() {
-    // Support both GNEWS_API_KEY and legacy NEWSAPI_KEY
-    const apiKey = process.env.GNEWS_API_KEY || process.env.NEWSAPI_KEY
-
-    if (!apiKey) {
-        return NextResponse.json(
-            { error: 'News API key not configured. Please add GNEWS_API_KEY to your environment variables.' },
-            { status: 500 }
-        )
-    }
+    const parser = new Parser({
+        customFields: {
+            item: [
+                ['media:content', 'media:content'],
+                ['enclosure', 'enclosure'],
+            ],
+        },
+    })
 
     try {
-        // GNews API - works in production on free tier (100 requests/day)
-        // Query for mortgage and real estate industry news
-        const query = encodeURIComponent('mortgage OR real estate OR housing market')
-        const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&country=us&max=12&apikey=${apiKey}`
-
-        const res = await fetch(url, {
-            next: { revalidate: 3600 }
+        // Fetch all RSS feeds in parallel
+        const feedPromises = RSS_FEEDS.map(async (feed) => {
+            try {
+                const parsed = await parser.parseURL(feed.url)
+                return parsed.items.map((item: FeedItem) => ({
+                    source: feed.name,
+                    title: item.title || 'Untitled',
+                    description: item.contentSnippet?.slice(0, 200) || item.content?.slice(0, 200) || null,
+                    url: item.link || '',
+                    image: item.enclosure?.url || item['media:content']?.$?.url || null,
+                    publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
+                }))
+            } catch (error) {
+                console.warn(`Failed to fetch RSS feed from ${feed.name}:`, error)
+                return [] // Return empty array if a feed fails, don't break the whole thing
+            }
         })
 
-        if (!res.ok) {
-            const errorData = await res.json()
-            console.error('GNews API Error:', errorData)
+        const feedResults = await Promise.all(feedPromises)
+
+        // Combine all articles and sort by date (newest first)
+        const allArticles: ParsedArticle[] = feedResults
+            .flat()
+            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+            .slice(0, 15) // Limit to 15 most recent articles
+
+        if (allArticles.length === 0) {
             return NextResponse.json(
-                { error: 'Failed to fetch news from provider' },
-                { status: res.status }
+                { error: 'Unable to fetch news from any source. Please try again later.' },
+                { status: 503 }
             )
         }
 
-        const data = await res.json()
-
-        // Transform GNews response to our standard format
-        const articles = (data.articles || []).map((article: GNewsArticle) => ({
-            source: article.source?.name || 'Unknown Source',
-            title: article.title,
-            description: article.description,
-            url: article.url,
-            image: article.image,
-            publishedAt: article.publishedAt,
-        }))
-
-        return NextResponse.json({ articles }, { status: 200 })
+        return NextResponse.json({ articles: allArticles }, { status: 200 })
     } catch (error) {
-        console.error('Industry News API Error:', error)
+        console.error('Industry News RSS Error:', error)
         return NextResponse.json(
             { error: 'An unexpected error occurred while fetching news' },
             { status: 500 }
