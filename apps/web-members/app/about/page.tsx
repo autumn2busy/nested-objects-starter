@@ -43,24 +43,19 @@ const milestoneStats = [
 
 const teamHighlights = [
   {
-    name: 'Jordan Avery',
-    role: 'Founder & Product Lead',
+    name: 'Autumn Williams',
+    role: 'Founder & AI Architect',
     focus:
-      'Former field coordinator who built dispatch systems and training for national property inspection teams. Obsessed with clarity and reliability.',
+      'Former field inspector with 15 years of experience. Built AI-driven tech stacks for enterprise clients and large franchise member hubs to modernize the industry from the inside out.',
   },
   {
-    name: 'Priya Mehta',
-    role: 'AI Systems Strategist',
+    name: 'Kye Gibson',
+    role: 'Systems & Security',
     focus:
-      'Designs the intelligence layer that keeps our recommendations grounded in verified firm data and safe operating practices.',
-  },
-  {
-    name: 'Miguel Santos',
-    role: 'Member Success',
-    focus:
-      'Guides inspectors and coordinators through onboarding, plan selection, and best practices for faster approvals.',
+      'Oversees the secure, scalable infrastructure that safeguards member data. Ensures 24/7 reliability for field teams utilizing our AI and dispatch tools.',
   },
 ]
+
 
 const faqItems = [
   {
@@ -290,40 +285,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="border-b border-brand-mist bg-brand-sand">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="max-w-2xl space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-copper">Execution framework</p>
-                <h2 className="text-2xl font-bold leading-snug sm:text-3xl">Precision, transparency, and pace.</h2>
-                <p className="text-base text-brand-slate">
-                  Every feature is measured against how quickly you can accept, route, and deliver work. We keep interfaces sharp,
-                  language plain, and data transparent so you can trust every next step.
-                </p>
-              </div>
-              <Link
-                href="/contact"
-                className="border border-brand-dark px-5 py-3 text-sm font-semibold uppercase tracking-[0.22em] text-brand-dark transition hover:bg-brand-dark hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal"
-              >
-                Book a strategy call
-              </Link>
-            </div>
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {['Structured data for fast indexing', 'Local-first targeting for inspectors', 'Accessibility and contrast by default'].map((item) => (
-                <article key={item} className="border border-brand-mist bg-white px-4 py-5" aria-label={item}>
-                  <h3 className="text-sm font-semibold text-brand-dark">{item}</h3>
-                  <p className="mt-2 text-sm text-brand-slate">
-                    {item === 'Structured data for fast indexing'
-                      ? 'Semantic markup, FAQ schema, and canonical links built into every page so your services surface in search.'
-                      : item === 'Local-first targeting for inspectors'
-                        ? 'Geo-aware descriptions, Open Graph tuning, and internal linking to the directory to capture local intent.'
-                        : 'WCAG AA color contrast, keyboard-friendly navigation, and clear focus states on every interactive element.'}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+
 
         <section className="border-b border-brand-mist bg-white">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
