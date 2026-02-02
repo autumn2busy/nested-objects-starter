@@ -92,11 +92,11 @@ export default function RootLayout({
                 `,
               }}
             />
-            <Script
-              id="outseta-script"
+            {/* Use raw script tag with defer to ensure it runs AFTER o_options is defined */}
+            <script
               src="https://cdn.outseta.com/outseta.min.js"
-              strategy="afterInteractive"
               data-options="o_options"
+              defer
             />
           </>
         )}
