@@ -1,3 +1,5 @@
+import { generatePageMetadata, getFAQPageSchema } from '@/lib/seo'
+
 import type { Metadata } from 'next'
 
 const faqItems = [
@@ -40,41 +42,15 @@ const quickLinks = [
   { href: '/contact', label: 'Contact support' },
 ]
 
-export const metadata: Metadata = {
+export const metadata: Metadata = generatePageMetadata({
   title: 'FAQs | Policies, billing, and membership at Nested Objects',
-  description:
-    'Find answers about memberships, non-refundable digital goods, no resale rules, and privacy practices aligned with member.nestedobjects.com.',
-  alternates: {
-    canonical: 'https://nested-objects-starter.vercel.app/faqs',
-  },
-  openGraph: {
-    type: 'article',
-    url: 'https://nested-objects-starter.vercel.app/faqs',
-    title: 'FAQs | Policies, billing, and membership at Nested Objects',
-    description:
-      'Frequently asked questions covering billing, no-refund digital goods, no resale rules, and how Nested Objects protects member data.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'FAQs | Policies, billing, and membership at Nested Objects',
-    description:
-      'Answers to common policy, billing, and compliance questions for Nested Objects members.',
-  },
-}
+  description: 'Find answers about memberships, non-refundable digital goods, no resale rules, and privacy practices aligned with member.nestedobjects.com.',
+  path: '/faqs'
+});
 
 export default function FAQsPage() {
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map((item) => ({
-      '@type': 'Question',
-      name: item.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.answer,
-      },
-    })),
-  }
+  const faqSchema = getFAQPageSchema(faqItems);
+
 
   return (
     <main className="bg-brand-sand text-brand-dark">

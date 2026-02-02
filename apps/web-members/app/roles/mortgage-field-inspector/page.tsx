@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { generatePageMetadata } from '@/lib/seo'
+
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -33,10 +35,11 @@ const playbook = [
   { title: 'Submit', detail: 'Upload with checklists, auto-summaries, and confirmations on payout timelines.' },
 ]
 
-export const metadata: Metadata = {
-  title: 'Mortgage field inspector | Nested Objects',
-  description: 'Stat-strip hero, lender expectation columns, and playbook timeline for mortgage field inspectors.',
-}
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Mortgage Field Inspector Roles | Nested Objects',
+  description: 'Deliver lender-ready property inspections with our field guide. Includes checklist for insurance photos, occupancy checks, and rush orders.',
+  path: '/roles/mortgage-field-inspector',
+})
 
 export default function MortgageFieldInspectorPage() {
   return (

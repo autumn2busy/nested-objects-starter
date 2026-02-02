@@ -5,6 +5,13 @@ import { AuthProvider } from '@/components/auth-provider'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { cn } from '@/lib/utils'
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_DESCRIPTION,
+  getOrganizationSchema,
+  getWebSiteSchema
+} from '@/lib/seo'
 import '../styles/globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -17,13 +24,12 @@ const plusJakarta = Plus_Jakarta_Sans({
 const contentContainerClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nested-objects-starter.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
-    template: '%s | Nested Objects',
+    default: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals. Find verified firms and get hired.',
+  description: SITE_DESCRIPTION,
   keywords: [
     'Mortgage Field Inspection services',
     'Independent Field Inspector near me',
@@ -38,17 +44,15 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: 'website',
-    url: 'https://nested-objects-starter.vercel.app',
-    title: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
-    description:
-      'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.',
-    siteName: 'Nested Objects',
+    url: SITE_URL,
+    title: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nested Objects | Field Inspection, Notary & Appraisal Hub',
-    description:
-      'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.',
+    title: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    description: SITE_DESCRIPTION,
   },
 }
 
@@ -57,11 +61,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Global structured data schemas
+  const organizationSchema = getOrganizationSchema()
+  const webSiteSchema = getWebSiteSchema()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Outseta install snippet */}
-        {/* Outseta install snippet - Only load in production or if explicitly enabled to prevent local redirects */}
+        {/* Global Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+
+        {/* Outseta install snippet - Only load in production or if explicitly enabled */}
         {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
           <>
             <Script id="outseta-config" strategy="beforeInteractive">
@@ -83,10 +100,18 @@ export default function RootLayout({
         )}
       </head>
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
+        {/* Skip Link for Accessibility (WCAG 2.4.1) */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-brand-copper focus:px-4 focus:py-2 focus:text-white focus:rounded-md focus:outline-none"
+        >
+          Skip to main content
+        </a>
+
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
             <SiteHeader containerClassName={contentContainerClass} />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">{children}</main>
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
         </AuthProvider>
@@ -94,3 +119,4 @@ export default function RootLayout({
     </html>
   )
 }
+

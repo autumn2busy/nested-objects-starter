@@ -2,11 +2,14 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { IndustryNews } from '@/components/IndustryNews'
 import { Newspaper, ArrowLeft } from 'lucide-react'
+import { generatePageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = {
-    title: 'Industry News | Mortgage & Field Inspection Updates',
-    description:
-        'Stay updated with the latest mortgage industry news, real estate market trends, and field inspection updates. Curated daily for Nested Objects members.',
+    ...generatePageMetadata({
+        title: 'Industry News | Mortgage & Field Inspection Updates',
+        description: 'Stay updated with the latest mortgage industry news, real estate market trends, and field inspection updates. Curated daily for Nested Objects members.',
+        path: '/resources/industry-news',
+    }),
     keywords: [
         'mortgage industry news',
         'field inspection updates',
@@ -15,6 +18,7 @@ export const metadata: Metadata = {
         'property inspection news',
     ],
 }
+
 
 export default function IndustryNewsPage() {
     return (

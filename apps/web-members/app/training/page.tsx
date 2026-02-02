@@ -1,8 +1,17 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import { Shield, BookOpen, ChevronRight, Award, Lock, Star } from 'lucide-react';
+import { generatePageMetadata, getCourseSchema, SITE_NAME } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = generatePageMetadata({
+    title: 'Training Center | Professional Certification Courses',
+    description: 'Master mortgage field services, property inspections, and preservation through enterprise-grade curriculum. Free and premium courses for inspectors, notaries, and appraisers.',
+    path: '/training',
+});
+
 
 export default async function TrainingPage() {
     const supabase = createClient();
@@ -13,11 +22,22 @@ export default async function TrainingPage() {
         .select('*')
         .order('module_number');
 
+    // Generate Course Schema
+    const courseSchemas = modules?.map(module => getCourseSchema({
+        name: module.title,
+        description: module.description,
+        provider: SITE_NAME
+    })) || [];
+
     // Fetch User Progress (Optional: simpler to just show "Start" for now, or fetch if needed)
     // For now we'll keep it simple and scalable.
 
     return (
         <div className="min-h-screen bg-slate-50">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchemas) }}
+            />
             <header className="bg-slate-900 text-white py-12 border-b border-slate-800">
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="flex items-center gap-2 text-brand-copper font-bold uppercase tracking-wider text-xs mb-4">

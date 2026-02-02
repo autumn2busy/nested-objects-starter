@@ -1,6 +1,12 @@
-'use client'
-
 import Link from 'next/link'
+import { generatePageMetadata, SITE_NAME } from '@/lib/seo'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Resources | Field Inspection Guides & Industry News',
+  description: 'Access route readiness guides, firm intel, training modules, and industry news. The complete knowledge base for field service professionals.',
+  path: '/resources',
+})
 
 const resourceHighlights = [
   {

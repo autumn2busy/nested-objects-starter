@@ -1,6 +1,13 @@
-'use client'
-
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Contact Us | Member Support & Partnerships',
+  description: 'Get support for your account, discuss partnerships, or reach out to our media team. We respond within one business day.',
+  path: '/contact',
+})
+
 
 const contactChannels = [
   {

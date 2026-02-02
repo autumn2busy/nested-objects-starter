@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
 import { FirmMap } from '@/components/FirmMap'
+import { generatePageMetadata, getLocalBusinessSchema } from '@/lib/seo'
+
 
 // Development SSL fix
 if (process.env.NODE_ENV === 'development') {
@@ -98,29 +100,15 @@ export async function generateMetadata({
   params: { slug: string }
 }) {
   const firm = await getFirmBySlug(params.slug)
+  if (!firm) return {}
 
-  if (!firm) {
-    return {
-      title: 'Firm not found . Nested Objects',
-      description: 'The firm you are looking for could not be found.',
-    }
-  }
-
-  const pay = formatPay(firm)
-
-  return {
-    title: `${firm.name} . Hiring firm snapshot`,
-    description:
-      firm.description ||
-      `Snapshot of ${firm.name}. coverage ${firm.geographic_coverage || 'field inspections'}. roles, pay and vendor signup info for inspectors.`,
-    openGraph: {
-      title: `${firm.name} . Hiring firm snapshot`,
-      description:
-        firm.description ||
-        `Learn about ${firm.name}. coverage, services and pay for field service vendors.`,
-      url: `https://nested-objects-starter.vercel.app/firms/${firm.slug}`,
-    },
-  }
+  return generatePageMetadata({
+    title: `${firm.name} | Hiring Firm Profile`,
+    description: firm.description || `Snapshot of ${firm.name}. Coverage: ${firm.geographic_coverage || 'National'}. Roles, pay, and vendor signup details.`,
+    path: `/firms/${firm.slug}`,
+    type: 'profile',
+    image: firm.logo_url || undefined
+  })
 }
 
 export default async function FirmDetailPage({
@@ -129,55 +117,42 @@ export default async function FirmDetailPage({
   params: { slug: string }
 }) {
   const firm = await getFirmBySlug(params.slug)
-
-  if (!firm) {
-    notFound()
-  }
+  if (!firm) notFound()
 
   const pay = formatPay(firm)
+  const fullAddress = buildAddress(firm)
+
+  const latitude = firm.latitude ?? undefined
+  const longitude = firm.longitude ?? undefined
+
+  // Generate LocalBusiness Schema
+  const jsonLd = getLocalBusinessSchema({
+    name: firm.name,
+    description: firm.description || '',
+    url: firm.url || '',
+    logo: firm.logo_url || '',
+    telephone: firm.phone || '',
+    email: firm.email || '',
+    address: {
+      streetAddress: firm.address || '',
+      addressLocality: '', // Parse if available, else empty
+      addressRegion: '',
+      postalCode: '',
+      addressCountry: 'US'
+    },
+    geo: (latitude && longitude) ? { latitude, longitude } : undefined,
+    areaServed: firm.geographic_coverage || undefined,
+    priceRange: formatPay(firm) || undefined
+  })
+
+  // ... rest of formatting logic
   const contactHref =
     firm.vendor_page_url ||
     (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry for ${firm.name}`)}` : null) ||
     (firm.phone ? `tel:${firm.phone}` : null)
-  const fullAddress = buildAddress(firm)
-  const latitude = firm.latitude ?? null
-  const longitude = firm.longitude ?? null
-  const hasCoordinates = latitude !== null && longitude !== null
-  const coordinateQuery = hasCoordinates ? `${latitude},${longitude}` : null
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: firm.name,
-    url: firm.url,
-    description: firm.description,
-    areaServed: firm.geographic_coverage,
-    address: fullAddress
-      ? {
-        '@type': 'PostalAddress',
-        streetAddress: firm.address || undefined,
-      }
-      : undefined,
-    contactPoint:
-      firm.phone || firm.email
-        ? [
-          {
-            '@type': 'ContactPoint',
-            telephone: firm.phone || undefined,
-            email: firm.email || undefined,
-            contactType: 'vendor inquiries',
-          },
-        ]
-        : undefined,
-    geo:
-      hasCoordinates && latitude !== null && longitude !== null
-        ? {
-          '@type': 'GeoCoordinates',
-          latitude,
-          longitude,
-        }
-        : undefined,
-  }
+  const hasCoordinates = !!(latitude && longitude)
+  const coordinateQuery = hasCoordinates ? `${latitude},${longitude}` : null
 
   const googleMapsCoordinateUrl = coordinateQuery
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinateQuery)}`
@@ -201,6 +176,7 @@ export default async function FirmDetailPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
 
       {/* crumb and links */}
       <div
