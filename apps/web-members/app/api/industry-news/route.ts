@@ -2,30 +2,34 @@ import { NextResponse } from 'next/server'
 
 export const revalidate = 3600 // Cache for 1 hour (ISR)
 
-interface NewsArticle {
-    source: { name: string }
-    author: string | null
+interface GNewsArticle {
     title: string
-    description: string | null
+    description: string
     url: string
-    urlToImage: string | null
+    image: string | null
     publishedAt: string
+    source: {
+        name: string
+        url: string
+    }
 }
 
 export async function GET() {
-    const apiKey = process.env.NEWSAPI_KEY
+    // Support both GNEWS_API_KEY and legacy NEWSAPI_KEY
+    const apiKey = process.env.GNEWS_API_KEY || process.env.NEWSAPI_KEY
 
     if (!apiKey) {
         return NextResponse.json(
-            { error: 'News API key not configured. Please add NEWSAPI_KEY to your environment variables.' },
+            { error: 'News API key not configured. Please add GNEWS_API_KEY to your environment variables.' },
             { status: 500 }
         )
     }
 
     try {
+        // GNews API - works in production on free tier (100 requests/day)
         // Query for mortgage and real estate industry news
-        const query = encodeURIComponent('mortgage OR "field inspection" OR "real estate market" OR "housing industry"')
-        const url = `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=12&apiKey=${apiKey}`
+        const query = encodeURIComponent('mortgage OR real estate OR housing market')
+        const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&country=us&max=12&apikey=${apiKey}`
 
         const res = await fetch(url, {
             next: { revalidate: 3600 }
@@ -33,7 +37,7 @@ export async function GET() {
 
         if (!res.ok) {
             const errorData = await res.json()
-            console.error('NewsAPI Error:', errorData)
+            console.error('GNews API Error:', errorData)
             return NextResponse.json(
                 { error: 'Failed to fetch news from provider' },
                 { status: res.status }
@@ -42,13 +46,13 @@ export async function GET() {
 
         const data = await res.json()
 
-        // Transform and sanitize the response
-        const articles = (data.articles || []).map((article: NewsArticle) => ({
+        // Transform GNews response to our standard format
+        const articles = (data.articles || []).map((article: GNewsArticle) => ({
             source: article.source?.name || 'Unknown Source',
             title: article.title,
             description: article.description,
             url: article.url,
-            image: article.urlToImage,
+            image: article.image,
             publishedAt: article.publishedAt,
         }))
 
