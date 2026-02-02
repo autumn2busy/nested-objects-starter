@@ -81,15 +81,17 @@ export default function RootLayout({
         {/* Outseta install snippet - Only load in production or if explicitly enabled */}
         {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
           <>
-            <Script id="outseta-config" strategy="beforeInteractive">
-              {`
-                window.o_options = {
-                  domain: 'nested-objects.outseta.com',
-                  load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
-                  tokenStorage: 'local'
-                };
-              `}
-            </Script>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.o_options = {
+                    domain: 'nested-objects.outseta.com',
+                    load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
+                    tokenStorage: 'local'
+                  };
+                `,
+              }}
+            />
             <Script
               id="outseta-script"
               src="https://cdn.outseta.com/outseta.min.js"
