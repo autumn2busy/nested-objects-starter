@@ -19,7 +19,8 @@ const footerSections = [
     links: [
       { href: '/resources/firm-intel', label: 'Firm intel' },
       { href: '/resources', label: 'Learning hub' },
-      { href: '/resources/checklists', label: 'Checklists' },
+      { href: '/resources/readiness-guides', label: 'Readiness guides' },
+      { href: '/resources/industry-news', label: 'Industry news' },
     ],
   },
   {

@@ -17,6 +17,7 @@ const navLinks = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/directory', label: 'Directory' },
   { href: '/jobs', label: 'Jobs' },
+  { href: '/training', label: 'Training' },
   { href: '/tools', label: 'AI tools' },
   { href: '/resources', label: 'Resources' },
   { href: '/membership', label: 'Membership' },
