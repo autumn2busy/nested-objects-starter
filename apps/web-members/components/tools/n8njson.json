@@ -1,5 +1,5 @@
 {
-    "name": "AI Resume Builder (Parse + Generate)",
+    "name": "AI Resume Parser (Groq)",
     "nodes": [
         {
             "parameters": {
@@ -8,13 +8,13 @@
                 "responseMode": "responseNode",
                 "options": {}
             },
-            "id": "4c27f775-093e-4169-bd80-19181de5c35e",
+            "id": "12b534e5-adfd-4ad6-9736-21fb8cb1bc02",
             "name": "Webhook Trigger",
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 1.1,
             "position": [
-                3264,
-                2112
+                9040,
+                8544
             ],
             "webhookId": "ai-resume-builder"
         },
@@ -22,13 +22,13 @@
             "parameters": {
                 "jsCode": "// ============================================\n// ROUTE: Determine request type and validate JWT\n// ============================================\nconst body = $input.item.json.body;\n\nif (!body.jwt) {\n  return [{ json: { error: 'Missing JWT token', valid: false, request_type: 'unknown' } }];\n}\n\nconst request_type = body.request_type || 'generate';\n\n// Validate based on request type\nif (request_type === 'parse') {\n  if (!body.fileData || !body.fileName || !body.fileType) {\n    return [{ json: { error: 'Missing file data for parse request', valid: false, request_type } }];\n  }\n} else if (request_type === 'generate') {\n  if (!body.resume_data) {\n    return [{ json: { error: 'Missing resume_data for generate request', valid: false, request_type } }];\n  }\n}\n\ntry {\n  // Decode Outseta JWT\n  const jwt = body.jwt;\n  const parts = jwt.split('.');\n  \n  // Base64 decode fix for some environments\n  const base64Url = parts[1];\n  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');\n  const payload = JSON.parse(Buffer.from(base64, 'base64').toString());\n  \n  // Extract User & Plan Info (Outseta Custom Claims)\n  // 'sub' is the User UID\n  // 'outseta:planUid' is the Plan UID\n  const userId = payload.sub; \n  const outsetaUid = payload.sub; // User UID for usage tracking\n  const planUid = payload['outseta:planUid'];\n  const accountUid = payload['outseta:accountUid'];\n\n  // PLAN MAPPING\n  // Map Outseta Plan UIDs to the tier names expected by the logic\n  const planMap = {\n     'zWZD0rQp': 'starter',\n     'rQVqlLm6': 'pro',\n     'NmdnNO90': 'elite',\n     'rmk5Xk9g': 'agency',\n     'L9nbKV9Z': 'free'\n  };\n\n  // Determine Tier\n  let tier = 'free';\n  if (planUid && planMap[planUid]) {\n    tier = planMap[planUid];\n  } else if (payload.Account?.SubscriptionPlan?.Uid) {\n     // Fallback for legacy/standard structure if different\n     const legacyUid = payload.Account.SubscriptionPlan.Uid.toLowerCase();\n     if (legacyUid.includes('agency')) tier = 'agency';\n     else if (legacyUid.includes('elite')) tier = 'elite';\n     else if (legacyUid.includes('pro')) tier = 'pro';\n     else if (legacyUid.includes('starter')) tier = 'starter';\n  }\n  \n  return [{ \n    json: {\n      valid: true,\n      request_type: request_type,\n      user_id: userId,\n      outseta_uid: outsetaUid,\n      account_uid: accountUid,\n      plan_uid: planUid,\n      tier: tier,\n      // Parse fields\n      fileData: body.fileData || null,\n      fileName: body.fileName || null,\n      fileType: body.fileType || null,\n      fileSizeBytes: body.fileSizeBytes || 0,\n      // Generate fields\n      resume_data: body.resume_data || null\n    }\n  }];\n} catch (error) {\n  return [{ json: { error: 'Invalid JWT: ' + error.message, valid: false, request_type } }];\n}\n"
             },
-            "id": "ca5698e1-49c9-4f40-b318-543b7eaf6425",
+            "id": "99500ed4-cfe5-4283-9346-11e0c8f93e2e",
             "name": "Validate & Decode JWT",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                3488,
-                2112
+                9264,
+                8544
             ]
         },
         {
@@ -42,13 +42,13 @@
                     ]
                 }
             },
-            "id": "582a253a-6401-4359-9ec1-01fc861042b9",
+            "id": "fb64632b-601e-408c-ab7b-8efffb71dc2c",
             "name": "Is Valid?",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                3712,
-                2112
+                9488,
+                8544
             ]
         },
         {
@@ -59,13 +59,13 @@
                     "responseCode": 400
                 }
             },
-            "id": "b35c3e04-aa20-4eb8-9626-8f2d79bf68ab",
+            "id": "662b7ffb-f229-4c8b-99d6-e5e24b2c068d",
             "name": "Return Error - Invalid",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                3920,
-                1952
+                9696,
+                8384
             ]
         },
         {
@@ -79,26 +79,26 @@
                     ]
                 }
             },
-            "id": "84ae6344-83ea-431c-b985-4e6669fbac0b",
+            "id": "9e212b12-60a7-4ee2-8e79-7102d2cebb5c",
             "name": "Is Parse or Generate?",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                3920,
-                2224
+                9696,
+                8656
             ]
         },
         {
             "parameters": {
                 "jsCode": "// ============================================\n// EXTRACT TEXT FROM UPLOADED FILE\n// Works in n8n cloud and self-hosted\n// No external dependencies required\n// ============================================\nconst data = $input.first().json;\nconst fileData = data.fileData;\nconst fileName = data.fileName;\nconst fileType = data.fileType;\n\nconsole.log(`Processing file: ${fileName} (${fileType})`);\n\nlet extractedText = '';\nlet extractionMethod = '';\n\ntry {\n  // Decode base64 to buffer\n  const buffer = Buffer.from(fileData, 'base64');\n  \n  if (fileType === 'text/plain') {\n    // ---- TXT: direct decode ----\n    extractedText = buffer.toString('utf-8');\n    extractionMethod = 'text';\n    \n  } else if (fileType === 'application/pdf') {\n    // ---- PDF: extract text from PDF structure ----\n    const pdfContent = buffer.toString('binary'); // Keep as binary string\n    \n    // Method 1: Standard PDF Text Extraction (Aggressive Regex)\n    // Loops through all BT/ET (Begin Text / End Text) blocks\n    // Captures text inside parens (...) or brackets [...]\n    \n    const textChunks = [];\n    const blocks = pdfContent.match(/BT[\\s\\S]*?ET/g) || [];\n    \n    if (blocks.length > 0) {\n      for (const block of blocks) {\n        // Match standard text strings (e.g. (Hello World) Tj)\n        // Also handling escaped parens \\( \\) inside the string\n        const standardMatches = block.match(/\\((?:[^(\\\\]|\\\\.)*\\)\\s*Tj/g) || [];\n        for (const match of standardMatches) {\n           const raw = match.replace(/\\((.*)\\)\\s*Tj/, '$1');\n           textChunks.push(raw);\n        }\n        \n        // Match array text strings (e.g. [(Hello) -20 (World)] TJ)\n        const arrayMatches = block.match(/\\[((?:[^\\]]|\\\\.)*)\\]\\s*TJ/g) || [];\n        for (const match of arrayMatches) {\n           const content = match.replace(/\\[((.*))\\]\\s*TJ/, '$1');\n           // Extract parts inside parens from the array\n           const parts = content.match(/\\((?:[^(\\\\]|\\\\.)*\\)/g) || [];\n           for (const p of parts) {\n             textChunks.push(p.slice(1, -1));\n           }\n        }\n      }\n      extractionMethod = 'pdf-regex-structure';\n    } \n    \n    // Method 2: Raw content fallback (if structure extraction yields too little)\n    // Some PDFs use compression streams (FlateDecode) for text, which we can't easily inflate \n    // without libraries. However, some have uncompressed text objects.\n    \n    if (textChunks.length < 5) {\n        // Fallback: Look for any string-like patterns in the entire file\n        // e.g. (Resume) (Experience)\n        const rawMatches = pdfContent.match(/\\(([A-Za-z0-9\\s,.\\-@]{4,})\\)/g) || [];\n        for (const m of rawMatches) {\n            textChunks.push(m.slice(1, -1));\n        }\n        if (textChunks.length > 0) extractionMethod += '+fallback-raw';\n    }\n\n    // Clean up extracted chunks\n    extractedText = textChunks\n      .map(t => t\n        .replace(/\\\\n/g, '\\n')\n        .replace(/\\\\r/g, '')\n        .replace(/\\\\t/g, ' ')\n        .replace(/\\\\\\(/g, '(')\n        .replace(/\\\\\\)/g, ')')\n        .replace(/\\\\\\\\/g, '\\\\')\n      )\n      .join(' ')\n      .replace(/\\s+/g, ' ')\n      .trim();\n      \n  } else if (\n    fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||\n    fileType === 'application/msword'\n  ) {\n    // ---- DOCX: extract from ZIP using built-in zlib ----\n    const zlib = require('zlib');\n    \n    let offset = 0;\n    \n    // Parse ZIP local file headers\n    while (offset < buffer.length - 4) {\n      if (buffer[offset] === 0x50 && buffer[offset+1] === 0x4B && \n          buffer[offset+2] === 0x03 && buffer[offset+3] === 0x04) {\n        \n        const compressionMethod = buffer.readUInt16LE(offset + 8);\n        const compressedSize = buffer.readUInt32LE(offset + 18);\n        const fileNameLength = buffer.readUInt16LE(offset + 26);\n        const extraLength = buffer.readUInt16LE(offset + 28);\n        const entryName = buffer.toString('utf-8', offset + 30, offset + 30 + fileNameLength);\n        \n        const dataStart = offset + 30 + fileNameLength + extraLength;\n        const dataEnd = dataStart + compressedSize;\n        \n        if (entryName === 'word/document.xml' && dataEnd <= buffer.length) {\n          const compressedData = buffer.slice(dataStart, dataEnd);\n          let xmlContent;\n          \n          if (compressionMethod === 8) { // Deflated\n            try {\n              xmlContent = zlib.inflateRawSync(compressedData).toString('utf-8');\n            } catch (e) {\n               try { xmlContent = zlib.inflateSync(compressedData).toString('utf-8'); } catch (e2) {}\n            }\n          } else {\n            xmlContent = compressedData.toString('utf-8');\n          }\n          \n          if (xmlContent) {\n            extractedText = xmlContent\n              .replace(/<w:p[^>]*>/g, '\\n')\n              .replace(/<w:tab\\/>/g, '\\t')\n              .replace(/<[^>]+>/g, '')\n              .replace(/&amp;/g, '&')\n              .replace(/&lt;/g, '<')\n              .replace(/&gt;/g, '>')\n              .replace(/&quot;/g, '\"')\n              .replace(/\\n{3,}/g, '\\n\\n')\n              .trim();\n            extractionMethod = 'docx-zip';\n            break;\n          }\n        }\n        offset = dataEnd;\n      } else {\n        offset++;\n      }\n    }\n  } \n  \n} catch (error) {\n  console.error('Extraction error:', error.message);\n}\n\n// ---- CRITICAL FALLBACK FOR PDF/DOCX PARSING FAILURES ----\n// If the regex/zip parsing failed (common with optimized PDFs or weird DOCX),\n// we return a special flag to tell the AI that it needs to accept \"Raw Base64\" \n// (or that we failed nicely). \n// Since we can't use libraries, if extractedText is still empty/short,\n// we will try one last \"Low Quality\" ascii dump of the buffer.\n\nif (extractedText.length < 50) {\n    const buffer = Buffer.from(fileData, 'base64');\n    // Sanitize to only printable ASCII + whitespace\n    const rawDump = buffer.toString('utf-8').replace(/[^\\x20-\\x7E\\n\\r\\t]/g, '');\n    \n    // Check if the raw dump looks like it has content (naive check)\n    if (rawDump.length > 200) {\n        extractedText = \"WARNING: PDF/DOCX structure parsing failed. content extracted from raw stream:\\n\\n\" + rawDump.slice(0, 15000); // Limit size\n        extractionMethod += '+last-resort-raw-ascii';\n    }\n}\n\nreturn [{\n  json: {\n    extraction_failed: extractedText.length < 20, // Only fail if practically empty\n    extractedText: extractedText || \"No text could be extracted.\",\n    extractionMethod: extractionMethod,\n    fileName: fileName,\n    fileType: fileType,\n    textLength: extractedText.length,\n    user_id: data.user_id,\n    outseta_uid: data.outseta_uid,\n    tier: data.tier\n  }\n}];\n"
             },
-            "id": "3e1438b8-b858-439a-b74f-42420d8f2055",
+            "id": "7bb81f20-9f87-4e9a-88b4-b98e8c0ccbf3",
             "name": "Extract Text from File",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                4144,
-                2032
+                9920,
+                8464
             ]
         },
         {
@@ -112,13 +112,13 @@
                     ]
                 }
             },
-            "id": "8f489ef4-af06-4f10-a9ff-158c6c3627a3",
+            "id": "d782c1c1-b274-4b1a-bd43-cf44e58f3942",
             "name": "Extraction OK?",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                4368,
-                2032
+                10144,
+                8464
             ]
         },
         {
@@ -129,66 +129,26 @@
                     "responseCode": 422
                 }
             },
-            "id": "b19e00c4-27db-4443-a452-541bd13bcae5",
+            "id": "dba6dd7c-d598-4ce6-811a-cd531e26e60f",
             "name": "Return Error - Extraction",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                4592,
-                1872
+                10368,
+                8304
             ]
         },
         {
             "parameters": {
-                "jsCode": "// ============================================\n// BUILD PARSE PROMPT\n// Pre-serializes the Groq API body to avoid\n// n8n HTTP Request JSON escaping bugs\n// ============================================\nconst data = $input.first().json;\n\nconst systemPrompt = \"You are an expert resume parser and field services career advisor. You extract structured data from resumes and identify transferable skills for mortgage field services, property inspection, and property preservation roles. You always respond with valid JSON only. No markdown, no backticks, no explanation text.\";\n\nconst userMessage = \"RESUME TEXT (extracted from \" + data.fileName + \"):\\n---\\n\" + data.extractedText + \"\\n---\\n\\nAnalyze this resume and extract structured data. Return ONLY valid JSON with no markdown, no backticks, no explanation. The JSON must follow this exact structure:\\n\\n{\\n  \\\"contact\\\": {\\n    \\\"fullName\\\": \\\"string\\\",\\n    \\\"email\\\": \\\"string\\\",\\n    \\\"phone\\\": \\\"string\\\",\\n    \\\"city\\\": \\\"string\\\",\\n    \\\"state\\\": \\\"string\\\",\\n    \\\"zipCode\\\": \\\"string\\\",\\n    \\\"linkedin\\\": \\\"string or empty\\\",\\n    \\\"website\\\": \\\"string or empty\\\"\\n  },\\n  \\\"summary\\\": \\\"A 2-3 sentence professional summary rewritten for field services roles\\\",\\n  \\\"experience\\\": [\\n    {\\n      \\\"company\\\": \\\"string\\\",\\n      \\\"title\\\": \\\"string\\\",\\n      \\\"location\\\": \\\"string\\\",\\n      \\\"startDate\\\": \\\"YYYY-MM format\\\",\\n      \\\"endDate\\\": \\\"YYYY-MM format or empty if current\\\",\\n      \\\"current\\\": true,\\n      \\\"description\\\": \\\"string describing responsibilities\\\",\\n      \\\"bullets\\\": [\\\"achievement 1\\\", \\\"achievement 2\\\"]\\n    }\\n  ],\\n  \\\"education\\\": [\\n    {\\n      \\\"school\\\": \\\"string\\\",\\n      \\\"degree\\\": \\\"string\\\",\\n      \\\"field\\\": \\\"string\\\",\\n      \\\"graduationDate\\\": \\\"YYYY-MM format\\\"\\n    }\\n  ],\\n  \\\"certifications\\\": [\\n    {\\n      \\\"name\\\": \\\"string\\\",\\n      \\\"issuer\\\": \\\"string\\\",\\n      \\\"date\\\": \\\"YYYY-MM format\\\"\\n    }\\n  ],\\n  \\\"skills\\\": [\\\"skill1\\\", \\\"skill2\\\"],\\n  \\\"transferableSkills\\\": [\\\"skills that transfer to field services work\\\"],\\n  \\\"industryTermMappings\\\": [\\n    {\\n      \\\"original\\\": \\\"term from their resume\\\",\\n      \\\"fieldServices\\\": \\\"equivalent field services term\\\"\\n    }\\n  ],\\n  \\\"strengthAreas\\\": [\\\"areas where this candidate is strong for field services\\\"],\\n  \\\"improvementSuggestions\\\": [\\\"suggestions to strengthen their field services resume\\\"]\\n}\\n\\nIMPORTANT:\\n- Extract ALL contact info, work history, education, and certifications\\n- Identify transferable skills (driving, documentation, time management, customer service, compliance)\\n- Map experience terms to field services equivalents\\n- If resume shows inspection, real estate, property, or mortgage experience, highlight it\\n- Return ONLY the JSON object, no other text\";\n\n// Build the complete Groq request as a JS object\nconst groqBody = {\n  model: \"llama-3.3-70b-versatile\",\n  messages: [\n    { role: \"system\", content: systemPrompt },\n    { role: \"user\", content: userMessage }\n  ],\n  temperature: 0.3,\n  max_tokens: 4000,\n  response_format: { type: \"json_object\" }\n};\n\n// Stringify HERE — this is safe because JSON.stringify in a Code node\n// handles all escaping perfectly. The HTTP Request node will send\n// this string as-is without trying to parse it.\nreturn [{\n  json: {\n    user_id: data.user_id,\n    outseta_uid: data.outseta_uid,\n    tier: data.tier,\n    groq_body_string: JSON.stringify(groqBody)\n  }\n}];"
+                "jsCode": "// ============================================\n// PREPARE PARSE RESPONSE\n// Clean and return structured resume data\n// ============================================\n\n// 1. Get Groq Response (Input to this node)\nconst inputItem = $input.first().json;\nlet groqResponse;\n\ntry {\n  // Check for Buffer format (common in n8n HTTP requests)\n  // Screenshot showed structure: { \"buffer\": { \"type\": \"Buffer\", \"data\": [...] } }\n  const bufferObj = inputItem.buffer || inputItem.data;\n  \n  if (bufferObj && bufferObj.type === 'Buffer' && Array.isArray(bufferObj.data)) {\n      const rawBuffer = Buffer.from(bufferObj.data);\n      const decodedString = rawBuffer.toString('utf8');\n      groqResponse = JSON.parse(decodedString);\n  } else if (inputItem.choices) {\n      // It's already the parsed JSON object\n      groqResponse = inputItem;\n  } else {\n      // Fallback or unexpected format\n      console.warn('Unexpected input format:', JSON.stringify(inputItem).slice(0, 100));\n      groqResponse = inputItem; // Try using as-is or fail gracefully later\n  }\n} catch (err) {\n  console.error('Error decoding Groq response:', err.message);\n  groqResponse = {};\n}\n\n// 2. Get User Context (From upstream 'Build Groq Prompt')\nlet userData = {};\ntry {\n  userData = $('Build Groq Prompt').first().json;\n} catch (err) {\n  console.error('Error retrieving upstream data from Build Groq Prompt:', err.message);\n  // Fallback to avoid complete crash if upstream missing\n  userData = { \n    user_id: 'unknown', \n    outseta_uid: 'unknown', \n    tier: 'free' \n  };\n}\n\n// 3. Parse and Clean Content\nlet parsedData;\ntry {\n  const content = groqResponse.choices?.[0]?.message?.content || '{}';\n  // Strip markdown code fences if present\n  const cleaned = content.replace(/\\`\\`\\`json\\n?/g, '').replace(/\\`\\`\\`\\n?/g, '').trim();\n  parsedData = JSON.parse(cleaned);\n} catch (parseError) {\n  console.error('JSON parse error:', parseError.message);\n  parsedData = {\n    contact: {},\n    summary: '',\n    experience: [],\n    education: [],\n    certifications: [],\n    skills: [],\n    transferableSkills: [],\n    industryTermMappings: [],\n    strengthAreas: ['Resume uploaded but AI parsing returned unexpected format'],\n    improvementSuggestions: ['Please review and edit your information manually']\n  };\n}\n\n// 4. Build Result\nconst result = {\n  contact: parsedData.contact || {},\n  summary: parsedData.summary || '',\n  experience: parsedData.experience || [],\n  education: parsedData.education || [],\n  certifications: parsedData.certifications || [],\n  skills: parsedData.skills || [],\n  transferableSkills: parsedData.transferableSkills || [],\n  industryTermMappings: parsedData.industryTermMappings || [],\n  strengthAreas: parsedData.strengthAreas || [],\n  improvementSuggestions: parsedData.improvementSuggestions || [],\n  tokens_used: groqResponse.usage?.total_tokens || 0\n};\n\nreturn [{\n  json: {\n    ...result,\n    user_id: userData.user_id,\n    outseta_uid: userData.outseta_uid,\n    tier: userData.tier\n  }\n}];"
             },
-            "id": "89396aba-5802-48ec-a070-6cb83f2b952f",
-            "name": "Build Parse Prompt",
-            "type": "n8n-nodes-base.code",
-            "typeVersion": 2,
-            "position": [
-                5392,
-                2112
-            ]
-        },
-        {
-            "parameters": {
-                "method": "POST",
-                "url": "https://api.groq.com/openai/v1/chat/completions",
-                "authentication": "predefinedCredentialType",
-                "nodeCredentialType": "groqApi",
-                "sendBody": true,
-                "contentType": "raw",
-                "rawContentType": "application/json",
-                "body": "={{ $json.groq_body_string }}",
-                "options": {}
-            },
-            "id": "e6757d1a-8a90-4094-b912-fdf76cb2f262",
-            "name": "Call Groq AI (Parse)",
-            "type": "n8n-nodes-base.httpRequest",
-            "typeVersion": 4.1,
-            "position": [
-                5616,
-                2112
-            ],
-            "credentials": {
-                "groqApi": {
-                    "id": "qFg32H9JPGlwitUF",
-                    "name": "Groq API"
-                }
-            }
-        },
-        {
-            "parameters": {
-                "jsCode": "// ============================================\n// PREPARE PARSE RESPONSE\n// Clean and return structured resume data\n// ============================================\nconst groqResponse = $input.first().json;\nconst userData = $('Build Parse Prompt').first().json;\n\nlet parsedData;\ntry {\n  const content = groqResponse.choices?.[0]?.message?.content || '{}';\n  // Strip markdown code fences if present\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  parsedData = JSON.parse(cleaned);\n} catch (parseError) {\n  console.error('JSON parse error:', parseError.message);\n  // Return a minimal valid response so the frontend doesn't break\n  parsedData = {\n    contact: {},\n    summary: '',\n    experience: [],\n    education: [],\n    certifications: [],\n    skills: [],\n    transferableSkills: [],\n    industryTermMappings: [],\n    strengthAreas: ['Resume uploaded but AI parsing returned unexpected format'],\n    improvementSuggestions: ['Please review and edit your information manually']\n  };\n}\n\n// Ensure all required fields exist\nconst result = {\n  contact: parsedData.contact || {},\n  summary: parsedData.summary || '',\n  experience: parsedData.experience || [],\n  education: parsedData.education || [],\n  certifications: parsedData.certifications || [],\n  skills: parsedData.skills || [],\n  transferableSkills: parsedData.transferableSkills || [],\n  industryTermMappings: parsedData.industryTermMappings || [],\n  strengthAreas: parsedData.strengthAreas || [],\n  improvementSuggestions: parsedData.improvementSuggestions || [],\n  tokens_used: groqResponse.usage?.total_tokens || 0\n};\n\nreturn [{\n  json: {\n    ...result,\n    user_id: userData.user_id,\n    outseta_uid: userData.outseta_uid,\n    tier: userData.tier\n  }\n}];\n"
-            },
-            "id": "8ddfda92-fe66-40b0-8e67-934c96503825",
+            "id": "5f4e4341-ef7c-4358-a3c9-64323da9cc89",
             "name": "Prepare Parse Response",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                5840,
-                2112
+                11616,
+                8544
             ]
         },
         {
@@ -214,10 +174,10 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.3,
             "position": [
-                6064,
-                2112
+                11840,
+                8544
             ],
-            "id": "fbf30257-6b2d-4aaa-9d9c-d1a53743abdb",
+            "id": "b41c3c00-e55f-444f-a02b-5b53fe8fafd5",
             "name": "Log Parse Usage",
             "credentials": {
                 "supabaseApi": {
@@ -232,13 +192,13 @@
                 "responseBody": "={{ {\n  contact: $('Prepare Parse Response').first().json.contact,\n  summary: $('Prepare Parse Response').first().json.summary,\n  experience: $('Prepare Parse Response').first().json.experience,\n  education: $('Prepare Parse Response').first().json.education,\n  certifications: $('Prepare Parse Response').first().json.certifications,\n  skills: $('Prepare Parse Response').first().json.skills,\n  transferableSkills: $('Prepare Parse Response').first().json.transferableSkills,\n  industryTermMappings: $('Prepare Parse Response').first().json.industryTermMappings,\n  strengthAreas: $('Prepare Parse Response').first().json.strengthAreas,\n  improvementSuggestions: $('Prepare Parse Response').first().json.improvementSuggestions\n} }}",
                 "options": {}
             },
-            "id": "ae926e06-50ad-46dd-a6eb-37582694bb55",
+            "id": "ca7acfa6-5ec1-4c9e-ae80-22ed312fb182",
             "name": "Return Parse Success",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                6288,
-                2112
+                12064,
+                8544
             ]
         },
         {
@@ -255,10 +215,10 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.3,
             "position": [
-                4144,
-                2416
+                9920,
+                8848
             ],
-            "id": "69731995-24ca-4446-bfbe-52d33228f6a1",
+            "id": "247d22e1-e119-4bd3-9a19-dbc1a79363c6",
             "name": "Check Current Usage",
             "credentials": {
                 "supabaseApi": {
@@ -271,13 +231,13 @@
             "parameters": {
                 "jsCode": "// Tier limits for AI RESUME GENERATE\nconst limits = {\n  free: 0,\n  starter: 1,\n  pro: 10,\n  elite: 50,\n  agency: 999999\n};\n\nconst usageResponse = $input.first().json;\nconst callCount = parseInt(usageResponse.call_count || usageResponse.body?.call_count) || 0;\n\nconst userData = $('Validate & Decode JWT').first().json;\nconst tier = userData.tier;\n\nconst limit = limits[tier] || 0;\nconst allowed = callCount < limit;\n\nreturn [{\n  json: {\n    user_id: userData.user_id,\n    outseta_uid: userData.outseta_uid,\n    tier: tier,\n    resume_data: userData.resume_data,\n    call_count: callCount,\n    limit: limit,\n    remaining: Math.max(0, limit - callCount),\n    allowed: allowed\n  }\n}];"
             },
-            "id": "5a4182e3-dad1-47e5-a5ca-9d3ccd4936d3",
+            "id": "eb98e428-4036-42f0-a6f0-5c33c480c4a3",
             "name": "Calculate Quota",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                4368,
-                2416
+                10144,
+                8848
             ]
         },
         {
@@ -291,13 +251,13 @@
                     ]
                 }
             },
-            "id": "c8e1e9a1-a36d-4c27-9f54-de652ac57473",
+            "id": "ed4f339b-bc45-4cbe-a225-ecb7572163b2",
             "name": "Has Quota?",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                4592,
-                2416
+                10368,
+                8848
             ]
         },
         {
@@ -308,26 +268,26 @@
                     "responseCode": 429
                 }
             },
-            "id": "a0e46527-34eb-4636-b8ef-c807a48d0688",
+            "id": "a2bfec00-ead3-4d9e-9393-3bd20793467f",
             "name": "Return Error - Quota",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                4816,
-                2256
+                10592,
+                8688
             ]
         },
         {
             "parameters": {
                 "jsCode": "// ============================================\n// BUILD RESUME PROMPT\n// Pre-serializes the Groq API body to avoid\n// n8n HTTP Request JSON escaping bugs\n// ============================================\nconst data = $input.first().json;\nconst rd = data.resume_data;\n\nconst targetRoles = rd.target_roles.join(', ');\n\nlet experienceText = '';\nif (rd.experience && rd.experience.length > 0) {\n  experienceText = rd.experience.map(job => {\n    return `Job Title: ${job.title}\\nCompany: ${job.company}\\nLocation: ${job.location || 'N/A'}\\nDates: ${job.start_date} – ${job.end_date || 'Present'}\\nDescription: ${job.description || 'No description provided'}`;\n  }).join('\\n\\n');\n} else {\n  experienceText = 'No prior work experience provided.';\n}\n\nlet educationText = 'Not provided';\nif (rd.education && rd.education.length > 0) {\n  educationText = rd.education.map(edu => `${edu.degree} | ${edu.school} | ${edu.graduation_year || 'N/A'}`).join('\\n');\n}\n\nlet certsText = 'None listed';\nif (rd.certifications && rd.certifications.length > 0) {\n  certsText = rd.certifications.map(cert => `${cert.name} | ${cert.issuing_org} | ${cert.date || 'N/A'}`).join('\\n');\n}\n\nconst skillsText = rd.skills && rd.skills.length > 0 ? rd.skills.join(', ') : 'Not specified';\nconst equipmentText = rd.equipment && rd.equipment.length > 0 ? rd.equipment.join(', ') : 'Not specified';\n\nlet coverageText = 'Not specified';\nif (rd.coverage) {\n  const parts = [];\n  if (rd.coverage.travel_distance) parts.push(`Travel Distance: ${rd.coverage.travel_distance} miles`);\n  if (rd.coverage.counties) parts.push(`Counties: ${rd.coverage.counties}`);\n  if (rd.coverage.vehicle_type) parts.push(`Vehicle: ${rd.coverage.vehicle_type}`);\n  coverageText = parts.join('\\n');\n}\n\nlet availabilityText = 'Not specified';\nif (rd.availability && rd.availability.length > 0) {\n  availabilityText = rd.availability.join(', ');\n}\n\nconst userMessage = `TARGET ROLES:\\n${targetRoles}\\n\\nCONTACT INFORMATION:\\nName: ${rd.contact.name}\\nEmail: ${rd.contact.email}\\nPhone: ${rd.contact.phone}\\nCity: ${rd.contact.city || 'N/A'}\\nState: ${rd.contact.state || 'N/A'}\\nLinkedIn: ${rd.contact.linkedin || 'Not provided'}\\nWebsite: ${rd.contact.website || 'Not provided'}\\nProfessional Summary: ${rd.contact.summary || 'Not provided'}\\n\\nWORK EXPERIENCE:\\n${experienceText}\\n\\nEDUCATION:\\n${educationText}\\n\\nCERTIFICATIONS:\\n${certsText}\\n\\nSELECTED SKILLS:\\n${skillsText}\\n\\nEQUIPMENT OWNED:\\n${equipmentText}\\n\\nSERVICE COVERAGE:\\n${coverageText}\\n\\nAVAILABILITY:\\n${availabilityText}\\n\\nPlease generate a professional, ATS-optimized resume tailored for the selected target roles.`;\n\nconst systemPrompt = \"You are an expert resume writer specializing in mortgage field services and property inspection roles. You create professional, ATS-optimized resumes for field service workers.\\n\\nYour task:\\n1. Analyze the user's experience, target roles, and skills\\n2. Generate a modern, professional resume that emphasizes their qualifications for their selected target roles\\n3. Use industry-specific terminology and keywords\\n4. Highlight transferable skills and relevant experience\\n5. Incorporate their equipment ownership and service coverage as selling points\\n\\nFormat Requirements:\\n- Use clear section headers in ALL CAPS\\n- Start each bullet with strong action verbs\\n- Include quantifiable achievements where possible\\n- Optimize for ATS (Applicant Tracking Systems)\\n- Use mortgage services and property inspection industry terminology\\n\\nReturn the resume in this EXACT structure:\\n\\n[CONTACT INFORMATION]\\nName | Email | Phone | City, State\\nLinkedIn (if provided) | Website (if provided)\\n\\n[PROFESSIONAL SUMMARY]\\n2-3 sentences highlighting experience and alignment with target roles.\\n\\n[CORE COMPETENCIES]\\n8-12 competencies relevant to target roles.\\n\\n[PROFESSIONAL EXPERIENCE]\\nJob Title | Company Name | City, State | Start Date – End Date\\n3-5 achievement-focused bullet points per position.\\n\\n[EDUCATION]\\nDegree | School Name | Graduation Year\\n\\n[CERTIFICATIONS & TRAINING]\\nCertification Name | Issuing Organization | Date\\n\\n[TECHNICAL PROFICIENCIES & EQUIPMENT]\\nEquipment, software, coverage, and availability details.\";\n\nconst groqBody = {\n  model: \"llama-3.3-70b-versatile\",\n  messages: [\n    { role: \"system\", content: systemPrompt },\n    { role: \"user\", content: userMessage }\n  ],\n  temperature: 0.7,\n  max_tokens: 3000\n};\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    outseta_uid: data.outseta_uid,\n    tier: data.tier,\n    remaining: data.remaining,\n    groq_body_string: JSON.stringify(groqBody)\n  }\n}];"
             },
-            "id": "6aa8127c-9b44-4ee5-88da-15816b60ff54",
+            "id": "ad61dd74-6ba5-44d0-92e5-e4263e3f463c",
             "name": "Build Resume Prompt",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                4816,
-                2512
+                10592,
+                8944
             ]
         },
         {
@@ -342,13 +302,13 @@
                 "body": "={{ $json.groq_body_string }}",
                 "options": {}
             },
-            "id": "fd122f0a-d84d-447f-baf6-a0199ef5d3b5",
+            "id": "631a05b7-389a-4cf8-bd6e-6ee521f15103",
             "name": "Call Groq AI",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.1,
             "position": [
-                5040,
-                2512
+                10816,
+                8944
             ],
             "credentials": {
                 "groqApi": {
@@ -361,13 +321,13 @@
             "parameters": {
                 "jsCode": "const groqResponse = $input.first().json;\nconst quotaData = $('Has Quota?').first().json;\n\nreturn [{\n  json: {\n    user_id: quotaData.user_id,\n    outseta_uid: quotaData.outseta_uid,\n    tier: quotaData.tier,\n    prompt_tokens: groqResponse.usage?.prompt_tokens || 0,\n    completion_tokens: groqResponse.usage?.completion_tokens || 0,\n    total_tokens: groqResponse.usage?.total_tokens || 0,\n    model: groqResponse.model || 'llama-3.3-70b-versatile',\n    resume_content: groqResponse.choices?.[0]?.message?.content || 'No resume generated',\n    remaining: quotaData.remaining - 1\n  }\n}];\n"
             },
-            "id": "14bff926-30ec-4836-9623-43eb4261d792",
+            "id": "ff55817e-c359-47ad-a2b7-3903cffc93ea",
             "name": "Prepare Response",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                5264,
-                2512
+                11040,
+                8944
             ]
         },
         {
@@ -393,10 +353,10 @@
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.3,
             "position": [
-                5488,
-                2512
+                11264,
+                8944
             ],
-            "id": "cc31c6c1-c9c9-4037-9ce1-4e8d47a4784e",
+            "id": "2fbe53f1-00c7-44ef-8814-2325aeac6d95",
             "name": "Log Usage to Supabase",
             "credentials": {
                 "supabaseApi": {
@@ -411,13 +371,13 @@
                 "responseBody": "={{ { resume_content: $('Prepare Response').first().json.resume_content, tokens_used: $('Prepare Response').first().json.total_tokens, remaining_generations: $('Prepare Response').first().json.remaining } }}",
                 "options": {}
             },
-            "id": "1c41b5a8-3753-4343-aff2-1de70cf28240",
+            "id": "4a727010-4c85-4913-9d37-5b39f074e848",
             "name": "Return Success",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                5712,
-                2512
+                11488,
+                8944
             ]
         },
         {
@@ -431,13 +391,13 @@
                 "jsonBody": "={\n  \"p_outseta_uid\": \"{{ $json.outseta_uid }}\",\n  \"p_feature\": \"ai_resume_parse\"\n}",
                 "options": {}
             },
-            "id": "a81c2408-6988-4476-9946-59a340d49028",
+            "id": "001fe714-9b2d-459f-ad1b-0fd26187314c",
             "name": "Check Current Usage (Parse)",
             "type": "n8n-nodes-base.httpRequest",
             "typeVersion": 4.3,
             "position": [
-                4592,
-                2032
+                10368,
+                8464
             ],
             "credentials": {
                 "supabaseApi": {
@@ -450,13 +410,13 @@
             "parameters": {
                 "jsCode": "// Tier limits for AI RESUME PARSE\nconst limits = {\n  free: 0,\n  starter: 5,\n  pro: 20,\n  elite: 100,\n  agency: 999999\n};\n\nconst usageResponse = $input.first().json;\nconst callCount = parseInt(usageResponse.call_count || usageResponse.body?.call_count) || 0;\n\nconst userData = $('Validate & Decode JWT').first().json;\nconst tier = userData.tier;\n\nconst limit = limits[tier] || 0;\nconst allowed = callCount < limit;\n\nreturn [{\n  json: {\n    ...$input.first().json,\n    // Preserve previous data\n    user_id: userData.user_id,\n    outseta_uid: userData.outseta_uid,\n    tier: tier,\n    call_count: callCount,\n    limit: limit,\n    remaining: Math.max(0, limit - callCount),\n    allowed: allowed\n  }\n}];"
             },
-            "id": "ab99a399-ed7e-4f87-9a62-d33a3d619f16",
+            "id": "8324c01f-b28b-46ea-aefb-6226524b7935",
             "name": "Calculate Quota (Parse)",
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                4816,
-                2032
+                10592,
+                8464
             ]
         },
         {
@@ -470,13 +430,13 @@
                     ]
                 }
             },
-            "id": "6528c8cb-3cb7-465e-8531-30933d1c061b",
+            "id": "61a88bb6-42be-4a4c-bf17-7dcd50874174",
             "name": "Has Quota? (Parse)",
             "type": "n8n-nodes-base.if",
             "typeVersion": 1,
             "position": [
-                5040,
-                2032
+                10816,
+                8464
             ]
         },
         {
@@ -487,14 +447,54 @@
                     "responseCode": 429
                 }
             },
-            "id": "ee81cef8-45ff-4c01-8daf-37b71c0bd4e9",
+            "id": "6035469b-520e-41c5-9aa8-293360fca271",
             "name": "Return Error - Quota (Parse)",
             "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                5260,
-                1850
+                11024,
+                8272
             ]
+        },
+        {
+            "parameters": {
+                "jsCode": "try {\n  const data = $input.first()?.json;\n\n  if (!data) {\n    throw new Error(\"Missing input data.\");\n  }\n\n  // ROBUST RETRIEVAL: Use $('Node Name').first().json\n  // This is more reliable than $items() for upstream nodes in many n8n contexts\n  let resumeNode;\n  try {\n      resumeNode = $('Extract Text from File').first().json;\n  } catch (e) {\n      console.warn(\"Could not retrieve 'Extract Text from File' via $(). Trying fallback...\");\n  }\n\n  // Fallback if $() fails (rare, but good for safety)\n  if (!resumeNode) {\n      const items = $items(\"Extract Text from File\");\n      if (items && items.length > 0) {\n          resumeNode = items[0].json;\n      }\n  }\n\n  if (!resumeNode) {\n      throw new Error(\"Could not find output from 'Extract Text from File' node. Ensure it executed successfully.\");\n  }\n\n  const resumeText = resumeNode.extractedText?.trim();\n  const fileLabel = resumeNode.fileName || \"uploaded file\";\n\n\n  if (!resumeText || resumeText.length < 30) {\n    return [{\n      json: {\n        error: true,\n        message: \"Resume text missing or too short.\",\n        fileName: fileLabel,\n        user_id: data.user_id,\n        outseta_uid: data.outseta_uid,\n        tier: data.tier\n      }\n    }];\n  }\n\n  const systemPrompt = `You are a top-tier resume parser and data extraction specialist. Your job is to extract structured data from resume text and evaluate the candidate's fit for field services roles (e.g., mortgage field services, property inspection, property preservation). Return only valid JSON — no markdown, no commentary.`;\n\n  const userMessage = `RESUME TEXT (extracted from ${fileLabel}):\\n---\\n${resumeText}\\n---\\n\\nAnalyze this resume and extract structured data. Return ONLY valid JSON... [full schema omitted for brevity]`;\n\n  const groqBody = {\n    model: \"llama-3.3-70b-versatile\",\n    messages: [\n      { role: \"system\", content: systemPrompt },\n      { role: \"user\", content: userMessage }\n    ],\n    temperature: 0.3,\n    max_tokens: 4000,\n    response_format: { type: \"json_object\" }\n  };\n\n  return [{\n    json: {\n      user_id: data.user_id,\n      outseta_uid: data.outseta_uid,\n      tier: data.tier,\n      fileName: fileLabel,\n      groq_body_string: JSON.stringify(groqBody)\n    }\n  }];\n\n} catch (err) {\n  return [{\n    json: {\n      error: true,\n      message: err.message,\n      stack: err.stack || \"No stack trace\"\n    }\n  }];\n}\n"
+            },
+            "id": "bbf6fcb2-b34d-4266-832d-0081bd389044",
+            "name": "Build Groq Prompt",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                11088,
+                8496
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.groq.com/openai/v1/chat/completions",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "groqApi",
+                "sendBody": true,
+                "contentType": "raw",
+                "rawContentType": "application/json",
+                "body": "={{ $json.groq_body_string }}",
+                "options": {}
+            },
+            "id": "d30b0100-2380-4bce-bdb0-4de94207ac4a",
+            "name": "Groq API Call",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                11328,
+                8496
+            ],
+            "credentials": {
+                "groqApi": {
+                    "id": "qFg32H9JPGlwitUF",
+                    "name": "Groq API"
+                }
+            }
         }
     ],
     "pinData": {
@@ -542,6 +542,17 @@
                 },
                 "pairedItem": {
                     "item": 0
+                }
+            }
+        ],
+        "Build Groq Prompt": [
+            {
+                "json": {
+                    "user_id": "EWBVkAlW",
+                    "outseta_uid": "EWBVkAlW",
+                    "tier": "agency",
+                    "fileName": "Kye Gibsons' Resume 2025.docx.txt",
+                    "groq_body_string": "{\"model\":\"llama-3.3-70b-versatile\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a top-tier resume parser and data extraction specialist. Your job is to extract structured data from resume text and evaluate the candidate's fit for field services roles (e.g., mortgage field services, property inspection, property preservation). Return only valid JSON — no markdown, no commentary.\"},{\"role\":\"user\",\"content\":\"RESUME TEXT (extracted from Kye Gibsons' Resume 2025.docx.txt):\\n---\\nKye Gibson\\r\\n (470) 318-9761 Lexington, KY LinkedIn\\r\\n\\r\\n\\r\\nWORK EXPERIENCE \\r\\nIT Infrastructure Support                                                                           Jul. 2023 - Present\\r\\nCoorstek, Inc. Lexington, KY\\r\\nIn this position I managed a ~77 staffed plant that’s apart of a global organization. I supported users from my site on other sites, remotely, with support from our ticketing system which is used to communicate with end users and notify them of work order updates. I supported devices and software including the office suite, Outlook, VM’s, VPN’s, printers, laptops, desktops, mobile phones, Tv’s, and video conference cameras. I also troubleshooted network connectivity issues reconfiguring and managing network devices as needed. This environment is also managed by Microsoft Azure which I used to manage users accounts and make centralized changes.   \\r\\nSoftware Specifics\\r\\n* SCCM (Microsoft System Center Configuration Manager) \\r\\n* Windows 10/11 support \\r\\n* Microsoft Azure/AD\\r\\n* Cloud support\\r\\n* 3rd party applications (engineer software)\\r\\n* ITSM ticketing system\\r\\n* Global protect VPN\\r\\nGeekSquad Consultant Agent                                                              Sep. 2022 – Jun. 2023\\r\\nBest Buy Lexington, KY\\r\\nIn this position I was GeekSquads first point of contact using my expertise to help users within a timely manner. During this time I assisted users with hardware and software configurations including the office suite, personal computers, and technical devices sold within BestBuy. This process is managed by a ticketing system which is used to document progress and ship devices that need to be replaced, or to communicating with customers on their devices progress. During these interactions I sold our membership making relevant connections between the users current issue and the short and long term benefit they would gain from joining. \\r\\nFarm Hand                                                                                              May 2022 – Sep. 2022\\r\\nThree Crowns Farm  Lexington,Ky\\r\\n* Assist with daily care and maintenance of the facility, including feeding, watering, and cleaning stalls or enclosures for boarded animals. \\r\\n* Operated and maintained farm equipment, performed basic repairs, and ensure the property remains clean, organized, and safe. \\r\\n\\r\\n\\r\\nEDUCATION \\r\\n        \\r\\nCapella University                                                                                                 Feb. 2023 – Mar. 2025\\r\\nB.S. Cyber Security and Information Assurance                                                                      Remote\\r\\n\\r\\n\\r\\nPenn State- Beaver                                                                                                 Aug. 2020 – May 2022\\r\\nB.S. Cyber Security and Information Assurance                                                               Monaca,PA\\n---\\n\\nAnalyze this resume and extract structured data. Return ONLY valid JSON... [full schema omitted for brevity]\"}],\"temperature\":0.3,\"max_tokens\":4000,\"response_format\":{\"type\":\"json_object\"}}"
                 }
             }
         ]
@@ -628,28 +639,6 @@
                 [
                     {
                         "node": "Check Current Usage (Parse)",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Build Parse Prompt": {
-            "main": [
-                [
-                    {
-                        "node": "Call Groq AI (Parse)",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Call Groq AI (Parse)": {
-            "main": [
-                [
-                    {
-                        "node": "Prepare Parse Response",
                         "type": "main",
                         "index": 0
                     }
@@ -788,7 +777,7 @@
             "main": [
                 [
                     {
-                        "node": "Build Parse Prompt",
+                        "node": "Build Groq Prompt",
                         "type": "main",
                         "index": 0
                     }
@@ -801,6 +790,28 @@
                     }
                 ]
             ]
+        },
+        "Build Groq Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Groq API Call",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq API Call": {
+            "main": [
+                [
+                    {
+                        "node": "Prepare Parse Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
     },
     "active": true,
@@ -808,7 +819,7 @@
         "executionOrder": "v1",
         "availableInMCP": false
     },
-    "versionId": "4a282262-0fc0-482e-8c08-dd0fd6f65971",
+    "versionId": "5df10d15-7b68-4090-94c0-813b50344a71",
     "meta": {
         "templateCredsSetupCompleted": true,
         "instanceId": "67fff6fedb2560bb0cc951bbef12209da21d57f116f06769290d3af2f8aff3c2"

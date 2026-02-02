@@ -13,6 +13,9 @@ export type ProfileRecord = {
   avatar_url: string | null
   created_at?: string | null
   updated_at?: string | null
+  verified_at?: string | null
+  rating?: number | null
+  rating_count?: number | null
 }
 
 export type StructuredNotes = {
@@ -121,7 +124,7 @@ export function useProfile(userEmail: string | null): UseProfileState {
       const encodedEmail = encodeURIComponent(userEmail)
       const url =
         `${SUPABASE_URL}/rest/v1/profiles?user_email=eq.${encodedEmail}` +
-        `&select=id,user_email,display_name,headline,city,state,primary_interest,tools,notes,avatar_url,created_at,updated_at`
+        `&select=id,user_email,display_name,headline,city,state,primary_interest,tools,notes,avatar_url,created_at,updated_at,verified_at,rating,rating_count`
       const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_ANON_KEY,

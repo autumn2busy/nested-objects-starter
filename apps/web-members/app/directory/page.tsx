@@ -33,6 +33,8 @@ async function getFirms(): Promise<Firm[]> {
         'company_size',
         'industry_focus',
         'rating',
+        'rating_count',
+        'verified_at',
         'phone',
         'email',
         'is_published',

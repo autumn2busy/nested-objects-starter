@@ -5,10 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
-import { CheckCircle, Briefcase, GraduationCap } from "lucide-react";
+import { useProfile } from "@/lib/use-profile";
+import { CheckCircle, Briefcase, GraduationCap, Shield } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
+import { StarRating } from "@/components/ui/StarRating";
 
 export default function DashboardPage() {
-    const { profileDisplayName, planUid } = useAuth();
+    const { user, profileDisplayName, planUid } = useAuth();
+    // Assuming useAuth provides `user` which has `email`
+    const userEmail = user?.email || user?.Email || null;
+    const { profile, isLoading: isProfileLoading } = useProfile(userEmail as string | null);
 
     return (
         <div className="space-y-8">
@@ -22,7 +28,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Actionable Status Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
                 {/* Profile Status */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -37,7 +43,38 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* Training Progress (Fake logic for now, but helpful UX) */}
+                {/* Trust Score */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+                        <Shield className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col gap-1">
+                            {!isProfileLoading && profile ? (
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-bold">{profile.rating ? profile.rating.toFixed(1) : 'N/A'}</span>
+                                        <div className="flex flex-col">
+                                            <StarRating rating={profile.rating || 0} showCount={false} size="sm" />
+                                            <span className="text-[10px] text-muted-foreground">{profile.rating_count || 0} reviews</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-1">
+                                        {profile.verified_at && <VerifiedBadge date={profile.verified_at} />}
+                                        <Link href={`/members/${profile.id}`} className="text-[10px] text-blue-600 hover:underline font-medium">
+                                            View Public Profile →
+                                        </Link>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-sm text-muted-foreground">Loading...</div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Training Progress */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Training</CardTitle>

@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { BadgeCheck, MapPin, Hammer, Truck, Shield, Clock } from 'lucide-react'
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
+import { StarRating } from '@/components/ui/StarRating'
 
 // Development SSL fix
 if (process.env.NODE_ENV === 'development') {
@@ -36,6 +38,19 @@ async function getMemberResume(memberId: string) {
     return data
 }
 
+async function getMemberTrustData(memberId: string) {
+    // Attempt to fetch trust signals from the main profiles table
+    // We assume memberId matches the profile 'id' or 'user_id'
+    const { data, error } = await getSupabase()
+        .from('profiles')
+        .select('verified_at, rating, rating_count')
+        .eq('id', memberId)
+        .maybeSingle()
+
+    if (error) return null
+    return data
+}
+
 export async function generateMetadata({
     params,
 }: {
@@ -55,7 +70,10 @@ export default async function MemberProfilePage({
 }: {
     params: { memberId: string }
 }) {
-    const resume = await getMemberResume(params.memberId)
+    const [resume, trustData] = await Promise.all([
+        getMemberResume(params.memberId),
+        getMemberTrustData(params.memberId)
+    ])
 
     if (!resume || !resume.profile) {
         return (
@@ -125,10 +143,16 @@ export default async function MemberProfilePage({
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <h1 className="text-3xl font-bold text-slate-900">{profile.fullName}</h1>
-                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 align-middle transform translate-y-[2px]">
-                                <BadgeCheck className="w-3.5 h-3.5" />
-                                Verified
-                            </span>
+                            {trustData?.verified_at && <VerifiedBadge date={trustData.verified_at} />}
+                        </div>
+
+                        {/* Star Rating Section */}
+                        <div className="mb-3">
+                            {trustData?.rating ? (
+                                <StarRating rating={trustData.rating} count={trustData.rating_count || 0} />
+                            ) : (
+                                <span className="text-xs text-slate-500">New Member (Not yet rated)</span>
+                            )}
                         </div>
 
                         <div className="flex flex-wrap gap-y-2 gap-x-6 text-sm text-slate-600 mt-2">

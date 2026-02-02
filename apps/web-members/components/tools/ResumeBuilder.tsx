@@ -354,13 +354,67 @@ export default function ResumeBuilder() {
         throw new Error(data.error || 'Failed to parse resume');
       }
 
-      // Update resume data with parsed content
+      // Map backend response to frontend state structure
+      const mappedContact = {
+        ...prev.contact,
+        fullName: data.contact?.name || data.contact?.fullName || '',
+        email: data.contact?.email || '',
+        phone: data.contact?.phone || '',
+        // Attempt to parse city/state from location if provided
+        city: data.contact?.location?.split(',')[0]?.trim() || '',
+        state: data.contact?.location?.split(',')[1]?.trim() || '',
+        linkedin: data.contact?.linkedIn || data.contact?.linkedin || '',
+        website: data.contact?.website || ''
+      };
+
+      const mappedExperience = (data.experience || []).map((exp: any) => {
+        // Parse dates "Jul 2023 - Present" -> startDate, endDate, current
+        let startDate = '';
+        let endDate = '';
+        let current = false;
+
+        if (exp.dates) {
+          const parts = exp.dates.split(/[-–]/).map((s: string) => s.trim());
+          if (parts.length > 0) startDate = parts[0];
+          if (parts.length > 1) {
+            if (parts[1].toLowerCase().includes('present')) {
+              current = true;
+              endDate = ''; // Or 'Present' depending on UI needs, but usually boolean handles 'Present' label
+            } else {
+              endDate = parts[1];
+            }
+          }
+        }
+
+        return {
+          id: generateId(),
+          company: exp.company || '',
+          title: exp.jobTitle || exp.title || '',
+          location: exp.location || '',
+          startDate,
+          endDate,
+          current,
+          description: exp.description || '',
+          bullets: Array.isArray(exp.responsibilities) ? exp.responsibilities : [exp.responsibilities || ''],
+          transferableSkills: exp.transferableSkills || []
+        };
+      });
+
+      const mappedEducation = (data.education || []).map((edu: any) => ({
+        id: generateId(),
+        school: edu.institution || edu.school || '',
+        degree: edu.degree || '',
+        field: edu.fieldOfStudy || edu.field || '', // Map fieldOfStudy if present
+        graduationDate: edu.dates || edu.graduationDate || ''
+      }));
+
+      // Update resume data with parsed and mapped content
       setResumeData(prev => ({
         ...prev,
-        contact: { ...prev.contact, ...data.contact },
+        contact: mappedContact,
         summary: data.summary || prev.summary,
-        experience: data.experience?.map((exp: any) => ({ ...exp, id: generateId() })) || prev.experience,
-        education: data.education?.map((edu: any) => ({ ...edu, id: generateId() })) || prev.education,
+        experience: mappedExperience.length > 0 ? mappedExperience : prev.experience,
+        education: mappedEducation.length > 0 ? mappedEducation : prev.education,
         certifications: data.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || prev.certifications,
         skills: [...new Set([...prev.skills, ...(data.skills || [])])],
       }));

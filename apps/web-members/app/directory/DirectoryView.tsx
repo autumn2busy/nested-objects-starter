@@ -9,6 +9,8 @@ import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
 import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
+import { StarRating } from '@/components/ui/StarRating'
 
 export type Firm = {
     id: string
@@ -26,6 +28,8 @@ export type Firm = {
     industry_focus: string | null
     is_published?: boolean | null
     rating: number | null
+    rating_count?: number | null
+    verified_at?: string | null
     phone: string | null
     email: string | null
     address: string | null
@@ -202,11 +206,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
     const serviceRegion = firm.geographic_coverage || 'Service region not specified'
 
-    const numericRating =
-        typeof firm.rating === 'number'
-            ? Math.min(5, Math.max(0, Math.round(firm.rating)))
-            : null
-
     const contactMethod = (() => {
         if (firm.email) return `Email · ${firm.email}`
         if (firm.phone) return `Call · ${firm.phone}`
@@ -255,9 +254,16 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                     </div>
                     <div className="min-w-0 space-y-0.5 break-words">
                         <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
-                        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                            <BadgeCheck className="w-3 h-3 text-emerald-600" />
-                            <span>Verified by AI</span>
+                        <div className="flex items-center gap-2">
+                            {firm.verified_at ? (
+                                <VerifiedBadge date={firm.verified_at} />
+                            ) : (
+                                // Fallback "AI Verified" for legacy data if needed, or remove completely
+                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    <BadgeCheck className="w-3 h-3" />
+                                    <span>Directory Listed</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -274,17 +280,11 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                 <div className="text-right">
                     <p className="text-slate-900">Rating</p>
                     <div className="mt-0.5 flex justify-end">
-                        {numericRating !== null ? (
-                            <div className="flex text-[13px] text-amber-500">
-                                {Array.from({ length: 5 }).map((_, index) => (
-                                    <span key={index}>{index < numericRating ? '★' : '☆'}</span>
-                                ))}
-                            </div>
-                        ) : (
-                            <span className="text-[11px] normal-case text-slate-500">
-                                Not yet rated
-                            </span>
-                        )}
+                        <StarRating
+                            rating={firm.rating || 0}
+                            count={firm.rating_count || 0}
+                            className={firm.rating ? "" : "opacity-60 grayscale"}
+                        />
                     </div>
                 </div>
             </div>
