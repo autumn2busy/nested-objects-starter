@@ -404,7 +404,7 @@ export default function ResumeBuilder() {
         school: edu.institution || edu.school || '',
         degree: edu.degree || '',
         field: edu.fieldOfStudy || edu.field || '', // Map fieldOfStudy if present
-        graduationDate: edu.dates || edu.graduationDate || ''
+        graduationDate: edu.dates || edu.graduationDate || edu.date || '' // Add edu.date check
       }));
 
       // Update resume data with parsed and mapped content
@@ -414,7 +414,7 @@ export default function ResumeBuilder() {
           ...prev.contact,
           ...mappedContact
         },
-        summary: data.summary || prev.summary,
+        summary: data.summary || data.professionalSummary || prev.summary, // Check professionalSummary
         experience: mappedExperience.length > 0 ? mappedExperience : prev.experience,
         education: mappedEducation.length > 0 ? mappedEducation : prev.education,
         certifications: data.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || prev.certifications,
@@ -422,9 +422,10 @@ export default function ResumeBuilder() {
       }));
 
       // Map real AI analysis data
+      // Ensure we attempt to pull from root or nested structures if n8n varies
       const analysis: AIAnalysis = {
         transferableSkills: data.transferableSkills || data.skills?.slice(0, 6) || [],
-        suggestedSummary: data.summary || '',
+        suggestedSummary: data.summary || data.professionalSummary || '',
         industryTermMappings: data.industryTermMappings || [],
         strengthAreas: data.strengthAreas || [],
         improvementSuggestions: data.improvementSuggestions || []
