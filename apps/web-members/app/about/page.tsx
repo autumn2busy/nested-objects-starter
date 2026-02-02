@@ -375,19 +375,39 @@ export default function AboutPage() {
                 </div>
               </div>
               <div className="grid gap-4 border border-brand-mist bg-white px-4 py-5">
-                <div className="flex items-center justify-between border-b border-brand-mist pb-4">
-                  <p className="text-sm font-semibold text-brand-dark">Google Search Console ready</p>
-                  <span className="text-xs uppercase tracking-[0.22em] text-brand-steel">SEO grade A</span>
+                <div className="relative aspect-video w-full overflow-hidden bg-brand-dark">
+                  <Image
+                    src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"
+                    alt="Platform dashboard preview"
+                    fill
+                    className="object-cover opacity-90"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="rounded-full bg-white/20 p-4 backdrop-blur-sm transition hover:scale-105 hover:bg-white/30 cursor-pointer">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-8 w-8 text-white"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <ul className="space-y-3 text-sm text-brand-slate">
-                  <li>
-                    Semantic HTML, Open Graph, Twitter cards, and canonical links prepared for every page to accelerate indexing and
-                    click-through rates.
-                  </li>
-                  <li>Structured data for organization, services, and FAQs keeps your listings clear for search engines.</li>
-                  <li>WCAG-aligned contrast, keyboard-friendly navigation, and descriptive alt text on every asset.</li>
-                  <li>Internal linking to directory, training, and contact pages to move visitors into action quickly.</li>
-                </ul>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-brand-dark">See the hub in action</p>
+                    <span className="text-xs uppercase tracking-[0.22em] text-brand-steel">2:14</span>
+                  </div>
+                  <p className="mt-2 text-sm text-brand-slate">
+                    Watch how experienced inspectors plan routes, find firms, and access intel in seconds.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

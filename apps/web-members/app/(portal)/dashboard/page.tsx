@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { LiveFeed } from "@/components/dashboard/LiveFeed";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
-import { CheckCircle, AlertCircle, Briefcase, GraduationCap } from "lucide-react";
+import { CheckCircle, Briefcase, GraduationCap } from "lucide-react";
 
 export default function DashboardPage() {
     const { profileDisplayName, planUid } = useAuth();
@@ -23,7 +22,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Actionable Status Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
                 {/* Profile Status */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -65,30 +64,9 @@ export default function DashboardPage() {
                         </Link>
                     </CardContent>
                 </Card>
-
-                {/* Profile Completion CTA */}
-                <Card className="border-brand-copper/20 bg-brand-mist/10">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-brand-copper">Completion</CardTitle>
-                        <AlertCircle className="h-4 w-4 text-brand-copper" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">85%</div>
-                        <Link href="/profile" className="text-xs text-muted-foreground hover:text-brand-copper block mt-1">
-                            Add missing details
-                        </Link>
-                    </CardContent>
-                </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-7">
-                <div className="md:col-span-4">
-                    <QuickActions />
-                </div>
-                <div className="md:col-span-3">
-                    <LiveFeed />
-                </div>
-            </div>
+            <QuickActions />
 
             {/* Industry News Sidebar Widget */}
             <div className="grid gap-4 md:grid-cols-7">
@@ -130,3 +108,4 @@ export default function DashboardPage() {
         </div>
     );
 }
+
