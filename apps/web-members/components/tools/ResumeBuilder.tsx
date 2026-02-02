@@ -356,7 +356,6 @@ export default function ResumeBuilder() {
 
       // Map backend response to frontend state structure
       const mappedContact = {
-        ...prev.contact,
         fullName: data.contact?.name || data.contact?.fullName || '',
         email: data.contact?.email || '',
         phone: data.contact?.phone || '',
@@ -411,7 +410,10 @@ export default function ResumeBuilder() {
       // Update resume data with parsed and mapped content
       setResumeData(prev => ({
         ...prev,
-        contact: mappedContact,
+        contact: {
+          ...prev.contact,
+          ...mappedContact
+        },
         summary: data.summary || prev.summary,
         experience: mappedExperience.length > 0 ? mappedExperience : prev.experience,
         education: mappedEducation.length > 0 ? mappedEducation : prev.education,
