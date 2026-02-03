@@ -1307,9 +1307,10 @@ export default function ResumeBuilder() {
                     Start Date
                   </label>
                   <input
-                    type="month"
+                    type="text"
                     value={exp.startDate}
                     onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)}
+                    placeholder="e.g. Sep 2022"
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
                   />
                 </div>
@@ -1319,10 +1320,11 @@ export default function ResumeBuilder() {
                   </label>
                   <div className="flex items-center gap-2">
                     <input
-                      type="month"
+                      type="text"
                       value={exp.endDate}
                       onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)}
                       disabled={exp.current}
+                      placeholder="e.g. Present"
                       className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition disabled:bg-slate-100"
                     />
                   </div>
@@ -1744,163 +1746,275 @@ export default function ResumeBuilder() {
     </div>
   );
 
-  const renderPreviewStep = () => (
-    <div className="max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Preview & Export</h2>
-          <p className="text-slate-600 mt-1">
-            Review your resume and download in your preferred format.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <select
-            value={selectedTemplate}
-            onChange={(e) => setSelectedTemplate(e.target.value as typeof selectedTemplate)}
-            className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="professional">Professional Template</option>
-            <option value="modern">Modern Template</option>
-            <option value="minimal">Minimal Template</option>
-          </select>
-        </div>
-      </div>
+  const renderPreviewStep = () => {
+    // Template Styles
+    const isModern = selectedTemplate === 'modern';
+    const isMinimal = selectedTemplate === 'minimal';
 
-      {/* Resume Preview */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden mb-6">
-        <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-600">Resume Preview</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={exportToPDF}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              PDF
-            </button>
-            <button
-              onClick={exportToDOCX}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Word
-            </button>
-          </div>
-        </div>
+    // Fonts & Colors
+    const fontFamily = isModern || isMinimal ? 'Helvetica, Arial, sans-serif' : 'Georgia, serif';
+    const primaryColor = isModern ? '#10b981' : '#000000'; // Emerald or Black
+    const headerClass = isModern
+      ? "text-3xl font-bold text-emerald-600 mb-2 uppercase tracking-wide"
+      : isMinimal
+        ? "text-3xl font-normal text-slate-900 mb-2 tracking-tight"
+        : "text-3xl font-bold text-slate-900 mb-2";
 
-        {/* Resume Content Preview */}
-        <div className="p-8 bg-white min-h-[600px]" style={{ fontFamily: 'Georgia, serif' }}>
-          {/* Header */}
-          <div className="text-center mb-6 pb-6 border-b-2 border-slate-200">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              {resumeData.contact.fullName || 'Your Name'}
-            </h1>
-            <div className="flex items-center justify-center flex-wrap gap-4 text-sm text-slate-600">
-              {resumeData.contact.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" />
-                  {resumeData.contact.email}
-                </span>
-              )}
-              {resumeData.contact.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
-                  {resumeData.contact.phone}
-                </span>
-              )}
-              {(resumeData.contact.city || resumeData.contact.state) && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {[resumeData.contact.city, resumeData.contact.state].filter(Boolean).join(', ')}
-                </span>
-              )}
-            </div>
-          </div>
+    const sectionTitleClass = isModern
+      ? "text-lg font-bold text-emerald-600 mb-3 uppercase tracking-wider border-b-2 border-emerald-100 pb-1"
+      : isMinimal
+        ? "text-lg font-semibold text-slate-900 mb-3 uppercase tracking-widest"
+        : "text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide border-b border-slate-200 pb-1";
 
-          {/* Summary */}
-          {resumeData.summary && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-                Professional Summary
-              </h2>
-              <p className="text-slate-700 leading-relaxed">{resumeData.summary}</p>
-            </div>
-          )}
-
-          {/* Skills */}
-          {(resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0) && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-2 uppercase tracking-wide">
-                Skills
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {[...resumeData.fieldServicesSkills, ...resumeData.skills].map(skill => (
-                  <span key={skill} className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-sm">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Experience */}
-          {resumeData.experience.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-3 uppercase tracking-wide">
-                Work Experience
-              </h2>
-              {resumeData.experience.map(exp => (
-                <div key={exp.id} className="mb-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-slate-900">{exp.title || 'Position Title'}</h3>
-                      <p className="text-slate-600">{exp.company}{exp.location && ` • ${exp.location}`}</p>
-                    </div>
-                    <span className="text-sm text-slate-500">
-                      {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
-                    </span>
-                  </div>
-                  {exp.description && (
-                    <p className="mt-2 text-sm text-slate-700">{exp.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Final Actions */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-emerald-900 mb-1">Your resume is ready!</h3>
-            <p className="text-sm text-emerald-700 mb-4">
-              Download your resume and start applying to firms in the directory.
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Preview & Export</h2>
+            <p className="text-slate-600 mt-1">
+              Review your resume and download in your preferred format.
             </p>
-            <div className="flex items-center gap-3">
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              value={selectedTemplate}
+              onChange={(e) => setSelectedTemplate(e.target.value as typeof selectedTemplate)}
+              className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="professional">Professional Template</option>
+              <option value="modern">Modern Template</option>
+              <option value="minimal">Minimal Template</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Resume Preview */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden mb-6">
+          <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600">Resume Preview ({selectedTemplate})</span>
+            <div className="flex items-center gap-2">
               <button
                 onClick={exportToPDF}
-                className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
               >
-                <Download className="w-5 h-5" />
-                Download PDF
+                <Download className="w-4 h-4" />
+                PDF
               </button>
               <button
-                onClick={() => setCurrentStep('contact')}
-                className="px-6 py-3 bg-white border border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition"
+                onClick={exportToDOCX}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
               >
-                Edit Resume
+                <Download className="w-4 h-4" />
+                Word
               </button>
+            </div>
+          </div>
+
+          {/* Resume Content Preview */}
+          <div className="p-12 bg-white min-h-[800px] shadow-inner text-slate-900" style={{ fontFamily }}>
+            {/* Header */}
+            <div className={`text-center mb-8 ${!isMinimal ? 'pb-6 border-b-2 border-slate-100' : ''}`}>
+              <h1 className={headerClass} style={{ color: isModern ? primaryColor : undefined }}>
+                {resumeData.contact.fullName || 'Your Name'}
+              </h1>
+              <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                {[
+                  resumeData.contact.email,
+                  resumeData.contact.phone,
+                  [resumeData.contact.city, resumeData.contact.state].filter(Boolean).join(', ')
+                ].filter(Boolean).map((item, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <span className="text-slate-300">|</span>}
+                    <span>{item}</span>
+                  </React.Fragment>
+                ))}
+              </div>
+              {(resumeData.contact.linkedin || resumeData.contact.website) && (
+                <div className="flex items-center justify-center gap-4 mt-2 text-sm">
+                  {resumeData.contact.linkedin && (
+                    <a href={resumeData.contact.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
+                  )}
+                  {resumeData.contact.website && (
+                    <a href={resumeData.contact.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Portfolio</a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Target Roles */}
+            {resumeData.targetRoles.length > 0 && (
+              <div className="mb-8 text-center bg-slate-50 py-3 rounded-lg border border-slate-100">
+                <span className="font-semibold text-slate-700 mr-2">Targeting:</span>
+                <span className="text-slate-600">{resumeData.targetRoles.join(' • ')}</span>
+              </div>
+            )}
+
+            {/* Summary */}
+            {resumeData.summary && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Professional Summary</h2>
+                <p className="text-slate-700 leading-relaxed text-base">{resumeData.summary}</p>
+              </div>
+            )}
+
+            {/* Skills & Equipment */}
+            {(resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0 || resumeData.equipment.length > 0) && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Skills & Equipment</h2>
+
+                {(resumeData.fieldServicesSkills.length > 0 || resumeData.skills.length > 0) && (
+                  <div className="mb-3">
+                    <span className="font-bold text-slate-800 mr-2">Skills:</span>
+                    <span className="text-slate-700 leading-relaxed">
+                      {[...resumeData.fieldServicesSkills, ...resumeData.skills].join(' • ')}
+                    </span>
+                  </div>
+                )}
+
+                {resumeData.equipment.length > 0 && (
+                  <div>
+                    <span className="font-bold text-slate-800 mr-2">Equipment:</span>
+                    <span className="text-slate-700 leading-relaxed">
+                      {resumeData.equipment.join(', ')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Coverage & Logistics */}
+            {(resumeData.coverage.hasReliableVehicle || resumeData.coverage.radius > 0) && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Logistics & Coverage</h2>
+                <div className="text-slate-700 grid md:grid-cols-2 gap-4">
+                  {resumeData.coverage.hasReliableVehicle && (
+                    <div>
+                      <span className="font-bold mr-1">Vehicle:</span>
+                      Reliable Personal Vehicle ({resumeData.coverage.vehicleType || 'Standard'})
+                    </div>
+                  )}
+                  {resumeData.coverage.radius > 0 && (
+                    <div>
+                      <span className="font-bold mr-1">Coverage Radius:</span>
+                      {resumeData.coverage.radius} miles from home base
+                    </div>
+                  )}
+                  {resumeData.coverage.counties.length > 0 && (
+                    <div className="md:col-span-2">
+                      <span className="font-bold mr-1">Counties:</span>
+                      {resumeData.coverage.counties.join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Experience */}
+            {resumeData.experience.length > 0 && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Professional Experience</h2>
+                <div className="space-y-6">
+                  {resumeData.experience.map(exp => (
+                    <div key={exp.id}>
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h3 className="text-lg font-bold text-slate-900">{exp.company}</h3>
+                        <span className="text-sm font-medium text-slate-500 whitespace-nowrap ml-4">
+                          {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2 italic text-slate-600">
+                        <span>{exp.title}</span>
+                        <span className="text-sm">{exp.location}</span>
+                      </div>
+
+                      {exp.bullets && exp.bullets.length > 0 ? (
+                        <ul className="list-disc leading-relaxed text-slate-700 ml-4 space-y-1">
+                          {exp.bullets.map((bullet, i) => (
+                            bullet && <li key={i} className="pl-1">{bullet}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-700 leading-relaxed">{exp.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Education */}
+            {resumeData.education.length > 0 && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Education</h2>
+                <div className="space-y-4">
+                  {resumeData.education.map(edu => (
+                    <div key={edu.id}>
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="font-bold text-slate-900">{edu.school}</h3>
+                        <span className="text-sm text-slate-500">{edu.graduationDate}</span>
+                      </div>
+                      <div className="text-slate-700 italic">
+                        {edu.degree} {edu.field && `in ${edu.field}`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {resumeData.certifications.length > 0 && (
+              <div className="mb-8">
+                <h2 className={sectionTitleClass}>Certifications</h2>
+                <div className="space-y-3">
+                  {resumeData.certifications.map(cert => (
+                    <div key={cert.id} className="flex justify-between items-baseline">
+                      <div>
+                        <span className="font-bold text-slate-900">{cert.name}</span>
+                        {cert.issuer && <span className="text-slate-600 ml-2 text-sm">- {cert.issuer}</span>}
+                      </div>
+                      <span className="text-sm text-slate-500">{cert.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* Final Actions */}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-emerald-900 mb-1">Your resume is ready!</h3>
+              <p className="text-sm text-emerald-700 mb-4">
+                Download your resume and start applying to firms in the directory.
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={exportToPDF}
+                  className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download PDF
+                </button>
+                <button
+                  onClick={() => setCurrentStep('contact')}
+                  className="px-6 py-3 bg-white border border-emerald-300 text-emerald-700 font-semibold rounded-xl hover:bg-emerald-50 transition"
+                >
+                  Edit Resume
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ============================================================================
   // MAIN RENDER
