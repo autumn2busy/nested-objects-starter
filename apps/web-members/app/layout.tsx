@@ -81,10 +81,11 @@ export default function RootLayout({
         {/* Outseta install snippet - Only load in production or if explicitly enabled */}
         {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
           <>
+            {/* Use raw script tag for configuration - MUST be synchronous */}
             <script
               dangerouslySetInnerHTML={{
                 __html: `
-                  window.o_options = {
+                  var o_options = {
                     domain: 'nested-objects.outseta.com',
                     load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
                     tokenStorage: 'local'
@@ -92,11 +93,10 @@ export default function RootLayout({
                 `,
               }}
             />
-            {/* Use raw script tag with defer to ensure it runs AFTER o_options is defined */}
+            {/* Load Outseta library synchronously to strictly follow config */}
             <script
               src="https://cdn.outseta.com/outseta.min.js"
               data-options="o_options"
-              defer
             />
           </>
         )}
