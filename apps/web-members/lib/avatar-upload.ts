@@ -70,6 +70,12 @@ function getExtensionForMimeType(mimeType: string) {
   }
 }
 
+function isValidPersonUid(personUid: string): boolean {
+  // Validate that personUid only contains safe characters: alphanumeric, hyphens, and underscores
+  // This prevents potential path traversal attacks (e.g., '../' or '../../')
+  return /^[a-zA-Z0-9\-_]+$/.test(personUid)
+}
+
 export async function handleAvatarUpload(req: NextRequest) {
   try {
     const token = getTokenFromRequest(req)
@@ -85,6 +91,10 @@ export async function handleAvatarUpload(req: NextRequest) {
     const personUid = getPersonUid(claims)
     if (!personUid) {
       return errorResponse('Token missing person identifier.', 401)
+    }
+
+    if (!isValidPersonUid(personUid)) {
+      return errorResponse('Invalid person identifier format.', 401)
     }
 
     const formData = await req.formData()
