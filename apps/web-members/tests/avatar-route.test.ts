@@ -2,11 +2,11 @@ import assert from 'node:assert/strict'
 import { beforeEach, test } from 'node:test'
 import type { NextRequest } from 'next/server'
 import {
-  POST,
   __setPersonUidForTests,
   __setSupabaseClientForTests,
   __setVerifyOutsetaTokenForTests,
-} from '../app/api/profile/avatar/route'
+  handleAvatarUpload,
+} from '../lib/avatar-upload'
 
 type UploadCall = {
   bucket: string
@@ -75,7 +75,7 @@ beforeEach(() => {
 test('unauthenticated requests return 401', async () => {
   const formData = new FormData()
   const req = buildRequest(formData, false)
-  const res = await POST(req)
+  const res = await handleAvatarUpload(req)
   assert.equal(res.status, 401)
 })
 
@@ -83,7 +83,7 @@ test('invalid MIME types return 400', async () => {
   const formData = new FormData()
   formData.set('file', createFile(10, 'text/plain', 'notes.txt'))
   const req = buildRequest(formData)
-  const res = await POST(req)
+  const res = await handleAvatarUpload(req)
   assert.equal(res.status, 400)
 })
 
@@ -91,7 +91,7 @@ test('oversized files return 400', async () => {
   const formData = new FormData()
   formData.set('file', createFile(2 * 1024 * 1024 + 1, 'image/png', 'avatar.png'))
   const req = buildRequest(formData)
-  const res = await POST(req)
+  const res = await handleAvatarUpload(req)
   assert.equal(res.status, 400)
 })
 
@@ -99,7 +99,7 @@ test('valid uploads return deterministic path', async () => {
   const formData = new FormData()
   formData.set('file', createFile(128, 'image/png', 'avatar.png'))
   const req = buildRequest(formData)
-  const res = await POST(req)
+  const res = await handleAvatarUpload(req)
   assert.equal(res.status, 200)
   const payload = (await res.json()) as { path: string }
   assert.equal(payload.path, 'avatars/person-123/avatar.png')
@@ -112,8 +112,8 @@ test('second upload overwrites the same path', async () => {
     return buildRequest(formData)
   }
 
-  await POST(makeRequest())
-  await POST(makeRequest())
+  await handleAvatarUpload(makeRequest())
+  await handleAvatarUpload(makeRequest())
 
   const uploadCalls = (globalThis as typeof globalThis & { __uploadCalls?: UploadCall[] })
     .__uploadCalls
