@@ -163,7 +163,7 @@ export const jobBoardEntries: JobBoardEntry[] = [
     pay: '$240 per completed inspection',
     description:
       'Route-based inspections focused on photos, occupancy checks, and short reports. Expect 6–10 stops per day.',
-    link: 'https://example.com/jobs/atl-inspection-241',
+    link: 'https://nestedobjects.com/jobs/',
     roles: ['inspector'],
   },
   {
@@ -173,7 +173,7 @@ export const jobBoardEntries: JobBoardEntry[] = [
     location: 'Remote (US-based)',
     pay: '$30/hr contract',
     description: 'Desk research to validate addresses, call occupants, and schedule follow-up photos with field partners.',
-    link: 'https://example.com/jobs/remote-data-118',
+    link: 'https://nestedobjects.com/jobs/',
     roles: ['coordinator', 'gig-worker'],
   },
   {
@@ -183,7 +183,7 @@ export const jobBoardEntries: JobBoardEntry[] = [
     location: 'Charlotte, NC and surrounding counties',
     pay: '$275 per property (rush bonus available)',
     description: 'Photo-heavy assignments with strict shot lists. Weekend availability preferred; mileage reimbursed above 50 miles.',
-    link: 'https://example.com/jobs/reo-bpo-019',
+    link: 'https://nestedobjects.com/jobs/',
     roles: ['inspector', 'photographer'],
   },
   {

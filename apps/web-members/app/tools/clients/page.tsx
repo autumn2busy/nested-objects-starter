@@ -266,7 +266,7 @@ export default function ClientsPage() {
                                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-copper focus:border-transparent outline-none"
                                     value={newClient.website || ''}
                                     onChange={e => setNewClient({ ...newClient, website: e.target.value })}
-                                    placeholder="https://portal.example.com"
+                                    placeholder="https://portal.nestedobjects.com"
                                 />
                             </div>
                             <div className="col-span-2">

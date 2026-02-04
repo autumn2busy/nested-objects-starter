@@ -25,8 +25,10 @@ const resolveSiteUrl = () => {
 
   if (envUrl) return envUrl.replace(/\/$/, '')
 
-  // Last resort. assume local dev
-  return 'http://localhost:3000'
+  // Last resort
+  return process.env.NODE_ENV === 'production'
+    ? 'https://nestedobjects.com'
+    : 'http://localhost:3000'
 }
 
 export async function POST(request: Request) {

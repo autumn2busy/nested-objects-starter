@@ -102,6 +102,7 @@ type FilterBarProps = {
     stateFilter: string
     search: string
     isStarter: boolean
+    isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
 }
@@ -110,6 +111,7 @@ function FilterBar({
     stateFilter,
     search,
     isStarter,
+    isAuthenticated,
     onSearchChange,
     onStateChange,
 }: FilterBarProps) {
@@ -140,11 +142,11 @@ function FilterBar({
                                 type="text"
                                 disabled
                                 tone="warning"
-                                placeholder="Search + advanced filters available on paid plans"
+                                placeholder={!isAuthenticated ? "Login to search..." : "Search + advanced filters available on paid plans"}
                                 className="cursor-not-allowed"
                             />
                             <FieldHelperText className="text-amber-800">
-                                Upgrade to Pro or higher to search by firm, service type, and region.{' '}
+                                {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to search by firm, service type, and region.{' '}
                                 <Link href="/membership" className="font-semibold text-amber-900 underline">
                                     View plans
                                 </Link>
@@ -327,7 +329,8 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
     const [search, setSearch] = useState<string>('')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
 
-    const isStarter = planUid === 'L9nbKV9Z'
+    const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
+
     const isProOrHigher = !!planUid && !isStarter
 
     const matchesStateFilter = (firm: Firm) => {
@@ -370,22 +373,10 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
     const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
     const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
 
-    if (!isLoading && !isAuthenticated) {
-        return (
-            <main className="mx-auto max-w-4xl px-6 py-10">
-                <h1 className="text-3xl font-bold text-slate-900">Firm directory</h1>
-                <p className="mb-6 mt-2 text-base text-slate-700">
-                    Log in to browse firms hiring field professionals.
-                </p>
-                <a
-                    href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                    className="inline-flex items-center border border-slate-900 bg-slate-900 px-5 py-3 text-sm font-semibold tracking-[0.16em] text-white"
-                >
-                    LOGIN TO VIEW DIRECTORY
-                </a>
-            </main>
-        )
-    }
+    // Guest Preview Mode: remove the login gate and let it fall through to render.
+    // We handle the "Guest" state via isStarter = true (essentially) or we can make it explicit.
+    // Above we set isStarter = planUid === '...' || !isAuthenticated. 
+    // So logic below will treat guests as starters (preview mode).
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -412,6 +403,7 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                 stateFilter={stateFilter}
                 search={search}
                 isStarter={isStarter}
+                isAuthenticated={isAuthenticated}
                 onSearchChange={setSearch}
                 onStateChange={setStateFilter}
             />
@@ -423,12 +415,23 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                         You are viewing a small sample of firms that match your filter. Upgrade to Pro or
                         higher to unlock the full directory and deeper intel.
                     </p>
-                    <Link
-                        href="/membership"
-                        className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
-                    >
-                        UPGRADE FOR FULL ACCESS
-                    </Link>
+                    <div className="flex flex-wrap gap-3">
+                        {!isAuthenticated ? (
+                            <a
+                                href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
+                                className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
+                            >
+                                LOGIN FOR FULL ACCESS
+                            </a>
+                        ) : (
+                            <Link
+                                href="/membership"
+                                className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
+                            >
+                                UPGRADE FOR FULL ACCESS
+                            </Link>
+                        )}
+                    </div>
                 </div>
             )}
 

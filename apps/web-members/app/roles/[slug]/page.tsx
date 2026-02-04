@@ -202,11 +202,15 @@ export default function RoleDetailPage({
                 </Link>
               </div>
               <div className="rounded-2xl border border-brand-copper/30 bg-white p-4 text-sm text-slate-700">
-                <p className="font-semibold text-brand-dark">Coming soon</p>
+                <p className="font-semibold text-brand-dark">In Development</p>
                 <p className="mt-1">
-                  Deeper content modules for {role.title.toLowerCase()} will appear here, including carousel-driven recommendations
-                  and role-aware training suggestions.
+                  We are actively building deeper content modules for {role.title.toLowerCase()}, including:
                 </p>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-slate-600">
+                  <li>Role-specific training paths</li>
+                  <li>Downloadable templates & checklists</li>
+                  <li>Equipment recommendations</li>
+                </ul>
               </div>
             </div>
           </div>

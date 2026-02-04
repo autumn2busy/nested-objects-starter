@@ -48,13 +48,13 @@ export const lessonsData: Record<number, LessonData> = {
             {
                 id: 'step-1-1',
                 title: "Understand the Model",
-                content: "[TODO: Paste content from PDF. Explain the difference between direct-to-bank and preservation companies.]",
+                content: "(Content coming soon: Explanation of direct-to-bank vs preservation companies)",
                 critical: true
             },
             {
                 id: 'step-1-2',
                 title: "Income Potential",
-                content: "[TODO: Paste content from PDF. Breakdown of pay per job type.]"
+                content: "(Content coming soon: Breakdown of pay per job type)",
             }
         ],
         quickWin: "Complete your profile on a national preservation platform today.",
@@ -95,7 +95,7 @@ export const lessonsData: Record<number, LessonData> = {
             {
                 id: 'step-2-2',
                 title: "Damage Classifications",
-                content: "[TODO: Paste content from PDF. Definitions of vandalism vs wear and tear.]"
+                content: "(Content coming soon: Definitions of vandalism vs wear and tear)",
             }
         ],
         quickWin: "Memorize the 'Big 5' acronyms: PCR, QC, bid, damages, int/ext.",
@@ -257,7 +257,7 @@ export const lessonsData: Record<number, LessonData> = {
             {
                 id: 'step-5-1',
                 title: "Receive & Review",
-                content: "[TODO: Paste content. Checking instructions before driving.]",
+                content: "(Content coming soon: Checklist for instructions before driving)",
                 critical: true
             },
             {

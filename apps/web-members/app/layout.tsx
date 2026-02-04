@@ -94,9 +94,10 @@ export default function RootLayout({
               }}
             />
             {/* Load Outseta library synchronously to strictly follow config */}
-            <script
+            <Script
               src="https://cdn.outseta.com/outseta.min.js"
               data-options="o_options"
+              strategy="beforeInteractive"
             />
           </>
         )}
