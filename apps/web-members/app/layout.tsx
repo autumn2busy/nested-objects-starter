@@ -61,9 +61,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Global structured data schemas
   const organizationSchema = getOrganizationSchema()
   const webSiteSchema = getWebSiteSchema()
+
+  const shouldLoadOutseta =
+    process.env.NODE_ENV === 'production' ||
+    process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -78,11 +81,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
 
-        {/* Outseta install snippet - Only load in production or if explicitly enabled */}
-        {(process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true') && (
+        {/* Outseta install snippet. Only load in production or if explicitly enabled */}
+        {shouldLoadOutseta && (
           <>
-            {/* Use raw script tag for configuration - MUST be synchronous */}
-            <script
+            {/* Configuration must be set before the Outseta script executes */}
+            <Script
+              id="outseta-options"
+              strategy="beforeInteractive"
               dangerouslySetInnerHTML={{
                 __html: `
                   var o_options = {
@@ -93,14 +98,17 @@ export default function RootLayout({
                 `,
               }}
             />
-            {/* Load Outseta library synchronously to strictly follow config */}
-            <script
+
+            <Script
+              id="outseta-loader"
               src="https://cdn.outseta.com/outseta.min.js"
+              strategy="beforeInteractive"
               data-options="o_options"
             />
           </>
         )}
       </head>
+
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
         {/* Skip Link for Accessibility (WCAG 2.4.1) */}
         <a
@@ -121,4 +129,3 @@ export default function RootLayout({
     </html>
   )
 }
-
