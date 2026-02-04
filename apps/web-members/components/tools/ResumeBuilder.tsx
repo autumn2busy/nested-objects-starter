@@ -366,7 +366,7 @@ export default function ResumeBuilder() {
         website: data.contact?.website || ''
       };
 
-      const mappedExperience = (data.experience || []).map((exp: any) => {
+      const mappedExperience = (Array.isArray(data.experience) ? data.experience : []).map((exp: any) => {
         // Parse dates "Jul 2023 - Present" -> startDate, endDate, current
         let startDate = '';
         let endDate = '';
@@ -401,11 +401,11 @@ export default function ResumeBuilder() {
           current,
           description: exp.description || '',
           bullets: Array.isArray(exp.responsibilities) ? exp.responsibilities : [exp.responsibilities || ''],
-          transferableSkills: exp.transferableSkills || []
+          transferableSkills: Array.isArray(exp.transferableSkills) ? exp.transferableSkills : []
         };
       });
 
-      const mappedEducation = (data.education || []).map((edu: any) => ({
+      const mappedEducation = (Array.isArray(data.education) ? data.education : []).map((edu: any) => ({
         id: generateId(),
         school: edu.institution || edu.school || '',
         degree: edu.degree || '',
@@ -423,14 +423,14 @@ export default function ResumeBuilder() {
         summary: data.summary || data.professionalSummary || prev.summary, // Check professionalSummary
         experience: mappedExperience.length > 0 ? mappedExperience : prev.experience,
         education: mappedEducation.length > 0 ? mappedEducation : prev.education,
-        certifications: data.certifications?.map((cert: any) => ({ ...cert, id: generateId() })) || prev.certifications,
-        skills: [...new Set([...prev.skills, ...(data.skills || [])])],
+        certifications: Array.isArray(data.certifications) ? data.certifications.map((cert: any) => ({ ...cert, id: generateId() })) : prev.certifications,
+        skills: [...new Set([...prev.skills, ...(Array.isArray(data.skills) ? data.skills : [])])],
       }));
 
       // Map real AI analysis data
       // Ensure we attempt to pull from root or nested structures if n8n varies
       const analysis: AIAnalysis = {
-        transferableSkills: data.transferableSkills || data.skills?.slice(0, 6) || [],
+        transferableSkills: Array.isArray(data.transferableSkills) ? data.transferableSkills : (Array.isArray(data.skills) ? data.skills.slice(0, 6) : []),
         suggestedSummary: data.summary || data.professionalSummary || '',
         industryTermMappings: data.industryTermMappings || [],
         strengthAreas: data.strengthAreas || [],

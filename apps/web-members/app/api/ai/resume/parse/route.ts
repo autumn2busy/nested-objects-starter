@@ -32,10 +32,12 @@ const EXTENSION_TO_MIME: Record<string, string> = {
   '.txt': 'text/plain',
 };
 
+import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
+
 export async function POST(request: Request) {
   try {
     // ---- AUTH CHECK ----
-    // Read auth directly from request.headers (avoids Next.js headers() async issues)
     const auth = request.headers.get('authorization');
 
     if (!auth) {
@@ -91,6 +93,60 @@ export async function POST(request: Request) {
       );
     }
 
+    // ---- LOCAL TEXT EXTRACTION ----
+    // We parse locally to have a foolproof fallback for contact info
+    let extractedText = '';
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      if (fileType === 'application/pdf') {
+        const data = await pdf(buffer);
+        extractedText = data.text;
+      } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const result = await mammoth.extractRawText({ buffer });
+        extractedText = result.value;
+      } else if (fileType === 'text/plain') {
+        extractedText = buffer.toString('utf-8');
+      }
+    } catch (localParseError) {
+      console.warn('[Resume Parse] Local text extraction failed, relying solely on AI:', localParseError);
+      // Continue without local text - not fatal
+    }
+
+    // ---- REGEX EXTRACTION (FOOLPROOF LAYER) ----
+    const regexData = {
+      email: '',
+      phone: '',
+      websites: [] as string[],
+      potentialName: ''
+    };
+
+    if (extractedText) {
+      // Email
+      const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch) regexData.email = emailMatch[0];
+
+      // Phone (US formats mostly)
+      // Matches (123) 456-7890, 123-456-7890, 123.456.7890, +1 123...
+      const phoneMatch = extractedText.match(/(?:\+?1[-. ]?)?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/);
+      if (phoneMatch) regexData.phone = phoneMatch[0];
+
+      // Links (LinkedIn, URLs)
+      const linkMatches = extractedText.matchAll(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g);
+      for (const match of linkMatches) {
+        regexData.websites.push(match[0]);
+      }
+
+      // Name Heuristic: Often the first line or first capitalized words
+      const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+      if (lines.length > 0) {
+        // First non-empty line is a strong candidate for name
+        regexData.potentialName = lines[0].substring(0, 50);
+      }
+    }
+
+
     // ---- CHECK N8N CONFIG ----
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
 
@@ -103,8 +159,11 @@ export async function POST(request: Request) {
     }
 
     // ---- CONVERT FILE TO BASE64 ----
-    const arrayBuffer = await file.arrayBuffer();
-    const base64Data = Buffer.from(arrayBuffer).toString('base64');
+    // Re-read buffer for base64 (since cursor might differ if we used stream, but here we used new buffer copies so it is fine)
+    // Actually we consumed file.arrayBuffer() earlier. Next.js Request body can be consumed once? 
+    // Variable `file` is a File object, .arrayBuffer() returns a new Promise. It should be fine.
+    const arrayBufferForUpload = await file.arrayBuffer();
+    const base64Data = Buffer.from(arrayBufferForUpload).toString('base64');
 
     console.log(`[Resume Parse] Sending to n8n (${base64Data.length} base64 chars)...`);
 
@@ -124,6 +183,9 @@ export async function POST(request: Request) {
 
     // ---- HANDLE N8N RESPONSE ----
     if (!n8nResponse.ok) {
+      // Fallback: If n8n fails but we extracted text locally, return that at least?
+      // For now, let's treat n8n failure as fatal for "AI parsing" but maybe return the basic info.
+      // Actually, let's stick to standard error handling for now unless requested.
       let errorData: any;
       try {
         errorData = await n8nResponse.json();
@@ -134,6 +196,25 @@ export async function POST(request: Request) {
       const status = n8nResponse.status >= 400 && n8nResponse.status < 600
         ? n8nResponse.status
         : 500;
+
+      // NEW: If local extraction worked, maybe return partial data instead of error?
+      // User asked for "foolproof way", so returning partial data is better than error.
+      if (extractedText) {
+        console.warn('[Resume Parse] n8n failed, returning local regex fallback data.');
+        return NextResponse.json({
+          contact: {
+            name: regexData.potentialName,
+            email: regexData.email,
+            phone: regexData.phone,
+            websites: regexData.websites
+          },
+          skills: [],
+          experience: [],
+          education: [],
+          summary: "AI analysis failed, but we extracted your contact info. Please fill in the rest manually.",
+        });
+      }
+
       return NextResponse.json(
         { error: errorData.error || 'Failed to analyze resume. Please try again.' },
         { status }
@@ -141,9 +222,35 @@ export async function POST(request: Request) {
     }
 
     // ---- RETURN PARSED RESULT ----
-    const result = await n8nResponse.json();
-    console.log('[Resume Parse] Success');
-    return NextResponse.json(result);
+    const aiResult = await n8nResponse.json();
+    console.log('[Resume Parse] Success from AI');
+
+    // ---- MERGE DATA (FOOLPROOFING) ----
+    // We trust AI for most things, but regex is better for specific format fields if AI missed them
+    const mergedResult = {
+      ...aiResult,
+      contact: {
+        ...aiResult.contact,
+        // If AI missed email, use regex
+        email: aiResult.contact?.email || regexData.email,
+        // If AI missed phone, use regex
+        phone: aiResult.contact?.phone || regexData.phone,
+        // Prefer AI name, but fallback to regex first line
+        name: aiResult.contact?.name || aiResult.contact?.fullName || regexData.potentialName,
+      }
+    };
+
+    // Also try to find links if missing
+    if (regexData.websites.length > 0) {
+      const existingLinks = [mergedResult.contact?.linkedin, mergedResult.contact?.website].filter(Boolean).join(' ');
+      const linkedin = regexData.websites.find(w => w.includes('linkedin.com')) || '';
+      const otherSite = regexData.websites.find(w => !w.includes('linkedin.com')) || '';
+
+      if (!mergedResult.contact.linkedin && linkedin) mergedResult.contact.linkedin = linkedin;
+      if (!mergedResult.contact.website && otherSite) mergedResult.contact.website = otherSite;
+    }
+
+    return NextResponse.json(mergedResult);
 
   } catch (error: any) {
     console.error('[Resume Parse] Unhandled error:', error?.message || error);
