@@ -59,6 +59,13 @@ NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_SITE_URL=https://nested-objects-starter.vercel.app
+
+# Avatar uploads (Supabase storage)
+SUPABASE_AVATAR_BUCKET=avatars
+
+# Outseta JWT verification (server-side)
+# Uses the Outseta tenant issuer/JWKS at https://nested-objects.outseta.com/.well-known/jwks
+# Ensure NEXT_PUBLIC_OUTSETA_DOMAIN matches your tenant so server-side verification succeeds.
 ```
 
 **CRITICAL:** After adding env vars, click **"Redeploy"** from the Deployments tab.
@@ -157,6 +164,13 @@ export async function GET() {
 2. Visit: https://nested-objects-starter.vercel.app/api/test-auth
 3. **Expected:** JSON response with user data
 
+### Test 5: Avatar Uploads (API)
+1. Log in to obtain a valid Outseta JWT (cookie or Bearer token).
+2. Send `POST /api/profile/avatar` with `multipart/form-data` and a `file` field.
+3. **Expected:** `200` JSON with a deterministic `path` like `avatars/{personUid}/avatar.png` and a signed `url`.
+4. Upload the same image again.
+5. **Expected:** The same `path` is returned (overwrite).
+
 ---
 
 ## 🐛 Troubleshooting
@@ -186,6 +200,15 @@ export async function GET() {
 ### Issue: Content groups not working
 **Cause:** Outseta Quick Start script not monitoring DOM
 **Fix:** Make sure `monitorDom: true` is in your `o_options` config (it's not in our current config - you can add it if needed)
+
+---
+
+## 🧩 Avatar Upload Configuration Notes
+
+- **Bucket name:** `SUPABASE_AVATAR_BUCKET` (defaults to `avatars` if not set).
+- **Storage path:** `avatars/{personUid}/avatar.{ext}` where `personUid` is the Outseta `sub` claim.
+- **Privacy:** The bucket should be **private**. The API returns a **signed URL** for reads.
+- **Public access (optional):** If you intentionally make the bucket public, update client logic to use the stable `path` or a public URL as needed.
 
 ---
 

@@ -66,6 +66,15 @@ export function getOutsetaUserId(user: OutsetaJWTPayload | null) {
   return user.sub || user['outseta:accountUid'] || user['outseta:subscriptionUid'] || null
 }
 
+export function getPersonUidFromClaims(user: OutsetaJWTPayload | null) {
+  if (!user) return null
+  if (typeof user.sub === 'string' && user.sub.trim().length > 0) {
+    return user.sub
+  }
+  const fallback = user['outseta:personUid']
+  return typeof fallback === 'string' && fallback.trim().length > 0 ? fallback : null
+}
+
 /**
  * Get the current user from the request cookies
  */
