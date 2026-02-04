@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { verifyOutsetaToken, getOutsetaUserId, hasAccess } from '@/lib/auth-server';
 
 export async function POST(request: Request) {
   try {
     const headersList = headers();
     const auth = headersList.get('authorization');
 
-    if (!auth) {
+    if (!auth?.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const token = auth.split(' ')[1];
+    const user = await verifyOutsetaToken(token);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const planUid = user['outseta:planUid'];
+    if (!hasAccess(planUid, 'ai_concierge')) {
+      return NextResponse.json(
+        { error: 'Access denied: Upgrade to Pro or Elite to use the AI Concierge.' },
+        { status: 403 }
       );
     }
 
@@ -31,7 +50,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        jwt: auth.replace('Bearer ', ''),
+        jwt: token, // Send valid token to n8n if needed, or user info
+        user_id: getOutsetaUserId(user),
         prompt: prompt.trim(),
       }),
     });

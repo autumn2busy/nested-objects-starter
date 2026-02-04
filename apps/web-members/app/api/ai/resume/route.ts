@@ -1,20 +1,39 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { verifyOutsetaToken, getOutsetaUserId, hasAccess } from '@/lib/auth-server';
 
 export async function POST(request: Request) {
   try {
     const headersList = headers();
     const auth = headersList.get('authorization');
-    
-    if (!auth) {
+
+    if (!auth?.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in to use the AI Resume Builder.' },
         { status: 401 }
       );
     }
 
+    const token = auth.split(' ')[1];
+    const user = await verifyOutsetaToken(token);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token.' },
+        { status: 401 }
+      );
+    }
+
+    const planUid = user['outseta:planUid'];
+    if (!hasAccess(planUid, 'ai_resume')) {
+      return NextResponse.json(
+        { error: 'Access denied: Upgrade your plan to use the AI Resume Builder.' },
+        { status: 403 }
+      );
+    }
+
     const { prompt } = await request.json();
-    
+
     if (!prompt || prompt.trim().length === 0) {
       return NextResponse.json(
         { error: 'Prompt is required. Please provide information about your experience and skills.' },
@@ -24,7 +43,7 @@ export async function POST(request: Request) {
 
     // Get n8n webhook URL from environment
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-    
+
     if (!n8nWebhookUrl) {
       console.error('N8N_AI_RESUME_WEBHOOK_URL environment variable is not set');
       return NextResponse.json(
@@ -40,13 +59,14 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        jwt: auth.replace('Bearer ', ''),
+        jwt: token,
+        user_id: getOutsetaUserId(user),
         prompt: prompt.trim(),
       }),
     });
 
     const data = await response.json();
-    
+
     // Handle different response types from n8n
     if (!response.ok) {
       // Return the error from n8n with appropriate status
@@ -58,7 +78,7 @@ export async function POST(request: Request) {
 
     // Success - return AI response
     return NextResponse.json(data);
-    
+
   } catch (error) {
     console.error('AI Resume Builder error:', error);
     return NextResponse.json(
@@ -71,7 +91,7 @@ export async function POST(request: Request) {
 // Optional: Add GET method to check if resume builder is available
 export async function GET() {
   const webhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-  
+
   return NextResponse.json({
     available: !!webhookUrl,
     feature: 'AI Resume Builder',

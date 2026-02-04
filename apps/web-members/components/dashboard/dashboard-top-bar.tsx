@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 import { useDashboardLayout } from './dashboard-layout-context'
+import { AvatarUpload } from '@/components/profile/AvatarUpload'
 
 interface DashboardTopBarProps {
   firstName: string
@@ -62,9 +63,7 @@ export function DashboardTopBar({ firstName, planName, onLogout }: DashboardTopB
         </button>
 
         <div className="flex items-center gap-3 rounded-xl border border-brand-mist bg-white/70 px-3 py-2 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-slate">
-            {firstName.charAt(0).toUpperCase()}
-          </div>
+          <AvatarUpload />
           <div className="leading-tight">
             <p className="text-sm font-semibold text-brand-slate">{firstName}</p>
             <p className="text-xs text-brand-steel">{planName} member</p>
