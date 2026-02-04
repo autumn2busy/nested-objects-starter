@@ -14,15 +14,15 @@ function CallbackContent() {
         console.log('🟢 Callback page loaded')
         console.log('🟢 Full URL:', window.location.href)
         console.log('🟢 Search params:', window.location.search)
-        
+
         // Get the access token from URL query params
         const accessToken = searchParams.get('access_token')
-        
+
         console.log('🟢 Access token found?', !!accessToken)
-        
+
         if (!accessToken) {
           setStatus('No access token received. Checking Outseta...')
-          
+
           // Wait a moment for Outseta to load
           setTimeout(() => {
             if (window.Outseta) {
@@ -40,46 +40,61 @@ function CallbackContent() {
         }
 
         proceedWithToken(accessToken)
-        
+
       } catch (err) {
         console.error('🔴 Auth callback error:', err)
         setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
     }
 
-    const proceedWithToken = (accessToken: string) => {
+    const proceedWithToken = async (accessToken: string) => {
       console.log('🟢 Processing token...')
-      
-      // Store the token in a cookie (accessible by server-side code)
-      document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
-      console.log('🟢 Token stored in cookie')
 
-      // Initialize Outseta with the token if it's loaded
-      if (window.Outseta) {
-        window.Outseta.setAccessToken(accessToken)
-        console.log('🟢 Token set in Outseta')
+      try {
+        // Exchange token for HttpOnly cookie via server endpoint
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ accessToken })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to create session')
+        }
+
+        console.log('🟢 Session created.')
+
+        // Initialize Outseta with the token if it's loaded (still needed for client widgets)
+        if (window.Outseta) {
+          window.Outseta.setAccessToken(accessToken)
+          console.log('🟢 Token set in Outseta')
+        }
+
+        setStatus('Success! Redirecting...')
+
+        // Redirect to directory
+        const redirectTo = searchParams.get('redirect') || '/dashboard'
+
+        console.log('🟢 Redirecting to:', redirectTo)
+
+        // Small delay to ensure state is settled
+        setTimeout(() => {
+          window.location.href = redirectTo
+        }, 500)
+      } catch (err) {
+        console.error('Session creation failed:', err)
+        setStatus('Error: Failed to create session. Please try again.')
       }
-
-      setStatus('Success! Redirecting...')
-
-      // Redirect to directory
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
-      
-      console.log('🟢 Redirecting to:', redirectTo)
-      
-// Small delay to ensure cookie + Outseta token are fully set
-      setTimeout(() => {
-        window.location.href = redirectTo
-        // or: window.location.assign(redirectTo)
-      }, 500)
     }
 
     handleCallback()
   }, [searchParams, router])
 
   return (
-    <div style={{ 
-      padding: '4rem 2rem', 
+    <div style={{
+      padding: '4rem 2rem',
       textAlign: 'center',
       maxWidth: '600px',
       margin: '0 auto'
@@ -87,14 +102,14 @@ function CallbackContent() {
       <h1 style={{ marginBottom: '1rem' }}>
         {status.includes('Error') ? '⚠️' : '✓'} Authentication
       </h1>
-      <p style={{ 
+      <p style={{
         fontSize: '1.125rem',
         color: status.includes('Error') ? '#ef4444' : '#6b7280'
       }}>
         {status}
       </p>
       {status.includes('Error') && (
-        <a 
+        <a
           href="/"
           style={{
             display: 'inline-block',

@@ -139,129 +139,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Load auth state from Outseta (once on mount)
+  // Load auth state from server session
   useEffect(() => {
     let cancelled = false
-    let authed = false
-    let attempts = 0
-    let isChecking = false
-
-    const waitForOutseta = async () => {
-      if (typeof window === 'undefined') return null
-
-      if (window.Outseta?.getJwtPayload) return window.Outseta
-
-      return await new Promise<any | null>((resolve) => {
-        let interval: ReturnType<typeof setInterval> | undefined
-
-        const timeout = setTimeout(() => {
-          if (interval) clearInterval(interval)
-          resolve(null)
-        }, 4000)
-
-        interval = setInterval(() => {
-          if (cancelled) {
-            clearInterval(interval)
-            clearTimeout(timeout)
-            resolve(null)
-            return
-          }
-
-          if (window.Outseta?.getJwtPayload) {
-            clearInterval(interval)
-            clearTimeout(timeout)
-            resolve(window.Outseta)
-          }
-        }, 150)
-      })
-    }
 
     const loadUser = async () => {
-      if (isChecking) return
-      isChecking = true
-
       try {
-        if (typeof window === 'undefined') {
-          if (!cancelled) setIsLoading(false)
-          return
-        }
-
-        const Outseta = await waitForOutseta()
-        if (!Outseta?.getJwtPayload) return
-
-        const payload = await Outseta.getJwtPayload()
+        const res = await fetch('/api/auth/session')
 
         if (cancelled) return
 
-        if (payload) {
-          // Sync access token to cookie for server-side auth
-          try {
-            const accessToken = await Outseta.getAccessToken()
-            if (accessToken) {
-              setAccessToken(accessToken)
-              document.cookie = `outseta_access_token=${accessToken}; path=/; max-age=604800; samesite=lax`
-            }
-          } catch (e) {
-            console.error('Error syncing auth cookie', e)
-          }
+        if (res.ok) {
+          const data = await res.json()
 
-          setUser(payload)
-          setPlanUid(payload['outseta:planUid'] ?? null)
-          setIsAuthenticated(true)
-          authed = true
+          if (data.user) {
+            setUser(data.user)
+            setPlanUid(data.user['outseta:planUid'] ?? null)
+            setIsAuthenticated(true)
 
-          // If there is no cached display name, seed it from the payload
-          try {
-            const cachedName = window.localStorage.getItem('profileDisplayName')
-            if (!cachedName) {
-              persistProfileDisplayName(deriveDisplayName(payload))
+            // Derive display name if missing
+            try {
+              const cachedName = window.localStorage.getItem('profileDisplayName')
+              if (!cachedName) {
+                persistProfileDisplayName(deriveDisplayName(data.user))
+              }
+            } catch {
+              persistProfileDisplayName(deriveDisplayName(data.user))
             }
-          } catch {
-            persistProfileDisplayName(deriveDisplayName(payload))
+          } else {
+            // 401/403 or just null user
+            setUser(null)
+            setPlanUid(null)
+            setIsAuthenticated(false)
           }
         } else {
           setUser(null)
           setPlanUid(null)
-          setAccessToken(null)
           setIsAuthenticated(false)
         }
       } catch (error) {
-        console.error('Error loading auth state from Outseta', error)
+        console.error('Error loading session', error)
         if (!cancelled) {
           setUser(null)
           setPlanUid(null)
-          setAccessToken(null)
           setIsAuthenticated(false)
         }
       } finally {
-        isChecking = false
+        if (!cancelled) setIsLoading(false)
       }
     }
 
-    const interval = setInterval(() => {
-      if (authed || attempts > 20) {
-        clearInterval(interval)
-        if (!cancelled) setIsLoading(false)
-        return
-      }
-
-      attempts += 1
-      loadUser().finally(() => {
-        if (!cancelled && (authed || attempts > 20)) {
-          setIsLoading(false)
-        }
-      })
-    }, 300)
-
-    loadUser().finally(() => {
-      if (!cancelled && (authed || attempts > 20)) {
-        setIsLoading(false)
-      }
-    })
+    loadUser()
 
     return () => {
       cancelled = true
-      clearInterval(interval)
     }
   }, [persistProfileDisplayName])
 
@@ -376,18 +307,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
-    if (typeof window === 'undefined') return
-
+  const logout = async () => {
     try {
-      const Outseta = window.Outseta
+      // Clear server session (httpOnly cookie)
+      await fetch('/api/auth/session', { method: 'DELETE' })
 
-      if (Outseta?.setAccessToken) {
-        Outseta.setAccessToken(null)
+      if (typeof window !== 'undefined') {
+        const Outseta = window.Outseta
+        if (Outseta?.setAccessToken) {
+          Outseta.setAccessToken(null)
+        }
       }
-
-      document.cookie =
-        'outseta_access_token=; path=/; max-age=0; samesite=lax'
 
       setUser(null)
       setPlanUid(null)
