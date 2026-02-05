@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { verifyOutsetaSignature } from '@/lib/security';
 
 // =================================================================
 // TYPES
@@ -105,35 +106,14 @@ interface ProfileUpdateData {
 function getSupabaseAdmin(): SupabaseClient {
   const url = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!url || !serviceKey) {
     throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
   }
-  
+
   return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
-}
-
-function verifyOutsetaSignature(
-  signature: string,
-  bodyAsString: string,
-  keyAsHex: string
-): boolean {
-  if (!signature || !keyAsHex) return false;
-  
-  try {
-    const key = Buffer.from(keyAsHex, 'hex');
-    const payloadToSign = Buffer.from(bodyAsString, 'utf-8');
-    const calculatedSignature = crypto
-      .createHmac('sha256', key)
-      .update(payloadToSign)
-      .digest('hex');
-    
-    return signature === `sha256=${calculatedSignature}`;
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -171,7 +151,7 @@ function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'
  * Handles both Person Updated and Account/Subscription events
  */
 function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData {
-  
+
   // =====================================================
   // PERSON-CENTRIC PAYLOAD (Person Created/Updated)
   // The Person is at root, Account info is nested inside PersonAccount
@@ -179,17 +159,17 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
   if (isPersonPayload(payload)) {
     const person = payload;
     const email = person.Email.toLowerCase().trim();
-    
+
     // Get account info from PersonAccount array if available
-    const primaryPersonAccount = person.PersonAccount?.find(pa => pa.IsPrimary) 
+    const primaryPersonAccount = person.PersonAccount?.find(pa => pa.IsPrimary)
       || person.PersonAccount?.[0];
     const account = primaryPersonAccount?.Account;
-    
+
     // For Person events, we may not have full subscription info
     // We'll update what we can
     const subscription = account?.CurrentSubscription || account?.LatestSubscription;
     const plan = subscription?.Plan;
-    
+
     return {
       outseta_person_uid: person.Uid,
       outseta_account_id: account?.Uid || null,
@@ -214,26 +194,26 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       last_active_at: new Date().toISOString(),
     };
   }
-  
+
   // =====================================================
   // ACCOUNT-CENTRIC PAYLOAD (Subscription Started/Updated/Cancelled)
   // The Account is at root, Person info is nested inside PersonAccount
   // =====================================================
   const account = payload as OutsetaAccountPayload;
-  
+
   // Find primary person from PersonAccount array
-  const primaryPersonAccount = account.PersonAccount?.find(pa => pa.IsPrimary) 
+  const primaryPersonAccount = account.PersonAccount?.find(pa => pa.IsPrimary)
     || account.PersonAccount?.[0];
   const person = primaryPersonAccount?.Person;
-  
+
   if (!person?.Email) {
     throw new Error(`No person email in account payload. Account UID: ${account.Uid}`);
   }
-  
+
   const email = person.Email.toLowerCase().trim();
   const subscription = account.CurrentSubscription || account.LatestSubscription;
   const plan = subscription?.Plan;
-  
+
   return {
     outseta_person_uid: person.Uid,
     outseta_account_id: account.Uid,
@@ -266,42 +246,73 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   const requestId = crypto.randomUUID().slice(0, 8);
-  
+
   console.log(`[${requestId}] Outseta webhook received`);
-  
+
   try {
     const bodyText = await request.text();
-    
-    // Verify signature if configured
+
+    // Verify signature
     const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
-    const signature = request.headers.get('x-hub-signature-256') || '';
-    
-    if (webhookSecret && !verifyOutsetaSignature(signature, bodyText, webhookSecret)) {
-      console.error(`[${requestId}] Signature verification failed`);
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+
+    // In production, strictly enforce the secret
+    if (!webhookSecret && process.env.NODE_ENV === 'production') {
+      console.error(`[${requestId}] Configuration error: OUTSETA_WEBHOOK_SECRET missing in production`);
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
-    
+
+    const signature = request.headers.get('x-hub-signature-256') || '';
+
+    // If secret is present, verify it. If missing (non-prod), warn.
+    if (webhookSecret) {
+      if (!verifyOutsetaSignature(signature, bodyText, webhookSecret)) {
+        console.error(`[${requestId}] Signature verification failed`);
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    } else {
+      console.warn(`[${requestId}] WARNING: Webhook secret not configured. Skipping signature verification.`);
+    }
+
     // Parse payload
     const payload: OutsetaWebhookPayload = JSON.parse(bodyText);
     const payloadType = isPersonPayload(payload) ? 'Person' : 'Account';
     console.log(`[${requestId}] Payload type: ${payloadType}`);
-    
+
     // Map to profile data
     const profileData = mapOutsetaToProfile(payload);
     console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
-    
+
     const supabase = getSupabaseAdmin();
-    
+
     // Check if profile exists
     const { data: existing } = await supabase
       .from('profiles')
-      .select('id, user_email')
+      .select('id, user_email, outseta_updated_at')
       .eq('user_email', profileData.user_email)
       .single();
-    
+
     let result;
-    
+
     if (existing) {
+      // IDEMPOTENCY CHECK
+      // If we have already processed a newer or equal update, skip this one
+      if (existing.outseta_updated_at && profileData.outseta_updated_at) {
+        const existingTime = new Date(existing.outseta_updated_at).getTime();
+        const incomingTime = new Date(profileData.outseta_updated_at).getTime();
+
+        if (existingTime >= incomingTime) {
+          console.log(`[${requestId}] Skipping update: Profile already verified up to ${existing.outseta_updated_at}`);
+          return NextResponse.json({
+            success: true,
+            operation: 'skipped',
+            reason: 'newer_version_exists',
+            requestId,
+            duration: `${Date.now() - startTime}ms`
+          });
+        }
+      }
+
+      // UPDATE - only update fields we have data for
       // UPDATE - only update fields we have data for
       const updatePayload: Record<string, unknown> = {
         outseta_person_uid: profileData.outseta_person_uid,
@@ -315,7 +326,7 @@ export async function POST(request: NextRequest) {
         outseta_data: profileData.outseta_data,
         last_active_at: profileData.last_active_at,
       };
-      
+
       // Only update these if we have values (don't overwrite with nulls)
       if (profileData.outseta_account_id) updatePayload.outseta_account_id = profileData.outseta_account_id;
       if (profileData.plan_uid) updatePayload.plan_uid = profileData.plan_uid;
@@ -323,23 +334,23 @@ export async function POST(request: NextRequest) {
       if (profileData.subscription_start_date) updatePayload.subscription_start_date = profileData.subscription_start_date;
       if (profileData.billing_renewal_term) updatePayload.billing_renewal_term = profileData.billing_renewal_term;
       if (profileData.last_login_at) updatePayload.last_login_at = profileData.last_login_at;
-      
+
       // Only update subscription info if we got it from an Account event
       if (payloadType === 'Account' || profileData.plan_name) {
         updatePayload.subscription_tier = profileData.subscription_tier;
         updatePayload.subscription_status = profileData.subscription_status;
       }
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .update(updatePayload)
         .eq('user_email', profileData.user_email)
         .select('id, user_email, outseta_person_uid, subscription_tier, plan_name')
         .single();
-      
+
       if (error) throw error;
       result = { operation: 'update', data };
-      
+
     } else {
       // INSERT new profile
       const { data, error } = await supabase
@@ -347,21 +358,21 @@ export async function POST(request: NextRequest) {
         .insert(profileData)
         .select('id, user_email, outseta_person_uid, subscription_tier, plan_name')
         .single();
-      
+
       if (error) throw error;
       result = { operation: 'insert', data };
     }
-    
+
     const duration = Date.now() - startTime;
     console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms`);
-    
+
     return NextResponse.json({
       success: true,
       ...result,
       requestId,
       duration: `${duration}ms`
     });
-    
+
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`[${requestId}] Error after ${duration}ms:`, error);
