@@ -2,97 +2,47 @@
 
 import Link from 'next/link'
 import { Gate } from '@/components/Gate'
+import { useAuth } from '@/components/auth-provider'
+import { ArrowLeft } from 'lucide-react'
 
 export default function SponsorEquipmentPage() {
-  return (
-    <main style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '1rem',
-          marginBottom: '1.75rem',
-        }}
-      >
-        <div>
-          <Link
-            href="/dashboard"
-            style={{
-              fontSize: '0.9rem',
-              textDecoration: 'none',
-              color: '#4b5563',
-              display: 'inline-block',
-              marginBottom: '0.5rem',
-            }}
-          >
-            ← Back to dashboard
-          </Link>
-          <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              margin: 0,
-            }}
-          >
-            Recommended gear and sponsor partners
-          </h1>
-          <p
-            style={{
-              marginTop: '0.4rem',
-              fontSize: '0.95rem',
-              color: '#6b7280',
-            }}
-          >
-            Ladders, cameras, tablets, and safety gear vetted for mortgage field and PDC work.
-          </p>
-        </div>
+  const { isAuthenticated } = useAuth()
 
-        <nav
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            fontSize: '0.9rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
-            Home
-          </Link>
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        {isAuthenticated && (
           <Link
             href="/dashboard"
-            style={{ textDecoration: 'none', color: '#111827' }}
+            className="mb-4 inline-flex items-center text-sm text-text-secondary hover:text-brand-copper hover:underline"
           >
-            Dashboard
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to dashboard
           </Link>
-          <Link
-            href="/directory"
-            style={{ textDecoration: 'none', color: '#111827' }}
-          >
-            Directory
-          </Link>
-          <Link
-            href="/membership"
-            style={{ textDecoration: 'none', color: '#111827' }}
-          >
-            Membership
-          </Link>
-        </nav>
-      </header>
+        )}
+
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl">
+          Recommended gear and sponsor partners
+        </h1>
+        <p className="mt-2 text-lg text-text-secondary">
+          Ladders, cameras, tablets, and safety gear vetted for mortgage field and PDC work.
+        </p>
+      </div>
 
       <Gate feature="sponsor_equipment_links">
-        <section>
-          <p style={{ marginBottom: '1rem' }}>
+        <section className="prose prose-slate max-w-none rounded-2xl bg-white p-6 shadow-sm border border-border-subtle">
+          <p className="mb-4">
             This page will hold sponsor cards with links to recommended inspection gear, along with
             notes about why each item works well in the field.
           </p>
-          <ul style={{ listStyle: 'disc', paddingLeft: '1.25rem', fontSize: '0.95rem' }}>
+          <ul className="list-disc pl-5 space-y-1">
             <li>Feature core gear lists for new inspectors.</li>
             <li>Highlight premium setups for heavy route runners.</li>
             <li>Attach affiliate links or sponsor tracking where appropriate.</li>
           </ul>
         </section>
       </Gate>
-    </main>
+    </div>
   )
 }
+

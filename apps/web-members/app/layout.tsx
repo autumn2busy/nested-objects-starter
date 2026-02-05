@@ -81,6 +81,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
 
+        {/* Preconnect to external CDNs */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
         {/* Outseta install snippet. Only load in production or if explicitly enabled */}
         {shouldLoadOutseta && (
           <>

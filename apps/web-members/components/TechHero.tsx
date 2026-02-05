@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { HeroMap, MapFirm } from './HeroMap'
+import { HeroMap } from './HeroMap'
 // Icons
 import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
 
@@ -16,16 +16,37 @@ const TICKER_ITEMS = [
     "Live: 124 firms hiring now",
 ]
 
+/**
+ * Hook to detect 'prefers-reduced-motion'
+ */
+function useReducedMotion() {
+    const [matches, setMatches] = useState(false)
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+        setMatches(mediaQuery.matches)
+
+        const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches)
+        mediaQuery.addEventListener('change', handleChange)
+        return () => mediaQuery.removeEventListener('change', handleChange)
+    }, [])
+
+    return matches
+}
+
 export function TechHero() {
     const [tickerIndex, setTickerIndex] = useState(0)
+    const prefersReducedMotion = useReducedMotion()
 
-    // Cycle ticker text
+    // Cycle ticker text only if motion is NOT reduced
     useEffect(() => {
+        if (prefersReducedMotion) return
+
         const interval = setInterval(() => {
             setTickerIndex(prev => (prev + 1) % TICKER_ITEMS.length)
         }, 4000)
         return () => clearInterval(interval)
-    }, [])
+    }, [prefersReducedMotion])
 
     return (
         <section className="relative w-full min-h-[90vh] bg-slate-950 overflow-hidden flex flex-col pt-20">
@@ -42,7 +63,7 @@ export function TechHero() {
                 />
 
                 {/* The D3 Map */}
-                <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0">
+                <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0 motion-reduce:transform-none">
                     <HeroMap />
                 </div>
 
@@ -54,9 +75,9 @@ export function TechHero() {
             <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col justify-center items-center text-center">
 
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-8 backdrop-blur-md animate-fade-in-up">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-8 backdrop-blur-md animate-fade-in-up motion-reduce:animate-none">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     SYSTEM OPERATIONAL: LIVE DATA FEED
@@ -103,7 +124,7 @@ export function TechHero() {
 
                     <div className="flex-1 relative overflow-hidden h-6">
                         {/* Simple crossfade ticker */}
-                        <div key={tickerIndex} className="absolute inset-0 flex items-center animate-slide-up">
+                        <div key={tickerIndex} className="absolute inset-0 flex items-center animate-slide-up motion-reduce:animate-none">
                             <span className="truncate">{TICKER_ITEMS[tickerIndex]}</span>
                         </div>
                     </div>
@@ -131,3 +152,4 @@ export function TechHero() {
         </section>
     )
 }
+
