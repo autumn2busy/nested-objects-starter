@@ -289,3 +289,17 @@ Your auth implementation is working when:
 - ✅ No console errors on any page
 
 **Once these work, Phase 1 is complete! 🎉**
+
+---
+
+## 🔒 Phase 2: Security Hardening
+
+### 1. HttpOnly Cookies
+- **Change**: Moved from client-side cookie access to HttpOnly server-side cookies.
+- **Why**: Prevents XSS attacks from stealing the session token.
+- **Mechanism**:
+    - Login redirect -> `/auth/callback` -> POST `/api/auth/session` -> Sets HttpOnly cookie.
+    - App load -> GET `/api/auth/session` -> Returns user context.
+
+### 2. Server-Side Session Verification
+- All auth state `isAuthenticated`, `user`, `planUid` is now derived from the server-verified cookie, not the client-side Outseta script.
