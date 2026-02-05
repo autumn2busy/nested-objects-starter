@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
+import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
 
 function MembershipContent() {
     const { isAuthenticated, planUid } = useAuth()
@@ -11,30 +12,19 @@ function MembershipContent() {
     const currentPlanName =
         membershipPlans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
 
-    const isProOrHigher =
-        planUid === 'rQVqlLm6' || planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g'
+    const isProOrHigher = planUid && PRO_OR_HIGHER.includes(planUid)
 
-    const proPlan = membershipPlans.find((p) => p.planUid === 'rQVqlLm6')!
-
-    const router = useRouter();
-
-    const PLAN_CHANGE_URLS: Record<string, string> = {
-        'rmk5Xk9g': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rmk5Xk9g%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Agency
-        'zWZD0rQp': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22zWZD0rQp%22%2C%22planPaymentTerm%22%3A%22oneTime%22%7D#o-authenticated', // Directory
-        'NmdnNO90': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22NmdnNO90%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Elite
-        'rQVqlLm6': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22rQVqlLm6%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Pro
-        'L9nbKV9Z': 'https://nested-objects.outseta.com/profile?tab=planChange&stateProps=%7B%22planUid%22%3A%22L9nbKV9Z%22%2C%22planPaymentTerm%22%3A%22monthly%22%7D#o-authenticated', // Starter
-    };
+    const proPlan = membershipPlans.find((p) => p.planUid === PLAN_UIDS.PRO)!
 
     const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
-        if (isCurrentPlan) return
+        if (isCurrentPlan || plan.waitlist) return
 
         if (!isAuthenticated) {
             if (typeof window !== 'undefined' && window.Outseta?.auth?.open) {
                 window.Outseta.auth.open({
                     widgetMode: 'register',
                     planUid: plan.planUid,
-                    planPaymentTerm: 'month',
+                    planPaymentTerm: plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime',
                     skipPlanOptions: true,
                 })
             } else {
@@ -44,9 +34,9 @@ function MembershipContent() {
         }
 
         // Authenticated: Open profile widget to plan tab
+        // Note: For specific plan changes, we might want to redirect to a specific URL, 
+        // but opening the plan tab is the standard "Upgrade" path in Outseta widgets.
         if (typeof window !== 'undefined') {
-            // We can just open the profile. The user can navigate to "Plan" tab.
-            // Outseta API might allow opening specific tab, but standard open() is safest fallback.
             ; (window as any).Outseta?.profile?.open({ tab: 'plan' })
         }
     }
@@ -75,34 +65,13 @@ function MembershipContent() {
                 {isAuthenticated && currentPlanName && (
                     <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
                         <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                        Signed in. Current plan. <span className="font-semibold">{currentPlanName}</span>
+                        Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
                     </p>
                 )}
 
                 {!isAuthenticated && (
                     <p className="mt-4 text-sm text-slate-500">
-                        Create a free Starter account first. then upgrade inside the hub whenever you are ready.
-                    </p>
-                )}
-
-                {isAuthenticated && !isProOrHigher && (
-                    <p className="mt-4 text-sm text-slate-500">
-                        You can upgrade your plan using the buttons below. changes are handled securely by
-                        Outseta&apos;s billing portal.
-                    </p>
-                )}
-
-                {isProOrHigher && (
-                    <p className="mt-4 text-sm text-slate-500">
-                        Your billing and plan changes are managed from the{' '}
-                        <button
-                            type="button"
-                            onClick={openManageBilling}
-                            className="font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
-                        >
-                            manage plan &amp; billing
-                        </button>{' '}
-                        widget.
+                        Create a Free account first. Then upgrade inside the hub whenever you are ready.
                     </p>
                 )}
             </header>
@@ -114,13 +83,16 @@ function MembershipContent() {
                     <div className="grid gap-6 md:grid-cols-2">
                         {membershipPlans.map((plan) => {
                             const isCurrentPlan = planUid === plan.planUid
+                            const isPro = plan.planUid === PLAN_UIDS.PRO
 
                             const buttonBase =
                                 'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
 
                             let buttonClasses = ''
                             if (isCurrentPlan) {
-                                buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-300 text-white`
+                                buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-100 text-slate-500`
+                            } else if (plan.waitlist) {
+                                buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-50 text-slate-400 border border-slate-200`
                             } else if (plan.highlight) {
                                 buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
                             } else {
@@ -129,8 +101,10 @@ function MembershipContent() {
 
                             const label = (() => {
                                 if (isCurrentPlan) return 'Current plan'
-                                if (!isAuthenticated && plan.name === 'Starter') return 'Join free'
-                                if (!isAuthenticated) return `Start on ${plan.name}`
+                                if (plan.waitlist) return 'Join Waitlist'
+                                if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
+                                if (isPro && !isAuthenticated) return 'Start 7 Day Free Trial'
+                                if (isPro && isAuthenticated) return 'Upgrade to Pro'
                                 return `Switch to ${plan.name}`
                             })()
 
@@ -143,15 +117,27 @@ function MembershipContent() {
                                         }`}
                                     aria-label={`${plan.name} plan`}
                                 >
-                                    {plan.highlight && (
+                                    {plan.highlight && !isPro && (
                                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
                                             Most popular
                                         </div>
                                     )}
 
+                                    {isPro && (
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                                            7 Day Free Trial
+                                        </div>
+                                    )}
+
                                     {isCurrentPlan && (
                                         <div className="absolute -top-3 right-4 rounded-full bg-emerald-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-white">
-                                            Current plan
+                                            Current
+                                        </div>
+                                    )}
+
+                                    {plan.waitlist && (
+                                        <div className="absolute top-4 right-4 rounded bg-slate-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
+                                            Coming Soon
                                         </div>
                                     )}
 
@@ -177,16 +163,21 @@ function MembershipContent() {
                                     <div className="mt-auto">
                                         <button
                                             type="button"
-                                            disabled={isCurrentPlan}
+                                            disabled={isCurrentPlan || plan.waitlist === true}
                                             className={buttonClasses}
                                             onClick={() => openPlanWidget(plan, isCurrentPlan)}
                                         >
                                             {label}
                                         </button>
 
-                                        {plan.name === 'Starter' && (
+                                        {plan.name === 'Free' && (
                                             <p className="mt-2 text-center text-xs text-slate-500">
-                                                No credit card required. upgrade whenever you are ready.
+                                                No credit card required.
+                                            </p>
+                                        )}
+                                        {isPro && (
+                                            <p className="mt-2 text-center text-xs text-brand-copper">
+                                                Risk-free trial. Cancel anytime.
                                             </p>
                                         )}
                                     </div>
@@ -267,20 +258,8 @@ function MembershipContent() {
                             Is there a free option while I am getting started?
                         </h3>
                         <p className="mt-2">
-                            Yes. The Starter plan gives you ongoing access to the directory and core hub without a
-                            card on file. When you are ready for intel and AI tools you can upgrade into Pro or
-                            higher.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                            Who is Nested Objects built for?
-                        </h3>
-                        <p className="mt-2">
-                            Field inspectors, mobile notaries, real estate and investor friendly agents, and gig
-                            workers adding inspections as a new income lane. If you work outside, drive routes, or
-                            step into other people&apos;s properties, this hub is for you.
+                            Yes. The Free plan gives you ongoing access to the directory preview and core hub without a
+                            card on file. When you are ready for full listings and AI tools you can upgrade into Pro.
                         </p>
                     </div>
                 </div>
@@ -289,7 +268,7 @@ function MembershipContent() {
             {/* Final CTA */}
             <section className="mt-16 rounded-2xl bg-slate-900 px-6 py-10 text-center text-slate-50 sm:px-10">
                 <h2 className="text-2xl font-semibold sm:text-3xl">
-                    Ready to build routes that actually pay for your time.
+                    Ready to build routes that actually pay for your time?
                 </h2>
                 <p className="mx-auto mt-3 max-w-xl text-sm text-slate-200 sm:text-base">
                     Start with the Pro plan so you can see firms, intel, and tools in one place instead of
@@ -308,24 +287,26 @@ function MembershipContent() {
                     <button
                         type="button"
                         onClick={() => openPlanWidget(proPlan, false)}
-                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
-                        Start with Pro
+                        Start 7 Day Free Trial
                     </button>
                 )}
 
                 <p className="mt-3 text-xs text-slate-300">
-                    Prefer to ease in. stay on Starter and upgrade from your dashboard any time.
+                    Prefer to ease in? Stay on Free and upgrade from your dashboard any time.
                 </p>
             </section>
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
-                <a
-                    href="/"
-                    className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
-                >
-                    ← Back to home
-                </a>
+                <Suspense>
+                    <a
+                        href="/"
+                        className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+                    >
+                        ← Back to home
+                    </a>
+                </Suspense>
             </div>
         </main>
     )
