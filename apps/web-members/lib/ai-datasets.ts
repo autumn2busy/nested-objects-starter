@@ -5,9 +5,11 @@ export type MembershipPlan = {
   planUid: string
   price: string
   period: string
+  headline: string
   description: string
   highlight: boolean
   waitlist?: boolean
+  hidden?: boolean
   features: string[]
 }
 
@@ -17,27 +19,34 @@ export const membershipPlans: MembershipPlan[] = [
     planUid: PLAN_UIDS.FREE,
     price: '$0',
     period: 'forever',
-    description: 'Preview the directory and community. Perfect for testing the waters.',
+    headline: 'Explore the hub. Preview the directory.',
+    description:
+      'Perfect for checking out the ecosystem before you subscribe. You get limited directory visibility and a preview of the training and resources.',
     highlight: false,
     features: [
-      'Directory preview (max 5 listings)',
-      'Access to selected resources',
-      'Training preview (Starter module)',
-      'Community updates',
+      'Preview up to 5 directory listings',
+      'Training preview access',
+      'Resources and readiness guides',
+      'Upgrade any time',
     ],
   },
   {
     name: 'Starter',
     planUid: PLAN_UIDS.STARTER,
     price: '$99',
-    period: '3 months',
-    description: 'Full Directory access for 90 days. Get the intel you need to get hired.',
+    period: 'quarter',
+    headline: 'Full directory access. Plus light AI support.',
+    description:
+      'Built for inspectors who want the directory and the core training, with limited AI help for quick answers and resume support.',
     highlight: false,
     features: [
-      'Unlimited Firm Directory access',
-      'Search and filters enabled',
-      'Restricted tools access (No AI)',
-      'Starter training library',
+      'Full directory access',
+      'Full training portal access',
+      'Limited AI Concierge usage',
+      'Limited AI Resume Builder usage',
+      'Resources, templates, and guides',
+      'Standard support',
+      'Includes limited monthly AI credits',
     ],
   },
   {
@@ -45,30 +54,36 @@ export const membershipPlans: MembershipPlan[] = [
     planUid: PLAN_UIDS.PRO,
     price: '$49',
     period: 'month',
-    description: 'The complete toolkit for working pros. AI tools, full training, and daily utility.',
+    headline: 'Full hub access. Full AI tools.',
+    description:
+      'This is the working pro toolkit. You get the full directory, the full training library, and full access to AI tools that save time every week.',
     highlight: true,
     features: [
       'Everything in Starter',
-      'AI Concierge & Chat',
-      'AI Resume Builder',
-      'Job Tracker & Export tools',
-      'Full Training Library access',
+      'Full AI Concierge access',
+      'Full AI Resume Builder access',
+      'Job tracking tools',
+      'Routing and weather tools',
+      'Weekly insights and updates',
+      '7 day free trial',
     ],
   },
   {
     name: 'Elite',
     planUid: PLAN_UIDS.ELITE,
-    price: '$99',
+    price: '$97',
     period: 'month',
-    description: 'Higher limits and priority support for high-volume inspectors.',
+    headline: 'Premium leverage. Priority support.',
+    description:
+      'For high volume operators who want faster support, higher limits, and deeper tools to move smarter across markets.',
     highlight: false,
-    waitlist: true,
+    waitlist: false,
     features: [
       'Everything in Pro',
-      'Higher AI limits',
-      'Priority support channel',
+      'Higher AI limits than Pro',
+      'Priority support',
+      'Advanced templates and workflows',
       'Early access to new tools',
-      'Advanced templates',
     ],
   },
   {
@@ -76,15 +91,34 @@ export const membershipPlans: MembershipPlan[] = [
     planUid: PLAN_UIDS.AGENCY,
     price: '$297',
     period: 'month',
-    description: 'Multi-seat accounts for teams and coordinators.',
+    headline: 'Team ready. Enterprise path.',
+    description:
+      'For firms and teams who need multi user access, admin controls, and an enterprise packaging path.',
     highlight: false,
-    waitlist: true,
+    waitlist: false,
     features: [
       'Everything in Elite',
-      'Multi-seat Team Management',
-      'White label packaging',
-      'Admin controls & Analytics',
-      'Consolidated billing',
+      'Multi user access and roles',
+      'White label options',
+      'API access',
+      'Team onboarding and admin tooling',
+      'Enterprise support path',
+    ],
+  },
+  {
+    name: 'Founders Directory Annual',
+    planUid: PLAN_UIDS.FOUNDERS,
+    price: '$37',
+    period: 'year',
+    headline: 'Legacy Access',
+    description: 'Grandfathered plan for early members.',
+    highlight: false,
+    hidden: true,
+    features: [
+      'Full directory access',
+      'Full training portal access',
+      'Limited AI Concierge usage',
+      'Limited AI Resume Builder usage',
     ],
   },
 ]

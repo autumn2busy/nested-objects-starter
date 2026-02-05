@@ -81,109 +81,112 @@ function MembershipContent() {
                 <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
                     {/* Plan cards */}
                     <div className="grid gap-6 md:grid-cols-2">
-                        {membershipPlans.map((plan) => {
-                            const isCurrentPlan = planUid === plan.planUid
-                            const isPro = plan.planUid === PLAN_UIDS.PRO
+                        {membershipPlans
+                            .filter((plan) => !plan.hidden)
+                            .map((plan) => {
+                                const isCurrentPlan = planUid === plan.planUid
+                                const isPro = plan.planUid === PLAN_UIDS.PRO
 
-                            const buttonBase =
-                                'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
+                                const buttonBase =
+                                    'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
 
-                            let buttonClasses = ''
-                            if (isCurrentPlan) {
-                                buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-100 text-slate-500`
-                            } else if (plan.waitlist) {
-                                buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-50 text-slate-400 border border-slate-200`
-                            } else if (plan.highlight) {
-                                buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
-                            } else {
-                                buttonClasses = `${buttonBase} border border-brand-copper text-brand-copperDark hover:bg-brand-mist`
-                            }
+                                let buttonClasses = ''
+                                if (isCurrentPlan) {
+                                    buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-100 text-slate-500`
+                                } else if (plan.waitlist) {
+                                    buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-50 text-slate-400 border border-slate-200`
+                                } else if (plan.highlight) {
+                                    buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
+                                } else {
+                                    buttonClasses = `${buttonBase} border border-brand-copper text-brand-copperDark hover:bg-brand-mist`
+                                }
 
-                            const label = (() => {
-                                if (isCurrentPlan) return 'Current plan'
-                                if (plan.waitlist) return 'Join Waitlist'
-                                if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-                                if (isPro && !isAuthenticated) return 'Start 7 Day Free Trial'
-                                if (isPro && isAuthenticated) return 'Upgrade to Pro'
-                                return `Switch to ${plan.name}`
-                            })()
+                                const label = (() => {
+                                    if (isCurrentPlan) return 'Current plan'
+                                    if (plan.waitlist) return 'Join Waitlist'
+                                    if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
+                                    if (isPro && !isAuthenticated) return 'Start 7 Day Free Trial'
+                                    if (isPro && isAuthenticated) return 'Upgrade to Pro'
+                                    return `Switch to ${plan.name}`
+                                })()
 
-                            return (
-                                <article
-                                    key={plan.planUid}
-                                    className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
-                                        ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
-                                        : 'border-slate-200'
-                                        }`}
-                                    aria-label={`${plan.name} plan`}
-                                >
-                                    {plan.highlight && !isPro && (
-                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
-                                            Most popular
-                                        </div>
-                                    )}
-
-                                    {isPro && (
-                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                                            7 Day Free Trial
-                                        </div>
-                                    )}
-
-                                    {isCurrentPlan && (
-                                        <div className="absolute -top-3 right-4 rounded-full bg-emerald-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-white">
-                                            Current
-                                        </div>
-                                    )}
-
-                                    {plan.waitlist && (
-                                        <div className="absolute top-4 right-4 rounded bg-slate-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
-                                            Coming Soon
-                                        </div>
-                                    )}
-
-                                    <header className="mb-4">
-                                        <h2 className="text-lg font-semibold text-slate-900">{plan.name}</h2>
-                                        <p className="mt-1 text-sm text-slate-600">{plan.description}</p>
-                                    </header>
-
-                                    <div className="mb-5 flex items-baseline gap-1">
-                                        <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
-                                        <span className="text-sm text-slate-500">/ {plan.period}</span>
-                                    </div>
-
-                                    <ul className="mb-6 space-y-2 text-sm text-slate-700">
-                                        {plan.features.map((feature) => (
-                                            <li key={feature} className="flex items-start gap-2">
-                                                <span className="mt-0.5 text-emerald-500">✓</span>
-                                                <span>{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="mt-auto">
-                                        <button
-                                            type="button"
-                                            disabled={isCurrentPlan || plan.waitlist === true}
-                                            className={buttonClasses}
-                                            onClick={() => openPlanWidget(plan, isCurrentPlan)}
-                                        >
-                                            {label}
-                                        </button>
-
-                                        {plan.name === 'Free' && (
-                                            <p className="mt-2 text-center text-xs text-slate-500">
-                                                No credit card required.
-                                            </p>
+                                return (
+                                    <article
+                                        key={plan.planUid}
+                                        className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
+                                            ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
+                                            : 'border-slate-200'
+                                            }`}
+                                        aria-label={`${plan.name} plan`}
+                                    >
+                                        {plan.highlight && !isPro && (
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
+                                                Most popular
+                                            </div>
                                         )}
+
                                         {isPro && (
-                                            <p className="mt-2 text-center text-xs text-brand-copper">
-                                                Risk-free trial. Cancel anytime.
-                                            </p>
+                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                                                7 Day Free Trial
+                                            </div>
                                         )}
-                                    </div>
-                                </article>
-                            )
-                        })}
+
+                                        {isCurrentPlan && (
+                                            <div className="absolute -top-3 right-4 rounded-full bg-emerald-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-white">
+                                                Current
+                                            </div>
+                                        )}
+
+                                        {plan.waitlist && (
+                                            <div className="absolute top-4 right-4 rounded bg-slate-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
+                                                Coming Soon
+                                            </div>
+                                        )}
+
+                                        <header className="mb-4">
+                                            <h2 className="text-lg font-semibold text-slate-900">{plan.name}</h2>
+                                            <p className="mt-1 text-sm font-medium text-brand-copper">{plan.headline}</p>
+                                            <p className="mt-2 text-sm text-slate-600">{plan.description}</p>
+                                        </header>
+
+                                        <div className="mb-5 flex items-baseline gap-1">
+                                            <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
+                                            <span className="text-sm text-slate-500">/ {plan.period}</span>
+                                        </div>
+
+                                        <ul className="mb-6 space-y-2 text-sm text-slate-700">
+                                            {plan.features.map((feature) => (
+                                                <li key={feature} className="flex items-start gap-2">
+                                                    <span className="mt-0.5 text-emerald-500">✓</span>
+                                                    <span>{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+
+                                        <div className="mt-auto">
+                                            <button
+                                                type="button"
+                                                disabled={isCurrentPlan || plan.waitlist === true}
+                                                className={buttonClasses}
+                                                onClick={() => openPlanWidget(plan, isCurrentPlan)}
+                                            >
+                                                {label}
+                                            </button>
+
+                                            {plan.name === 'Free' && (
+                                                <p className="mt-2 text-center text-xs text-slate-500">
+                                                    No credit card required.
+                                                </p>
+                                            )}
+                                            {isPro && (
+                                                <p className="mt-2 text-center text-xs text-brand-copper">
+                                                    Risk-free trial. Cancel anytime.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </article>
+                                )
+                            })}
                     </div>
 
                     {/* Right sidebar */}
@@ -295,6 +298,10 @@ function MembershipContent() {
 
                 <p className="mt-3 text-xs text-slate-300">
                     Prefer to ease in? Stay on Free and upgrade from your dashboard any time.
+                </p>
+
+                <p className="mt-8 text-xs text-slate-500 border-t border-slate-800 pt-4">
+                    Founders plan is available for legacy members during migration.
                 </p>
             </section>
 
