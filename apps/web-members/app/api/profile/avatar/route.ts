@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
-import { verifyOutsetaToken, getOutsetaUserId, getCurrentUser } from '@/lib/auth-server'
-import { rateLimit } from '@/lib/rate-limit'
+import { verifyOutsetaToken, getOutsetaUserId, getCurrentUser } from '../../../../lib/auth-server'
+import { rateLimit } from '../../../../lib/rate-limit'
 
 export const runtime = 'nodejs'
 

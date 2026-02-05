@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { verifyOutsetaToken, getOutsetaUserId } from '@/lib/auth-server'
+import { verifyOutsetaToken, getOutsetaUserId } from '../../../../lib/auth-server'
 
 // GET /api/auth/session
 // Used by the client to get the current user context from the HttpOnly cookie

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { createServiceRoleClient } from '../../../../lib/supabase-admin'
 
 export const dynamic = 'force-dynamic'
 

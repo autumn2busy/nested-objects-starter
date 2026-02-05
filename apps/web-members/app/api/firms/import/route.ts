@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { createServiceRoleClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '../../../../lib/supabase-server'
 
 type SpreadsheetFirmRow = Record<string, any>
 

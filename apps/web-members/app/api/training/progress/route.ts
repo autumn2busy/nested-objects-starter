@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server'
-import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
-import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { getCurrentUser, getOutsetaUserId } from '../../../../lib/auth-server'
+import { createServiceRoleClient } from '../../../../lib/supabase-admin'
 
 export async function GET(request: Request) {
     try {

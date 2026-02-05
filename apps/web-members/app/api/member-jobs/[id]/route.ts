@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
-import { createClient } from '@/lib/supabase-server'
+import { getCurrentUser, getOutsetaUserId, hasAccess } from '../../../../lib/auth-server'
+import { createClient } from '../../../../lib/supabase-server'
 import type { MemberJobStatus } from '@/types/member-jobs'
 
 type MemberJobUpdatePayload = {

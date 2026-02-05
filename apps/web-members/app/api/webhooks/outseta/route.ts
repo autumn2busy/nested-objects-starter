@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-import { verifyOutsetaSignature } from '@/lib/security';
+import { verifyOutsetaSignature } from '../../../../lib/security';
 
 // =================================================================
 // TYPES
