@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const userId = getOutsetaUserId(user)
+
     if (!userId) {
       return NextResponse.json({ error: 'Could not identify user' }, { status: 401 })
     }
