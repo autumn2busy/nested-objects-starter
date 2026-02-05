@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
-import { verifyOutsetaToken, getOutsetaUserId } from '@/lib/auth-server'
+import { verifyOutsetaToken, getOutsetaUserId, getCurrentUser } from '@/lib/auth-server'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const AVATAR_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_AVATAR_BUCKET || 'avatars'
+
+const limiter = rateLimit({ limit: 5, intervalMs: 60 * 1000 }); // 5 uploads per minute
 
 function getSupabase() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -20,20 +23,35 @@ function getSupabase() {
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Auth Check
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid Authorization header' }, { status: 401 })
-    }
+    // 1. Auth Check (Cookie or Header)
+    let user = await getCurrentUser();
 
-    const token = authHeader.split(' ')[1]
-    const user = await verifyOutsetaToken(token)
+    if (!user) {
+      const authHeader = req.headers.get('Authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1]
+        user = await verifyOutsetaToken(token)
+      }
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    // 2. Rate Limiting
     const userId = getOutsetaUserId(user)
+    if (userId) {
+      try {
+        await limiter.check(userId);
+      } catch {
+        return NextResponse.json(
+          { error: 'Too many upload attempts. Please wait a minute.' },
+          { status: 429 }
+        );
+      }
+    }
+
+
     if (!userId) {
       return NextResponse.json({ error: 'Could not identify user' }, { status: 401 })
     }
