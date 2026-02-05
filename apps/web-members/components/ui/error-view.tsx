@@ -26,7 +26,7 @@ export function ErrorView({
 
             <div className="flex flex-col gap-3 sm:flex-row">
                 {reset && (
-                    <Button onClick={reset} variant="outline" className="gap-2">
+                    <Button onClick={reset} variant="secondary" className="gap-2">
                         <RefreshCw className="h-4 w-4" />
                         Try again
                     </Button>
