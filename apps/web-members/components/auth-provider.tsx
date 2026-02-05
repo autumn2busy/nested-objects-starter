@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react'
+import { usePathname } from 'next/navigation'
 
 type JwtPayload = {
   email?: string
@@ -86,6 +87,7 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [user, setUser] = useState<JwtPayload | null>(null)
   const [planUid, setPlanUid] = useState<string | null>(null)
   const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
@@ -195,6 +197,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       cancelled = true
     }
   }, [persistProfileDisplayName])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!pathname || pathname.startsWith('/auth/callback')) return
+
+    const url = new URL(window.location.href)
+    const accessToken = url.searchParams.get('access_token')
+
+    if (!accessToken) return
+
+    const syncSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ accessToken }),
+        })
+
+        if (response.ok && window.Outseta?.setAccessToken) {
+          window.Outseta.setAccessToken(accessToken)
+        }
+      } catch (error) {
+        console.error('Error syncing session token', error)
+      } finally {
+        url.searchParams.delete('access_token')
+        const cleanedSearch = url.searchParams.toString()
+        const cleanedUrl = `${url.pathname}${cleanedSearch ? `?${cleanedSearch}` : ''}${url.hash}`
+        window.history.replaceState({}, '', cleanedUrl)
+      }
+    }
+
+    void syncSession()
+  }, [pathname])
 
   const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
