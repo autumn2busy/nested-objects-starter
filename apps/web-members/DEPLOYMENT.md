@@ -302,4 +302,13 @@ Your auth implementation is working when:
     - App load -> GET `/api/auth/session` -> Returns user context.
 
 ### 2. Server-Side Session Verification
-- All auth state `isAuthenticated`, `user`, `planUid` is now derived from the server-verified cookie, not the client-side Outseta script.
+
+### 3. Webhook Security
+- **Strict Verification**: In production, `OUTSETA_WEBHOOK_SECRET` is now REQUIRED.
+- **Mechanism**:
+    - Validates `x-hub-signature-256` header (HMAC-SHA256).
+    - Throws 500 if secret is missing in production.
+    - Throws 401 if signature is invalid.
+- **Idempotency**:
+    - Checks `outseta_updated_at` against existing profile.
+    - Skips update if payload is older or equal to stored version.
