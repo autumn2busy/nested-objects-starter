@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block private areas
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /tools/
+Disallow: /training/
+Disallow: /settings/
+
+# Sitemap
+Sitemap: https://nested-objects-starter.vercel.app/sitemap.xml

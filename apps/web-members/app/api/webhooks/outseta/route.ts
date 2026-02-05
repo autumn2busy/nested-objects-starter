@@ -276,11 +276,13 @@ export async function POST(request: NextRequest) {
     // Parse payload
     const payload: OutsetaWebhookPayload = JSON.parse(bodyText);
     const payloadType = isPersonPayload(payload) ? 'Person' : 'Account';
+    // Removed PII logging (AUD-SEC-004)
     console.log(`[${requestId}] Payload type: ${payloadType}`);
 
     // Map to profile data
     const profileData = mapOutsetaToProfile(payload);
-    console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
+    // Log only non-PII identifiers (AUD-SEC-004)
+    console.log(`[${requestId}] Processing profile | Person UID: ${profileData.outseta_person_uid}`);
 
     const supabase = getSupabaseAdmin();
 
