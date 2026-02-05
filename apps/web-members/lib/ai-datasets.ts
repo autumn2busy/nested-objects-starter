@@ -1,3 +1,5 @@
+import { PLAN_UIDS } from './plan-config'
+
 export type MembershipPlan = {
   name: string
   planUid: string
@@ -5,85 +7,84 @@ export type MembershipPlan = {
   period: string
   description: string
   highlight: boolean
+  waitlist?: boolean
   features: string[]
 }
 
 export const membershipPlans: MembershipPlan[] = [
   {
-    name: 'Starter',
-    planUid: 'L9nbKV9Z',
+    name: 'Free',
+    planUid: PLAN_UIDS.FREE,
     price: '$0',
     period: 'forever',
-    description: 'Perfect for testing the waters and browsing firms at your own pace.',
+    description: 'Preview the directory and community. Perfect for testing the waters.',
     highlight: false,
     features: [
-      'Access to the verified Firm Directory',
-      'Basic search by state and service lane',
-      'Member hub dashboard access',
-      'Community updates and announcements',
-      'Access to starter resources and checklists',
+      'Directory preview (max 5 listings)',
+      'Access to selected resources',
+      'Training preview (Starter module)',
+      'Community updates',
     ],
   },
   {
-    name: 'Directory',
-    planUid: 'zWZD0rQp',
+    name: 'Starter',
+    planUid: PLAN_UIDS.STARTER,
     price: '$99',
     period: '3 months',
-    description: 'Full Firm Directory access for 3 months. No hub tools or AI—just the listings you need.',
+    description: 'Full Directory access for 90 days. Get the intel you need to get hired.',
     highlight: false,
     features: [
-      'Unlimited Firm Directory access for 90 days',
-      'Expires automatically three months after purchase',
-      'Renew for $49 after your pass expires',
-      'Directory-only access without hub tools or resources',
+      'Unlimited Firm Directory access',
+      'Search and filters enabled',
+      'Restricted tools access (No AI)',
+      'Starter training library',
     ],
   },
   {
     name: 'Pro',
-    planUid: 'rQVqlLm6',
-    price: '$37',
+    planUid: PLAN_UIDS.PRO,
+    price: '$49',
     period: 'month',
-    description: 'For working pros who want pay intel, better routing, and less guesswork.',
+    description: 'The complete toolkit for working pros. AI tools, full training, and daily utility.',
     highlight: true,
     features: [
       'Everything in Starter',
-      'AI Concierge to answer firm and industry questions',
-      'Firm intel snapshots, rates, and requirements',
-      'Advanced filters by region, tools, and experience level',
-      'Weekly market and route-planning insights',
-      'Export options for firm lists and notes',
+      'AI Concierge & Chat',
+      'AI Resume Builder',
+      'Job Tracker & Export tools',
+      'Full Training Library access',
     ],
   },
   {
     name: 'Elite',
-    planUid: 'NmdnNO90',
-    price: '$97',
+    planUid: PLAN_UIDS.ELITE,
+    price: '$99',
     period: 'month',
-    description: 'For high volume inspectors and team leads who treat routes like a business.',
+    description: 'Higher limits and priority support for high-volume inspectors.',
     highlight: false,
+    waitlist: true,
     features: [
       'Everything in Pro',
-      'Priority support with faster response times',
-      'Deeper intel on volume, gear, and regional demand',
-      'Workflow templates for multi-market routes',
-      'Early access to new tools and features',
-      'Reserved slots for beta programs and pilots',
+      'Higher AI limits',
+      'Priority support channel',
+      'Early access to new tools',
+      'Advanced templates',
     ],
   },
   {
     name: 'Agency',
-    planUid: 'rmk5Xk9g',
+    planUid: PLAN_UIDS.AGENCY,
     price: '$297',
     period: 'month',
-    description: 'For agencies and coordinators managing crews across multiple markets.',
+    description: 'Multi-seat accounts for teams and coordinators.',
     highlight: false,
+    waitlist: true,
     features: [
       'Everything in Elite',
-      'Multi-user accounts for coordinators and staff',
-      'Agency-level analytics and reporting',
-      'White label options and custom views',
-      'Onboarding and training for your team',
-      'Quarterly strategy review sessions',
+      'Multi-seat Team Management',
+      'White label packaging',
+      'Admin controls & Analytics',
+      'Consolidated billing',
     ],
   },
 ]
