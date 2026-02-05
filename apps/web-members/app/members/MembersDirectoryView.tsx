@@ -137,7 +137,20 @@ function FilterBar({
             </div>
             {!isAuthenticated && (
                 <FieldHelperText className="mt-2 text-amber-900">
-                    <Link href="/auth/login" className="font-semibold underline">Log in</Link> or <Link href="/auth/signup" className="font-semibold underline">Create an account</Link> to search the full directory.
+                    <a
+                        href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
+                        className="font-semibold underline"
+                    >
+                        Log in
+                    </a>{' '}
+                    or{' '}
+                    <a
+                        href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
+                        className="font-semibold underline"
+                    >
+                        Create an account
+                    </a>{' '}
+                    to search the full directory.
                 </FieldHelperText>
             )}
         </Card>

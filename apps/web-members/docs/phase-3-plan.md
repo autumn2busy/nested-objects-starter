@@ -32,70 +32,42 @@ Phase 3 focuses on refining the user experience for both Members and Guests, har
 
 ## Prioritized PR List
 
-### [P0] PR 3.1: Member Onboarding Flow
+### [DONE] PR 3.1: Member Onboarding Flow
 -   **Scope**:
     -   Create `OnboardingChecklist` component.
-    -   Add `onboarding_completed_at` (or similar JSON state) to `profiles` table.
+    -   Add `onboarding_completed_at` to `profiles` table.
     -   Show checklist on Dashboard if incomplete.
--   **Acceptance Criteria**:
-    -   New members see checklist on first login.
-    -   Completing items updates state.
-    -   Can be dismissed/minimized.
--   **Test Plan**:
-    -   Unit test: Checklist logic (progress calculation).
-    -   Smoke test: New user login -> verify checklist appears -> dismiss -> verify persistence.
+-   **Status**: Merged.
 
-### [P1] PR 3.2: Guest Experience Cleanup
+### [DONE] PR 3.2: Guest Experience Cleanup
 -   **Scope**:
     -   Audit navigation for `!isAuthenticated`.
     -   Replace "Dashboard" links with "Login".
-    -   Standardize "Access Denied" / "Upgrade" gates with clear CTAs.
--   **Acceptance Criteria**:
-    -   Guests never see "Back to Dashboard".
-    -   Protected pages show clear "Join Now" funnel.
--   **Test Plan**:
-    -   Route test: Visit pages as unauthenticated user.
+-   **Status**: Merged.
 
-### [P1] PR 3.3: Accessibility & Reduced Motion
+### [DONE] PR 3.3: Accessibility & Reduced Motion
 -   **Scope**:
-    -   Review Hero animations (Globe/Lightbulb).
     -   Implement `prefers-reduced-motion` media query logic.
--   **Acceptance Criteria**:
-    -   Animations disable/simplify when OS setting is enabled.
--   **Test Plan**:
-    -   Manual verification via Chrome DevTools "Rendering" tab.
+-   **Status**: Merged.
 
-### [P2] PR 3.4: Performance Wins
+### [DONE] PR 3.4: Performance Wins
 -   **Scope**:
-    -   Lazy load heavy components (Maps, D3).
-    -   Add lightweight skeletons/fallbacks.
--   **Acceptance Criteria**:
-    -   LCP (Largest Contentful Paint) improves.
-    -   No layout shifts (CLS) on load.
--   **Test Plan**:
-    -   Lighthouse run before/after.
+    -   Lazy load heavy components.
+    -   Preconnect to CDNs.
+-   **Status**: Merged.
 
-### [P1] PR 3.5: Automation Reliability Layer
+### [DONE] PR 3.5: Error Boundaries (Reliability)
 -   **Scope**:
-    -   Create `lib/n8n-client.ts`.
-    -   Refactor `api/ai/*` to use it.
-    -   Add Request ID logging.
--   **Acceptance Criteria**:
-    -   Timeout handling (e.g., 30s).
-    -   Consistent JSON error format.
--   **Test Plan**:
-    -   Unit test `n8n-client` with mock fetch (success, fail, retry).
+    -   Implemented Next.js `error.tsx` boundaries.
+    -   Created `ErrorView` component.
+-   **Status**: Merged.
 
-### [P0] PR 3.6: Feature Flags & Config
+### [IN PROGRESS] PR 3.6: Feature Flags & Final Polish
 -   **Scope**:
-    -   Create `lib/config.ts` (Env validation).
+    -   Create `lib/env.ts` (Env validation).
     -   Create `lib/features.ts` (Flags).
-    -   Flag "Firms" features as `COMING_SOON`.
--   **Acceptance Criteria**:
-    -   App fails to build if critical Envs missing.
-    -   Experimental features hidden in Prod.
--   **Test Plan**:
-    -   Unit test config validation.
+    -   Final Lint & Cleanup.
+-   **Status**: Implementation started.
 
 ## Execution Strategy
 -   Strict sequential execution (PR 3.1 -> Review -> PR 3.2 ...).
