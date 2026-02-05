@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
-import { rateLimit } from '@/lib/rate-limit';
-import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '../../../lib/auth-server';
+import { rateLimit } from '../../../lib/rate-limit';
+import { checkAIQuota, trackAIUsage } from '../../../lib/ai-quota';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
