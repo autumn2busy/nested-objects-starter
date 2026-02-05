@@ -311,4 +311,13 @@ Your auth implementation is working when:
     - Throws 401 if signature is invalid.
 - **Idempotency**:
     - Checks `outseta_updated_at` against existing profile.
-    - Skips update if payload is older or equal to stored version.
+
+### 4. Rate Limiting (In-Memory)
+- **Rules**:
+    - AI Endpoints (`/api/ai/*`): 10 requests per minute per user.
+    - Avatar Upload (`/api/profile/avatar`): 5 uploads per minute per user.
+- **Mechanism**:
+    - Token bucket algorithm using `userId`.
+    - Returns `429 Too Many Requests` if exceeded.
+    - *Note*: In serverless, limits are per-instance. For strict distributed limiting, switch to Redis in future.
+

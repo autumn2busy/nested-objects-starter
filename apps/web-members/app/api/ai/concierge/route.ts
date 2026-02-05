@@ -1,27 +1,42 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { verifyOutsetaToken, getOutsetaUserId, hasAccess } from '@/lib/auth-server';
+import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
+import { rateLimit } from '@/lib/rate-limit';
+
+const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 export async function POST(request: Request) {
   try {
-    const headersList = headers();
-    const auth = headersList.get('authorization');
+    // 1. Authentication (Cookie or Header)
+    let user = await getCurrentUser(); // Try cookie first
 
-    if (!auth?.startsWith('Bearer ')) {
+    if (!user) {
+      const headersList = headers();
+      const auth = headersList.get('authorization');
+      if (auth?.startsWith('Bearer ')) {
+        const token = auth.split(' ')[1];
+        user = await verifyOutsetaToken(token);
+      }
+    }
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const token = auth.split(' ')[1];
-    const user = await verifyOutsetaToken(token);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      );
+    // 2. Rate Limiting
+    const userId = getOutsetaUserId(user);
+    if (userId) {
+      try {
+        await limiter.check(userId);
+      } catch {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429 }
+        );
+      }
     }
 
     const planUid = user['outseta:planUid'];
