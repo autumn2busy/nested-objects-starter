@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
+import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
@@ -34,6 +35,10 @@ export async function POST(request: Request) {
 
     // 2. Rate Limiting
     const userId = getOutsetaUserId(user);
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID not found' }, { status: 401 });
+    }
+
     if (userId) {
       try {
         await limiter.check(userId);
@@ -51,6 +56,16 @@ export async function POST(request: Request) {
         { error: 'Access denied: Upgrade your plan to use the AI Resume Builder.' },
         { status: 403 }
       );
+    }
+
+    // 3. Quota Check
+    try {
+      await checkAIQuota(userId, planUid, 'ai_resume');
+    } catch (e: any) {
+      return NextResponse.json(
+        { error: e.message || 'Quota exceeded' },
+        { status: 403 }
+      )
     }
 
     const { prompt } = await request.json();
@@ -72,6 +87,9 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Track usage
+    await trackAIUsage(userId, 'ai_resume');
 
     // Forward request to n8n
     const response = await fetch(n8nWebhookUrl, {

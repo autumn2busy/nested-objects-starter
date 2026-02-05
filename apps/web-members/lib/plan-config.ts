@@ -7,6 +7,7 @@ export const PLAN_UIDS = {
     PRO: 'rQVqlLm6',
     ELITE: 'NmdnNO90',
     AGENCY: 'rmk5Xk9g',
+    FOUNDERS: 'pWrBRnWn',
 } as const
 
 // Helper to check plan levels
