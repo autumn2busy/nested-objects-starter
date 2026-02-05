@@ -9,12 +9,19 @@ export async function POST(request: Request) {
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
+    let token: string | undefined;
+
+    if (user) {
+      // Best effort to get token from cookie if user validated that way
+      const { cookies } = await import('next/headers');
+      token = cookies().get('outseta_access_token')?.value;
+    }
 
     if (!user) {
       const headersList = headers();
       const auth = headersList.get('authorization');
       if (auth?.startsWith('Bearer ')) {
-        const token = auth.split(' ')[1];
+        token = auth.split(' ')[1];
         user = await verifyOutsetaToken(token);
       }
     }
