@@ -1,10 +1,10 @@
 "use client";
 
-import ChatWidget from "@/components/ChatWidget";
-import { Gate } from "@/components/Gate";
-import { useAuth } from "@/components/auth-provider";
-import { ToolAccessMessage } from "@/app/tools/_components/ToolAccessMessage";
-import { Card } from "@/components/ui/card";
+import ChatWidget from "../../../components/ChatWidget";
+import { Gate } from "../../../components/Gate";
+import { useAuth } from "../../../components/auth-provider";
+import { ToolAccessMessage } from "../../tools/_components/ToolAccessMessage";
+import { Card } from "../../../components/ui/card";
 
 export default function ConciergePage() {
     const auth = useAuth() as any
