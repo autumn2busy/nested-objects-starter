@@ -1,7 +1,7 @@
 'use client';
 
-import { Gate } from '../../../components/Gate';
-import { OutsetaProfileWidget } from '../../../components/outseta/ProfileWidget';
+import { Gate } from '@/components/Gate';
+import { OutsetaProfileWidget } from '@/components/outseta/ProfileWidget';
 
 export default function DirectoryPreviewPage() {
     return (

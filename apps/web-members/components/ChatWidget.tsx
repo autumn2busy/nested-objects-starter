@@ -18,7 +18,7 @@ type ChatWidgetProps = {
   }
 }
 
-import { useAuth } from "./auth-provider";
+import { useAuth } from "@/components/auth-provider";
 
 export default function ChatWidget({ context }: ChatWidgetProps) {
   const { accessToken } = useAuth();
