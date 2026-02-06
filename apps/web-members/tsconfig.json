@@ -21,13 +21,12 @@
     "types": [
       "node"
     ],
-    "baseUrl": ".", // ← add
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ]
-    } // ← add (so "@/lib/..." resolves to apps/web-members/lib/...)
-    ,
+    },
     "plugins": [
       {
         "name": "next"
