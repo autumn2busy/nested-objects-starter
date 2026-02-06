@@ -2,6 +2,8 @@
 
 import { useAuth } from '@/components/auth-provider'
 
+import { PLAN_UIDS } from '@/lib/plan-config'
+
 type Plan = {
   name: string
   uid: string
@@ -12,8 +14,8 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    name: 'Starter',
-    uid: 'L9nbKV9Z',
+    name: 'Free',
+    uid: PLAN_UIDS.FREE,
     price: '$0',
     features: [
       'Access to Firm Directory',
@@ -22,19 +24,19 @@ const plans: Plan[] = [
     ],
   },
   {
-    name: 'Directory',
-    uid: 'zWZD0rQp',
+    name: 'Starter', // Formerly Directory
+    uid: PLAN_UIDS.STARTER,
     price: '$99 / 3mo',
     features: [
       'Full Firm Directory access for 90 days',
       'Automatically expires after three months',
       'Renew for $49 once the pass ends',
-      'No hub tools or AI features included',
+      'Limited AI Features (Concierge)',
     ],
   },
   {
     name: 'Pro',
-    uid: 'rQVqlLm6',
+    uid: PLAN_UIDS.PRO,
     price: '$37/mo',
     features: [
       'Everything in Starter',
@@ -47,7 +49,7 @@ const plans: Plan[] = [
   },
   {
     name: 'Elite',
-    uid: 'NmdnNO90',
+    uid: PLAN_UIDS.ELITE,
     price: 'Contact us',
     features: [
       'Everything in Pro',
@@ -59,7 +61,7 @@ const plans: Plan[] = [
   },
   {
     name: 'Agency',
-    uid: 'rmk5Xk9g',
+    uid: PLAN_UIDS.AGENCY,
     price: 'Contact us',
     features: [
       'Everything in Elite',
@@ -143,11 +145,10 @@ export function UpgradeContent() {
           return (
             <article
               key={plan.uid}
-              className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${
-                plan.recommended
+              className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.recommended
                   ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                   : 'border-slate-200'
-              }`}
+                }`}
             >
               {plan.recommended && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-copper px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -180,13 +181,12 @@ export function UpgradeContent() {
                   type="button"
                   onClick={() => handleUpgrade(plan.uid, isCurrentPlan)}
                   disabled={isCurrentPlan}
-                  className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-                    isCurrentPlan
+                  className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${isCurrentPlan
                       ? 'cursor-not-allowed bg-slate-300 text-white'
                       : plan.recommended
                         ? 'bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark'
                         : 'border border-brand-copper text-brand-copperDark hover:bg-brand-mist'
-                  }`}
+                    }`}
                 >
                   {isCurrentPlan ? 'Current Plan' : 'Select Plan'}
                 </button>

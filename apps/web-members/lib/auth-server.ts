@@ -16,20 +16,15 @@ interface OutsetaJWTPayload {
 }
 
 // Plan UID mapping (same as client-side)
-export const PLAN_UIDS = {
-  STARTER: 'L9nbKV9Z',
-  DIRECTORY: 'zWZD0rQp',
-  PRO: 'rQVqlLm6',
-  ELITE: 'NmdnNO90',
-  AGENCY: 'rmk5Xk9g',
-  FOUNDERS: 'pWrBRnWn'
-} as const
+import { PLAN_UIDS } from './plan-config'
+
+export { PLAN_UIDS }
 
 // Feature access rules (same as client-side)
 export const FEATURE_ACCESS: Record<string, string[]> = {
   directory_access: [
+    PLAN_UIDS.FREE,
     PLAN_UIDS.STARTER,
-    PLAN_UIDS.DIRECTORY,
     PLAN_UIDS.PRO,
     PLAN_UIDS.ELITE,
     PLAN_UIDS.AGENCY,
@@ -126,16 +121,18 @@ export async function requireFeature(feature: string): Promise<OutsetaJWTPayload
  */
 export function getPlanName(planUid: string): string {
   switch (planUid) {
+    case PLAN_UIDS.FREE:
+      return 'Free'
     case PLAN_UIDS.STARTER:
       return 'Starter'
     case PLAN_UIDS.PRO:
       return 'Pro'
-    case PLAN_UIDS.DIRECTORY:
-      return 'Directory'
     case PLAN_UIDS.ELITE:
       return 'Elite'
     case PLAN_UIDS.AGENCY:
       return 'Agency'
+    case PLAN_UIDS.FOUNDERS:
+      return 'Founders'
     default:
       return 'Unknown'
   }

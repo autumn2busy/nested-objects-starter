@@ -48,42 +48,44 @@ const deriveDisplayName = (payload: JwtPayload | null): string | null => {
   return fallback ? fallback.trim() || null : null
 }
 
-// Plan ordering. Starter < Directory pass < Pro < Elite < Agency
-const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
+import { PLAN_UIDS } from '../lib/plan-config'
+
+// Plan ordering. Free < Starter < Pro < Elite < Agency
+const PLAN_ORDER = [PLAN_UIDS.FREE, PLAN_UIDS.STARTER, PLAN_UIDS.PRO, PLAN_UIDS.ELITE, PLAN_UIDS.AGENCY] as const
 type PlanUid = (typeof PLAN_ORDER)[number]
 
-const DIRECTORY_ONLY_PLAN_UID = 'zWZD0rQp'
+const STARTER_ONLY_PLAN_UID = PLAN_UIDS.STARTER
 
 // Minimum plan required for each feature
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   // Core app
-  directory_access: 'L9nbKV9Z',   // Starter+
-  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
+  directory_access: PLAN_UIDS.FREE,   // Free+
+  job_board: PLAN_UIDS.FREE,          // Free+, with limits by plan later
 
   // Training
-  basic_training: 'L9nbKV9Z',     // Starter+
-  advanced_training: 'NmdnNO90',  // Elite+
-  training_safety: 'L9nbKV9Z',    // Starter+ (Safety guides)
+  basic_training: PLAN_UIDS.FREE,     // Free+
+  advanced_training: PLAN_UIDS.ELITE,  // Elite+
+  training_safety: PLAN_UIDS.FREE,    // Free+ (Safety guides)
 
   // Tools
-  ai_concierge: 'rQVqlLm6',       // Pro+
-  firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'L9nbKV9Z',       // Starter+
-  job_tracker: 'L9nbKV9Z',        // Starter+
-  job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Starter+
-  ai_resume: 'rQVqlLm6',          // Pro+
-  readiness_guides: 'L9nbKV9Z',   // Starter+ (Checklists)
-  tools_templates: 'rQVqlLm6',    // Pro+ (AI prompts, etc)
+  ai_concierge: PLAN_UIDS.PRO,       // Pro+ (Starter/Founders have limited access via quota check override)
+  firm_intel: PLAN_UIDS.PRO,         // Pro+
+  job_tracking: PLAN_UIDS.FREE,       // Free+
+  job_tracker: PLAN_UIDS.FREE,        // Free+
+  job_routing: PLAN_UIDS.ELITE,        // Elite+
+  weather_tool: PLAN_UIDS.FREE,       // Free+
+  ai_resume: PLAN_UIDS.PRO,          // Pro+ (Starter/Founders have limited access)
+  readiness_guides: PLAN_UIDS.FREE,   // Free+ (Checklists)
+  tools_templates: PLAN_UIDS.PRO,    // Pro+ (AI prompts, etc)
 
   // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
-  partner_portal: 'rmk5Xk9g',          // Agency only
-  elite_autoassign: 'NmdnNO90',        // Elite vetted pool
+  sponsor_equipment_links: PLAN_UIDS.FREE, // Everyone sees, sponsors pay
+  partner_portal: PLAN_UIDS.AGENCY,          // Agency only
+  elite_autoassign: PLAN_UIDS.ELITE,        // Elite vetted pool
 
   // API style auto assign for vendor feeds like WeGoLook
-  autoassign_api: 'NmdnNO90',          // Elite (supply side)
-  agency_directory: 'rmk5Xk9g',        // Agency facing view
+  autoassign_api: PLAN_UIDS.ELITE,          // Elite (supply side)
+  agency_directory: PLAN_UIDS.AGENCY,        // Agency facing view
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -295,8 +297,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated) return false
     if (!feature) return true
 
-    if (planUid === DIRECTORY_ONLY_PLAN_UID) {
-      return feature === 'directory_access'
+    if (planUid === STARTER_ONLY_PLAN_UID) {
+      // Starter plan has specific restrictions if any
+      // return feature === 'directory_access' // Example restriction if needed
     }
 
     const minPlan = FEATURE_MIN_PLAN[feature]

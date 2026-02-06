@@ -85,7 +85,7 @@ interface ProfileUpdateData {
   full_name: string | null;
   display_name: string | null;
   phone: string | null;
-  subscription_tier: 'free' | 'pro' | 'elite' | 'agency';
+  subscription_tier: 'free' | 'starter' | 'pro' | 'elite' | 'agency';
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
   subscription_start_date: string | null;
   subscription_end_date: string | null;
@@ -140,9 +140,16 @@ function mapAccountStageToStatus(stage?: number): ProfileUpdateData['subscriptio
 function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'] {
   if (!planName) return 'free';
   const normalized = planName.toLowerCase();
+
   if (normalized.includes('agency')) return 'agency';
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
+
+  // Map Founders and Directory/Starter to 'starter' tier
+  if (normalized.includes('founders')) return 'starter';
+  if (normalized.includes('directory')) return 'starter';
+  if (normalized.includes('starter')) return 'starter';
+
   return 'free';
 }
 
