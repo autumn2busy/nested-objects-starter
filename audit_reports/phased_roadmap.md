@@ -1,28 +1,28 @@
 # Phased Launch Roadmap
 
-## Phase 0: Release Safety & Observability Baseline
+## Phase 0: Release Safety & Observability Baseline (Complete)
 **Goal**: Ensure the ship doesn't sink silently. Secure the perimeter.
 **Risk**: Low (mostly config)
 **Definition of Done**: Sentry receiving events, `npm audit` clean, Middleware active.
 
-*   `AUD-SEC-003`: Fix Dependency Vulnerabilities (`npm audit fix`)
-*   `AUD-REL-001`: Install Sentry (Error Monitoring)
-*   `AUD-SEC-001`: Create `middleware.ts` (Global Route Protection)
-*   `AUD-SEO-001`: Add `robots.txt`
-*   `AUD-SEC-004`: Remove PII Logging in Webhooks
-*   `AUD-SEC-002`: Add Security Headers (`next.config.mjs`)
+*   [x] `AUD-SEC-003`: Fix Dependency Vulnerabilities (`npm audit fix`)
+*   [x] `AUD-REL-001`: Install Sentry (Error Monitoring)
+*   [x] `AUD-SEC-001`: Create `middleware.ts` (Global Route Protection)
+*   [x] `AUD-SEO-001`: Add `robots.txt`
+*   [x] `AUD-SEC-004`: Remove PII Logging in Webhooks
+*   [x] `AUD-SEC-002`: Add Security Headers (`next.config.mjs`)
 
-## Phase 1: Critical Logic, Data & Billing
+## Phase 1: Critical Logic, Data & Billing (Code Complete)
 **Goal**: Ensure data is saved correctly, plans are honored, and RLS doesn't leak or block valid data.
 **Risk**: High (Database & Billing Logic)
 **Definition of Done**: RLS policies verified, Founders plan works, Schema matches DB.
 
-*   `AUD-DB-001`: Fix Profiles vs Users Schema Ambiguity
-*   `AUD-DB-002`: Resolve Jobs RLS Policy Conflict
-*   `AUD-BIL-001`: Fix Founders Plan Mapping in Webhook
-*   `AUD-SEC-005`: Refactor Hardcoded Plan UIDs
-*   `AUD-DB-004`: Add Critical Index (`idx_profiles_email`)
-*   `AUD-DB-003`: Verify/Fix Directory RLS Access
+*   [x] `AUD-DB-001`: Fix Profiles vs Users Schema Ambiguity
+*   [x] `AUD-DB-002`: Resolve Jobs RLS Policy Conflict
+*   [x] `AUD-BIL-001`: Fix Founders Plan Mapping in Webhook
+*   [x] `AUD-SEC-005`: Refactor Hardcoded Plan UIDs
+*   [x] `AUD-DB-004`: Add Critical Index (`idx_profiles_email`)
+*   [x] `AUD-DB-003`: Verify/Fix Directory RLS Access
 
 ## Phase 2: Paid Ads Readiness (Analytics & Credibility)
 **Goal**: Enable paid traffic. Ensure we track them and don't scare them away with broken UX.
