@@ -1,10 +1,55 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '../../../lib/supabase-admin'
+import { getCurrentUser } from '../../../lib/auth-server'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    // Check for authentication
+    const user = await getCurrentUser()
+
+    // If no user, return sample data for preview (prevents DB hits/data leakage)
+    if (!user) {
+      return NextResponse.json({
+        jobs: [
+          {
+            id: 'sample-1',
+            title: 'Field Inspector - Residential',
+            company: 'National Inspections LLC',
+            location: 'Phoenix, AZ',
+            pay: '$45 - $60 per inspection',
+            description: 'This is a sample job listing visible to guests. Log in to see real active listings.',
+            link: '#',
+            postedDate: new Date().toISOString(),
+            roles: ['inspector']
+          },
+          {
+            id: 'sample-2',
+            title: 'Mortgage Occupancy Check',
+            company: 'SecureField Services',
+            location: 'Dallas, TX',
+            pay: '$15 - $20',
+            description: 'Drive-by occupancy checks needed. High volume available.',
+            link: '#',
+            postedDate: new Date().toISOString(),
+            roles: ['inspector']
+          },
+          {
+            id: 'sample-3',
+            title: 'Insurance Loss Control',
+            company: 'RiskVisor',
+            location: 'Remote / Travel',
+            pay: '$75/hr',
+            description: 'Commercial insurance inspections. Experience required.',
+            link: '#',
+            postedDate: new Date().toISOString(),
+            roles: ['inspector', 'commercial']
+          }
+        ]
+      })
+    }
+
     const supabase = createServiceRoleClient()
 
     // Fetch jobs from the public.jobs table

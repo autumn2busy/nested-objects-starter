@@ -7,7 +7,7 @@ import { Plus, List as ListIcon, Loader2, Search, CheckCircle2, DollarSign, Tras
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Gate } from '@/components/Gate'
+import { PreviewGate } from '@/components/PreviewGate'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -84,7 +84,11 @@ export function JobsView() {
                 </nav>
             </header>
 
-            <Gate feature="job_board">
+            <PreviewGate
+                feature="job_board"
+                title="Job Board Locked"
+                description="Members get full access to the job board and tracking tools."
+            >
                 <Tabs defaultValue="find" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                     <div className="flex items-center justify-between">
                         <TabsList className="bg-white border p-1 h-auto rounded-lg shadow-sm">
@@ -105,7 +109,7 @@ export function JobsView() {
                         />
                     </TabsContent>
                 </Tabs>
-            </Gate>
+            </PreviewGate>
 
         </main>
     )

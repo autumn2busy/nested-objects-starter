@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck } from 'lucide-react'
+import { LockedOverlay } from '@/components/LockedOverlay'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -371,7 +372,7 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
     }
 
     const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-    const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
+    const displayedFirms = isStarter ? filteredFirms.slice(0, 5) : filteredFirms
 
     // Guest Preview Mode: remove the login gate and let it fall through to render.
     // We handle the "Guest" state via isStarter = true (essentially) or we can make it explicit.
@@ -390,9 +391,11 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                     </h1>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs font-semibold tracking-[0.16em]">
-                    <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">
-                        ← BACK TO DASHBOARD
-                    </Link>
+                    {isAuthenticated && (
+                        <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">
+                            ← BACK TO DASHBOARD
+                        </Link>
+                    )}
                     <Link href="/membership" className="text-slate-700 hover:text-slate-900">
                         MEMBERSHIP & PRICING
                     </Link>
@@ -408,51 +411,48 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                 onStateChange={setStateFilter}
             />
 
-            {isStarter && (
-                <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    <h3 className="text-sm font-semibold">Starter members see a preview.</h3>
-                    <p className="mt-1 text-xs">
-                        You are viewing a small sample of firms that match your filter. Upgrade to Pro or
-                        higher to unlock the full directory and deeper intel.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                        {!isAuthenticated ? (
-                            <a
-                                href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                                className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
-                            >
-                                LOGIN FOR FULL ACCESS
-                            </a>
-                        ) : (
-                            <Link
-                                href="/membership"
-                                className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
-                            >
-                                UPGRADE FOR FULL ACCESS
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* <FilterBar ... /> removed old banner location, will add overlay below grid */}
 
             <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                 {/* Cards */}
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    {displayedFirms.map((firm) => (
-                        <FirmCard
-                            key={firm.id}
-                            firm={firm}
-                            isHovered={hoveredFirmId === firm.id}
-                            onHover={() => setHoveredFirmId(firm.id)}
-                            onBlur={() =>
-                                setHoveredFirmId((current) => (current === firm.id ? null : current))
-                            }
-                        />
-                    ))}
+                <div className="relative">
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        {displayedFirms.map((firm) => (
+                            <FirmCard
+                                key={firm.id}
+                                firm={firm}
+                                isHovered={hoveredFirmId === firm.id}
+                                onHover={() => setHoveredFirmId(firm.id)}
+                                onBlur={() =>
+                                    setHoveredFirmId((current) => (current === firm.id ? null : current))
+                                }
+                            />
+                        ))}
+                    </div>
+                    {isStarter && (
+                        <div className="relative mt-6 min-h-[300px] overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                            <div className="absolute inset-0 z-10">
+                                <LockedOverlay
+                                    title="Unlock the Directory"
+                                    description={isAuthenticated
+                                        ? "Upgrade to Pro to search the full directory and see detailed firm intel."
+                                        : "Log in to search and unlock the full directory."
+                                    }
+                                    ctaLabel={isAuthenticated ? "Upgrade to Pro" : "Log in"}
+                                />
+                            </div>
+                            {/* Dummy blurred content to give depth */}
+                            <div className="grid grid-cols-1 gap-5 p-6 opacity-30 blur-sm md:grid-cols-2 select-none pointer-events-none grayscale">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="h-48 rounded-md border border-slate-300 bg-slate-100" />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Static Map Image */}
-                <aside className="sticky top-8 border border-slate-200 bg-slate-50 px-4 py-4 text-sm shadow-sm h-fit">
+                <aside className={`sticky top-8 border border-slate-200 bg-slate-50 px-4 py-4 text-sm shadow-sm h-fit ${isStarter ? 'opacity-80' : ''}`}>
                     <h2 className="text-sm font-semibold text-slate-900">Map view</h2>
                     <p className="mb-3 mt-1 text-xs text-slate-600">
                         Firms operate nationwide. Check specific service areas in the listing details.
@@ -469,12 +469,7 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                 </aside>
             </section>
 
-            {isStarter && filteredFirms.length > displayedFirms.length && (
-                <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
-                    Starter preview.
-                </p>
-            )}
+            {/* Removed bottom explanation since overlay handles it */}
 
             {isProOrHigher && (
                 <p className="mt-4 text-xs text-slate-600">

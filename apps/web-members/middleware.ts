@@ -7,31 +7,17 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
+// Routes that require authentication (Hard Gate)
 const PROTECTED_ROUTES = [
     '/dashboard',
-    '/tools',
-    '/training',
+    '/members',         // Hard gate per user request
     '/settings',
     '/profile',
 ];
 
-// Routes that should be accessible without auth
-const PUBLIC_ROUTES = [
-    '/',
-    '/login',
-    '/signup',
-    '/membership',
-    '/directory',
-    '/members',
-    '/roles',
-    '/resources',
-    '/about',
-    '/contact',
-    '/privacy-policy',
-    '/terms',
-    '/api/webhooks', // Webhooks need to be accessible
-];
+// Routes allowed to be viewed by guests (Preview Gate or Public)
+// Note: '/training', '/jobs', '/directory' are NOW permitted to fall through
+// so the page component can handle the "PreviewGate" logic.
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -51,6 +37,11 @@ export function middleware(request: NextRequest) {
     if (!authCookie?.value) {
         // Redirect to login with return URL
         const loginUrl = new URL('/login', request.url);
+        // If Outseta login is handled on the client via fragment, we might direct to a page that opens it.
+        // But per request: "redirect to /auth/login (or Outseta login) with returnTo=originalUrl"
+        // Existing implementation used /login?returnUrl=...
+        // We will keep that for consistency with current auth flow.
+
         loginUrl.searchParams.set('returnUrl', pathname);
 
         // Set a header to indicate this was an auth redirect (useful for debugging)

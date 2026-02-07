@@ -62,8 +62,24 @@ async function getFirms(): Promise<Firm[]> {
   }
 }
 
+import { getCurrentUser, PLAN_UIDS } from '@/lib/auth-server'
+
 export default async function DirectoryPage() {
-  const firms = await getFirms()
+  const user = await getCurrentUser()
+  const planUid = user?.['outseta:planUid']
+
+  // Determine if full access. 
+  // Allow all except Guest and Starter (L9nbKV9Z).
+  // Starter ID L9nbKV9Z comes from auth-server.ts or plan-config.
+  const isStarter = planUid === PLAN_UIDS.STARTER
+  const isGuest = !user
+  const isRestricted = isGuest || isStarter
+
+  let firms = await getFirms()
+
+  if (isRestricted) {
+    firms = firms.slice(0, 5)
+  }
 
   return <DirectoryView initialFirms={firms} />
 }
