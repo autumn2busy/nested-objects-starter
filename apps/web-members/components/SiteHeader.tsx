@@ -91,38 +91,39 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     setIsNavOpen(false)
   }, [pathname])
 
+  const visibleNavLinks = useMemo(
     () =>
-  navLinks.map(link => {
-    // If logged out, redirect Dashboard to Login
-    if (!isAuthenticated && link.href === '/dashboard') {
-      // We can return a modified link object, but checking types...
-      // Actually, simply hiding it might be better, OR redirecting.
-      // Requirement: "should route to login instead".
-      // So I will keep it visible but change href? 
-      // Or just rely on middleware? 
-      // "Visiting /dashboard redirects to login." 
-      // If middleware handles it, the link /dashboard is fine.
-      // BUT: "Any 'Back to dashboard' link must not appear for guests."
-      // So I should hide it or change it.
-      // Let's hide it if !isAuthenticated based on requirement 5b "Any Back to dashboard link must not appear".
-      // But 5a says: "nav items pointing to /dashboard should route to login".
-      // I will change the href to /login for the main nav item if it exists.
-      return { ...link, href: '/login' }
-    }
-    return link
-  }).filter((link) => {
-    if (isAuthenticated) return link.href !== '/tools' // Tools might be gated or not, keeping existing logic
-    // If not authenticated:
-    // Remove '/profile'
-    if (link.label === 'Profile') return false
-    // Remove '/dashboard' if we want to hide it, but if we mapped it to /login, we can keep it?
-    // "Any 'Back to dashboard' link must not appear for guests." usually refers to the specific "Back to dashboard" link in DirectoryView.
-    // For main nav, let's just point "Dashboard" to Login logic or hide it?
-    // Standard pattern: Hide "Dashboard" for guests. Show "Login" instead (which is already in the header actions).
-    // So I will filtering out Dashboard for guests.
-    if (link.href === '/dashboard') return false
-    return true
-  }),
+      navLinks.map(link => {
+        // If logged out, redirect Dashboard to Login
+        if (!isAuthenticated && link.href === '/dashboard') {
+          // We can return a modified link object, but checking types...
+          // Actually, simply hiding it might be better, OR redirecting.
+          // Requirement: "should route to login instead".
+          // So I will keep it visible but change href? 
+          // Or just rely on middleware? 
+          // "Visiting /dashboard redirects to login." 
+          // If middleware handles it, the link /dashboard is fine.
+          // BUT: "Any 'Back to dashboard' link must not appear for guests."
+          // So I should hide it or change it.
+          // Let's hide it if !isAuthenticated based on requirement 5b "Any Back to dashboard link must not appear".
+          // But 5a says: "nav items pointing to /dashboard should route to login".
+          // I will change the href to /login for the main nav item if it exists.
+          return { ...link, href: '/login' }
+        }
+        return link
+      }).filter((link) => {
+        if (isAuthenticated) return link.href !== '/tools' // Tools might be gated or not, keeping existing logic
+        // If not authenticated:
+        // Remove '/profile'
+        if (link.label === 'Profile') return false
+        // Remove '/dashboard' if we want to hide it, but if we mapped it to /login, we can keep it?
+        // "Any 'Back to dashboard' link must not appear for guests." usually refers to the specific "Back to dashboard" link in DirectoryView.
+        // For main nav, let's just point "Dashboard" to Login logic or hide it?
+        // Standard pattern: Hide "Dashboard" for guests. Show "Login" instead (which is already in the header actions).
+        // So I will filtering out Dashboard for guests.
+        if (link.href === '/dashboard') return false
+        return true
+      }),
     [isAuthenticated],
   )
 
