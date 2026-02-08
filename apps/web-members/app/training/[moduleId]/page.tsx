@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/components/auth-provider'
 import {
     PlayCircle, CheckCircle, Lock, ArrowRight, Brain,
     Target, BookOpen, Zap, Award, ChevronRight, ChevronLeft,
@@ -139,6 +140,10 @@ const KnowledgeCheck = ({ question, options, correctIndex, explanation }: { ques
 export default function ModuleOverviewPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
+
+    const { isAuthenticated, isLoading: authLoading, hasAccess, login, signup } = useAuth()
+    const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
+    const showGate = !authLoading && !hasTrainingAccess
 
     const [module, setModule] = useState<TrainingModule | null>(null)
     const [lessons, setLessons] = useState<TrainingLesson[]>([])
@@ -514,18 +519,63 @@ export default function ModuleOverviewPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            <Sidebar />
-            <main ref={mainRef} className="flex-1 overflow-y-auto">
-                <div className="max-w-4xl mx-auto px-6 py-8">
-                    {activeView === 'overview' && <Overview />}
-                    {activeView === 'lesson' && <LessonContent />}
-                    {activeView === 'flashcards' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Flashcards</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><FlashcardDeck cards={flashcards} /></div>}
-                    {activeView === 'calculator' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Income Calculator</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><IncomeCalculator /></div>}
-                    {activeView === 'scenario' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Interactive Scenarios</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><InteractiveScenario scenarios={scenarios} /></div>}
-                    {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><DynamicQuiz questions={quizQuestions} onComplete={handleQuizComplete} /></div>}
+        <div className="min-h-screen bg-slate-50 relative">
+            <div
+                className={`flex ${showGate ? 'pointer-events-none select-none blur-sm opacity-60' : ''}`}
+            >
+                <Sidebar />
+                <main ref={mainRef} className="flex-1 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto px-6 py-8">
+                        {activeView === 'overview' && <Overview />}
+                        {activeView === 'lesson' && <LessonContent />}
+                        {activeView === 'flashcards' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Flashcards</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><FlashcardDeck cards={flashcards} /></div>}
+                        {activeView === 'calculator' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Income Calculator</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><IncomeCalculator /></div>}
+                        {activeView === 'scenario' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Interactive Scenarios</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><InteractiveScenario scenarios={scenarios} /></div>}
+                        {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><DynamicQuiz questions={quizQuestions} onComplete={handleQuizComplete} /></div>}
+                    </div>
+                </main>
+            </div>
+            {showGate && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center p-6">
+                    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 p-6 text-center shadow-xl">
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-copper/10 text-brand-copper">
+                            <Lock className="h-6 w-6" />
+                        </div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-copper">
+                            Training access
+                        </p>
+                        <h2 className="mt-2 text-2xl font-semibold text-slate-900">Unlock this module</h2>
+                        <p className="mt-2 text-sm text-slate-600">
+                            Log in or start your 7-day trial to access full lessons, tools, and certification progress.
+                        </p>
+                        <div className="mt-6 flex flex-col gap-3">
+                            {!isAuthenticated ? (
+                                <>
+                                    <button
+                                        onClick={login}
+                                        className="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-copper"
+                                    >
+                                        Log in
+                                    </button>
+                                    <button
+                                        onClick={signup}
+                                        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-brand-copper hover:text-brand-copper"
+                                    >
+                                        Start 7-day trial
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    href="/upgrade"
+                                    className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                                >
+                                    Start 7-day trial
+                                </Link>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </main>
+            )}
         </div>
     )
 }
