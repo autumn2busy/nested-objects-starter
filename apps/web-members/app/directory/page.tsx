@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { DirectoryView, type Firm } from './DirectoryView'
 import { generatePageMetadata } from '@/lib/seo'
-import { getCurrentUser, PLAN_UIDS } from '@/lib/auth-server'
+import { US_STATES } from './constants'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Firm Directory | Field Inspection & Notary Vendors',
@@ -28,14 +28,51 @@ function parsePositiveInt(value: string | undefined, fallback: number) {
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed
 }
 
-async function getFirms(page: number, limit: number): Promise<FirmResponse> {
+function sanitizeFilterValue(value: string) {
+  return value.replace(/[(),]/g, ' ').trim()
+}
+
+function getStateLabel(stateCode: string) {
+  return US_STATES.find((state) => state.code === stateCode)?.label ?? ''
+}
+
+function buildSearchOrFilter(search: string) {
+  const query = sanitizeFilterValue(search)
+  if (!query) return null
+  return [
+    `name.ilike.*${query}*`,
+    `industry_focus.ilike.*${query}*`,
+    `categories.ilike.*${query}*`,
+  ].join(',')
+}
+
+function buildStateOrFilter(stateCode: string) {
+  if (!stateCode || stateCode === 'ALL') return null
+  const label = sanitizeFilterValue(getStateLabel(stateCode))
+  const code = sanitizeFilterValue(stateCode)
+  const parts = [
+    label ? `geographic_coverage.ilike.*${label}*` : null,
+    code ? `geographic_coverage.ilike.*${code}*` : null,
+    'geographic_coverage.ilike.*national*',
+    'geographic_coverage.ilike.*nationwide*',
+    'geographic_coverage.ilike.*all 50*',
+  ].filter(Boolean) as string[]
+  return parts.length ? parts.join(',') : null
+}
+
+async function getFirms(
+  page: number,
+  limit: number,
+  stateFilter: string,
+  search: string,
+): Promise<FirmResponse> {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return { firms: [], totalCount: 0 }
 
   try {
     const offset = (page - 1) * limit
-    const url =
-      `${SUPABASE_URL}/rest/v1/firms` +
-      '?select=' +
+    const params = new URLSearchParams()
+    params.set(
+      'select',
       [
         'id',
         'slug',
@@ -59,11 +96,21 @@ async function getFirms(page: number, limit: number): Promise<FirmResponse> {
         'address',
         'latitude',
         'longitude',
-      ].join(',') +
-      '&is_published=eq.true' +
-      '&order=created_at.desc' +
-      `&limit=${limit}` +
-      `&offset=${offset}`
+      ].join(','),
+    )
+    params.set('is_published', 'eq.true')
+    params.set('order', 'created_at.desc')
+    params.set('limit', String(limit))
+    params.set('offset', String(offset))
+
+    const searchFilter = buildSearchOrFilter(search)
+    const stateFilterValue = buildStateOrFilter(stateFilter)
+    const andFilters = [stateFilterValue, searchFilter].filter(Boolean) as string[]
+    if (andFilters.length > 0) {
+      params.set('and', `(${andFilters.map((value) => `or(${value})`).join(',')})`)
+    }
+
+    const url = `${SUPABASE_URL}/rest/v1/firms?${params.toString()}`
 
     const res = await fetch(url, {
       headers: {
@@ -92,20 +139,15 @@ async function getFirms(page: number, limit: number): Promise<FirmResponse> {
 }
 
 type DirectoryPageProps = {
-  searchParams?: { page?: string; limit?: string }
+  searchParams?: { page?: string; limit?: string; state?: string; search?: string }
 }
 
 export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
-  const requestedPage = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
-  const requestedLimit = Math.min(
-    parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT),
-    MAX_LIMIT
-  )
-  const user = await getCurrentUser()
-  const isStarter = !user || user['outseta:planUid'] === PLAN_UIDS.STARTER
-  const pageForRequest = isStarter ? DEFAULT_PAGE : requestedPage
-  const limitForRequest = isStarter ? PREVIEW_LIMIT : requestedLimit
-  const { firms, totalCount } = await getFirms(pageForRequest, limitForRequest)
+  const page = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
+  const limit = Math.min(parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT), MAX_LIMIT)
+  const stateFilter = searchParams?.state ?? 'ALL'
+  const search = searchParams?.search ?? ''
+  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search)
 
   return (
     <DirectoryView
