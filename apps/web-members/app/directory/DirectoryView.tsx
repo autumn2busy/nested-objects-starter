@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -320,14 +321,19 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
 interface DirectoryViewProps {
     initialFirms: Firm[]
+    totalCount: number
+    page: number
+    limit: number
 }
 
-export function DirectoryView({ initialFirms }: DirectoryViewProps) {
+export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
     const { isAuthenticated, isLoading, planUid } = useAuth()
     const [firms] = useState<Firm[]>(initialFirms)
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
+    const router = useRouter()
+    const searchParams = useSearchParams()
 
     const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
 
@@ -372,6 +378,24 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
 
     const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
     const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
+    const totalPages = Math.max(1, Math.ceil(totalCount / limit))
+    const startIndex = totalCount === 0 ? 0 : (page - 1) * limit + 1
+    const endIndex = Math.min(page * limit, totalCount)
+    const canGoBack = page > 1
+    const canGoForward = page < totalPages
+    const paginationHref = useMemo(() => {
+        return (nextPage: number) => {
+            const params = new URLSearchParams(searchParams?.toString())
+            params.set('page', String(nextPage))
+            params.set('limit', String(limit))
+            const query = params.toString()
+            return query ? `/directory?${query}` : '/directory'
+        }
+    }, [limit, searchParams])
+
+    const handlePageChange = (nextPage: number) => {
+        router.push(paginationHref(nextPage))
+    }
 
     // Guest Preview Mode: remove the login gate and let it fall through to render.
     // We handle the "Guest" state via isStarter = true (essentially) or we can make it explicit.
@@ -468,6 +492,37 @@ export function DirectoryView({ initialFirms }: DirectoryViewProps) {
                     </div>
                 </aside>
             </section>
+
+            {totalPages > 1 && (
+                <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
+                    <span className="text-[11px] uppercase">
+                        Showing {startIndex}-{endIndex} of {totalCount}
+                    </span>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => handlePageChange(page - 1)}
+                            disabled={!canGoBack}
+                            className="border border-slate-300 px-3 py-2 text-[11px] text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Previous page"
+                        >
+                            ← Prev
+                        </button>
+                        <span className="text-[11px] uppercase text-slate-500">
+                            Page {page} of {totalPages}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => handlePageChange(page + 1)}
+                            disabled={!canGoForward}
+                            className="border border-slate-300 px-3 py-2 text-[11px] text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Next page"
+                        >
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {isStarter && filteredFirms.length > displayedFirms.length && (
                 <p className="mt-4 text-xs text-slate-600">
