@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
+import Script from 'next/script'
 
 const roleContent = {
   notaries: {
@@ -106,7 +107,7 @@ export default function RoleDetailPage({
 
   return (
     <>
-      <script
+      <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

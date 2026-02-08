@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
+import Script from 'next/script'
 
 const comparisonPoints = [
   {
@@ -98,7 +99,7 @@ export default function GigWorkerRolePage() {
 
   return (
     <>
-      <script
+      <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

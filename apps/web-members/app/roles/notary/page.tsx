@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { RolePageLayout } from '@/components/RolePageLayout'
 import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'Notary Field Inspections | Nested Objects',
@@ -18,7 +19,7 @@ export default function NotaryRolePage() {
 
   return (
     <>
-      <script
+      <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

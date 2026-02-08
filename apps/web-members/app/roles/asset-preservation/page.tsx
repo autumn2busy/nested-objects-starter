@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
+import Script from 'next/script'
 
 const comparison = [
   {
@@ -50,7 +51,7 @@ export default function AssetPreservationPage() {
 
   return (
     <>
-      <script
+      <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

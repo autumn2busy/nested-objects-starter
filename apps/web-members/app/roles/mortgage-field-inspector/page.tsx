@@ -3,6 +3,7 @@ import { generatePageMetadata, getCanonicalUrl, getRolePageSchema } from '@/lib/
 
 import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
 
 const stats = [
   { label: 'Avg. appointment time saved', value: '22 min' },
@@ -50,7 +51,7 @@ export default function MortgageFieldInspectorPage() {
 
   return (
     <>
-      <script
+      <Script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
