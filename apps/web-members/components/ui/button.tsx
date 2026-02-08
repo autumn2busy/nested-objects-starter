@@ -3,7 +3,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'link'
-type ButtonSize = 'sm' | 'md'
+type ButtonSize = 'sm' | 'md' | 'lg'
 type ButtonShape = 'pill' | 'rounded'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -25,7 +25,8 @@ export function buttonVariants({
   const base =
     'inline-flex items-center justify-center font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper disabled:cursor-not-allowed disabled:opacity-60'
 
-  const sizeClass = size === 'sm' ? 'px-3 py-2 text-xs' : 'px-4 py-2.5 text-sm'
+  const sizeClass =
+    size === 'sm' ? 'px-3 py-2 text-xs' : size === 'lg' ? 'px-6 py-3 text-base' : 'px-4 py-2.5 text-sm'
   const shapeClass = shape === 'rounded' ? 'rounded-lg' : 'rounded-full'
 
   const variantClass = {

@@ -234,7 +234,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 Login
               </a>
               <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
+                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
                 className={buttonVariants({
                   variant: 'primary',
                   size: 'sm',
