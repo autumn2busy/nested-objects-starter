@@ -1,26 +1,49 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-const loginUrlPattern = /nested-objects\.outseta\.com\/auth/
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-test('login CTA points to Outseta auth', async ({ page }) => {
-  await page.goto('/directory')
-  const loginLink = page.getByRole('link', { name: /login/i }).first()
-  await expect(loginLink).toHaveAttribute('href', loginUrlPattern)
-})
+test('auth flow logs in and lands on the app', async ({ page }) => {
+  const loginUrl = process.env.E2E_LOGIN_URL
+  const email = process.env.E2E_AUTH_EMAIL
+  const password = process.env.E2E_AUTH_PASSWORD
 
-test('auth form accepts credentials when provided', async ({ page }) => {
-  const email = process.env.E2E_USER_EMAIL
-  const password = process.env.E2E_USER_PASSWORD
+  const missing: string[] = []
+  if (!loginUrl) missing.push('E2E_LOGIN_URL')
+  if (!email) missing.push('E2E_AUTH_EMAIL')
+  if (!password) missing.push('E2E_AUTH_PASSWORD')
 
-  test.skip(!email || !password, 'E2E credentials not set')
+  test.skip(missing.length > 0, `Missing env vars: ${missing.join(', ')}`)
 
-  await page.goto('/directory')
-  await page.getByRole('link', { name: /login/i }).first().click()
-  await page.waitForURL(loginUrlPattern)
+  const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:3000'
+  const postLoginPath = process.env.E2E_POST_LOGIN_PATH ?? '/'
+  const expectedUrl = new URL(postLoginPath, baseURL)
+  const expectedUrlPattern = new RegExp(
+    `^${escapeRegExp(expectedUrl.origin)}${escapeRegExp(expectedUrl.pathname)}`,
+  )
 
-  await page.getByLabel(/email/i).fill(email ?? '')
-  await page.getByLabel(/password/i).fill(password ?? '')
-  await page.getByRole('button', { name: /log in|sign in/i }).click()
+  await page.goto(loginUrl, { waitUntil: 'domcontentloaded' })
 
-  await expect(page).not.toHaveURL(loginUrlPattern)
+  const emailField = page
+    .getByLabel(/email/i)
+    .or(page.locator('input[type="email"], input[name*="email" i], input[placeholder*="email" i]'))
+    .first()
+  const passwordField = page
+    .getByLabel(/password/i)
+    .or(page.locator('input[type="password"]'))
+    .first()
+
+  await emailField.fill(email)
+  await passwordField.fill(password)
+
+  const submitButton = page
+    .getByRole('button', { name: /log in|sign in|continue/i })
+    .or(page.locator('input[type="submit"]'))
+    .first()
+
+  await Promise.all([
+    page.waitForURL(expectedUrlPattern, { timeout: 60_000 }),
+    submitButton.click(),
+  ])
+
+  await expect(page).toHaveURL(expectedUrlPattern)
 })
