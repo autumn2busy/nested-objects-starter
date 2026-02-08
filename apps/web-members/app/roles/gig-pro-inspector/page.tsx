@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const timeline = [
   {
@@ -57,8 +58,20 @@ export const metadata: Metadata = {
 }
 
 export default function GigProInspectorPage() {
+  const schema = getRolePageSchema({
+    name: 'Gig pro inspector',
+    description:
+      'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
+    url: getCanonicalUrl('/roles/gig-pro-inspector'),
+  })
+
   return (
-    <main className="bg-brand-sand text-slate-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <main className="bg-brand-sand text-slate-900">
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
           <div className="space-y-5">
@@ -227,6 +240,7 @@ export default function GigProInspectorPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

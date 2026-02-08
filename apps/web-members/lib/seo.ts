@@ -126,6 +126,27 @@ export function getProductSchema(product: {
 }
 
 /**
+ * Role Page Schema Builder
+ */
+export function getRolePageSchema(role: {
+    name: string
+    description: string
+    url: string
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: `${role.name} role`,
+        description: role.description,
+        url: role.url,
+        about: {
+            '@type': 'Occupation',
+            name: role.name,
+        },
+    }
+}
+
+/**
  * Course Schema Builder (for training pages)
  */
 export function getCourseSchema(course: {
@@ -254,4 +275,3 @@ export function generatePageMetadata({
         },
     }
 }
-
