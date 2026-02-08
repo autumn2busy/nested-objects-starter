@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck } from 'lucide-react'
@@ -12,6 +12,7 @@ import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
+import { US_STATES } from './constants'
 
 export type Firm = {
     id: string
@@ -36,67 +37,6 @@ export type Firm = {
     address: string | null
     latitude: number | null
     longitude: number | null
-}
-
-const US_STATES = [
-    { code: 'ALL', label: 'All service areas' },
-    { code: 'AL', label: 'Alabama' },
-    { code: 'AK', label: 'Alaska' },
-    { code: 'AZ', label: 'Arizona' },
-    { code: 'AR', label: 'Arkansas' },
-    { code: 'CA', label: 'California' },
-    { code: 'CO', label: 'Colorado' },
-    { code: 'CT', label: 'Connecticut' },
-    { code: 'DE', label: 'Delaware' },
-    { code: 'FL', label: 'Florida' },
-    { code: 'GA', label: 'Georgia' },
-    { code: 'HI', label: 'Hawaii' },
-    { code: 'ID', label: 'Idaho' },
-    { code: 'IL', label: 'Illinois' },
-    { code: 'IN', label: 'Indiana' },
-    { code: 'IA', label: 'Iowa' },
-    { code: 'KS', label: 'Kansas' },
-    { code: 'KY', label: 'Kentucky' },
-    { code: 'LA', label: 'Louisiana' },
-    { code: 'ME', label: 'Maine' },
-    { code: 'MD', label: 'Maryland' },
-    { code: 'MA', label: 'Massachusetts' },
-    { code: 'MI', label: 'Michigan' },
-    { code: 'MN', label: 'Minnesota' },
-    { code: 'MS', label: 'Mississippi' },
-    { code: 'MO', label: 'Missouri' },
-    { code: 'MT', label: 'Montana' },
-    { code: 'NE', label: 'Nebraska' },
-    { code: 'NV', label: 'Nevada' },
-    { code: 'NH', label: 'New Hampshire' },
-    { code: 'NJ', label: 'New Jersey' },
-    { code: 'NM', label: 'New Mexico' },
-    { code: 'NY', label: 'New York' },
-    { code: 'NC', label: 'North Carolina' },
-    { code: 'ND', label: 'North Dakota' },
-    { code: 'OH', label: 'Ohio' },
-    { code: 'OK', label: 'Oklahoma' },
-    { code: 'OR', label: 'Oregon' },
-    { code: 'PA', label: 'Pennsylvania' },
-    { code: 'RI', label: 'Rhode Island' },
-    { code: 'SC', label: 'South Carolina' },
-    { code: 'SD', label: 'South Dakota' },
-    { code: 'TN', label: 'Tennessee' },
-    { code: 'TX', label: 'Texas' },
-    { code: 'UT', label: 'Utah' },
-    { code: 'VT', label: 'Vermont' },
-    { code: 'VA', label: 'Virginia' },
-    { code: 'WA', label: 'Washington' },
-    { code: 'WV', label: 'West Virginia' },
-    { code: 'WI', label: 'Wisconsin' },
-    { code: 'WY', label: 'Wyoming' },
-]
-
-function formatCategories(categories: any): string {
-    if (!categories) return ''
-    if (Array.isArray(categories)) return categories.join(', ')
-    if (typeof categories === 'string') return categories
-    return String(categories)
 }
 
 type FilterBarProps = {
@@ -327,57 +267,27 @@ interface DirectoryViewProps {
 }
 
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
-    const { isAuthenticated, isLoading, planUid } = useAuth()
-    const [firms] = useState<Firm[]>(initialFirms)
+    const { isAuthenticated, planUid } = useAuth()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
+    const firms = initialFirms
+
+    const urlStateFilter = searchParams?.get('state') ?? 'ALL'
+    const urlSearch = searchParams?.get('search') ?? ''
+
+    useEffect(() => {
+        setStateFilter(urlStateFilter)
+        setSearch(urlSearch)
+    }, [urlSearch, urlStateFilter])
 
     const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
 
     const isProOrHigher = !!planUid && !isStarter
 
-    const matchesStateFilter = (firm: Firm) => {
-        if (stateFilter === 'ALL') return true
-        if (!firm.geographic_coverage) return false
-
-        const coverage = firm.geographic_coverage.toLowerCase()
-        const selected = US_STATES.find((s) => s.code === stateFilter)
-        if (!selected) return true
-
-        if (
-            coverage.includes('nationwide') ||
-            coverage.includes('national') ||
-            coverage.includes('all 50')
-        ) {
-            return true
-        }
-
-        const label = selected.label.toLowerCase()
-        const code = selected.code.toLowerCase()
-
-        if (coverage.includes(label)) return true
-        if (coverage.includes(` ${code} `) || coverage.endsWith(` ${code}`)) return true
-        if (coverage.includes(`(${code})`)) return true
-
-        return false
-    }
-
-    const matchesSearch = (firm: Firm) => {
-        if (!search.trim()) return true
-        const q = search.toLowerCase()
-        return (
-            firm.name.toLowerCase().includes(q) ||
-            (firm.geographic_coverage ?? '').toLowerCase().includes(q) ||
-            (firm.industry_focus ?? '').toLowerCase().includes(q) ||
-            formatCategories(firm.categories).toLowerCase().includes(q)
-        )
-    }
-
-    const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-    const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
+    const displayedFirms = isStarter ? firms.slice(0, 6) : firms
     const totalPages = Math.max(1, Math.ceil(totalCount / limit))
     const startIndex = totalCount === 0 ? 0 : (page - 1) * limit + 1
     const endIndex = Math.min(page * limit, totalCount)
@@ -388,13 +298,54 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             const params = new URLSearchParams(searchParams?.toString())
             params.set('page', String(nextPage))
             params.set('limit', String(limit))
+            if (stateFilter && stateFilter !== 'ALL') {
+                params.set('state', stateFilter)
+            } else {
+                params.delete('state')
+            }
+
+            if (search.trim()) {
+                params.set('search', search.trim())
+            } else {
+                params.delete('search')
+            }
             const query = params.toString()
             return query ? `/directory?${query}` : '/directory'
         }
-    }, [limit, searchParams])
+    }, [limit, search, searchParams, stateFilter])
+
+    const updateFilters = (nextState: string, nextSearch: string, nextPage = 1) => {
+        const params = new URLSearchParams(searchParams?.toString())
+        if (nextState && nextState !== 'ALL') {
+            params.set('state', nextState)
+        } else {
+            params.delete('state')
+        }
+
+        if (nextSearch.trim()) {
+            params.set('search', nextSearch.trim())
+        } else {
+            params.delete('search')
+        }
+
+        params.set('page', String(nextPage))
+        params.set('limit', String(limit))
+        const query = params.toString()
+        router.push(query ? `/directory?${query}` : '/directory')
+    }
 
     const handlePageChange = (nextPage: number) => {
         router.push(paginationHref(nextPage))
+    }
+
+    const handleStateChange = (value: string) => {
+        setStateFilter(value)
+        updateFilters(value, search)
+    }
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value)
+        updateFilters(stateFilter, value)
     }
 
     // Guest Preview Mode: remove the login gate and let it fall through to render.
@@ -428,8 +379,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 search={search}
                 isStarter={isStarter}
                 isAuthenticated={isAuthenticated}
-                onSearchChange={setSearch}
-                onStateChange={setStateFilter}
+                onSearchChange={handleSearchChange}
+                onStateChange={handleStateChange}
             />
 
             {isStarter && (
@@ -524,10 +475,10 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </div>
             )}
 
-            {isStarter && filteredFirms.length > displayedFirms.length && (
+            {isStarter && firms.length > displayedFirms.length && (
                 <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
-                    Starter preview.
+                    Showing {displayedFirms.length} of {firms.length} matching firms on the Starter
+                    preview.
                 </p>
             )}
 
