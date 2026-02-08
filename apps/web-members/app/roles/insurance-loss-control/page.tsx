@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getRolePageSchema } from '@/lib/seo'
 
 const segments = [
   {
@@ -58,9 +59,20 @@ export const metadata: Metadata = {
   description: 'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
 }
 
+const roleSchema = getRolePageSchema({
+  title: 'Insurance loss control | Nested Objects',
+  description: 'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
+  path: '/roles/insurance-loss-control',
+  about: 'Insurance loss control',
+})
+
 export default function InsuranceLossControlPage() {
   return (
     <main className="bg-brand-sand text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">

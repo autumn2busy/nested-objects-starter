@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getRolePageSchema } from '@/lib/seo'
 
 const roleContent = {
   notaries: {
@@ -96,9 +97,19 @@ export default function RoleDetailPage({
   }
 
   const role: RoleDefinition = roleContent[params.slug]
+  const roleSchema = getRolePageSchema({
+    title: `${role.title} | Nested Objects roles`,
+    description: role.valueProp,
+    path: `/roles/${params.slug}`,
+    about: role.title,
+  })
 
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <article aria-labelledby="role-heading">
         <header className="border-b border-brand-mist bg-gradient-to-br from-brand-dark via-brand-slate to-brand-black text-white">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8 lg:py-20">

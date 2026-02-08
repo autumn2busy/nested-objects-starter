@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { generatePageMetadata } from '@/lib/seo'
+import { generatePageMetadata, getRolePageSchema } from '@/lib/seo'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -41,9 +41,20 @@ export const metadata: Metadata = generatePageMetadata({
   path: '/roles/mortgage-field-inspector',
 })
 
+const roleSchema = getRolePageSchema({
+  title: 'Mortgage Field Inspector Roles | Nested Objects',
+  description: 'Deliver lender-ready property inspections with our field guide. Includes checklist for insurance photos, occupancy checks, and rush orders.',
+  path: '/roles/mortgage-field-inspector',
+  about: 'Mortgage field inspector',
+})
+
 export default function MortgageFieldInspectorPage() {
   return (
     <main className="bg-brand-sand text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
