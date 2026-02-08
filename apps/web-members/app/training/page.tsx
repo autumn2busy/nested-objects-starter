@@ -54,8 +54,10 @@ export default async function TrainingPage() {
             <main className="max-w-6xl mx-auto px-6 py-12">
                 <PreviewGate
                     feature="basic_training"
-                    title="Training Center Locked"
-                    description="Join our community to access professional certification courses."
+                    title="Unlock the Training Center"
+                    description="Log in or start your 7-day trial to access lessons, tools, and certification progress."
+                    ctaLabel="Start 7-day trial"
+                    ctaHref="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
                 >
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {modules?.map((module) => (

@@ -14,6 +14,11 @@ interface PreviewGateProps {
     title?: string
     description?: string
     /**
+     * Optional: override CTA label and link
+     */
+    ctaLabel?: string
+    ctaHref?: string
+    /**
      * If true, completely hide the children instead of blurring them.
      */
     hideChildren?: boolean
@@ -24,6 +29,8 @@ export function PreviewGate({
     feature,
     title,
     description,
+    ctaLabel,
+    ctaHref,
     hideChildren = false
 }: PreviewGateProps) {
     const { hasAccess, isLoading, isAuthenticated } = useAuth()
@@ -45,7 +52,15 @@ export function PreviewGate({
 
     // Access Denied
     if (hideChildren) {
-        return <LockedOverlay title={title} description={description} className="relative h-96 w-full bg-slate-50" />
+        return (
+            <LockedOverlay
+                title={title}
+                description={description}
+                ctaLabel={ctaLabel}
+                ctaHref={ctaHref}
+                className="relative h-96 w-full bg-slate-50"
+            />
+        )
     }
 
     return (
@@ -71,6 +86,8 @@ export function PreviewGate({
             <LockedOverlay
                 title={title}
                 description={description}
+                ctaLabel={ctaLabel}
+                ctaHref={ctaHref}
             />
         </div>
     )

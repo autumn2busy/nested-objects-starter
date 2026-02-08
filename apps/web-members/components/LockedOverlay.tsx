@@ -11,6 +11,7 @@ interface LockedOverlayProps {
     title?: string
     description?: string
     ctaLabel?: string
+    ctaHref?: string
     onCtaClick?: () => void
     className?: string
     planUid?: string | null
@@ -20,6 +21,7 @@ export function LockedOverlay({
     title = 'Access Restricted',
     description = 'Join to unlock the full potential of this resource.',
     ctaLabel,
+    ctaHref,
     onCtaClick,
     className,
     planUid, // pass planUid explicitly if needed, otherwise useAuth
@@ -42,6 +44,10 @@ export function LockedOverlay({
     const handleMainAction = () => {
         if (onCtaClick) {
             onCtaClick()
+            return
+        }
+        if (ctaHref) {
+            window.location.href = ctaHref
             return
         }
         if (isLoggedOut) {
