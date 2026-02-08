@@ -97,6 +97,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function GigWorkerRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Gig worker',
+    description:
+      'Route prep, safety guardrails, and payout expectations for gig workers who handle pickups, deliveries, and field support.',
+    url: getCanonicalUrl('/roles/gig-worker'),
+  })
+
   return (
     <main className="bg-white text-slate-900">
       <script
@@ -276,6 +283,7 @@ export default function GigWorkerRolePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

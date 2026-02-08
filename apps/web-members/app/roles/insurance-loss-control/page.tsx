@@ -67,6 +67,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function InsuranceLossControlPage() {
+  const schema = getRolePageSchema({
+    name: 'Insurance loss control',
+    description:
+      'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
+    url: getCanonicalUrl('/roles/insurance-loss-control'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <script
@@ -217,6 +224,7 @@ export default function InsuranceLossControlPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

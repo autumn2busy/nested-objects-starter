@@ -17,6 +17,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function NotaryRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Notary',
+    description:
+      'Turn your notary routes into field inspection runs. Find firms hiring mobile notaries for occupancy verification, door knocks, and BPOs.',
+    url: getCanonicalUrl('/roles/notary'),
+  })
+
   return (
     <>
       <script

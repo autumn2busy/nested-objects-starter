@@ -66,6 +66,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function GigProInspectorPage() {
+  const schema = getRolePageSchema({
+    name: 'Gig pro inspector',
+    description:
+      'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
+    url: getCanonicalUrl('/roles/gig-pro-inspector'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <script
@@ -240,6 +247,7 @@ export default function GigProInspectorPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

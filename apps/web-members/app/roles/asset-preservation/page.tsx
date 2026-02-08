@@ -48,6 +48,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function AssetPreservationPage() {
+  const schema = getRolePageSchema({
+    name: 'Asset preservation',
+    description:
+      'Asset preservation vendor hub with scope clarity, compliance steps, and property upkeep workflows.',
+    url: getCanonicalUrl('/roles/asset-preservation'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <script
@@ -186,6 +193,7 @@ export default function AssetPreservationPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

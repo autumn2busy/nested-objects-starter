@@ -42,6 +42,7 @@ function buildSearchOrFilter(search: string) {
     `name.ilike.*${query}*`,
     `industry_focus.ilike.*${query}*`,
     `categories.ilike.*${query}*`,
+    `geographic_coverage.ilike.*${query}*`,
   ].join(',')
 }
 

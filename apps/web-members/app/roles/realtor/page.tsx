@@ -17,6 +17,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function RealtorRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Realtor',
+    description:
+      'Monetize your market expertise between closings. Find firms hiring realtors for Broker Price Opinions (BPOs) and property condition reports.',
+    url: getCanonicalUrl('/roles/realtor'),
+  })
+
   return (
     <>
       <script

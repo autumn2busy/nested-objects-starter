@@ -104,6 +104,12 @@ export default function RoleDetailPage({
     about: role.title,
   })
 
+  const schema = getRolePageSchema({
+    name: role.title,
+    description: role.valueProp,
+    url: getCanonicalUrl(`/roles/${params.slug}`),
+  })
+
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
       <script
@@ -228,5 +234,6 @@ export default function RoleDetailPage({
         </section>
       </article>
     </main>
+    </>
   )
 }

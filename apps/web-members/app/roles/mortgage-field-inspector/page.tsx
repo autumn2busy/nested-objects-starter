@@ -49,6 +49,12 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function MortgageFieldInspectorPage() {
+  const schema = getRolePageSchema({
+    name: 'Mortgage field inspector',
+    description: 'Deliver lender-ready property inspections with our field guide. Includes checklist for insurance photos, occupancy checks, and rush orders.',
+    url: getCanonicalUrl('/roles/mortgage-field-inspector'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <script
@@ -213,6 +219,7 @@ export default function MortgageFieldInspectorPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

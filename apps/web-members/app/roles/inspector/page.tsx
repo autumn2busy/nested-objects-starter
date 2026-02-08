@@ -97,6 +97,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function InspectorRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Inspector',
+    description:
+      'Field-ready inspection workflows that keep reports consistent, accurate, and aligned with firm expectations.',
+    url: getCanonicalUrl('/roles/inspector'),
+  })
+
   return (
     <main className="bg-white text-slate-900">
       <script
@@ -282,6 +289,7 @@ export default function InspectorRolePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

@@ -37,6 +37,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function MobileNotaryPage() {
+  const schema = getRolePageSchema({
+    name: 'Mobile notary',
+    description:
+      'Mobile notary workflows, lender-ready scripts, and route templates to keep signings and field checks consistent.',
+    url: getCanonicalUrl('/roles/mobile-notary'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <script
@@ -170,6 +177,7 @@ export default function MobileNotaryPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
