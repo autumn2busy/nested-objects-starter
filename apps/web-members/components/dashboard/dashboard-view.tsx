@@ -68,6 +68,38 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
             {/* Onboarding Checklist */}
             {showOnboarding && <OnboardingWidget />}
 
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Profile completion</CardTitle>
+                    <span className="text-xs font-semibold text-emerald-600">{completionPercent}%</span>
+                </CardHeader>
+                <CardContent>
+                    <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            style={{ width: `${completionPercent}%` }}
+                        />
+                    </div>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                        {completionSteps.map((step) => (
+                            <li key={step.label} className="flex items-center gap-2">
+                                <span
+                                    className={`inline-flex h-2 w-2 rounded-full ${step.done ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                                    aria-hidden="true"
+                                />
+                                <span className={step.done ? 'text-slate-900' : undefined}>{step.label}</span>
+                            </li>
+                        ))}
+                    </ul>
+                    <Link
+                        href="/profile"
+                        className="mt-4 inline-flex text-xs font-semibold text-brand-copper hover:underline"
+                    >
+                        Finish my profile →
+                    </Link>
+                </CardContent>
+            </Card>
+
             {/* Actionable Status Cards */}
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 {/* Profile Status */}
