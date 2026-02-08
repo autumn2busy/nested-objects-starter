@@ -18,7 +18,9 @@ type TrainingModulesGateProps = {
 }
 
 export default function TrainingModulesGate({ modules }: TrainingModulesGateProps) {
-  const { isAuthenticated, isLoading, hasAccess, login, signup } = useAuth()
+  const { isAuthenticated, isLoading, hasAccess, login } = useAuth()
+  const trialSignupUrl =
+    'https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'
   const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
   const showGate = !isLoading && !hasTrainingAccess
 
@@ -103,12 +105,12 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                       >
                         Log in
                       </button>
-                      <button
-                        onClick={signup}
+                      <a
+                        href={trialSignupUrl}
                         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-brand-copper hover:text-brand-copper"
                       >
                         Start 7-day trial
-                      </button>
+                      </a>
                     </>
                   ) : (
                     <Link
