@@ -78,9 +78,9 @@ function MembershipContent() {
 
             {/* Plans + sidebar */}
             <section className="mt-10 lg:mt-14">
-                <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+                <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
                     {/* Plan cards */}
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-2">
                         {membershipPlans
                             .filter((plan) => !plan.hidden)
                             .map((plan) => {
@@ -190,7 +190,7 @@ function MembershipContent() {
                     </div>
 
                     {/* Right sidebar */}
-                    <aside className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-700 shadow-sm">
+                    <aside className="w-full min-w-0 space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-700 shadow-sm">
                         <div>
                             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
                                 This is for you if
