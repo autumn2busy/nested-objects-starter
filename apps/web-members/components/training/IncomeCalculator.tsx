@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   DollarSign, TrendingUp, Calendar, Clock,
   Car, Smartphone, Shield, ChevronDown, ChevronUp,
   Zap, Target, Info, CheckCircle2
 } from 'lucide-react';
+import { LockedOverlay } from '@/components/LockedOverlay'
+import { useAuth } from '@/components/auth-provider'
 
 /**
  * NESTED OBJECTS - INTERACTIVE INCOME CALCULATOR
@@ -47,6 +49,28 @@ const IncomeCalculator = () => {
   const [avgPayPerInspection, setAvgPayPerInspection] = useState(75);
   const [showStartupCosts, setShowStartupCosts] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<keyof typeof presets | null>('full-time');
+  const [isLocked, setIsLocked] = useState(false)
+  const { isAuthenticated, isLoading } = useAuth()
+
+  useEffect(() => {
+    // Wait for auth to load
+    if (isLoading) return
+
+    // If logged in, never lock
+    if (isAuthenticated) {
+      setIsLocked(false)
+      return
+    }
+
+    // Check usage
+    const hasUsed = localStorage.getItem('calc_preview_used')
+    if (hasUsed) {
+      setIsLocked(true)
+    } else {
+      // Mark as used for NEXT time (allow this session)
+      localStorage.setItem('calc_preview_used', 'true')
+    }
+  }, [isAuthenticated, isLoading])
 
 
 
@@ -85,7 +109,14 @@ const IncomeCalculator = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white rounded-2xl overflow-hidden">
+    <div className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white rounded-2xl overflow-hidden">
+      {isLocked && (
+        <LockedOverlay
+          title="Free Limit Reached"
+          description="You've used your free calculation. Join to unlock unlimited access to all tools."
+          className="z-50"
+        />
+      )}
       {/* Header */}
       <div className="relative px-6 py-8 border-b border-slate-800">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.15),transparent_70%)]" />

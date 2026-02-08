@@ -77,7 +77,7 @@ export function LockedOverlay({
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                     <Button
-                        size="lg"
+
                         onClick={handleMainAction}
                         className="w-full sm:w-auto bg-brand-dark hover:bg-brand-dark/90 text-white font-semibold"
                     >
@@ -86,8 +86,8 @@ export function LockedOverlay({
 
                     {isLoggedOut && (
                         <Button
-                            variant="outline"
-                            size="lg"
+                            variant="secondary"
+
                             onClick={handleLogin}
                             className="w-full sm:w-auto border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                         >

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import IncomeCalculator from '@/components/training/IncomeCalculator'
-import { Gate } from '@/components/Gate'
+
 import { ArrowLeft } from 'lucide-react'
 
 export default function IncomeCalculatorPage() {
@@ -22,9 +22,7 @@ export default function IncomeCalculatorPage() {
             </div>
 
             <div className="max-w-6xl mx-auto px-6 py-12">
-                <Gate>
-                    <IncomeCalculator />
-                </Gate>
+                <IncomeCalculator />
             </div>
         </main>
     )

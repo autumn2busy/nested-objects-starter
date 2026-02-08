@@ -4,12 +4,14 @@ type Props = {
     facebookPixelId?: string
     linkedinPartnerId?: string
     googleAdsId?: string
+    googleAnalyticsId?: string
 }
 
 export const Analytics = ({
     facebookPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID,
     linkedinPartnerId = process.env.NEXT_PUBLIC_LINKEDIN_PARTNER_ID,
     googleAdsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
+    googleAnalyticsId = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID,
 }: Props) => {
     return (
         <>
@@ -58,8 +60,31 @@ export const Analytics = ({
                 />
             )}
 
-            {/* Google Ads (gtag.js) */}
-            {googleAdsId && (
+            {/* Google Analytics 4 (GA4) */}
+            {googleAnalyticsId && (
+                <>
+                    <Script
+                        strategy="afterInteractive"
+                        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+                    />
+                    <Script
+                        id="google-analytics"
+                        strategy="afterInteractive"
+                        dangerouslySetInnerHTML={{
+                            __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${googleAnalyticsId}');
+              `,
+                        }}
+                    />
+                </>
+            )}
+
+            {/* Google Ads (GT) */}
+            {/* Only load if distinct from GA4, or if both are needed (gtag handles multiple configs) */}
+            {googleAdsId && googleAdsId !== googleAnalyticsId && (
                 <>
                     <Script
                         strategy="afterInteractive"

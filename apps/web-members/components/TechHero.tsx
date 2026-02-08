@@ -8,12 +8,11 @@ import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-re
 
 // Dummy data for the ticker - in real app, fetch this from Supabase
 const TICKER_ITEMS = [
-    "New job in Austin, TX: Occupancy Check ($45)",
-    "Firm verified: Safeguard Properties (National)",
-    "Rate update: BPO fees in FL up 12%",
-    "New firm added: Amrock (Valuation)",
-    "Inspector joining from Dallas, TX",
-    "Live: 124 firms hiring now",
+    "System Status: 124 Verified Firms Active",
+    "Rate Guide: 2025 Regional Averages Updated",
+    "New Resource: Field Inspection Gear Checklist",
+    "Directory Update: 3 New National Firms Added",
+    "Member Milestone: 500+ Active Inspectors",
 ]
 
 /**
@@ -85,13 +84,13 @@ export function TechHero() {
 
                 {/* Headline */}
                 <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-white mb-6 max-w-4xl mx-auto drop-shadow-2xl">
-                    See Who Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Hiring Now</span> in <br className="hidden md:block" /> Your Area.
+                    Find Local <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Field Inspection</span> & <br className="hidden md:block" /> Mobile Notary Work.
                 </h1>
 
                 {/* Subhead */}
                 <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
                     The interactive map below isn&apos;t just data—it&apos;s opportunity.
-                    Filter by <strong>pay rate</strong>, <strong>volume</strong>, and <strong>requirements</strong> to find the field service firms actively recruiting in your zip code.
+                    Filter by <strong>pay rate</strong>, <strong>volume</strong>, and <strong>service type</strong> to find firms actively recruiting <strong>independent contractors</strong> in your zip code.
                 </p>
 
                 {/* CTA Buttons */}

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
-import { Analytics } from '@/components/analytics'
+import { CookieConsent } from '@/components/CookieConsent'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { cn } from '@/lib/utils'
@@ -128,7 +128,7 @@ export default function RootLayout({
             <main id="main-content" className="flex-1">{children}</main>
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
-          <Analytics />
+          <CookieConsent />
         </AuthProvider>
       </body>
     </html>
