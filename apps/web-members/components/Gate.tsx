@@ -3,7 +3,6 @@
 import Image from 'next/image'
 import { ReactNode } from 'react'
 import { useAuth } from './auth-provider'
-import { logoDataUrl } from '../lib/logoData'
 
 interface GateProps {
   feature?: string
@@ -35,7 +34,7 @@ export function Gate({ feature, children, fallback, loadingFallback }: GateProps
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-copper/10">
-              <Image src={logoDataUrl} alt="Nested Objects logo" width={36} height={36} />
+              <Image src="/logo.png" alt="Nested Objects logo" width={36} height={36} />
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-copper">Vendor hub</p>
