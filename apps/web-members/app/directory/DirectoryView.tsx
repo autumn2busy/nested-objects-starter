@@ -136,31 +136,21 @@ function FilterBar({
 
                 <div className="space-y-1">
                     <FieldLabel htmlFor="keyword-filter">NAME / KEYWORD</FieldLabel>
-                    {isStarter ? (
-                        <div className="space-y-1">
-                            <Input
-                                id="keyword-filter"
-                                type="text"
-                                disabled
-                                tone="warning"
-                                placeholder={!isAuthenticated ? "Login to search..." : "Search + advanced filters available on paid plans"}
-                                className="cursor-not-allowed"
-                            />
-                            <FieldHelperText className="text-amber-800">
-                                {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to search by firm, service type, and region.{' '}
-                                <Link href="/membership" className="font-semibold text-amber-900 underline">
-                                    View plans
-                                </Link>
-                            </FieldHelperText>
-                        </div>
-                    ) : (
-                        <Input
-                            id="keyword-filter"
-                            type="text"
-                            value={search}
-                            onChange={(e) => onSearchChange(e.target.value)}
-                            placeholder="Safeguard, mortgage, appraisal, BPO..."
-                        />
+                    <Input
+                        id="keyword-filter"
+                        type="text"
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder="Safeguard, mortgage, appraisal, BPO..."
+                    />
+                    {isStarter && (
+                        <FieldHelperText className="text-amber-800">
+                            {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock the full
+                            directory and advanced filters.{' '}
+                            <Link href="/membership" className="font-semibold text-amber-900 underline">
+                                View plans
+                            </Link>
+                        </FieldHelperText>
                     )}
                 </div>
             </div>
@@ -377,7 +367,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     }
 
     const filteredFirms = firms.filter(matchesStateFilter).filter(matchesSearch)
-    const displayedFirms = isStarter ? filteredFirms.slice(0, 6) : filteredFirms
+    const displayedFirms = isStarter ? filteredFirms.slice(0, limit) : filteredFirms
     const totalPages = Math.max(1, Math.ceil(totalCount / limit))
     const startIndex = totalCount === 0 ? 0 : (page - 1) * limit + 1
     const endIndex = Math.min(page * limit, totalCount)
@@ -432,7 +422,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 onStateChange={setStateFilter}
             />
 
-            {isStarter && (
+            {isStarter && totalCount > limit && (
                 <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
                     <h3 className="text-sm font-semibold">Starter members see a preview.</h3>
                     <p className="mt-1 text-xs">
@@ -493,7 +483,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </aside>
             </section>
 
-            {totalPages > 1 && (
+            {totalPages > 1 && !isStarter && (
                 <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
                     <span className="text-[11px] uppercase">
                         Showing {startIndex}-{endIndex} of {totalCount}
@@ -524,10 +514,10 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </div>
             )}
 
-            {isStarter && filteredFirms.length > displayedFirms.length && (
+            {isStarter && totalCount > limit && (
                 <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {filteredFirms.length} matching firms on the
-                    Starter preview.
+                    Showing {displayedFirms.length} firms in the Starter preview. Upgrade to unlock the
+                    full directory.
                 </p>
             )}
 

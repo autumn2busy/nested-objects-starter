@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { DirectoryView, type Firm } from './DirectoryView'
 import { generatePageMetadata } from '@/lib/seo'
+import { getCurrentUser, PLAN_UIDS } from '@/lib/auth-server'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Firm Directory | Field Inspection & Notary Vendors',
@@ -14,6 +15,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 24
 const MAX_LIMIT = 60
+const PREVIEW_LIMIT = 6
 
 type FirmResponse = {
   firms: Firm[]
@@ -94,16 +96,23 @@ type DirectoryPageProps = {
 }
 
 export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
-  const page = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
-  const limit = Math.min(parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT), MAX_LIMIT)
-  const { firms, totalCount } = await getFirms(page, limit)
+  const requestedPage = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
+  const requestedLimit = Math.min(
+    parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT),
+    MAX_LIMIT
+  )
+  const user = await getCurrentUser()
+  const isStarter = !user || user['outseta:planUid'] === PLAN_UIDS.STARTER
+  const pageForRequest = isStarter ? DEFAULT_PAGE : requestedPage
+  const limitForRequest = isStarter ? PREVIEW_LIMIT : requestedLimit
+  const { firms, totalCount } = await getFirms(pageForRequest, limitForRequest)
 
   return (
     <DirectoryView
       initialFirms={firms}
       totalCount={totalCount}
-      page={page}
-      limit={limit}
+      page={pageForRequest}
+      limit={limitForRequest}
     />
   )
 }
