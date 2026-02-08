@@ -27,7 +27,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
         { label: 'Choose a primary interest', done: !!profile?.primary_interest },
     ];
     const completedSteps = completionSteps.filter((step) => step.done).length;
-    const completionPercent = Math.round((completedSteps / completionSteps.length) * 100);
+    const completionPercentage = Math.round((completedSteps / completionSteps.length) * 100);
 
     return (
         <div className="space-y-8">
@@ -46,13 +46,13 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Profile completion</CardTitle>
-                    <span className="text-xs font-semibold text-emerald-600">{completionPercent}%</span>
+                    <span className="text-xs font-semibold text-emerald-600">{completionPercentage}%</span>
                 </CardHeader>
                 <CardContent>
                     <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
                             className="h-full rounded-full bg-emerald-500 transition-all"
-                            style={{ width: `${completionPercent}%` }}
+                            style={{ width: `${completionPercentage}%` }}
                         />
                     </div>
                     <ul className="space-y-2 text-sm text-muted-foreground">
