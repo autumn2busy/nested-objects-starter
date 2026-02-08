@@ -93,7 +93,7 @@ export function ToolsView() {
                             {!isAuthenticated && (
                                 <div
                                     aria-hidden="true"
-                                    className="absolute inset-0 bg-brand-mist/60"
+                                    className="absolute inset-0 bg-brand-mist/45 backdrop-blur-sm"
                                 />
                             )}
                             <div className="relative z-10">
