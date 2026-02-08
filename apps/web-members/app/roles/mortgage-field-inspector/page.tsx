@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { generatePageMetadata } from '@/lib/seo'
+import { generatePageMetadata, getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -42,8 +42,19 @@ export const metadata: Metadata = generatePageMetadata({
 })
 
 export default function MortgageFieldInspectorPage() {
+  const schema = getRolePageSchema({
+    name: 'Mortgage field inspector',
+    description: 'Deliver lender-ready property inspections with our field guide. Includes checklist for insurance photos, occupancy checks, and rush orders.',
+    url: getCanonicalUrl('/roles/mortgage-field-inspector'),
+  })
+
   return (
-    <main className="bg-brand-sand text-slate-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <main className="bg-brand-sand text-slate-900">
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
@@ -202,6 +213,7 @@ export default function MortgageFieldInspectorPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
