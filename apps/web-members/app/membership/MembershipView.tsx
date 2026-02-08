@@ -113,7 +113,7 @@ function MembershipContent() {
                                 return (
                                     <article
                                         key={plan.planUid}
-                                        className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
+                                        className={`relative flex h-full w-full min-w-0 flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
                                             ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                                             : 'border-slate-200'
                                             }`}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const comparisonPoints = [
   {
@@ -88,8 +89,20 @@ export const metadata: Metadata = {
 }
 
 export default function InspectorRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Inspector',
+    description:
+      'Field-ready inspection workflows that keep reports consistent, accurate, and aligned with firm expectations.',
+    url: getCanonicalUrl('/roles/inspector'),
+  })
+
   return (
-    <main className="bg-white text-slate-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <main className="bg-white text-slate-900">
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="space-y-4">
@@ -269,7 +282,7 @@ export default function InspectorRolePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
-

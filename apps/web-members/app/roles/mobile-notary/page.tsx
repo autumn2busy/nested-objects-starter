@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const scenarios = [
   {
@@ -29,8 +30,20 @@ export const metadata: Metadata = {
 }
 
 export default function MobileNotaryPage() {
+  const schema = getRolePageSchema({
+    name: 'Mobile notary',
+    description:
+      'Mobile notary workflows, lender-ready scripts, and route templates to keep signings and field checks consistent.',
+    url: getCanonicalUrl('/roles/mobile-notary'),
+  })
+
   return (
-    <main className="bg-brand-sand text-slate-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <main className="bg-brand-sand text-slate-900">
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
@@ -158,6 +171,7 @@ export default function MobileNotaryPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

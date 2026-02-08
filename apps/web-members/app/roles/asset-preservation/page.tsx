@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const comparison = [
   {
@@ -40,8 +41,20 @@ export const metadata: Metadata = {
 }
 
 export default function AssetPreservationPage() {
+  const schema = getRolePageSchema({
+    name: 'Asset preservation',
+    description:
+      'Asset preservation vendor hub with scope clarity, compliance steps, and property upkeep workflows.',
+    url: getCanonicalUrl('/roles/asset-preservation'),
+  })
+
   return (
-    <main className="bg-brand-sand text-slate-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <main className="bg-brand-sand text-slate-900">
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
@@ -174,6 +187,7 @@ export default function AssetPreservationPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }
