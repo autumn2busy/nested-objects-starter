@@ -319,11 +319,13 @@ interface DirectoryViewProps {
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
     const { isAuthenticated, isLoading, planUid } = useAuth()
     const [firms] = useState<Firm[]>(initialFirms)
-    const [stateFilter, setStateFilter] = useState<string>('ALL')
-    const [search, setSearch] = useState<string>('')
+    const searchParams = useSearchParams()
+    const initialStateFilter = searchParams?.get('state') ?? 'ALL'
+    const initialSearch = searchParams?.get('search') ?? ''
+    const [stateFilter, setStateFilter] = useState<string>(initialStateFilter)
+    const [search, setSearch] = useState<string>(initialSearch)
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
     const router = useRouter()
-    const searchParams = useSearchParams()
 
     const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
 
@@ -378,10 +380,20 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             const params = new URLSearchParams(searchParams?.toString())
             params.set('page', String(nextPage))
             params.set('limit', String(limit))
+            if (stateFilter && stateFilter !== 'ALL') {
+                params.set('state', stateFilter)
+            } else {
+                params.delete('state')
+            }
+            if (search.trim()) {
+                params.set('search', search.trim())
+            } else {
+                params.delete('search')
+            }
             const query = params.toString()
             return query ? `/directory?${query}` : '/directory'
         }
-    }, [limit, searchParams])
+    }, [limit, search, searchParams, stateFilter])
 
     const handlePageChange = (nextPage: number) => {
         router.push(paginationHref(nextPage))
