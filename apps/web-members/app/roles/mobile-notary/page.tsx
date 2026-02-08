@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
+import { getRolePageSchema } from '@/lib/seo'
 
 const scenarios = [
   {
@@ -28,9 +30,22 @@ export const metadata: Metadata = {
   description: 'Role page for mobile notaries with hero bullets, scenarios, social proof, checklist, and CTA.',
 }
 
+const roleSchema = getRolePageSchema({
+  title: 'Mobile notary | Nested Objects',
+  description: 'Role page for mobile notaries with hero bullets, scenarios, social proof, checklist, and CTA.',
+  path: '/roles/mobile-notary',
+  about: 'Mobile notary',
+})
+
 export default function MobileNotaryPage() {
   return (
     <main className="bg-brand-sand text-slate-900">
+      <Script
+        id="role-schema-mobile-notary"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">

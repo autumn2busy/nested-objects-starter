@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
+import { getRolePageSchema } from '@/lib/seo'
 
 const timeline = [
   {
@@ -56,9 +58,23 @@ export const metadata: Metadata = {
     'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
 }
 
+const roleSchema = getRolePageSchema({
+  title: 'Gig pro inspector | Nested Objects',
+  description:
+    'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
+  path: '/roles/gig-pro-inspector',
+  about: 'Gig pro inspector',
+})
+
 export default function GigProInspectorPage() {
   return (
     <main className="bg-brand-sand text-slate-900">
+      <Script
+        id="role-schema-gig-pro-inspector"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
           <div className="space-y-5">

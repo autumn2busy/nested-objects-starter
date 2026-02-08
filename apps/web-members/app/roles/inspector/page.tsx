@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Script from 'next/script'
+import { getRolePageSchema } from '@/lib/seo'
 
 const comparisonPoints = [
   {
@@ -87,9 +89,23 @@ export const metadata: Metadata = {
   },
 }
 
+const roleSchema = getRolePageSchema({
+  title: 'Inspectors | Field-ready membership for home and property inspectors',
+  description:
+    'Prep briefs, inspection checklists, and firm intel tailored for inspectors who want fewer surprises and faster approvals.',
+  path: '/roles/inspector',
+  about: 'Inspectors',
+})
+
 export default function InspectorRolePage() {
   return (
     <main className="bg-white text-slate-900">
+      <Script
+        id="role-schema-inspector"
+        type="application/ld+json"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(roleSchema) }}
+      />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="space-y-4">
@@ -272,4 +288,3 @@ export default function InspectorRolePage() {
     </main>
   )
 }
-

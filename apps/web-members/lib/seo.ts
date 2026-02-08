@@ -147,6 +147,36 @@ export function getCourseSchema(course: {
 }
 
 /**
+ * Role Page Schema Builder
+ */
+export function getRolePageSchema(role: {
+    title: string
+    description: string
+    path: string
+    about: string | string[]
+    type?: 'WebPage' | 'Article'
+}) {
+    const aboutItems = Array.isArray(role.about) ? role.about : [role.about]
+
+    return {
+        '@context': 'https://schema.org',
+        '@type': role.type || 'WebPage',
+        name: role.title,
+        description: role.description,
+        url: getCanonicalUrl(role.path),
+        about: aboutItems.map((about) => ({
+            '@type': 'Thing',
+            name: about,
+        })),
+        isPartOf: {
+            '@type': 'WebSite',
+            name: SITE_NAME,
+            url: SITE_URL,
+        },
+    }
+}
+
+/**
  * LocalBusiness Schema Builder (for firm pages)
  */
 export function getLocalBusinessSchema(business: {
@@ -254,4 +284,3 @@ export function generatePageMetadata({
         },
     }
 }
-
