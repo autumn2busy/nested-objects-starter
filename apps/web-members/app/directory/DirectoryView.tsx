@@ -76,31 +76,20 @@ function FilterBar({
 
                 <div className="space-y-1">
                     <FieldLabel htmlFor="keyword-filter">NAME / KEYWORD</FieldLabel>
-                    {isStarter ? (
-                        <div className="space-y-1">
-                            <Input
-                                id="keyword-filter"
-                                type="text"
-                                disabled
-                                tone="warning"
-                                placeholder={!isAuthenticated ? "Login to search..." : "Search + advanced filters available on paid plans"}
-                                className="cursor-not-allowed"
-                            />
-                            <FieldHelperText className="text-amber-800">
-                                {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to search by firm, service type, and region.{' '}
-                                <Link href="/membership" className="font-semibold text-amber-900 underline">
-                                    View plans
-                                </Link>
-                            </FieldHelperText>
-                        </div>
-                    ) : (
-                        <Input
-                            id="keyword-filter"
-                            type="text"
-                            value={search}
-                            onChange={(e) => onSearchChange(e.target.value)}
-                            placeholder="Safeguard, mortgage, appraisal, BPO..."
-                        />
+                    <Input
+                        id="keyword-filter"
+                        type="text"
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder="Safeguard, mortgage, appraisal, BPO..."
+                    />
+                    {isStarter && (
+                        <FieldHelperText className="text-amber-800">
+                            {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock full results and advanced filters.{' '}
+                            <Link href="/membership" className="font-semibold text-amber-900 underline">
+                                View plans
+                            </Link>
+                        </FieldHelperText>
                     )}
                 </div>
             </div>
@@ -413,17 +402,23 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                 {/* Cards */}
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    {displayedFirms.map((firm) => (
-                        <FirmCard
-                            key={firm.id}
-                            firm={firm}
-                            isHovered={hoveredFirmId === firm.id}
-                            onHover={() => setHoveredFirmId(firm.id)}
-                            onBlur={() =>
-                                setHoveredFirmId((current) => (current === firm.id ? null : current))
-                            }
-                        />
-                    ))}
+                    {displayedFirms.length ? (
+                        displayedFirms.map((firm) => (
+                            <FirmCard
+                                key={firm.id}
+                                firm={firm}
+                                isHovered={hoveredFirmId === firm.id}
+                                onHover={() => setHoveredFirmId(firm.id)}
+                                onBlur={() =>
+                                    setHoveredFirmId((current) => (current === firm.id ? null : current))
+                                }
+                            />
+                        ))
+                    ) : (
+                        <Card className="border border-dashed border-slate-300 px-6 py-8 text-sm text-slate-600">
+                            No firms match your current filters. Try another state or broader search.
+                        </Card>
+                    )}
                 </div>
 
                 {/* Static Map Image */}
@@ -444,7 +439,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </aside>
             </section>
 
-            {totalPages > 1 && (
+            {isProOrHigher && totalPages > 1 && (
                 <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
                     <span className="text-[11px] uppercase">
                         Showing {startIndex}-{endIndex} of {totalCount}
@@ -475,9 +470,9 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </div>
             )}
 
-            {isStarter && firms.length > displayedFirms.length && (
+            {isStarter && totalCount > displayedFirms.length && (
                 <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {firms.length} matching firms on the Starter
+                    Showing {displayedFirms.length} of {totalCount} matching firms on the Starter
                     preview.
                 </p>
             )}
