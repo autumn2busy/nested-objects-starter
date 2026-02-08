@@ -107,7 +107,7 @@ function MembershipContent() {
                                     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
                                     if (isPro && !isAuthenticated) return 'Start 7 Day Free Trial'
                                     if (isPro && isAuthenticated) return 'Upgrade to Pro'
-                                    return `Switch to ${plan.name}`
+                                    return 'Sign up'
                                 })()
 
                                 return (
