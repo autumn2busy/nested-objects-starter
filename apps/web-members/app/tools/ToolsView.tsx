@@ -87,7 +87,7 @@ export function ToolsView() {
                     {tools.map((tool) => (
                         <Card
                             key={tool.title}
-                            className={`flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'blur-[2px] hover:blur-none' : ''
+                            className={`flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'opacity-75 hover:opacity-100' : ''
                                 }`}
                         >
                             <div>
