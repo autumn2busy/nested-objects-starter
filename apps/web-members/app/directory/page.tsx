@@ -166,15 +166,7 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const isStarter = !user || user['outseta:planUid'] === PLAN_UIDS.STARTER
   const pageForRequest = isStarter ? DEFAULT_PAGE : requestedPage
   const limitForRequest = isStarter ? PREVIEW_LIMIT : requestedLimit
-  const { firms, totalCount } = await getFirms(pageForRequest, limitForRequest)
-}
-
-export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
-  const page = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
-  const limit = Math.min(parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT), MAX_LIMIT)
-  const stateFilter = searchParams?.state ?? 'ALL'
-  const search = searchParams?.search ?? ''
-  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search)
+  const { firms, totalCount } = await getFirms(pageForRequest, limitForRequest, stateFilter, search)
 
   return (
     <DirectoryView
