@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { RolePageLayout } from '@/components/RolePageLayout'
 import Script from 'next/script'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: 'Notary Field Inspections | Nested Objects',
@@ -18,6 +19,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function NotaryRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Notary',
+    description:
+      'Turn your notary routes into field inspection runs. Find firms hiring mobile notaries for occupancy verification, door knocks, and BPOs.',
+    url: getCanonicalUrl('/roles/notary'),
+  })
+
   return (
     <>
       <Script

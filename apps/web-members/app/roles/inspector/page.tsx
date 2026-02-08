@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const comparisonPoints = [
   {
@@ -98,6 +99,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function InspectorRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Inspector',
+    description:
+      'Field-ready inspection workflows that keep reports consistent, accurate, and aligned with firm expectations.',
+    url: getCanonicalUrl('/roles/inspector'),
+  })
+
   return (
     <main className="bg-white text-slate-900">
       <Script
@@ -285,6 +293,7 @@ export default function InspectorRolePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

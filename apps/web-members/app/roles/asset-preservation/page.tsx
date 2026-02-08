@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const comparison = [
   {
@@ -49,6 +50,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function AssetPreservationPage() {
+  const schema = getRolePageSchema({
+    name: 'Asset preservation',
+    description:
+      'Asset preservation vendor hub with scope clarity, compliance steps, and property upkeep workflows.',
+    url: getCanonicalUrl('/roles/asset-preservation'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <Script
@@ -189,6 +197,7 @@ export default function AssetPreservationPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

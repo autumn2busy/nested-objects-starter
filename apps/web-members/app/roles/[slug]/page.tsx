@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const roleContent = {
   notaries: {
@@ -103,6 +104,12 @@ export default function RoleDetailPage({
     description: role.valueProp,
     path: `/roles/${params.slug}`,
     about: role.title,
+  })
+
+  const schema = getRolePageSchema({
+    name: role.title,
+    description: role.valueProp,
+    url: getCanonicalUrl(`/roles/${params.slug}`),
   })
 
   return (
@@ -231,5 +238,6 @@ export default function RoleDetailPage({
         </section>
       </article>
     </main>
+    </>
   )
 }

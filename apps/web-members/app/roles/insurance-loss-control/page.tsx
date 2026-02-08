@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const segments = [
   {
@@ -68,6 +69,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function InsuranceLossControlPage() {
+  const schema = getRolePageSchema({
+    name: 'Insurance loss control',
+    description:
+      'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
+    url: getCanonicalUrl('/roles/insurance-loss-control'),
+  })
+
   return (
     <main className="bg-brand-sand text-slate-900">
       <Script
@@ -220,6 +228,7 @@ export default function InsuranceLossControlPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

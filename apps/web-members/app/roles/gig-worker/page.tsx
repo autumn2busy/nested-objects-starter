@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
 import { getRolePageSchema } from '@/lib/seo'
+import { getCanonicalUrl, getRolePageSchema } from '@/lib/seo'
 
 const comparisonPoints = [
   {
@@ -98,6 +99,13 @@ const roleSchema = getRolePageSchema({
 })
 
 export default function GigWorkerRolePage() {
+  const schema = getRolePageSchema({
+    name: 'Gig worker',
+    description:
+      'Route prep, safety guardrails, and payout expectations for gig workers who handle pickups, deliveries, and field support.',
+    url: getCanonicalUrl('/roles/gig-worker'),
+  })
+
   return (
     <main className="bg-white text-slate-900">
       <Script
@@ -279,6 +287,7 @@ export default function GigWorkerRolePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   )
 }

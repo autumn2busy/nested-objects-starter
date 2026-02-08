@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { DirectoryView, type Firm } from './DirectoryView'
+import { getCurrentUser, PLAN_UIDS } from '@/lib/auth-server'
 import { generatePageMetadata } from '@/lib/seo'
 import { US_STATES } from './constants'
 
@@ -15,6 +16,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 24
 const MAX_LIMIT = 60
+const PREVIEW_LIMIT = 6
 
 type FirmResponse = {
   firms: Firm[]
@@ -31,6 +33,17 @@ function sanitizeFilterValue(value: string) {
   return value.replace(/[(),]/g, ' ').trim()
 }
 
+function sanitizeSearchValue(value: string | undefined) {
+  if (!value) return ''
+  return value.replace(/[\r\n\t]+/g, ' ').trim()
+}
+
+function normalizeStateFilter(value: string | undefined) {
+  if (!value) return 'ALL'
+  const normalized = value.toUpperCase().trim()
+  return US_STATES.some((state) => state.code === normalized) ? normalized : 'ALL'
+}
+
 function getStateLabel(stateCode: string) {
   return US_STATES.find((state) => state.code === stateCode)?.label ?? ''
 }
@@ -42,6 +55,7 @@ function buildSearchOrFilter(search: string) {
     `name.ilike.*${query}*`,
     `industry_focus.ilike.*${query}*`,
     `categories.ilike.*${query}*`,
+    `geographic_coverage.ilike.*${query}*`,
   ].join(',')
 }
 
@@ -142,18 +156,30 @@ type DirectoryPageProps = {
 }
 
 export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
-  const page = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
-  const limit = Math.min(parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT), MAX_LIMIT)
-  const stateFilter = searchParams?.state ?? 'ALL'
-  const search = searchParams?.search ?? ''
-  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search)
+  const requestedPage = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
+  const requestedLimit = Math.min(
+    parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT),
+    MAX_LIMIT,
+  )
+  const stateFilter = normalizeStateFilter(searchParams?.state)
+  const search = sanitizeSearchValue(searchParams?.search)
+  const user = await getCurrentUser()
+  const isStarter = !user || user['outseta:planUid'] === PLAN_UIDS.STARTER
+  const pageForRequest = isStarter ? DEFAULT_PAGE : requestedPage
+  const limitForRequest = isStarter ? PREVIEW_LIMIT : requestedLimit
+  const { firms, totalCount } = await getFirms(
+    pageForRequest,
+    limitForRequest,
+    stateFilter,
+    search,
+  )
 
   return (
     <DirectoryView
       initialFirms={firms}
       totalCount={totalCount}
-      page={page}
-      limit={limit}
+      page={pageForRequest}
+      limit={limitForRequest}
     />
   )
 }
