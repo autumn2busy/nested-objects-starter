@@ -6,7 +6,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
 import { useProfile } from "@/lib/use-profile";
-import { CheckCircle, Briefcase, GraduationCap, Shield } from "lucide-react";
+import { CheckCircle, Briefcase, GraduationCap, Shield, CheckCircle2, Circle } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { StarRating } from "@/components/ui/StarRating";
 import { OnboardingWidget } from "@/components/onboarding/onboarding-widget";
@@ -18,7 +18,41 @@ interface DashboardViewProps {
 export function DashboardView({ showOnboarding }: DashboardViewProps) {
     const { user, profileDisplayName, planUid } = useAuth();
     const userEmail = user?.email || user?.Email || null;
-    const { profile, isLoading: isProfileLoading } = useProfile(userEmail as string | null);
+    const { profile, structuredNotes, isLoading: isProfileLoading } = useProfile(userEmail as string | null);
+
+    const completionItems = [
+        {
+            label: 'Add a profile photo',
+            isComplete: Boolean(profile?.avatar_url),
+        },
+        {
+            label: 'Set your headline',
+            isComplete: Boolean(profile?.headline),
+        },
+        {
+            label: 'Add your location',
+            isComplete: Boolean(profile?.city && profile?.state),
+        },
+        {
+            label: 'Choose your primary interest',
+            isComplete: Boolean(profile?.primary_interest),
+        },
+        {
+            label: 'Write a short bio',
+            isComplete: Boolean(structuredNotes.bio),
+        },
+        {
+            label: 'Add a contact method',
+            isComplete: Boolean(
+                structuredNotes.phone || structuredNotes.linkedin || structuredNotes.website,
+            ),
+        },
+    ];
+
+    const completedCount = completionItems.filter((item) => item.isComplete).length;
+    const totalCount = completionItems.length;
+    const completionPercentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+    const missingItems = completionItems.filter((item) => !item.isComplete);
 
     return (
         <div className="space-y-8">
@@ -106,6 +140,60 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                         <Link href="/jobs" className="text-xs text-brand-copper hover:underline mt-1 block">
                             View active listings →
                         </Link>
+                    </CardContent>
+                </Card>
+
+                {/* Profile Completion */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Profile completion</CardTitle>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {isProfileLoading ? (
+                            <div className="text-sm text-muted-foreground">Loading your progress...</div>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium text-slate-900">
+                                        {completedCount} of {totalCount} steps complete
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">{completionPercentage}%</span>
+                                </div>
+                                <div className="h-2 w-full rounded-full bg-slate-100">
+                                    <div
+                                        className="h-2 rounded-full bg-emerald-500 transition-all"
+                                        style={{ width: `${completionPercentage}%` }}
+                                    />
+                                </div>
+                                {missingItems.length > 0 ? (
+                                    <ul className="space-y-1 text-xs text-muted-foreground">
+                                        {missingItems.slice(0, 3).map((item) => (
+                                            <li key={item.label} className="flex items-center gap-2">
+                                                <Circle className="h-3 w-3 text-slate-300" />
+                                                <span>{item.label}</span>
+                                            </li>
+                                        ))}
+                                        {missingItems.length > 3 && (
+                                            <li className="text-[11px] text-slate-400">
+                                                +{missingItems.length - 3} more items
+                                            </li>
+                                        )}
+                                    </ul>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-xs text-emerald-600">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        All profile steps complete.
+                                    </div>
+                                )}
+                                <Link
+                                    href="/profile"
+                                    className="inline-flex items-center text-xs font-semibold text-brand-copper hover:underline"
+                                >
+                                    {missingItems.length > 0 ? 'Complete missing items →' : 'Review profile →'}
+                                </Link>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
             </div>
