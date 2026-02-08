@@ -55,6 +55,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/file-saver": "^2.0.7",
     "@types/node": "25.0.10",
     "@types/react": "19.2.9",

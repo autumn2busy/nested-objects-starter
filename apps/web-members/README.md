@@ -1,5 +1,18 @@
 # Auth implementation complete
 
+## Playwright E2E auth test
+
+The Playwright auth spec lives in `apps/web-members/tests/e2e/auth.spec.ts` and expects the
+following environment variables:
+
+- `E2E_LOGIN_URL` (required): Full login URL (for example, your Outseta login widget URL).
+- `E2E_AUTH_EMAIL` (required): Login email.
+- `E2E_AUTH_PASSWORD` (required): Login password.
+- `E2E_BASE_URL` (optional): Base URL for the app after login (defaults to `http://localhost:3000`).
+- `E2E_POST_LOGIN_PATH` (optional): Path that should load after login (defaults to `/`).
+
+Keep secrets like `E2E_AUTH_PASSWORD` in environment variables (e.g., `.env.local` or CI secrets).
+
 ## Geocoding firm addresses
 
 Run the geocoding helper to backfill latitude/longitude for firms with verified addresses:
@@ -19,3 +32,13 @@ node ./scripts/import-firm-coordinates.js "/path/to/Sheet 1-firms_rows182_geocod
 ```
 
 The script expects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to be available (loaded from `.env.local`, `.env`, or the shell) and will skip rows without coordinates. Rows that include coordinates but no `id` will be inserted as new firms.
+
+## Playwright E2E tests
+
+The Playwright auth test uses the following environment variables:
+
+- `E2E_BASE_URL` (defaults to `http://localhost:3000`)
+- `E2E_USER_EMAIL`
+- `E2E_USER_PASSWORD`
+
+When credentials are not provided, the login form test is skipped.

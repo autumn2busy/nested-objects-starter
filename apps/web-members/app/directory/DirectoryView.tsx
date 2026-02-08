@@ -95,6 +95,7 @@ function FilterBar({
                         <FieldHelperText className="text-amber-800">
                             {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock the full
                             directory and advanced filters.{' '}
+                            {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock full results and advanced filters.{' '}
                             <Link href="/membership" className="font-semibold text-amber-900 underline">
                                 View plans
                             </Link>
@@ -421,17 +422,23 @@ export function DirectoryView({
             <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                 {/* Cards */}
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    {displayedFirms.map((firm) => (
-                        <FirmCard
-                            key={firm.id}
-                            firm={firm}
-                            isHovered={hoveredFirmId === firm.id}
-                            onHover={() => setHoveredFirmId(firm.id)}
-                            onBlur={() =>
-                                setHoveredFirmId((current) => (current === firm.id ? null : current))
-                            }
-                        />
-                    ))}
+                    {displayedFirms.length ? (
+                        displayedFirms.map((firm) => (
+                            <FirmCard
+                                key={firm.id}
+                                firm={firm}
+                                isHovered={hoveredFirmId === firm.id}
+                                onHover={() => setHoveredFirmId(firm.id)}
+                                onBlur={() =>
+                                    setHoveredFirmId((current) => (current === firm.id ? null : current))
+                                }
+                            />
+                        ))
+                    ) : (
+                        <Card className="border border-dashed border-slate-300 px-6 py-8 text-sm text-slate-600">
+                            No firms match your current filters. Try another state or broader search.
+                        </Card>
+                    )}
                 </div>
 
                 {/* Static Map Image */}
@@ -453,6 +460,7 @@ export function DirectoryView({
             </section>
 
             {totalPages > 1 && !isStarter && (
+            {isProOrHigher && totalPages > 1 && (
                 <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
                     <span className="text-[11px] uppercase">
                         Showing {startIndex}-{endIndex} of {totalCount}
@@ -487,6 +495,10 @@ export function DirectoryView({
                 <p className="mt-4 text-xs text-slate-600">
                     Showing {displayedFirms.length} firms in the Starter preview. Upgrade to unlock the
                     full directory.
+            {isStarter && totalCount > displayedFirms.length && (
+                <p className="mt-4 text-xs text-slate-600">
+                    Showing {displayedFirms.length} of {totalCount} matching firms on the Starter
+                    preview.
                 </p>
             )}
 
