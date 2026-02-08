@@ -87,10 +87,16 @@ export function ToolsView() {
                     {tools.map((tool) => (
                         <Card
                             key={tool.title}
-                            className={`flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'blur-[2px] hover:blur-none' : ''
+                            className={`relative flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'overflow-hidden' : ''
                                 }`}
                         >
-                            <div>
+                            {!isAuthenticated && (
+                                <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 bg-brand-mist/60"
+                                />
+                            )}
+                            <div className="relative z-10">
                                 <h2 className="text-xl font-semibold text-text-primary">
                                     {tool.title}
                                 </h2>
@@ -98,9 +104,9 @@ export function ToolsView() {
                                     {tool.description}
                                 </p>
                             </div>
-                            <div className="mt-auto">
+                            <div className="relative z-10 mt-auto">
                                 {!isAuthenticated ? (
-                                    <span className="text-sm font-semibold text-brand-copper opacity-80">
+                                    <span className="text-sm font-semibold text-brand-copper opacity-90">
                                         Log in to access
                                     </span>
                                 ) : (
