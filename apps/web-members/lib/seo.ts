@@ -8,8 +8,12 @@
  * (Set NEXT_PUBLIC_SITE_URL in Vercel before migration)
  */
 
-// Base URL - uses environment variable for easy domain migration
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nested-objects-starter.vercel.app'
+// Base URL - enforce production canonical domain
+const PROD_SITE_URL = 'https://members.nestedobjects.com'
+export const SITE_URL =
+  process.env.NODE_ENV === 'production'
+    ? PROD_SITE_URL
+    : process.env.NEXT_PUBLIC_SITE_URL || 'https://nested-objects-starter.vercel.app'
 
 // Site-wide constants
 export const SITE_NAME = 'Nested Objects'
