@@ -8,12 +8,10 @@
  * (Set NEXT_PUBLIC_SITE_URL in Vercel before migration)
  */
 
-// Base URL - enforce production canonical domain
-const PROD_SITE_URL = 'https://members.nestedobjects.com'
-export const SITE_URL =
-  process.env.NODE_ENV === 'production'
-    ? PROD_SITE_URL
-    : process.env.NEXT_PUBLIC_SITE_URL || 'https://nested-objects-starter.vercel.app'
+import { branding } from '@/config'
+
+const sanitizedSiteUrl = branding.domain.replace(/\/$/, '')
+export const SITE_URL = sanitizedSiteUrl
 
 // Site-wide constants
 export const SITE_NAME = 'Nested Objects'
@@ -21,7 +19,7 @@ export const SITE_TAGLINE = 'Vendor Hub'
 export const SITE_DESCRIPTION = 'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.'
 
 // Social/branding
-export const LOGO_URL = `${SITE_URL}/logo.png`
+export const LOGO_URL = new URL(branding.logo, SITE_URL).toString()
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
 
 // Contact info

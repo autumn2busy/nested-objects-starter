@@ -13,6 +13,7 @@ import {
   getOrganizationSchema,
   getWebSiteSchema
 } from '@/lib/seo'
+import { integrations } from '@/config'
 import '../styles/globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -69,6 +70,8 @@ export default function RootLayout({
     process.env.NODE_ENV === 'production' ||
     process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
 
+  const outsetaDomain = integrations.outseta.domain
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -95,7 +98,7 @@ export default function RootLayout({
               dangerouslySetInnerHTML={{
                 __html: `
                   var o_options = {
-                    domain: 'nested-objects.outseta.com',
+                    domain: '${outsetaDomain}',
                     load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
                     tokenStorage: 'local'
                   };
