@@ -3,10 +3,14 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request.headers);
+  const logger = createLogger({ requestId, source: 'api/ai/concierge' });
+
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -99,7 +103,14 @@ export async function POST(request: Request) {
     // However, if n8n fails, we "charged" them. Prompt says "Enforce limits... Return friendly 403".
     await trackAIUsage(userId, 'ai_concierge');
 
-    const n8nWebhookUrl = process.env.N8N_AI_CONCIERGE_WEBHOOK_URL!;
+    const n8nWebhookUrl = process.env.N8N_AI_CONCIERGE_WEBHOOK_URL;
+    if (!n8nWebhookUrl) {
+      logger.error('N8N_AI_CONCIERGE_WEBHOOK_URL not configured');
+      return NextResponse.json(
+        { error: 'AI Concierge is not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
 
     const response = await fetch(n8nWebhookUrl, {
       method: 'POST',
@@ -137,7 +148,7 @@ export async function POST(request: Request) {
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('AI Concierge error:', error);
+    logger.error('AI Concierge error', { error: (error as Error).message });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

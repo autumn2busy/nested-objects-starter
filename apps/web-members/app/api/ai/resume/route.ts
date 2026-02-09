@@ -3,10 +3,14 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request.headers);
+  const logger = createLogger({ requestId, source: 'api/ai/resume' });
+
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
 
     if (!n8nWebhookUrl) {
-      console.error('N8N_AI_RESUME_WEBHOOK_URL environment variable is not set');
+      logger.error('N8N_AI_RESUME_WEBHOOK_URL not configured');
       return NextResponse.json(
         { error: 'Resume builder is not configured. Please contact support.' },
         { status: 500 }
@@ -119,7 +123,7 @@ export async function POST(request: Request) {
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('AI Resume Builder error:', error);
+    logger.error('AI Resume Builder error', { error: (error as Error).message });
     return NextResponse.json(
       { error: 'Failed to generate resume content. Please try again.' },
       { status: 500 }
