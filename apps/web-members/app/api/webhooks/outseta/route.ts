@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
+import { requireEnv, requireEnvInProduction } from '@/lib/env';
 
 // =================================================================
 // TYPES
@@ -104,12 +105,8 @@ interface ProfileUpdateData {
 // =================================================================
 
 function getSupabaseAdmin(): SupabaseClient {
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
-  }
+  const url = requireEnv('SUPABASE_URL');
+  const serviceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
   return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false }
@@ -253,11 +250,11 @@ export async function POST(request: NextRequest) {
     const bodyText = await request.text();
 
     // Verify signature
-    const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
-
-    // In production, strictly enforce the secret
-    if (!webhookSecret && process.env.NODE_ENV === 'production') {
-      console.error(`[${requestId}] Configuration error: OUTSETA_WEBHOOK_SECRET missing in production`);
+    let webhookSecret: string | undefined;
+    try {
+      webhookSecret = requireEnvInProduction('OUTSETA_WEBHOOK_SECRET');
+    } catch (error) {
+      console.error(`[${requestId}] Configuration error: OUTSETA_WEBHOOK_SECRET missing in production`, error);
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 

@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { requireEnv } from '@/lib/env';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
@@ -78,10 +79,11 @@ export async function POST(request: Request) {
     }
 
     // Get n8n webhook URL from environment
-    const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-
-    if (!n8nWebhookUrl) {
-      console.error('N8N_AI_RESUME_WEBHOOK_URL environment variable is not set');
+    let n8nWebhookUrl: string;
+    try {
+      n8nWebhookUrl = requireEnv('N8N_AI_RESUME_WEBHOOK_URL');
+    } catch (error) {
+      console.error('N8N_AI_RESUME_WEBHOOK_URL environment variable is not set', error);
       return NextResponse.json(
         { error: 'Resume builder is not configured. Please contact support.' },
         { status: 500 }
