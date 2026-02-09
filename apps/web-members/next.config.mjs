@@ -16,10 +16,12 @@ const nextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
+      "frame-src https://*.outseta.com",
       "img-src 'self' https: data:",
-      "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      "connect-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://cdn.outseta.com",
+      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://*.outseta.com",
+      "connect-src 'self' https://*.outseta.com https://cdn.outseta.com https://cdn.jsdelivr.net",
+      "font-src 'self' data: https://unpkg.com https://cdn.jsdelivr.net",
       "object-src 'none'",
     ].join('; ')
 
