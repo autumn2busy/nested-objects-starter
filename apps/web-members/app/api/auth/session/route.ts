@@ -72,6 +72,17 @@ export async function DELETE() {
     const cookieDomain =
         process.env.NEXT_PUBLIC_MEMBERS_COOKIE_DOMAIN ||
         (process.env.NODE_ENV === 'production' ? 'members.nestedobjects.com' : undefined)
-    cookieStore.delete('outseta_access_token', { path: '/', domain: cookieDomain })
+    if (cookieDomain) {
+        cookieStore.set('outseta_access_token', '', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            domain: cookieDomain,
+            expires: new Date(0),
+        })
+    } else {
+        cookieStore.delete('outseta_access_token')
+    }
     return NextResponse.json({ success: true })
 }
