@@ -2,8 +2,9 @@
 
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans } from '@/lib/ai-datasets'
+import { OUTSETA_HOSTED_AUTH_URL, OUTSETA_SIGNUP_PARAMS, OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
-const hostedBaseUrl = 'https://nested-objects.outseta.com/auth'
+const hostedBaseUrl = OUTSETA_HOSTED_AUTH_URL
 
 export function UpgradeContent() {
   const { planUid, isAuthenticated } = useAuth()
@@ -40,12 +41,21 @@ export function UpgradeContent() {
     const planPaymentTerm = getPlanPaymentTerm(planPeriod)
 
     if (Outseta?.auth?.open) {
+      if (widgetMode === 'register') {
+        Outseta.auth.open(OUTSETA_SIGNUP_PARAMS)
+        return
+      }
       Outseta.auth.open({
         widgetMode,
         planUid: selectedPlanUid,
         planPaymentTerm,
         skipPlanOptions: true,
       })
+      return
+    }
+
+    if (widgetMode === 'register') {
+      window.location.href = OUTSETA_SIGNUP_URL
       return
     }
 
