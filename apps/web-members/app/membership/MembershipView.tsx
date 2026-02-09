@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
+import { OUTSETA_SIGNUP_PARAMS, OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
 function MembershipContent() {
     const { isAuthenticated, planUid } = useAuth()
@@ -22,13 +23,10 @@ function MembershipContent() {
         if (!isAuthenticated) {
             if (typeof window !== 'undefined' && window.Outseta?.auth?.open) {
                 window.Outseta.auth.open({
-                    widgetMode: 'register',
-                    planUid: plan.planUid,
-                    planPaymentTerm: plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime',
-                    skipPlanOptions: true,
+                    ...OUTSETA_SIGNUP_PARAMS,
                 })
             } else {
-                window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}`
+                window.location.href = OUTSETA_SIGNUP_URL
             }
             return
         }

@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
+import { OUTSETA_SIGNUP_PARAMS, OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
 type JwtPayload = {
   email?: string
@@ -334,10 +335,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       if (Outseta?.auth?.open) {
-        Outseta.auth.open({ widgetMode: 'register' })
+        Outseta.auth.open(OUTSETA_SIGNUP_PARAMS)
       } else {
-        window.location.href =
-          'https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous'
+        window.location.href = OUTSETA_SIGNUP_URL
       }
     } catch (error) {
       console.error('Error opening Outseta signup', error)

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from './auth-provider'
 import { useProfile } from '@/lib/use-profile'
 import { Button, buttonVariants } from './ui/button'
+import { OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
 type SiteHeaderProps = {
   containerClassName?: string
@@ -234,7 +235,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 Login
               </a>
               <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
+                href={OUTSETA_SIGNUP_URL}
                 className={buttonVariants({
                   variant: 'primary',
                   size: 'sm',

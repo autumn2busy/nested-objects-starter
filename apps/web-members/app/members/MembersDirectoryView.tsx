@@ -11,6 +11,7 @@ import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
+import { OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
 export type Member = {
     id: string
@@ -145,7 +146,7 @@ function FilterBar({
                     </a>{' '}
                     or{' '}
                     <a
-                        href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
+                        href={OUTSETA_SIGNUP_URL}
                         className="font-semibold underline"
                     >
                         Create an account
@@ -305,7 +306,7 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
                             FIRM LOGIN
                         </a>
                         <a
-                            href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
+                            href={OUTSETA_SIGNUP_URL}
                             className="inline-flex border border-slate-300 bg-white px-4 py-2 text-xs font-semibold tracking-[0.16em] text-slate-900 hover:bg-slate-50"
                         >
                             CREATE ACCOUNT

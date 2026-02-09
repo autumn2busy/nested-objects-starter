@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { BookOpen, ChevronRight, Lock } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
+import { OUTSETA_SIGNUP_URL } from '@/lib/outseta'
 
 type TrainingModule = {
   id: string
@@ -19,8 +20,7 @@ type TrainingModulesGateProps = {
 
 export default function TrainingModulesGate({ modules }: TrainingModulesGateProps) {
   const { isAuthenticated, isLoading, hasAccess, login } = useAuth()
-  const trialSignupUrl =
-    'https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'
+  const trialSignupUrl = OUTSETA_SIGNUP_URL
   const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
   const showGate = !isLoading && !hasTrainingAccess
 
