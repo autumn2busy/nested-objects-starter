@@ -44,6 +44,9 @@ export async function POST(request: Request) {
         }
 
         const cookieStore = cookies()
+        const cookieDomain =
+            process.env.NEXT_PUBLIC_MEMBERS_COOKIE_DOMAIN ||
+            (process.env.NODE_ENV === 'production' ? 'members.nestedobjects.com' : undefined)
 
         // Set HttpOnly cookie
         cookieStore.set('outseta_access_token', accessToken, {
@@ -51,6 +54,7 @@ export async function POST(request: Request) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
+            domain: cookieDomain,
             maxAge: 60 * 60 * 24 * 7 // 7 days matches Outseta token life
         })
 
@@ -65,6 +69,9 @@ export async function POST(request: Request) {
 // Used to logout
 export async function DELETE() {
     const cookieStore = cookies()
-    cookieStore.delete('outseta_access_token')
+    const cookieDomain =
+        process.env.NEXT_PUBLIC_MEMBERS_COOKIE_DOMAIN ||
+        (process.env.NODE_ENV === 'production' ? 'members.nestedobjects.com' : undefined)
+    cookieStore.delete('outseta_access_token', { path: '/', domain: cookieDomain })
     return NextResponse.json({ success: true })
 }
