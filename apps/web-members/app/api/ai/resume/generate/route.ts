@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';  
 import { headers } from 'next/headers';
+import { requireEnv } from '@/lib/env';
 
 export async function POST(request: Request) {
   try {
@@ -24,10 +25,11 @@ export async function POST(request: Request) {
     }
 
     // Get n8n webhook URL
-    const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-    
-    if (!n8nWebhookUrl) {
-      console.error('N8N_AI_RESUME_WEBHOOK_URL not configured');
+    let n8nWebhookUrl: string;
+    try {
+      n8nWebhookUrl = requireEnv('N8N_AI_RESUME_WEBHOOK_URL');
+    } catch (error) {
+      console.error('N8N_AI_RESUME_WEBHOOK_URL not configured', error);
       return NextResponse.json(
         { error: 'Resume builder is not configured. Please contact support.' },
         { status: 500 }

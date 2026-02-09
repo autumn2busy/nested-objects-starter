@@ -5,6 +5,7 @@ import { AuthProvider } from '@/components/auth-provider'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { cn } from '@/lib/utils'
+import '@/lib/env'
 import {
   SITE_URL,
   SITE_NAME,
