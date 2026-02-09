@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireEnv } from '@/lib/env';
 
 /**
  * AI Resume Parser - /api/ai/resume/parse
@@ -148,10 +149,11 @@ export async function POST(request: Request) {
 
 
     // ---- CHECK N8N CONFIG ----
-    const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
-
-    if (!n8nWebhookUrl) {
-      console.error('[Resume Parse] N8N_AI_RESUME_WEBHOOK_URL not set');
+    let n8nWebhookUrl: string;
+    try {
+      n8nWebhookUrl = requireEnv('N8N_AI_RESUME_WEBHOOK_URL');
+    } catch (error) {
+      console.error('[Resume Parse] N8N_AI_RESUME_WEBHOOK_URL not set', error);
       return NextResponse.json(
         { error: 'Resume parser is not configured. Please contact support.' },
         { status: 500 }

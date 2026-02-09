@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { requireEnv } from '@/lib/env';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
@@ -99,7 +100,16 @@ export async function POST(request: Request) {
     // However, if n8n fails, we "charged" them. Prompt says "Enforce limits... Return friendly 403".
     await trackAIUsage(userId, 'ai_concierge');
 
-    const n8nWebhookUrl = process.env.N8N_AI_CONCIERGE_WEBHOOK_URL!;
+    let n8nWebhookUrl: string;
+    try {
+      n8nWebhookUrl = requireEnv('N8N_AI_CONCIERGE_WEBHOOK_URL');
+    } catch (error) {
+      console.error('N8N_AI_CONCIERGE_WEBHOOK_URL not configured', error);
+      return NextResponse.json(
+        { error: 'AI Concierge is not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
 
     const response = await fetch(n8nWebhookUrl, {
       method: 'POST',

@@ -3,20 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { verifyOutsetaToken, getOutsetaUserId, getCurrentUser } from '@/lib/auth-server'
 import { rateLimit } from '@/lib/rate-limit'
+import { requireEnv } from '@/lib/env'
 
 export const runtime = 'nodejs'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const AVATAR_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_AVATAR_BUCKET || 'avatars'
 
 const limiter = rateLimit({ limit: 5, intervalMs: 60 * 1000 }); // 5 uploads per minute
 
 function getSupabase() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Supabase URL or service role key is not configured.')
-  }
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: { persistSession: false },
   })
 }
