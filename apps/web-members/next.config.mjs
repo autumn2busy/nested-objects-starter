@@ -10,6 +10,56 @@ const nextConfig = {
     config.resolve.alias['@'] = path.resolve(__dirname)
     return config
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'nested-objects-starter.vercel.app',
+          },
+        ],
+        destination: 'https://members.nestedobjects.com/:path*',
+        permanent: true,
+      },
+      {
+        source: '/about-us',
+        destination: '/about',
+        permanent: true,
+      },
+      {
+        source: '/contact-us',
+        destination: '/contact',
+        permanent: true,
+      },
+      {
+        source: '/privacy-policy',
+        destination: '/privacy',
+        permanent: true,
+      },
+      {
+        source: '/terms-and-conditions',
+        destination: '/terms-conditions',
+        permanent: true,
+      },
+      {
+        source: '/refunds',
+        destination: '/refund-policy',
+        permanent: true,
+      },
+      {
+        source: '/vendor-hub',
+        destination: '/directory',
+        permanent: true,
+      },
+      {
+        source: '/join',
+        destination: '/membership',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
