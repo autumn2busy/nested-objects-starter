@@ -6,9 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
-import { requireEnv, requireEnvInProduction } from '@/lib/env';
+import { rateLimit } from '@/lib/rate-limit';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 // =================================================================
 // TYPES
@@ -104,6 +104,8 @@ interface ProfileUpdateData {
 // HELPERS
 // =================================================================
 
+const webhookLimiter = rateLimit({ limit: 30, intervalMs: 60 * 1000 });
+
 function getSupabaseAdmin(): SupabaseClient {
   const url = requireEnv('SUPABASE_URL');
   const serviceKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
@@ -141,6 +143,15 @@ function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
   return 'free';
+}
+
+function getClientIdentifier(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0]?.trim() || forwardedFor;
+  }
+
+  return request.ip || request.headers.get('x-real-ip') || 'unknown';
 }
 
 /**
@@ -242,19 +253,31 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  const requestId = crypto.randomUUID().slice(0, 8);
+  const requestId = getRequestId(request.headers);
+  const logger = createLogger({ requestId, source: 'api/webhooks/outseta' });
 
-  console.log(`[${requestId}] Outseta webhook received`);
+  const clientId = getClientIdentifier(request);
+  try {
+    await webhookLimiter.check(clientId);
+  } catch {
+    logger.warn('Webhook rate limit exceeded', { clientId });
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.', requestId },
+      { status: 429 }
+    );
+  }
+
+  logger.info('Outseta webhook received');
 
   try {
     const bodyText = await request.text();
 
     // Verify signature
-    let webhookSecret: string | undefined;
-    try {
-      webhookSecret = requireEnvInProduction('OUTSETA_WEBHOOK_SECRET');
-    } catch (error) {
-      console.error(`[${requestId}] Configuration error: OUTSETA_WEBHOOK_SECRET missing in production`, error);
+    const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
+
+    // In production, strictly enforce the secret
+    if (!webhookSecret && process.env.NODE_ENV === 'production') {
+      logger.error('OUTSETA_WEBHOOK_SECRET missing in production');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
@@ -263,21 +286,25 @@ export async function POST(request: NextRequest) {
     // If secret is present, verify it. If missing (non-prod), warn.
     if (webhookSecret) {
       if (!verifyOutsetaSignature(signature, bodyText, webhookSecret)) {
-        console.error(`[${requestId}] Signature verification failed`);
+        logger.warn('Signature verification failed');
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
       }
     } else {
-      console.warn(`[${requestId}] WARNING: Webhook secret not configured. Skipping signature verification.`);
+      logger.warn('Webhook secret not configured. Skipping signature verification.');
     }
 
     // Parse payload
     const payload: OutsetaWebhookPayload = JSON.parse(bodyText);
     const payloadType = isPersonPayload(payload) ? 'Person' : 'Account';
-    console.log(`[${requestId}] Payload type: ${payloadType}`);
+    logger.info('Webhook payload parsed', { payloadType });
 
     // Map to profile data
     const profileData = mapOutsetaToProfile(payload);
-    console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
+    logger.info('Profile data mapped', {
+      email: profileData.email,
+      outsetaPersonUid: profileData.outseta_person_uid,
+      payloadType,
+    });
 
     const supabase = getSupabaseAdmin();
 
@@ -298,7 +325,9 @@ export async function POST(request: NextRequest) {
         const incomingTime = new Date(profileData.outseta_updated_at).getTime();
 
         if (existingTime >= incomingTime) {
-          console.log(`[${requestId}] Skipping update: Profile already verified up to ${existing.outseta_updated_at}`);
+          logger.info('Skipping update: newer profile already processed', {
+            existingOutsetaUpdatedAt: existing.outseta_updated_at,
+          });
           return NextResponse.json({
             success: true,
             operation: 'skipped',
@@ -361,7 +390,10 @@ export async function POST(request: NextRequest) {
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms`);
+    logger.info('Outseta webhook processed', {
+      operation: result.operation,
+      durationMs: duration,
+    });
 
     return NextResponse.json({
       success: true,
@@ -372,7 +404,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[${requestId}] Error after ${duration}ms:`, error);
+    logger.error('Outseta webhook failed', {
+      durationMs: duration,
+      error: (error as Error).message,
+    });
     return NextResponse.json(
       { error: 'Processing failed', details: (error as Error).message, requestId },
       { status: 500 }

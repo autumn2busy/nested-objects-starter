@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireEnv } from '@/lib/env';
+import { rateLimit } from '@/lib/rate-limit';
+import { createLogger, getRequestId } from '@/lib/logger';
 
 /**
  * AI Resume Parser - /api/ai/resume/parse
@@ -36,8 +37,33 @@ const EXTENSION_TO_MIME: Record<string, string> = {
 const pdf = require('pdf-parse');
 import mammoth from 'mammoth';
 
+const limiter = rateLimit({ limit: 5, intervalMs: 60 * 1000 });
+
+function getClientIdentifier(request: Request): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0]?.trim() || forwardedFor;
+  }
+
+  return request.headers.get('x-real-ip') || 'unknown';
+}
+
 export async function POST(request: Request) {
+  const requestId = getRequestId(request.headers);
+  const logger = createLogger({ requestId, source: 'api/ai/resume/parse' });
+
   try {
+    const clientId = getClientIdentifier(request);
+    try {
+      await limiter.check(clientId);
+    } catch {
+      logger.warn('Rate limit exceeded', { clientId });
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     // ---- AUTH CHECK ----
     const auth = request.headers.get('authorization');
 
@@ -53,7 +79,7 @@ export async function POST(request: Request) {
     try {
       formData = await request.formData();
     } catch (formError: any) {
-      console.error('[Resume Parse] FormData parse error:', formError?.message);
+      logger.error('Resume parse FormData error', { error: formError?.message });
       return NextResponse.json(
         { error: 'Invalid request format. Please upload a file.' },
         { status: 400 }
@@ -76,7 +102,11 @@ export async function POST(request: Request) {
       fileType = EXTENSION_TO_MIME[ext] || file.type || 'application/octet-stream';
     }
 
-    console.log(`[Resume Parse] File: ${file.name}, Type: ${fileType}, Size: ${file.size}`);
+    logger.info('Resume parse file received', {
+      fileName: file.name,
+      fileType,
+      fileSizeBytes: file.size,
+    });
 
     // ---- VALIDATE SIZE ----
     if (file.size > MAX_FILE_SIZE) {
@@ -111,7 +141,9 @@ export async function POST(request: Request) {
         extractedText = buffer.toString('utf-8');
       }
     } catch (localParseError) {
-      console.warn('[Resume Parse] Local text extraction failed, relying solely on AI:', localParseError);
+      logger.warn('Resume parse local extraction failed', {
+        error: (localParseError as Error).message,
+      });
       // Continue without local text - not fatal
     }
 
@@ -149,11 +181,10 @@ export async function POST(request: Request) {
 
 
     // ---- CHECK N8N CONFIG ----
-    let n8nWebhookUrl: string;
-    try {
-      n8nWebhookUrl = requireEnv('N8N_AI_RESUME_WEBHOOK_URL');
-    } catch (error) {
-      console.error('[Resume Parse] N8N_AI_RESUME_WEBHOOK_URL not set', error);
+    const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
+
+    if (!n8nWebhookUrl) {
+      logger.error('N8N_AI_RESUME_WEBHOOK_URL not configured');
       return NextResponse.json(
         { error: 'Resume parser is not configured. Please contact support.' },
         { status: 500 }
@@ -167,7 +198,7 @@ export async function POST(request: Request) {
     const arrayBufferForUpload = await file.arrayBuffer();
     const base64Data = Buffer.from(arrayBufferForUpload).toString('base64');
 
-    console.log(`[Resume Parse] Sending to n8n (${base64Data.length} base64 chars)...`);
+    logger.info('Resume parse sending to n8n', { payloadSize: base64Data.length });
 
     // ---- SEND TO N8N ----
     const n8nResponse = await fetch(n8nWebhookUrl, {
@@ -194,7 +225,10 @@ export async function POST(request: Request) {
       } catch {
         errorData = { error: `Processing failed (status ${n8nResponse.status})` };
       }
-      console.error('[Resume Parse] n8n error:', JSON.stringify(errorData));
+      logger.error('Resume parse n8n error', {
+        status: n8nResponse.status,
+        error: errorData,
+      });
       const status = n8nResponse.status >= 400 && n8nResponse.status < 600
         ? n8nResponse.status
         : 500;
@@ -202,7 +236,7 @@ export async function POST(request: Request) {
       // NEW: If local extraction worked, maybe return partial data instead of error?
       // User asked for "foolproof way", so returning partial data is better than error.
       if (extractedText) {
-        console.warn('[Resume Parse] n8n failed, returning local regex fallback data.');
+        logger.warn('Resume parse n8n failed; returning local fallback data');
         return NextResponse.json({
           contact: {
             name: regexData.potentialName,
@@ -225,7 +259,7 @@ export async function POST(request: Request) {
 
     // ---- RETURN PARSED RESULT ----
     const aiResult = await n8nResponse.json();
-    console.log('[Resume Parse] Success from AI');
+    logger.info('Resume parse success from AI');
 
     // ---- MERGE DATA (FOOLPROOFING) ----
     // We trust AI for most things, but regex is better for specific format fields if AI missed them
@@ -255,7 +289,7 @@ export async function POST(request: Request) {
     return NextResponse.json(mergedResult);
 
   } catch (error: any) {
-    console.error('[Resume Parse] Unhandled error:', error?.message || error);
+    logger.error('Resume parse unhandled error', { error: error?.message || error });
     return NextResponse.json(
       { error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
