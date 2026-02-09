@@ -9,6 +9,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { verifyOutsetaSignature } from '@/lib/security';
 import { rateLimit } from '@/lib/rate-limit';
 import { createLogger, getRequestId } from '@/lib/logger';
+import { requireEnv } from '@/lib/env';
 
 // =================================================================
 // TYPES
