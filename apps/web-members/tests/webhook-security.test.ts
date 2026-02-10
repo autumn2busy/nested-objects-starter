@@ -9,7 +9,7 @@ test('Webhook Security', async (t) => {
         const body = JSON.stringify({ event: 'test' });
 
         // Calculate expected HMAC
-        const hmac = crypto.createHmac('sha256', Buffer.from(secret, 'hex'));
+        const hmac = crypto.createHmac('sha256', secret);
         hmac.update(body);
         const signature = `sha256=${hmac.digest('hex')}`;
 
@@ -31,7 +31,7 @@ test('Webhook Security', async (t) => {
         const body = JSON.stringify({ event: 'test' });
 
         // Calculate signature for original body
-        const hmac = crypto.createHmac('sha256', Buffer.from(secret, 'hex'));
+        const hmac = crypto.createHmac('sha256', secret);
         hmac.update(body);
         const signature = `sha256=${hmac.digest('hex')}`;
 
