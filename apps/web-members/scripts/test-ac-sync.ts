@@ -1,19 +1,72 @@
-import { ProfileUpdateData } from '@/app/api/webhooks/outseta/route';
-import { env } from '@/lib/env';
-import { createServiceRoleClient } from '@/lib/supabase-admin';
 
-const AC_API_URL = env.acApiUrl;
-const AC_API_KEY = env.acApiKey;
-const AC_CONNECTION_ID = env.acConnectionId;
+import dotenv from 'dotenv';
+import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+// Load env vars from .env.local
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+
+// Polyfill crypto for Supabase
+if (!global.crypto) {
+    global.crypto = require('crypto').webcrypto;
+}
+
+
+// --- INLINED DEPENDENCIES ---
+
+function createServiceRoleClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error("Missing Supabase URL or Key");
+        // Mock client if missing credentials for test
+        // return createClient('https://placeholder.supabase.co', 'placeholder');
+    }
+
+    return createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    })
+}
+
+const AC_API_URL = process.env.AC_API_URL;
+const AC_API_KEY = process.env.AC_API_KEY;
+const AC_CONNECTION_ID = process.env.AC_CONNECTION_ID;
 
 interface SyncResult {
     logs: string[];
 }
 
-/**
- * Main orchestrator: Syncs Contact -> Customer -> Order -> Recurring Payment
- */
-export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promise<SyncResult> {
+interface ProfileUpdateData {
+    outseta_person_uid: string;
+    outseta_account_id: string | null;
+    user_email: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    full_name: string | null;
+    display_name: string | null;
+    phone: string | null;
+    subscription_tier: 'free' | 'pro' | 'elite' | 'agency';
+    subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
+    subscription_start_date: string | null;
+    subscription_end_date: string | null;
+    plan_uid: string | null;
+    plan_name: string | null;
+    billing_renewal_term: number | null;
+    outseta_created_at: string | null;
+    outseta_updated_at: string | null;
+    outseta_data: object;
+    last_login_at: string | null;
+    last_active_at: string;
+}
+
+// --- SYNC LOGIC ---
+
+async function syncFullProfileDeepData(profile: ProfileUpdateData): Promise<SyncResult> {
     const logs: string[] = [];
     const supabase = createServiceRoleClient();
 
@@ -37,8 +90,7 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         let contactId = dbProfile?.ac_contact_id;
         let customerId = dbProfile?.ac_customer_id;
 
-        // 1. Sync Contact (if missing ID or just to update)
-        // We always sync to ensure fields are up to date
+        // 1. Sync Contact
         const syncedContactId = await syncContact(profile, logs);
         if (syncedContactId) {
             if (contactId !== syncedContactId) {
@@ -50,9 +102,6 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
             logs.push("Failed to sync Contact and no ID in DB. Aborting.");
             return { logs };
         }
-
-        // 1b. Add Contact to List (list=12, status=1)
-        await addContactToList(contactId!, 12, 1, logs);
 
         // 2. Sync Ecommerce Customer
         const syncedCustomerId = await syncEcommerceCustomer(profile, logs);
@@ -98,7 +147,6 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
 async function syncContact(profile: ProfileUpdateData, logs: string[]): Promise<string | null> {
     const url = `${AC_API_URL}/api/3/contact/sync`;
 
-    // Construct payload
     const payload = {
         contact: {
             email: profile.email,
@@ -117,7 +165,7 @@ async function syncContact(profile: ProfileUpdateData, logs: string[]): Promise<
         });
         const data = await res.json();
         if (data.contact) {
-            return data.contact.id; // Returns ID as string or number
+            return data.contact.id;
         }
         logs.push(`AC Contact Sync response: ${JSON.stringify(data)}`);
         return null;
@@ -153,23 +201,7 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
         if (data.ecomCustomer) {
             return data.ecomCustomer.id;
         } else {
-            // Customer likely already exists (duplicate). Try GET by email.
-            logs.push(`Customer create returned non-standard response, trying GET fallback...`);
-            try {
-                const getUrl = `${AC_API_URL}/api/3/ecomCustomers?filters[email]=${encodeURIComponent(profile.email)}`;
-                const getRes = await fetch(getUrl, {
-                    method: 'GET',
-                    headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
-                });
-                const getData = await getRes.json();
-                if (getData.ecomCustomers && getData.ecomCustomers.length > 0) {
-                    logs.push(`Found existing customer via GET: ${getData.ecomCustomers[0].id}`);
-                    return getData.ecomCustomers[0].id;
-                }
-            } catch (fetchErr) {
-                logs.push(`Error fetching existing customer: ${fetchErr}`);
-            }
-            logs.push(`AC Customer Sync failed: ${JSON.stringify(data)}`);
+            logs.push(`AC Customer Sync response: ${JSON.stringify(data)}`);
             return null;
         }
     } catch (e) {
@@ -179,39 +211,22 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 }
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
-    // 1. Tag for Subscription Tier
     const tierTag = `plan-${profile.subscription_tier}`;
     await addTagToContact(contactId, tierTag, logs);
-
-    // 2. Generic tag
     await addTagToContact(contactId, 'antigravity-subscription', logs);
-
-    // 3. Status tag
     if (profile.subscription_status) {
         await addTagToContact(contactId, `status-${profile.subscription_status}`, logs);
     }
 }
 
 async function addTagToContact(contactId: string, tagName: string, logs: string[]) {
-    // Note: In a real app, we'd need to look up Tag ID by name first or create it.
-    // For simplicity, assuming we only add if we know the ID, or we define a helper to find/create.
-    // Since we don't have a tag map, I'll skip the actual API call to *add* by name unless we implement the lookup.
-    // AC API requires 'tag' (id) to add to contact.
-    // I will log this as a TODO or implement a quick lookup if valid.
-    // logs.push(`[TODO] Add tag '${tagName}' to contact ${contactId}`);
-
-    // Implementation of lookup would be expensive (fetching all tags).
-    // Better strategy: Use a known map of tags or create them on the fly.
-    // For now, I'll assume we skip this to avoid slowing down sync, or just log.
-    logs.push(`Calculated Tag: ${tagName}`);
+    // logs.push(`Calculated Tag: ${tagName}`);
 }
 
 async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string, logs: string[]): Promise<string | null> {
     const url = `${AC_API_URL}/api/3/ecomOrders`;
-    // Plan UID + Account UID makes a unique "Purchase" ID for this subscription instance
     const externalId = `${profile.outseta_account_id}-${profile.plan_uid}`;
 
-    // Pricing Map
     let price = 0;
     switch (profile.subscription_tier) {
         case 'pro': price = 4900; break;
@@ -223,7 +238,7 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
     const payload = {
         ecomOrder: {
             externalid: externalId,
-            source: 1, // 1 = Historical, 0 = Real-time
+            source: 1,
             email: profile.email,
             orderNumber: externalId,
             totalPrice: price,
@@ -253,25 +268,7 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
         if (data.ecomOrder) {
             return data.ecomOrder.id;
         }
-
-        // Order likely already exists (duplicate externalid). Try GET fallback.
-        logs.push(`Order create returned non-standard response, trying GET fallback...`);
-        try {
-            const getUrl = `${AC_API_URL}/api/3/ecomOrders?filters[externalid]=${encodeURIComponent(externalId)}`;
-            const getRes = await fetch(getUrl, {
-                method: 'GET',
-                headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
-            });
-            const getData = await getRes.json();
-            if (getData.ecomOrders && getData.ecomOrders.length > 0) {
-                logs.push(`Found existing order via GET: ${getData.ecomOrders[0].id}`);
-                return getData.ecomOrders[0].id;
-            }
-        } catch (fetchErr) {
-            logs.push(`Error fetching existing order: ${fetchErr}`);
-        }
-
-        logs.push(`AC Order Sync failed: ${JSON.stringify(data)}`);
+        logs.push(`AC Order Sync response: ${JSON.stringify(data)}`);
         return null;
     } catch (e) {
         logs.push(`Error syncing order: ${e}`);
@@ -280,38 +277,27 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
 }
 
 async function syncRecurringPayment(profile: ProfileUpdateData, customerId: string, orderId: string, contactId: string, logs: string[]) {
-    // ActiveCampaign E-Commerce GraphQL endpoint
-    // Uses the same base URL as the REST API: https://<account>.api-us1.com/graphql
-    const gqlUrl = `${AC_API_URL}/graphql`;
+    const gqlUrl = `${AC_API_URL}/api/3/graphql`;
 
-    // Use outseta_account_id as the unique storeRecurringPaymentId.
-    // This ensures the same subscription always maps to the same RP record.
-    // If the subscription updates, the same ID is reused and AC updates the record.
-    const storeRecurringPaymentId = profile.outseta_account_id || profile.outseta_person_uid;
-
+    // Simplified mutation
     const mutation = `
-        mutation ecomOrderRecurringPaymentCreate($recurringPayment: EcomOrderRecurringPaymentCreateInput!) {
-            ecomOrderRecurringPaymentCreate(input: $recurringPayment) {
+        mutation CreateRecurringPayment($payment: RecurringPaymentInput!) {
+            createRecurringPayment(input: $payment) {
                 recurringPayment {
                     id
-                    storeRecurringPaymentId
-                    status
                 }
                 errors {
                     message
-                    path
                 }
             }
         }
     `;
 
-    // Map subscription status to AC status enum
     let status = 'ACTIVE';
     if (profile.subscription_status === 'canceled') status = 'CANCELLED';
     if (profile.subscription_status === 'past_due') status = 'PAYMENT_FAILED';
     if (profile.subscription_status === 'paused') status = 'PAUSED';
 
-    // Pricing in cents
     let amount = 0;
     switch (profile.subscription_tier) {
         case 'pro': amount = 4900; break;
@@ -320,24 +306,16 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     }
 
     const variables = {
-        recurringPayment: {
+        payment: {
             legacyConnectionId: AC_CONNECTION_ID,
-            storeRecurringPaymentId: storeRecurringPaymentId,
+            storeRecurringPaymentId: profile.outseta_account_id,
             storeCustomerId: profile.outseta_person_uid,
             email: profile.email,
             originOrderId: `${profile.outseta_account_id}-${profile.plan_uid}`,
-            lineItems: [
-                {
-                    storePrimaryId: profile.plan_uid,
-                    name: profile.plan_name || 'Membership',
-                    price: amount,
-                    quantity: 1,
-                    currency: 'USD',
-                }
-            ],
+            lineItemStorePrimaryId: profile.plan_uid,
             status: status,
             billingInterval: 'month',
-            billingIntervalCount: profile.billing_renewal_term || 1,
+            billingIntervalCount: 1,
             paymentAmount: amount,
             currency: 'USD',
             startDate: profile.subscription_start_date,
@@ -346,8 +324,7 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     };
 
     try {
-        logs.push(`Syncing Recurring Payment (GraphQL) to ${gqlUrl}`);
-        logs.push(`storeRecurringPaymentId: ${storeRecurringPaymentId}`);
+        logs.push("Syncing Recurring Payment (GraphQL)");
         const res = await fetch(gqlUrl, {
             method: 'POST',
             headers: {
@@ -358,13 +335,10 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
         });
 
         const data = await res.json();
-        if (data.errors && data.errors.length > 0) {
+        if (data.errors) {
             logs.push(`GQL Errors: ${JSON.stringify(data.errors)}`);
-        } else if (data.data?.ecomOrderRecurringPaymentCreate?.recurringPayment) {
-            const rp = data.data.ecomOrderRecurringPaymentCreate.recurringPayment;
-            logs.push(`Recurring Payment Synced. ID: ${rp.id}, Status: ${rp.status}`);
-        } else if (data.data?.ecomOrderRecurringPaymentCreate?.errors?.length > 0) {
-            logs.push(`GQL Mutation Errors: ${JSON.stringify(data.data.ecomOrderRecurringPaymentCreate.errors)}`);
+        } else if (data.data) {
+            logs.push(`Recurring Payment Synced. ID: ${data.data.createRecurringPayment?.recurringPayment?.id}`);
         } else {
             logs.push(`GQL Response: ${JSON.stringify(data)}`);
         }
@@ -374,36 +348,43 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     }
 }
 
-/**
- * Add a contact to an ActiveCampaign list.
- * @param contactId - AC contact ID
- * @param listId - AC list ID (e.g. 12)
- * @param status - 1 = subscribed, 2 = unsubscribed
- */
-async function addContactToList(contactId: string, listId: number, status: number, logs: string[]) {
-    const url = `${AC_API_URL}/api/3/contactLists`;
-    const payload = {
-        contactList: {
-            list: listId,
-            contact: contactId,
-            status: status,
-        }
-    };
+// --- EXECUTION ---
+
+const mockProfile: ProfileUpdateData = {
+    outseta_person_uid: 'test-person-123',
+    outseta_account_id: 'test-account-456',
+    user_email: 'antigravity-test@example.com',
+    email: 'antigravity-test@example.com',
+    first_name: 'Antigravity',
+    last_name: 'TestUser',
+    full_name: 'Antigravity TestUser',
+    display_name: 'Antigravity TestUser',
+    phone: '555-0199',
+    subscription_tier: 'pro',
+    subscription_status: 'active',
+    subscription_start_date: new Date().toISOString(),
+    subscription_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    plan_uid: 'plan-pro-monthly',
+    plan_name: 'Pro Monthly',
+    billing_renewal_term: 1,
+    outseta_created_at: new Date().toISOString(),
+    outseta_updated_at: new Date().toISOString(),
+    outseta_data: {},
+    last_login_at: new Date().toISOString(),
+    last_active_at: new Date().toISOString(),
+};
+
+async function runTest() {
+    console.log("Starting AC Sync Test...");
+    console.log("Mock Profile:", mockProfile.email);
 
     try {
-        logs.push(`Adding contact ${contactId} to list ${listId} (status=${status})`);
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.contactList) {
-            logs.push(`Contact added to list ${listId} successfully.`);
-        } else {
-            logs.push(`List subscription response: ${JSON.stringify(data)}`);
-        }
+        const result = await syncFullProfileDeepData(mockProfile);
+        console.log("Sync Result Logs:");
+        result.logs.forEach(log => console.log(`[LOG] ${log}`));
     } catch (e) {
-        logs.push(`Error adding contact to list: ${e}`);
+        console.error("Test Failed:", e);
     }
 }
+
+runTest();
