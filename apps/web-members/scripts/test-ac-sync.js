@@ -288,9 +288,9 @@ async function syncRecurringPayment(profile, customerId, orderId, contactId, log
 
     let amount = 0;
     switch (profile.subscription_tier) {
-        case 'pro': amount = 4900; break;
-        case 'elite': amount = 9900; break;
-        case 'agency': amount = 29900; break;
+        case 'pro': amount = 49; break;
+        case 'elite': amount = 99; break;
+        case 'agency': amount = 299; break;
     }
 
     const planName = profile.plan_name || 'Membership';
@@ -305,7 +305,7 @@ async function syncRecurringPayment(profile, customerId, orderId, contactId, log
             normalizedStatus: normalizedStatus,
             storeStatus: profile.subscription_status || 'active',
             originOrderId: `${profile.outseta_account_id}-${profile.plan_uid}`,
-            billingInterval: 'MONTH',
+            billingInterval: 'MONTHLY',
             billingIntervalCount: profile.billing_renewal_term || 1,
             paymentAmount: amount,
             currency: 'USD',
@@ -342,16 +342,17 @@ async function syncRecurringPayment(profile, customerId, orderId, contactId, log
 
 // --- EXECUTION ---
 
+const ts = Date.now();
 const mockProfile = {
-    outseta_person_uid: 'test-person-123',
-    outseta_account_id: 'test-account-456',
-    user_email: 'antigravity-test@example.com',
-    email: 'antigravity-test@example.com',
-    first_name: 'Antigravity',
+    outseta_person_uid: `fresh-person-${ts}`,
+    outseta_account_id: `fresh-acct-${ts}`,
+    user_email: `fresh-test-${ts}@example.com`,
+    email: `fresh-test-${ts}@example.com`,
+    first_name: 'Fresh',
     last_name: 'TestUser',
-    full_name: 'Antigravity TestUser',
-    display_name: 'Antigravity TestUser',
-    phone: '555-0199',
+    full_name: 'Fresh TestUser',
+    display_name: 'Fresh TestUser',
+    phone: '555-0200',
     subscription_tier: 'pro',
     subscription_status: 'active',
     subscription_start_date: new Date().toISOString(),

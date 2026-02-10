@@ -303,12 +303,12 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     else if (profile.subscription_status === 'past_due') normalizedStatus = 'PAYMENT_FAILED';
     else if (profile.subscription_status === 'paused') normalizedStatus = 'PAUSED';
 
-    // Pricing in cents
+    // Pricing in dollars (GraphQL paymentAmount uses whole dollars, not cents)
     let amount = 0;
     switch (profile.subscription_tier) {
-        case 'pro': amount = 4900; break;
-        case 'elite': amount = 9900; break;
-        case 'agency': amount = 29900; break;
+        case 'pro': amount = 49; break;
+        case 'elite': amount = 99; break;
+        case 'agency': amount = 299; break;
     }
 
     const planName = profile.plan_name || 'Membership';
@@ -323,7 +323,7 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
             normalizedStatus: normalizedStatus,
             storeStatus: profile.subscription_status || 'active',
             originOrderId: `${profile.outseta_account_id}-${profile.plan_uid}`,
-            billingInterval: 'MONTH',
+            billingInterval: 'MONTHLY',
             billingIntervalCount: profile.billing_renewal_term || 1,
             paymentAmount: amount,
             currency: 'USD',
