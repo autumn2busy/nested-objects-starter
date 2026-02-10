@@ -382,6 +382,18 @@ export async function POST(request: NextRequest) {
       acLogs.push(`Sync failed: ${syncErr}`);
     }
 
+    // Fire AC server-side events for lifecycle tracking (non-blocking)
+    try {
+      const { trackSubscriptionCreated } = await import('@/lib/ac-event-tracking');
+      if (result.operation === 'insert' && profileData.plan_name) {
+        await trackSubscriptionCreated(profileData.email, profileData.plan_name, 0);
+      } else if (result.operation === 'update' && profileData.plan_name) {
+        await trackSubscriptionCreated(profileData.email, profileData.plan_name, 0);
+      }
+    } catch (eventErr) {
+      console.error(`[${requestId}] AC Event Tracking Failed:`, eventErr);
+    }
+
     return NextResponse.json({
       success: true,
       ...result,

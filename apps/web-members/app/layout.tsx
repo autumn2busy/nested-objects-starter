@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
+import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { cn } from '@/lib/utils'
@@ -68,6 +69,8 @@ export default function RootLayout({
     process.env.NODE_ENV === 'production' ||
     process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
 
+  const acActId = process.env.NEXT_PUBLIC_AC_ACTID
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -110,6 +113,22 @@ export default function RootLayout({
             />
           </>
         )}
+
+        {/* ActiveCampaign Site Tracking — only load if ACTID is configured */}
+        {acActId && (
+          <Script
+            id="ac-site-tracking"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function(e,t,o,n,p,r,i){e.visitorGlobalObjectAlias=n;e[e.visitorGlobalObjectAlias]=e[e.visitorGlobalObjectAlias]||function(){(e[e.visitorGlobalObjectAlias].q=e[e.visitorGlobalObjectAlias].q||[]).push(arguments)};e[e.visitorGlobalObjectAlias].l=(new Date).getTime();r=t.createElement("script");r.src=o;r.async=true;i=t.getElementsByTagName("script")[0];i.parentNode.insertBefore(r,i)})(window,document,"https://diffuser-cdn.app-us1.com/diffuser/diffuser.js","vgo");
+                vgo('setAccount', '${acActId}');
+                vgo('setTrackByDefault', true);
+                vgo('process');
+              `,
+            }}
+          />
+        )}
       </head>
 
       <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
@@ -122,6 +141,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
+          <ActiveCampaignTracker />
           <div className="flex min-h-screen flex-col">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="flex-1">{children}</main>

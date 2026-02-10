@@ -179,31 +179,98 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 }
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
-    // 1. Tag for Subscription Tier
+    // 1. Plan tier tag
     const tierTag = `plan-${profile.subscription_tier}`;
     await addTagToContact(contactId, tierTag, logs);
 
-    // 2. Generic tag
+    // 2. Generic membership tag
     await addTagToContact(contactId, 'antigravity-subscription', logs);
 
     // 3. Status tag
     if (profile.subscription_status) {
         await addTagToContact(contactId, `status-${profile.subscription_status}`, logs);
     }
+
+    // 4. Source tag (if available from Outseta referer)
+    // Outseta passes IPAddress and Referer in Person payload
+    const rawData = profile.outseta_data as any;
+    const referer = rawData?.Referer || rawData?.referer;
+    if (referer && typeof referer === 'string') {
+        try {
+            const url = new URL(referer);
+            const utmSource = url.searchParams.get('utm_source');
+            if (utmSource) {
+                await addTagToContact(contactId, `utm-${utmSource}`, logs);
+            }
+        } catch {
+            // Not a valid URL, skip
+        }
+    }
 }
 
-async function addTagToContact(contactId: string, tagName: string, logs: string[]) {
-    // Note: In a real app, we'd need to look up Tag ID by name first or create it.
-    // For simplicity, assuming we only add if we know the ID, or we define a helper to find/create.
-    // Since we don't have a tag map, I'll skip the actual API call to *add* by name unless we implement the lookup.
-    // AC API requires 'tag' (id) to add to contact.
-    // I will log this as a TODO or implement a quick lookup if valid.
-    // logs.push(`[TODO] Add tag '${tagName}' to contact ${contactId}`);
+// In-memory tag name → ID cache (lives for the duration of a single sync)
+const tagIdCache = new Map<string, string>();
 
-    // Implementation of lookup would be expensive (fetching all tags).
-    // Better strategy: Use a known map of tags or create them on the fly.
-    // For now, I'll assume we skip this to avoid slowing down sync, or just log.
-    logs.push(`Calculated Tag: ${tagName}`);
+async function addTagToContact(contactId: string, tagName: string, logs: string[]) {
+    try {
+        // Step 1: Find or create the tag
+        let tagId = tagIdCache.get(tagName);
+
+        if (!tagId) {
+            // Search for existing tag
+            const searchRes = await fetch(
+                `${AC_API_URL}/api/3/tags?search=${encodeURIComponent(tagName)}`,
+                { headers: { 'Api-Token': AC_API_KEY! } }
+            );
+            const searchData = await searchRes.json();
+            const existingTag = searchData.tags?.find(
+                (t: any) => t.tag.toLowerCase() === tagName.toLowerCase()
+            );
+
+            if (existingTag) {
+                tagId = existingTag.id;
+            } else {
+                // Create the tag
+                const createRes = await fetch(`${AC_API_URL}/api/3/tags`, {
+                    method: 'POST',
+                    headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tag: { tag: tagName, tagType: 'contact', description: `Auto-created by sync` } })
+                });
+                const createData = await createRes.json();
+                tagId = createData.tag?.id;
+            }
+
+            if (tagId) {
+                tagIdCache.set(tagName, tagId);
+            }
+        }
+
+        if (!tagId) {
+            logs.push(`[Tag] Could not find/create tag '${tagName}'`);
+            return;
+        }
+
+        // Step 2: Associate tag with contact
+        const assocRes = await fetch(`${AC_API_URL}/api/3/contactTags`, {
+            method: 'POST',
+            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contactTag: { contact: contactId, tag: tagId } })
+        });
+
+        if (assocRes.ok || assocRes.status === 201) {
+            logs.push(`[Tag] Added '${tagName}' to contact ${contactId}`);
+        } else {
+            const errData = await assocRes.json().catch(() => ({}));
+            // 422 often means tag already applied — not an error
+            if (assocRes.status === 422) {
+                logs.push(`[Tag] '${tagName}' already on contact`);
+            } else {
+                logs.push(`[Tag] Failed to add '${tagName}': ${assocRes.status} ${JSON.stringify(errData)}`);
+            }
+        }
+    } catch (e) {
+        logs.push(`[Tag] Error adding '${tagName}': ${e}`);
+    }
 }
 
 async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string, logs: string[]): Promise<string | null> {

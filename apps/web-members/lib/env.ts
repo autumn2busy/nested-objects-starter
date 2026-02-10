@@ -30,6 +30,11 @@ export const env = {
     acApiUrl: process.env.AC_API_URL!,
     acApiKey: process.env.AC_API_KEY!,
     acConnectionId: process.env.AC_CONNECTION_ID!,
+    // AC Tracking (public — goes in browser script)
+    acActId: process.env.NEXT_PUBLIC_AC_ACTID,
+    // AC Event Tracking (server-side only)
+    acEventKey: process.env.AC_EVENT_KEY,
+    acEventActId: process.env.AC_EVENT_ACTID,
     // Optional
     newsApiKey: process.env.NEWSAPI_KEY,
 }
