@@ -75,7 +75,7 @@ interface OutsetaAccountPayload extends OutsetaAccount {
 // The webhook can send either type
 type OutsetaWebhookPayload = OutsetaPerson | OutsetaAccountPayload;
 
-interface ProfileUpdateData {
+export interface ProfileUpdateData {
   outseta_person_uid: string;
   outseta_account_id: string | null;
   user_email: string;
@@ -366,11 +366,31 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime;
     console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms`);
 
+    // TRIGGER AC SYNC
+    // We await this to ensure it completes before Vercel freezes the lambda.
+    // In a high-volume setup, we might push this to a queue. 
+    // For now, inline orchestration as requested.
+    let acLogs: string[] = [];
+    try {
+      console.log(`[${requestId}] Starting AC Sync...`);
+      const { syncFullProfileDeepData } = await import('@/lib/active-campaign-deep-data');
+      const syncResult = await syncFullProfileDeepData(profileData);
+      acLogs = syncResult.logs;
+      console.log(`[${requestId}] AC Sync Logs:`, acLogs);
+    } catch (syncErr) {
+      console.error(`[${requestId}] AC Sync Failed:`, syncErr);
+      acLogs.push(`Sync failed: ${syncErr}`);
+    }
+
     return NextResponse.json({
       success: true,
       ...result,
+      acSync: {
+        performed: true,
+        logs: acLogs
+      },
       requestId,
-      duration: `${duration}ms`
+      duration: `${Date.now() - startTime}ms`
     });
 
   } catch (error) {
