@@ -52,23 +52,7 @@ export async function POST(request: Request) {
     }
 
     const planUid = user['outseta:planUid'];
-    // We update this check to be more lenient because we are handling quota inside checkAIQuota for Starter/Founders
-    // But we still need to gate completely unauthorized plans (like Free).
-    // existing 'hasAccess' checks FEATURE_ACCESS['ai_chatbot']. 
-    // We need to ensure Starter/Founders are NOT in 'ai_chatbot' list in auth-server if valid plans (Pro+) are.
-    // OR we just use checkAIQuota to handle the "can I generally access this?" logic?
-    // Let's rely on FEATURE_ACCESS for "is this feature enabled at all" and quota for limits.
-    // Wait, the prompt says "Starter + Founders... have limited AI Concierge". 
-    // So we must ADD them to the allowed list for concierge/chatbot via logic modification OR update auth-server (I did not update ai_chatbot there yet).
-
-    // I need to update auth-server.ts to ALlow Starter/Founders for ai_chatbot first? 
-    // Actually, prompt says "confirm pWrBRnWn unlocks... ai_concierge limited".
-    // So I should have added them to 'ai_chatbot' in auth-server.ts? 
-    // Let's do a quick fix here: If it's Starter/Founders, allow it.
-
-    const isStarterOrFounders = planUid === 'zWZD0rQp' || planUid === 'pWrBRnWn'; // Hardcoded UIDs or import them
-
-    if (!hasAccess(planUid, 'ai_chatbot') && !isStarterOrFounders) {
+    if (!hasAccess(planUid, 'ai_chatbot')) {
       return NextResponse.json(
         { error: 'Access denied: Upgrade to Pro or Elite to use the AI Concierge.' },
         { status: 403 }
