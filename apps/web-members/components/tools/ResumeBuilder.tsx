@@ -629,279 +629,9 @@ export default function ResumeBuilder() {
   // EXPORT FUNCTIONS
   // ============================================================================
 
-  const exportToPDF = async () => {
-    try {
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      let yPos = 20;
-
-      // Template Styles
-      const isModern = selectedTemplate === 'modern';
-      const isMinimal = selectedTemplate === 'minimal';
-      const primaryColor = isModern ? [16, 185, 129] : [0, 0, 0]; // Emerald or Black
-      const headerFont = isModern || isMinimal ? 'helvetica' : 'times';
-      const bodyFont = isModern || isMinimal ? 'helvetica' : 'times';
-
-      // Helper for adding new page if needed
-      const checkPageBreak = (heightNeeded: number) => {
-        if (yPos + heightNeeded > pageHeight - margin) {
-          doc.addPage();
-          yPos = 20;
-        }
-      };
-
-      // HEADER
-      doc.setFont(headerFont, 'bold');
-      doc.setFontSize(isModern ? 28 : 24);
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.text(resumeData.contact.fullName, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 10;
-
-      doc.setFont(bodyFont, 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-
-      const contactParts = [
-        resumeData.contact.email,
-        resumeData.contact.phone,
-        resumeData.contact.city && resumeData.contact.state ? `${resumeData.contact.city}, ${resumeData.contact.state}` : ''
-      ].filter(Boolean);
-
-      doc.text(contactParts.join('  |  '), pageWidth / 2, yPos, { align: 'center' });
-      yPos += 6;
-
-      if (resumeData.contact.linkedin || resumeData.contact.website) {
-        const links = [resumeData.contact.linkedin, resumeData.contact.website].filter(Boolean).join('  |  ');
-        doc.setTextColor(0, 0, 255);
-        doc.text(links, pageWidth / 2, yPos, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-        yPos += 8;
-      } else {
-        yPos += 4;
-      }
-
-      // TARGET ROLES (New Section)
-      if (resumeData.targetRoles.length > 0) {
-        checkPageBreak(20);
-        doc.setFont(headerFont, 'italic');
-        doc.setFontSize(11);
-        doc.setTextColor(80, 80, 80);
-        doc.text(`Targeting: ${resumeData.targetRoles.join(', ')}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 12;
-      }
-
-      // Divider
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPos, pageWidth - margin, yPos);
-      yPos += 10;
-
-      // SUMMARY
-      if (resumeData.summary) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PROFESSIONAL SUMMARY', margin, yPos);
-        yPos += 6;
-
-        doc.setFont(bodyFont, 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        const lines = doc.splitTextToSize(resumeData.summary, pageWidth - (margin * 2));
-        doc.text(lines, margin, yPos);
-        yPos += (lines.length * 5) + 8;
-      }
-
-      // SKILLS & EQUIPMENT
-      const allSkills = [...resumeData.fieldServicesSkills, ...resumeData.skills];
-      if (allSkills.length > 0 || resumeData.equipment.length > 0) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('SKILLS & EQUIPMENT', margin, yPos);
-        yPos += 6;
-
-        doc.setFont(bodyFont, 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-
-        if (allSkills.length > 0) {
-          const skillsTitle = "Skills: ";
-          doc.setFont(bodyFont, 'bold');
-          doc.text(skillsTitle, margin, yPos);
-          const skillsWidth = doc.getTextWidth(skillsTitle);
-
-          doc.setFont(bodyFont, 'normal');
-          const skillLines = doc.splitTextToSize(allSkills.join(' • '), pageWidth - (margin * 2) - skillsWidth);
-          doc.text(skillLines, margin + skillsWidth, yPos);
-          yPos += (skillLines.length * 5) + 4;
-        }
-
-        if (resumeData.equipment.length > 0) {
-          checkPageBreak(20);
-          const equipTitle = "Equipment: ";
-          doc.setFont(bodyFont, 'bold');
-          doc.text(equipTitle, margin, yPos);
-          const equipWidth = doc.getTextWidth(equipTitle);
-
-          doc.setFont(bodyFont, 'normal');
-          const equipLines = doc.splitTextToSize(resumeData.equipment.join(', '), pageWidth - (margin * 2) - equipWidth);
-          doc.text(equipLines, margin + equipWidth, yPos);
-          yPos += (equipLines.length * 5) + 4;
-        }
-        yPos += 4;
-      }
-
-      // COVERAGE & LOGISTICS (New Section)
-      if (resumeData.coverage.radius > 0 || resumeData.coverage.hasReliableVehicle) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('LOGISTICS & COVERAGE', margin, yPos);
-        yPos += 6;
-
-        doc.setFont(bodyFont, 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-
-        let logisticsText = "";
-        if (resumeData.coverage.hasReliableVehicle) {
-          logisticsText += `Vehicle: Reliable Personal Vehicle (${resumeData.coverage.vehicleType || 'Standard'}). `;
-        }
-        if (resumeData.coverage.radius) {
-          logisticsText += `Coverage Radius: ${resumeData.coverage.radius} miles. `;
-        }
-        if (resumeData.coverage.counties.length > 0) {
-          logisticsText += `Counties: ${resumeData.coverage.counties.join(', ')}.`;
-        }
-
-        const logLines = doc.splitTextToSize(logisticsText, pageWidth - (margin * 2));
-        doc.text(logLines, margin, yPos);
-        yPos += (logLines.length * 5) + 8;
-      }
-
-      // EXPERIENCE
-      if (resumeData.experience.length > 0) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('PROFESSIONAL EXPERIENCE', margin, yPos);
-        yPos += 6;
-
-        resumeData.experience.forEach(exp => {
-          checkPageBreak(40);
-
-          // Company Line
-          doc.setFont(headerFont, 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(0, 0, 0);
-          doc.text(exp.company, margin, yPos);
-
-          // Date Line
-          doc.setFont(bodyFont, 'normal');
-          doc.setFontSize(10);
-          const dateStr = `${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}`;
-          doc.text(dateStr, pageWidth - margin, yPos, { align: 'right' });
-          yPos += 5;
-
-          // Title & Location
-          doc.setFont(bodyFont, 'italic');
-          doc.text(`${exp.title}${exp.location ? ` | ${exp.location}` : ''}`, margin, yPos);
-          yPos += 6;
-
-          // Bullets
-          if (exp.bullets && exp.bullets.length > 0) {
-            doc.setFont(bodyFont, 'normal');
-            exp.bullets.forEach(bullet => {
-              if (!bullet) return;
-              checkPageBreak(10);
-              doc.text('•', margin + 2, yPos);
-              const bulletLines = doc.splitTextToSize(bullet, pageWidth - (margin * 2) - 8);
-              doc.text(bulletLines, margin + 8, yPos);
-              yPos += (bulletLines.length * 4.5) + 2;
-            });
-          } else if (exp.description) {
-            doc.setFont(bodyFont, 'normal');
-            const descLines = doc.splitTextToSize(exp.description, pageWidth - (margin * 2));
-            doc.text(descLines, margin, yPos);
-            yPos += (descLines.length * 4.5) + 2;
-          }
-          yPos += 4;
-        });
-        yPos += 4;
-      }
-
-      // EDUCATION
-      if (resumeData.education.length > 0) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('EDUCATION', margin, yPos);
-        yPos += 6;
-
-        resumeData.education.forEach(edu => {
-          checkPageBreak(25);
-          doc.setFont(headerFont, 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(0, 0, 0);
-          doc.text(edu.school, margin, yPos);
-
-          doc.setFont(bodyFont, 'normal');
-          doc.setFontSize(10);
-          doc.text(edu.graduationDate || '', pageWidth - margin, yPos, { align: 'right' });
-          yPos += 5;
-
-          doc.setFont(bodyFont, 'italic');
-          const degreeText = edu.field ? `${edu.degree} in ${edu.field}` : edu.degree;
-          doc.text(degreeText, margin, yPos);
-          yPos += 8;
-        });
-      }
-
-      // CERTIFICATIONS (New Section)
-      if (resumeData.certifications.length > 0) {
-        checkPageBreak(40);
-        doc.setFont(headerFont, 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.text('CERTIFICATIONS', margin, yPos);
-        yPos += 6;
-
-        resumeData.certifications.forEach(cert => {
-          checkPageBreak(20);
-          doc.setFont(headerFont, 'bold');
-          doc.setFontSize(11);
-          doc.setTextColor(0, 0, 0);
-          doc.text(cert.name, margin, yPos);
-
-          doc.setFont(bodyFont, 'normal');
-          doc.setFontSize(10);
-          const dateStr = cert.date ? formatDate(cert.date) : '';
-          doc.text(dateStr, pageWidth - margin, yPos, { align: 'right' });
-          yPos += 5;
-
-          if (cert.issuer) {
-            doc.setFont(bodyFont, 'italic');
-            doc.text(cert.issuer, margin, yPos);
-            yPos += 8;
-          } else {
-            yPos += 3;
-          }
-        });
-      }
-
-      doc.save(`${resumeData.contact.fullName.replace(/\s+/g, '_')}_Resume.pdf`);
-    } catch (error) {
-      console.error('PDF generation failed:', error);
-      alert('Failed to generate PDF. Please try again.');
-    }
+  const handleExport = async () => {
+    const { generateResumePDF } = await import('@/lib/pdf-generator');
+    generateResumePDF(resumeData, selectedTemplate);
   };
 
   const exportToDOCX = async () => {
@@ -2051,7 +1781,7 @@ export default function ResumeBuilder() {
             <span className="text-sm font-medium text-slate-600">Resume Preview ({selectedTemplate})</span>
             <div className="flex items-center gap-2">
               <button
-                onClick={exportToPDF}
+                onClick={handleExport}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
@@ -2253,7 +1983,7 @@ export default function ResumeBuilder() {
               </p>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={exportToPDF}
+                  onClick={handleExport}
                   className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
                 >
                   <Download className="w-5 h-5" />
@@ -2396,7 +2126,7 @@ export default function ResumeBuilder() {
               </button>
             ) : (
               <button
-                onClick={exportToPDF}
+                onClick={handleExport}
                 className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center gap-2"
               >
                 <Download className="w-5 h-5" />
