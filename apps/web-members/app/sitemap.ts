@@ -11,13 +11,25 @@ type MemberRow = {
   id: string | null
 }
 
+// Static role slugs — these pages exist as static routes, no DB table needed
+const STATIC_ROLE_SLUGS = [
+  'asset-preservation',
+  'gig-pro-inspector',
+  'gig-worker',
+  'inspector',
+  'insurance-loss-control',
+  'mobile-notary',
+  'mortgage-field-inspector',
+  'notary',
+  'realtor',
+]
+
 async function fetchDynamicSlugs() {
   try {
     const supabase = createServiceRoleClient()
-    const [firmsResult, membersResult, rolesResult] = await Promise.all([
+    const [firmsResult, membersResult] = await Promise.all([
       supabase.from('firms').select('slug').eq('is_published', true),
       supabase.from('profiles').select('id'),
-      supabase.from('roles').select('slug'),
     ])
 
     if (firmsResult.error) {
@@ -26,14 +38,11 @@ async function fetchDynamicSlugs() {
     if (membersResult.error) {
       console.error('Error fetching member IDs for sitemap', membersResult.error)
     }
-    if (rolesResult.error) {
-      console.error('Error fetching role slugs for sitemap', rolesResult.error)
-    }
 
     return {
       firms: (firmsResult.data as SlugRow[] | null)?.map((firm) => firm.slug).filter(Boolean) ?? [],
       members: (membersResult.data as MemberRow[] | null)?.map((member) => member.id).filter(Boolean) ?? [],
-      roles: (rolesResult.data as SlugRow[] | null)?.map((role) => role.slug).filter(Boolean) ?? [],
+      roles: STATIC_ROLE_SLUGS,
     }
   } catch (error) {
     console.error('Error loading dynamic sitemap slugs', error)

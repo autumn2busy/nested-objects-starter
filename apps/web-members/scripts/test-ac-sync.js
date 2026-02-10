@@ -267,32 +267,24 @@ async function syncEcommerceOrder(profile, customerId, logs) {
 }
 
 async function syncRecurringPayment(profile, customerId, orderId, contactId, logs) {
-    // GraphQL endpoint: same base URL as REST + /graphql
-    const gqlUrl = `${AC_API_URL}/graphql`;
+    // GraphQL endpoint
+    const gqlUrl = `${AC_API_URL}/api/3/ecom/graphql`;
 
     // Use outseta_account_id as the unique storeRecurringPaymentId
     const storeRecurringPaymentId = profile.outseta_account_id || profile.outseta_person_uid;
 
     const mutation = `
-        mutation ecomOrderRecurringPaymentCreate($recurringPayment: EcomOrderRecurringPaymentCreateInput!) {
-            ecomOrderRecurringPaymentCreate(input: $recurringPayment) {
-                recurringPayment {
-                    id
-                    storeRecurringPaymentId
-                    status
-                }
-                errors {
-                    message
-                    path
-                }
+        mutation bulkUpsertRecurringPayments($recurringPayments: [RecurringPaymentInput]) {
+            bulkUpsertRecurringPayments(recurringPayments: $recurringPayments) {
+                recordId
             }
         }
     `;
 
-    let status = 'ACTIVE';
-    if (profile.subscription_status === 'canceled') status = 'CANCELLED';
-    if (profile.subscription_status === 'past_due') status = 'PAYMENT_FAILED';
-    if (profile.subscription_status === 'paused') status = 'PAUSED';
+    let normalizedStatus = 'ACTIVE';
+    if (profile.subscription_status === 'canceled') normalizedStatus = 'CANCELLED';
+    else if (profile.subscription_status === 'past_due') normalizedStatus = 'PAYMENT_FAILED';
+    else if (profile.subscription_status === 'paused') normalizedStatus = 'PAUSED';
 
     let amount = 0;
     switch (profile.subscription_tier) {
@@ -301,28 +293,27 @@ async function syncRecurringPayment(profile, customerId, orderId, contactId, log
         case 'agency': amount = 29900; break;
     }
 
+    const planName = profile.plan_name || 'Membership';
+
     const variables = {
-        recurringPayment: {
-            legacyConnectionId: AC_CONNECTION_ID,
+        recurringPayments: [{
+            legacyConnectionId: parseInt(AC_CONNECTION_ID, 10),
             storeRecurringPaymentId: storeRecurringPaymentId,
             storeCustomerId: profile.outseta_person_uid,
             email: profile.email,
+            name: planName,
+            normalizedStatus: normalizedStatus,
+            storeStatus: profile.subscription_status || 'active',
             originOrderId: `${profile.outseta_account_id}-${profile.plan_uid}`,
-            lineItems: [{
-                storePrimaryId: profile.plan_uid,
-                name: profile.plan_name || 'Membership',
-                price: amount,
-                quantity: 1,
-                currency: 'USD',
-            }],
-            status: status,
-            billingInterval: 'month',
+            billingInterval: 'MONTH',
             billingIntervalCount: profile.billing_renewal_term || 1,
             paymentAmount: amount,
             currency: 'USD',
             startDate: profile.subscription_start_date,
             nextPaymentDate: profile.subscription_end_date,
-        }
+            lineItemNames: [planName],
+            lineItemStorePrimaryIds: [profile.plan_uid],
+        }]
     };
 
     try {
@@ -339,11 +330,8 @@ async function syncRecurringPayment(profile, customerId, orderId, contactId, log
         const data = await res.json();
         if (data.errors && data.errors.length > 0) {
             logs.push(`GQL Errors: ${JSON.stringify(data.errors)}`);
-        } else if (data.data?.ecomOrderRecurringPaymentCreate?.recurringPayment) {
-            const rp = data.data.ecomOrderRecurringPaymentCreate.recurringPayment;
-            logs.push(`Recurring Payment Synced. ID: ${rp.id}, Status: ${rp.status}`);
-        } else if (data.data?.ecomOrderRecurringPaymentCreate?.errors?.length > 0) {
-            logs.push(`GQL Mutation Errors: ${JSON.stringify(data.data.ecomOrderRecurringPaymentCreate.errors)}`);
+        } else if (data.data?.bulkUpsertRecurringPayments?.recordId) {
+            logs.push(`Recurring Payment bulk upsert submitted. Record ID: ${data.data.bulkUpsertRecurringPayments.recordId}`);
         } else {
             logs.push(`GQL Response: ${JSON.stringify(data)}`);
         }
