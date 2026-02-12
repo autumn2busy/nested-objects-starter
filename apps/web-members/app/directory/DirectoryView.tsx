@@ -61,17 +61,23 @@ function FilterBar({
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
-                    <Select
-                        id="state-filter"
-                        value={stateFilter}
-                        onChange={(e) => onStateChange(e.target.value)}
-                    >
-                        {US_STATES.map((s) => (
-                            <option key={s.code} value={s.code}>
-                                {s.label}
-                            </option>
-                        ))}
-                    </Select>
+                    {isStarter ? (
+                        <Select disabled value="ALL">
+                            <option value="ALL">All States (Upgrade to filter)</option>
+                        </Select>
+                    ) : (
+                        <Select
+                            id="state-filter"
+                            value={stateFilter}
+                            onChange={(e) => onStateChange(e.target.value)}
+                        >
+                            {US_STATES.map((s) => (
+                                <option key={s.code} value={s.code}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </Select>
+                    )}
                 </div>
 
                 <div className="space-y-1">
@@ -267,7 +273,7 @@ interface DirectoryViewProps {
 }
 
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
-    const { isAuthenticated, planUid } = useAuth()
+    const { isAuthenticated, planUid, isLoading } = useAuth()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
@@ -284,6 +290,14 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     }, [urlSearch, urlStateFilter])
 
     const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
+
+    // Safeguard: If a Starter/Free user tries to use URL params to filter, redirect them to the root /directory
+    // We wait for isLoading to be false so we don't redirect Pro users while their auth is initializing.
+    useEffect(() => {
+        if (!isLoading && isStarter && (urlStateFilter !== 'ALL' || urlSearch.trim() !== '')) {
+            router.replace('/directory')
+        }
+    }, [isLoading, isStarter, urlStateFilter, urlSearch, router])
 
     const isProOrHigher = !!planUid && !isStarter
 
