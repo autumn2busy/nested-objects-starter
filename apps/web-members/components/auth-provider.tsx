@@ -61,7 +61,7 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
 
   // Training
-  basic_training: 'L9nbKV9Z',     // Starter+
+  basic_training: 'zWZD0rQp',     // Directory+ (Was Starter+)
   advanced_training: 'NmdnNO90',  // Elite+
   training_safety: 'L9nbKV9Z',    // Starter+ (Safety guides)
 
@@ -219,6 +219,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (response.ok && window.Outseta?.setAccessToken) {
           window.Outseta.setAccessToken(accessToken)
+          // Immediately reload user state to reflect the new session
+          const res = await fetch('/api/auth/session')
+          if (res.ok) {
+            const data = await res.json()
+            if (data.user) {
+              setUser(data.user)
+              setPlanUid(data.user['outseta:planUid'] ?? null)
+              setIsAuthenticated(true)
+            }
+          }
         }
       } catch (error) {
         console.error('Error syncing session token', error)

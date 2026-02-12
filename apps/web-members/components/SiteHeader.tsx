@@ -73,7 +73,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const planLabel = (() => {
     switch (planUid) {
       case 'L9nbKV9Z':
-        return 'Starter'
+        return 'Free'
       case 'zWZD0rQp':
         return 'Directory'
       case 'rQVqlLm6':
@@ -234,7 +234,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 Login
               </a>
               <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
+                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
                 className={buttonVariants({
                   variant: 'primary',
                   size: 'sm',

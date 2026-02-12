@@ -28,6 +28,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.notarystars.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'imagedelivery.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nested-objects.outseta.com',
+      },
     ],
   },
 }

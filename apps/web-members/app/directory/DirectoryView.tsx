@@ -444,7 +444,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </aside>
             </section>
 
-            {totalPages > 1 && (
+            {totalPages > 1 && !isStarter && (
                 <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
                     <span className="text-[11px] uppercase">
                         Showing {startIndex}-{endIndex} of {totalCount}

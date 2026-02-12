@@ -224,7 +224,7 @@ const formatDate = (dateStr: string) => {
 
 export default function ResumeBuilder() {
   // Auth hook
-  const { accessToken } = useAuth();
+  const { accessToken, login } = useAuth();
 
   // State
   const [currentStep, setCurrentStep] = useState<BuilderStep>('upload');
@@ -336,7 +336,9 @@ export default function ResumeBuilder() {
 
     try {
       if (!accessToken) {
-        throw new Error('Please log in to use the AI Resume Builder.');
+        // Attempt to login if missing token
+        login();
+        throw new Error('Please log in again to use the AI Resume Builder.');
       }
 
       const formData = new FormData();
@@ -638,6 +640,10 @@ export default function ResumeBuilder() {
     try {
       const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
       const { saveAs } = await import('file-saver');
+
+      if (!Document || !Packer || !Paragraph) {
+        throw new Error('Failed to load DOCX library');
+      }
 
       const sections = [];
 
