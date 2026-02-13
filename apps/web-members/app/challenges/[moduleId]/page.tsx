@@ -12,10 +12,10 @@ import {
     AlertOctagon, Check, Info, Shield
 } from 'lucide-react'
 
-import FlashcardDeck from '@/components/challenges/FlashcardDeck'
-import IncomeCalculator from '@/components/challenges/IncomeCalculator'
-import InteractiveScenario from '@/components/challenges/InteractiveScenario'
-import DynamicQuiz from '@/components/challenges/DynamicQuiz'
+import FlashcardDeck from '@/components/training/FlashcardDeck'
+import IncomeCalculator from '@/components/training/IncomeCalculator'
+import InteractiveScenario from '@/components/training/InteractiveScenario'
+import DynamicQuiz from '@/components/training/DynamicQuiz'
 
 // Types
 interface TrainingModule {

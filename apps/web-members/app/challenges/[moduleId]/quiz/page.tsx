@@ -5,8 +5,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { TrainingQuestion } from '@/types/challenges'
-import QuizEngine from '@/components/challenges/QuizEngine'
+import { TrainingQuestion } from '@/types/training'
+import QuizEngine from '@/components/training/QuizEngine'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { FileText, Image as ImageIcon, Paperclip } from 'lucide-react'
-import { TrainingResource } from '@/types/challenges'
+import { TrainingResource } from '@/types/training'
 
 interface VisualReferenceLibraryProps {
     resources: TrainingResource[]

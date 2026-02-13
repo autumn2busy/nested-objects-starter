@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import IncomeCalculator from '@/components/challenges/IncomeCalculator'
+import IncomeCalculator from '@/components/training/IncomeCalculator'
 import { Gate } from '@/components/Gate'
 import { ArrowLeft } from 'lucide-react'
 

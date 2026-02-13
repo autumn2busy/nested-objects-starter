@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { CheckCircle, ChevronRight, Play, Mic, FileText, Video as VideoIcon } from 'lucide-react'
-import { TrainingLesson } from '@/types/challenges'
-import LessonViewer from '@/components/challenges/LessonViewer'
-import { lessonsData } from '@/components/challenges/lessons.data'
+import { TrainingLesson } from '@/types/training'
+import LessonViewer from '@/components/training/LessonViewer'
+import { lessonsData } from '@/components/training/lessons.data'
 
 export default function LessonPlayerPage() {
     const params = useParams()

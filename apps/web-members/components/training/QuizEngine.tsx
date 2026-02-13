@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrainingQuestion } from '@/types/challenges'
+import { TrainingQuestion } from '@/types/training'
 import { CheckCircle, XCircle, ArrowRight, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
