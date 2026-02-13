@@ -149,7 +149,9 @@ export async function POST(request: Request) {
 
     // ---- LOCAL TEXT EXTRACTION ----
     // We parse locally to have a foolproof fallback for contact info
+    // OPTIMIZATION: Skipping local parse to avoid Vercel timeouts. N8N will handle it.
     let extractedText = '';
+    /*
     try {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -167,6 +169,7 @@ export async function POST(request: Request) {
       console.warn('[Resume Parse] Local text extraction failed, relying solely on AI:', localParseError);
       // Continue without local text - not fatal
     }
+    */
 
     // ---- REGEX EXTRACTION (FOOLPROOF LAYER) ----
     const regexData = {

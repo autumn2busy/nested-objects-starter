@@ -355,10 +355,17 @@ export default function ResumeBuilder() {
         body: formData,
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON response:', responseText);
+        throw new Error(`Server Error (${response.status}): The server returned an invalid response. Please try again.`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to parse resume');
+        throw new Error(data.error || `Error ${response.status}: Failed to parse resume`);
       }
 
       // Map backend response to frontend state structure
