@@ -1,5 +1,5 @@
 import { getOnboardingStatus } from "@/actions/onboarding";
-import { DashboardView } from "@/components/inspector-dashboard/inspector-dashboard-view";
+import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export const dynamic = 'force-dynamic';
 

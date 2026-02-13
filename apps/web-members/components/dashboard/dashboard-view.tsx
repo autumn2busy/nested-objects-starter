@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QuickActions } from "@/components/inspector-dashboard/QuickActions";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
 import { useProfile } from "@/lib/use-profile";
