@@ -17,11 +17,11 @@ import {
 
 export const NAV_ITEMS = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Directory", href: "/directory", icon: Map },
+    { label: "Directory", href: "/hiring-firms", icon: Map },
     { label: "Jobs", href: "/jobs", icon: Briefcase },
     { label: "Training", href: "/training", icon: BookOpen },
     { label: "Tools", href: "/tools", icon: Wrench },
-    { label: "Concierge", href: "/concierge", icon: MessageSquare },
+    { label: "Concierge", href: "/tools/ai-concierge", icon: MessageSquare },
     { label: "Industry News", href: "/resources/industry-news", icon: Newspaper },
     { label: "Firm Intel", href: "/resources/firm-intel", icon: Building2 },
     { label: "Profile", href: "/profile", icon: UserCircle },

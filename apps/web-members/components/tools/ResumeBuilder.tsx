@@ -224,7 +224,7 @@ const formatDate = (dateStr: string) => {
 
 export default function ResumeBuilder() {
   // Auth hook
-  const { accessToken, login } = useAuth();
+  const { accessToken, login, isAuthenticated } = useAuth();
 
   // State
   const [currentStep, setCurrentStep] = useState<BuilderStep>('upload');
@@ -335,8 +335,8 @@ export default function ResumeBuilder() {
     setIsAnalyzing(true);
 
     try {
-      if (!accessToken) {
-        // Attempt to login if missing token
+      if (!isAuthenticated) {
+        // Attempt to login if not authenticated
         login();
         throw new Error('Please log in again to use the AI Resume Builder.');
       }
@@ -344,11 +344,14 @@ export default function ResumeBuilder() {
       const formData = new FormData();
       formData.append('file', file);
 
+      const headers: Record<string, string> = {};
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
       const response = await fetch('/api/ai/resume/parse', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
+        headers,
         body: formData,
       });
 

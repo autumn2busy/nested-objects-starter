@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const ACTIONS = [
     {
         label: "Find Firms",
-        href: "/directory",
+        href: "/hiring-firms",
         icon: Search,
         description: "Search for new partners",
         color: "bg-blue-50 text-blue-600",
     },
     {
         label: "View Map",
-        href: "/directory?view=map",
+        href: "/hiring-firms?view=map",
         icon: MapPin,
         description: "Explore firms near you",
         color: "bg-emerald-50 text-emerald-600",
@@ -33,7 +33,7 @@ const ACTIONS = [
     },
     {
         label: "AI Concierge",
-        href: "/concierge",
+        href: "/tools/ai-concierge",
         icon: MessageSquare,
         description: "Ask the expert",
         color: "bg-indigo-50 text-indigo-600",

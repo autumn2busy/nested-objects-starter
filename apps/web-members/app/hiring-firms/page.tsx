@@ -6,7 +6,7 @@ import { US_STATES } from './constants'
 export const metadata: Metadata = generatePageMetadata({
   title: 'Firm Directory | Field Inspection & Notary Vendors',
   description: 'Browse verified firms hiring field inspectors, notaries, and appraisal professionals across the US.',
-  path: '/directory',
+  path: '/hiring-firms',
 })
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL

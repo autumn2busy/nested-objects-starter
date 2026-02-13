@@ -32,7 +32,7 @@ export function ToolsView() {
             title: '🤖 AI concierge',
             description:
                 'Ask questions about firms, requirements, and inspection workflows in plain language.',
-            href: '/concierge',
+            href: '/tools/ai-concierge',
             cta: 'Open AI concierge →',
         },
         {
@@ -129,7 +129,7 @@ export function ToolsView() {
                 {!isAuthenticated && (
                     <div className="mx-auto mb-12 flex max-w-md justify-center">
                         <Link
-                            href="/membership"
+                            href="/membership-pricing"
                             className={buttonVariants({
                                 variant: 'primary',
                                 size: 'md',

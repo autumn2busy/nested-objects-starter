@@ -72,7 +72,7 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   job_tracker: 'L9nbKV9Z',        // Starter+
   job_routing: 'NmdnNO90',        // Elite+
   weather_tool: 'L9nbKV9Z',       // Starter+
-  ai_resume: 'rQVqlLm6',          // Pro+
+  ai_resume: 'zWZD0rQp',          // Starter+
   readiness_guides: 'L9nbKV9Z',   // Starter+ (Checklists)
   tools_templates: 'rQVqlLm6',    // Pro+ (AI prompts, etc)
 
@@ -305,9 +305,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated) return false
     if (!feature) return true
 
-    if (planUid === DIRECTORY_ONLY_PLAN_UID) {
-      return feature === 'directory_access'
-    }
+    // Removed Directory-only restriction as Starter plan now includes more features
+    // if (planUid === DIRECTORY_ONLY_PLAN_UID) {
+    //   return feature === 'directory_access'
+    // }
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     // Default to "deny" for unknown features so new feature flags are opt-in secure

@@ -9,8 +9,8 @@ const footerSections = [
   {
     title: 'Product',
     links: [
-      { href: '/membership', label: 'Membership plans' },
-      { href: '/directory', label: 'Firm directory' },
+      { href: '/membership-pricing', label: 'Membership plans' },
+      { href: '/hiring-firms', label: 'Firm directory' },
       { href: '/tools', label: 'AI tools' },
     ],
   },

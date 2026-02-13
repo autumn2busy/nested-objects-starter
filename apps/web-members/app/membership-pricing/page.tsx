@@ -6,7 +6,7 @@ import { membershipPlans } from '@/lib/ai-datasets'
 export const metadata: Metadata = generatePageMetadata({
   title: 'Membership Plans | Certified Inspection & Notary Hub',
   description: 'Join the #1 community for field inspectors and mobile notaries. Verified firm intel, training courses, and AI tools to grow your business.',
-  path: '/membership',
+  path: '/membership-pricing',
 })
 
 // Generate structured data for plans
