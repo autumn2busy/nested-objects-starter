@@ -83,19 +83,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${SITE_URL}/dashboard`,
+      url: `${SITE_URL}/inspector-dashboard`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/directory`,
+      url: `${SITE_URL}/hiring-firms`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/membership`,
+      url: `${SITE_URL}/membership-pricing`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,

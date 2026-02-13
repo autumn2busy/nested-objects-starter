@@ -97,14 +97,14 @@ export function TechHero() {
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                     <Link
-                        href="/membership"
+                        href="/membership-pricing"
                         className="w-full sm:w-auto px-8 py-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2"
                     >
                         Start Searching Free <ArrowRight className="w-5 h-5" />
                     </Link>
 
                     <Link
-                        href="/directory"
+                        href="/hiring-firms"
                         className="w-full sm:w-auto px-8 py-4 rounded-lg border border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-white font-medium text-lg backdrop-blur-sm transition-all flex items-center justify-center gap-2"
                     >
                         <Activity className="w-5 h-5 text-emerald-400" />

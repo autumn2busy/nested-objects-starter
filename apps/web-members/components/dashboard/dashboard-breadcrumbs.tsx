@@ -9,7 +9,7 @@ export function DashboardBreadcrumbs() {
       <span aria-hidden className="text-brand-mist">
         /
       </span>
-      <Link className="hover:text-brand-copper" href="/dashboard">
+      <Link className="hover:text-brand-copper" href="/inspector-dashboard">
         Dashboard
       </Link>
       <span aria-hidden className="text-brand-mist">

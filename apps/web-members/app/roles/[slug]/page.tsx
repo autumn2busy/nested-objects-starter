@@ -113,14 +113,14 @@ export default function RoleDetailPage({
               <p className="max-w-3xl text-base text-brand-mist">{role.heroCopy}</p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/membership"
+                  href="/membership-pricing"
                   className="inline-flex items-center justify-center rounded-full bg-brand-copper px-5 py-2.5 text-sm font-semibold text-brand-dark transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal"
                   aria-label={`Explore membership for ${role.title.toLowerCase()}`}
                 >
                   Explore membership
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="inline-flex items-center justify-center rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal"
                   aria-label={`Talk with the Nested Objects team about ${role.title.toLowerCase()}`}
                 >
@@ -195,7 +195,7 @@ export default function RoleDetailPage({
                   View plans
                 </Link>
                 <Link
-                  href="/directory"
+                  href="/hiring-firms"
                   className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-white px-4 py-2 text-sm font-semibold text-brand-dark transition hover:bg-brand-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-teal"
                 >
                   Browse firms

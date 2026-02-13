@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api'
-import { Firm } from '../lib/directory'
+import { Firm } from '../lib/hiring-firms'
 
 type FirmMapProps = {
   firms: Firm[]

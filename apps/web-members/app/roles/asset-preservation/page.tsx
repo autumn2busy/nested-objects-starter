@@ -56,13 +56,13 @@ export default function AssetPreservationPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/resources"
+                  href="/inspector-resource-center"
                   className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
                   Preservation resources
                 </Link>
                 <Link
-                  href="/directory"
+                  href="/hiring-firms"
                   className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
                   Vendor directory
@@ -91,7 +91,7 @@ export default function AssetPreservationPage() {
               <h2 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">Traditional vendor list vs Nested Objects hub</h2>
             </div>
             <Link
-              href="/membership"
+              href="/membership-pricing"
               className="inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-brand-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             >
               See how it works
@@ -160,13 +160,13 @@ export default function AssetPreservationPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/membership"
+              href="/membership-pricing"
               className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Start membership
             </Link>
             <Link
-              href="/directory"
+              href="/hiring-firms"
               className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               View directory

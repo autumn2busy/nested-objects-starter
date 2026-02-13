@@ -29,7 +29,7 @@ export default function ClaimProfilePage() {
                     <Link href="/" className="font-bold text-xl tracking-tight text-white">
                         Nested<span className="text-emerald-500">.</span>
                     </Link>
-                    <Link href="/directory" className="text-sm font-medium hover:text-white transition-colors">
+                    <Link href="/hiring-firms" className="text-sm font-medium hover:text-white transition-colors">
                         Back to Directory
                     </Link>
                 </div>

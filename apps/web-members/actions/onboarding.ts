@@ -28,7 +28,7 @@ export async function completeOnboardingAction() {
         throw new Error('Failed to update profile')
     }
 
-    revalidatePath('/dashboard')
+    revalidatePath('/inspector-dashboard')
     return { success: true }
 }
 

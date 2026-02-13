@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 
-import { DashboardLayoutProvider, useDashboardLayout } from './dashboard-layout-context'
+import { DashboardLayoutProvider, useDashboardLayout } from './inspector-dashboard-layout-context'
 
 interface DashboardShellProps {
   sidebar: ReactNode

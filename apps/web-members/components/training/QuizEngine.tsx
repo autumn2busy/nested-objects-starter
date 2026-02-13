@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrainingQuestion } from '@/types/training'
+import { TrainingQuestion } from '@/types/challenges'
 import { CheckCircle, XCircle, ArrowRight, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
@@ -22,7 +22,7 @@ export default function QuizEngine({ questions, onComplete, moduleId }: QuizEngi
         return (
             <div className="text-center p-12">
                 <p className="text-slate-500">No questions available for this module.</p>
-                <Link href={`/training/${moduleId}`} className="text-brand-copper hover:underline mt-4 inline-block">
+                <Link href={`/challenges/${moduleId}`} className="text-brand-copper hover:underline mt-4 inline-block">
                     Return to Module
                 </Link>
             </div>
@@ -94,7 +94,7 @@ export default function QuizEngine({ questions, onComplete, moduleId }: QuizEngi
 
                 <div className="flex justify-center gap-4">
                     <Link
-                        href={`/training/${moduleId}`}
+                        href={`/challenges/${moduleId}`}
                         className="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition-colors"
                     >
                         Return to Module

@@ -75,7 +75,7 @@ function CallbackContent() {
         setStatus('Success! Redirecting...')
 
         // Redirect to directory
-        const redirectTo = searchParams.get('redirect') || '/dashboard'
+        const redirectTo = searchParams.get('redirect') || '/inspector-dashboard'
 
         console.log('🟢 Redirecting to:', redirectTo)
 

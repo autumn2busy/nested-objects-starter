@@ -39,7 +39,7 @@ const quickLinks = [
   { href: '/privacy', label: 'Privacy policy' },
   { href: '/terms-conditions', label: 'Terms & conditions' },
   { href: '/refund-policy', label: 'Refund policy' },
-  { href: '/contact', label: 'Contact support' },
+  { href: '/contact-us', label: 'Contact support' },
 ]
 
 export const metadata: Metadata = generatePageMetadata({
@@ -129,13 +129,13 @@ export default function FAQsPage() {
           <div className="mt-4 flex flex-wrap gap-3">
             <a
               className="inline-flex items-center justify-center rounded-full bg-brand-copper px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-              href="/resources"
+              href="/inspector-resource-center"
             >
               Explore resources
             </a>
             <a
               className="inline-flex items-center justify-center rounded-full border border-brand-copper/40 bg-white px-5 py-2.5 text-sm font-semibold text-brand-dark transition hover:bg-brand-mist"
-              href="/contact"
+              href="/contact-us"
             >
               Talk with support
             </a>

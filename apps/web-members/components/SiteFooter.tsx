@@ -9,25 +9,25 @@ const footerSections = [
   {
     title: 'Product',
     links: [
-      { href: '/membership', label: 'Membership plans' },
-      { href: '/directory', label: 'Firm directory' },
+      { href: '/membership-pricing', label: 'Membership plans' },
+      { href: '/hiring-firms', label: 'Firm directory' },
       { href: '/tools', label: 'AI tools' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      { href: '/resources/firm-intel', label: 'Firm intel' },
-      { href: '/resources', label: 'Learning hub' },
-      { href: '/resources/readiness-guides', label: 'Readiness guides' },
-      { href: '/resources/industry-news', label: 'Industry news' },
+      { href: '/inspector-resource-center/firm-intel', label: 'Firm intel' },
+      { href: '/inspector-resource-center', label: 'Learning hub' },
+      { href: '/inspector-resource-center/readiness-guides', label: 'Readiness guides' },
+      { href: '/inspector-resource-center/industry-news', label: 'Industry news' },
     ],
   },
   {
     title: 'Company',
     links: [
-      { href: '/about', label: 'About Nested Objects' },
-      { href: '/contact', label: 'Contact' },
+      { href: '/about-us', label: 'About Nested Objects' },
+      { href: '/contact-us', label: 'Contact' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms-conditions', label: 'Terms & conditions' },
       { href: '/refund-policy', label: 'Refund policy' },

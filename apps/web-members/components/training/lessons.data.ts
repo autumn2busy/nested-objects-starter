@@ -215,7 +215,7 @@ export const lessonsData: Record<number, LessonData> = {
             {
                 id: 'step-4-2',
                 title: "Exit the Vehicle",
-                content: "Never take photos through a windshield. Car parts (mirrors/dashboards) in a shot trigger immediate rejection.",
+                content: "Never take photos through a windshield. Car parts (mirrors/inspector-dashboards) in a shot trigger immediate rejection.",
                 critical: true,
             },
             {

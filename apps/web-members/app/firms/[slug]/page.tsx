@@ -190,7 +190,7 @@ export default async function FirmDetailPage({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Link href="/directory" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600 }}>
+          <Link href="/hiring-firms" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600 }}>
             Field services directory
           </Link>
           <span style={{ color: '#9ca3af' }}>→</span>
@@ -198,7 +198,7 @@ export default async function FirmDetailPage({
         </div>
 
         <Link
-          href="/membership"
+          href="/membership-pricing"
           style={{ color: '#6b7280', textDecoration: 'none' }}
         >
           Membership and pricing
