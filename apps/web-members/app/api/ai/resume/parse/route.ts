@@ -3,8 +3,8 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-import pdf from 'pdf-parse';
-import mammoth from 'mammoth';
+const pdf = require('pdf-parse/lib/pdf-parse.js');
+import * as mammoth from 'mammoth'; // Wildcard import for mammoth often safer if default is missing
 
 /**
  * AI Resume Parser - /api/ai/resume/parse
