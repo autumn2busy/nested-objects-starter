@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ReactNode, useEffect, useState } from 'react'
 
-import { useDashboardLayout } from './inspector-dashboard-layout-context'
+import { useDashboardLayout } from './dashboard-layout-context'
 import type { MemberJob } from '@/types/member-jobs'
 
 interface DashboardSectionCardProps {

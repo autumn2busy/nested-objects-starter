@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import Link from 'next/link'
 
-import { useDashboardLayout } from './inspector-dashboard-layout-context'
+import { useDashboardLayout } from './dashboard-layout-context'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 
 interface DashboardTopBarProps {
