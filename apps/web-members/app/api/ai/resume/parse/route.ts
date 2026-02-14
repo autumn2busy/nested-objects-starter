@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-const pdf = require('pdf-parse/lib/pdf-parse.js');
+const pdf = require('pdf-parse');
 import * as mammoth from 'mammoth'; // Wildcard import for mammoth often safer if default is missing
 
 /**
