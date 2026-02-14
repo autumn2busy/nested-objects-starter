@@ -204,14 +204,9 @@ export async function POST(request: Request) {
       );
     }
 
-<<<<<<< HEAD
     // ---- LOCAL TEXT EXTRACTION ----
     // We parse locally to have a foolproof fallback for contact info
     // OPTIMIZATION: Skipping local parse to avoid Vercel timeouts. N8N will handle it.
-    let extractedText = '';
-
-=======
->>>>>>> 3a27cd8d142534bc52a947c19e1afabc98db381c
     // ---- REGEX EXTRACTION (FOOLPROOF LAYER) ----
     // We calculate this lazily if AI parsing fails.
     let extractedText = '';
