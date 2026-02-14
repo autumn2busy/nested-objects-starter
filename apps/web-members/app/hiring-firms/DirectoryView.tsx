@@ -42,7 +42,7 @@ export type Firm = {
 type FilterBarProps = {
     stateFilter: string
     search: string
-    isStarter: boolean
+    isFree: boolean
     isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
@@ -51,7 +51,7 @@ type FilterBarProps = {
 function FilterBar({
     stateFilter,
     search,
-    isStarter,
+    isFree,
     isAuthenticated,
     onSearchChange,
     onStateChange,
@@ -61,7 +61,7 @@ function FilterBar({
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
-                    {isStarter ? (
+                    {isFree ? (
                         <Select disabled value="ALL">
                             <option value="ALL">All States (Upgrade to filter)</option>
                         </Select>
@@ -82,7 +82,7 @@ function FilterBar({
 
                 <div className="space-y-1">
                     <FieldLabel htmlFor="keyword-filter">NAME / KEYWORD</FieldLabel>
-                    {isStarter ? (
+                    {isFree ? (
                         <div className="space-y-1">
                             <Input
                                 id="keyword-filter"
@@ -93,8 +93,8 @@ function FilterBar({
                                 className="cursor-not-allowed"
                             />
                             <FieldHelperText className="text-amber-800">
-                                {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to search by firm, service type, and region.{' '}
-                                <Link href="/membership" className="font-semibold text-amber-900 underline">
+                                {!isAuthenticated ? 'Log in' : 'Upgrade to Starter or higher'} to search by firm, service type, and region.{' '}
+                                <Link href="/membership-pricing" className="font-semibold text-amber-900 underline">
                                     View plans
                                 </Link>
                             </FieldHelperText>
@@ -289,19 +289,21 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         setSearch(urlSearch)
     }, [urlSearch, urlStateFilter])
 
-    const isStarter = planUid === 'L9nbKV9Z' || !isAuthenticated
+    const isGuest = !isAuthenticated
+    const isFree = planUid === 'L9nbKV9Z'
+    const isRestricted = isGuest || isFree
 
-    // Safeguard: If a Starter/Free user tries to use URL params to filter, redirect them to the root /directory
+    // Safeguard: If a guest/free user tries to use URL params to filter, redirect them to the root /hiring-firms
     // We wait for isLoading to be false so we don't redirect Pro users while their auth is initializing.
     useEffect(() => {
-        if (!isLoading && isStarter && (urlStateFilter !== 'ALL' || urlSearch.trim() !== '')) {
-            router.replace('/directory')
+        if (!isLoading && isRestricted && (urlStateFilter !== 'ALL' || urlSearch.trim() !== '')) {
+            router.replace('/hiring-firms')
         }
-    }, [isLoading, isStarter, urlStateFilter, urlSearch, router])
+    }, [isLoading, isRestricted, urlStateFilter, urlSearch, router])
 
-    const isProOrHigher = !!planUid && !isStarter
+    const isProOrHigher = !!planUid && !isRestricted
 
-    const displayedFirms = isStarter ? firms.slice(0, 6) : firms
+    const displayedFirms = isGuest ? [] : isFree ? firms.slice(0, 6) : firms
     const totalPages = Math.max(1, Math.ceil(totalCount / limit))
     const startIndex = totalCount === 0 ? 0 : (page - 1) * limit + 1
     const endIndex = Math.min(page * limit, totalCount)
@@ -324,7 +326,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 params.delete('search')
             }
             const query = params.toString()
-            return query ? `/directory?${query}` : '/directory'
+            return query ? `/hiring-firms?${query}` : '/hiring-firms'
         }
     }, [limit, search, searchParams, stateFilter])
 
@@ -345,7 +347,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         params.set('page', String(nextPage))
         params.set('limit', String(limit))
         const query = params.toString()
-        router.push(query ? `/directory?${query}` : '/directory')
+        router.push(query ? `/hiring-firms?${query}` : '/hiring-firms')
     }
 
     const handlePageChange = (nextPage: number) => {
@@ -362,11 +364,6 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         updateFilters(stateFilter, value)
     }
 
-    // Guest Preview Mode: remove the login gate and let it fall through to render.
-    // We handle the "Guest" state via isStarter = true (essentially) or we can make it explicit.
-    // Above we set isStarter = planUid === '...' || !isAuthenticated. 
-    // So logic below will treat guests as starters (preview mode).
-
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
             <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
@@ -379,10 +376,10 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                     </h1>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs font-semibold tracking-[0.16em]">
-                    <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">
+                    <Link href="/inspector-dashboard" className="text-slate-700 hover:text-slate-900">
                         ← BACK TO DASHBOARD
                     </Link>
-                    <Link href="/membership" className="text-slate-700 hover:text-slate-900">
+                    <Link href="/membership-pricing" className="text-slate-700 hover:text-slate-900">
                         MEMBERSHIP & PRICING
                     </Link>
                 </div>
@@ -391,18 +388,21 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             <FilterBar
                 stateFilter={stateFilter}
                 search={search}
-                isStarter={isStarter}
+                isFree={isRestricted}
                 isAuthenticated={isAuthenticated}
                 onSearchChange={handleSearchChange}
                 onStateChange={handleStateChange}
             />
 
-            {isStarter && (
+            {isRestricted && (
                 <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    <h3 className="text-sm font-semibold">Starter members see a preview.</h3>
+                    <h3 className="text-sm font-semibold">
+                        {isGuest ? 'Guest access is restricted.' : 'Free members see a preview.'}
+                    </h3>
                     <p className="mt-1 text-xs">
-                        You are viewing a small sample of firms that match your filter. Upgrade to Pro or
-                        higher to unlock the full directory and deeper intel.
+                        {isGuest
+                            ? 'Log in to view hiring firms. Full directory access is available on paid tiers.'
+                            : 'You are viewing a small sample of firms that match your filter. Upgrade to Starter or higher to unlock the full directory and deeper intel.'}
                     </p>
                     <div className="flex flex-wrap gap-3">
                         {!isAuthenticated ? (
@@ -414,7 +414,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                             </a>
                         ) : (
                             <Link
-                                href="/membership"
+                                href="/membership-pricing"
                                 className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
                             >
                                 UPGRADE FOR FULL ACCESS
@@ -448,7 +448,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                     </p>
                     <div className="w-full border border-slate-200 bg-white relative h-48">
                         <Image
-                            src="/directory-map.jpg"
+                            src="/hiring-firms-map.jpg"
                             alt="Map of US Service Coverage"
                             fill
                             sizes="(min-width: 1024px) 300px, 100vw"
@@ -458,7 +458,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </aside>
             </section>
 
-            {totalPages > 1 && !isStarter && (
+            {totalPages > 1 && !isRestricted && (
                 <div className="mt-8 flex flex-col items-start justify-between gap-4 border-t border-slate-200 pt-4 text-xs font-semibold tracking-[0.16em] text-slate-500 sm:flex-row sm:items-center">
                     <span className="text-[11px] uppercase">
                         Showing {startIndex}-{endIndex} of {totalCount}
@@ -489,9 +489,9 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 </div>
             )}
 
-            {isStarter && firms.length > displayedFirms.length && (
+            {isFree && firms.length > displayedFirms.length && (
                 <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {firms.length} matching firms on the Starter
+                    Showing {displayedFirms.length} of {firms.length} matching firms on the Free
                     preview.
                 </p>
             )}

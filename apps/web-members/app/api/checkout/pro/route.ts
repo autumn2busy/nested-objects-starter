@@ -48,8 +48,8 @@ export async function POST(request: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      success_url: `${siteUrl}/membership?checkout=success`,
-      cancel_url: `${siteUrl}/membership?checkout=cancelled`,
+      success_url: `${siteUrl}/membership-pricing?checkout=success`,
+      cancel_url: `${siteUrl}/membership-pricing?checkout=cancelled`,
       customer_email: email,
       line_items: [
         {

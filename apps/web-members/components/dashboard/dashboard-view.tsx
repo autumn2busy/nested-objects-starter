@@ -89,7 +89,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">Level 1</div>
-                        <Link href="/training" className="text-xs text-brand-copper hover:underline mt-1 block">
+                        <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-1 block">
                             Continue modules →
                         </Link>
                     </CardContent>
@@ -125,7 +125,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                 <p className="text-slate-300 text-sm mb-4">
                                     Stop guessing. See which national firms are paying on time and which ones are dragging their feet.
                                 </p>
-                                <Link href="/resources/firm-intel" className="inline-block bg-brand-copper text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-brand-copper/90 transition">
+                                <Link href="/inspector-resource-center/firm-intel" className="inline-block bg-brand-copper text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-brand-copper/90 transition">
                                     Read the Report
                                 </Link>
                             </div>
@@ -137,7 +137,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">Industry News</CardTitle>
                             <Link
-                                href="/resources/industry-news"
+                                href="/inspector-resource-center/industry-news"
                                 className="text-xs text-brand-copper hover:underline"
                             >
                                 View all →

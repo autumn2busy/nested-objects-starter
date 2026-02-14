@@ -40,7 +40,7 @@ const ACTIONS = [
     },
     {
         label: "AI Resume",
-        href: "/tools/ai-resume",
+        href: "/tools/tools/ai-resume",
         icon: FileText,
         description: "Build profile",
         color: "bg-pink-50 text-pink-600",

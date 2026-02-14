@@ -103,13 +103,13 @@ export default function InspectorRolePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/membership"
+                href="/membership-pricing"
                 className="inline-flex items-center justify-center bg-brand-copper px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 Join the inspector membership
               </Link>
               <Link
-                href="/directory"
+                href="/hiring-firms"
                 className="inline-flex items-center justify-center border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 View firms that hire inspectors
@@ -148,7 +148,7 @@ export default function InspectorRolePage() {
             </ul>
             <div className="pt-2">
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="inline-flex items-center justify-center bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 Talk with member success
@@ -236,13 +236,13 @@ export default function InspectorRolePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/membership"
+                  href="/membership-pricing"
                   className="inline-flex items-center justify-center bg-brand-copper px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   Choose your membership
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="inline-flex items-center justify-center border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   Ask about team access

@@ -73,13 +73,13 @@ export default function InsuranceLossControlPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/directory"
+                  href="/hiring-firms"
                   className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
                   View carrier directory
                 </Link>
                 <Link
-                  href="/resources"
+                  href="/inspector-resource-center"
                   className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                 >
                   Loss control resources
@@ -191,13 +191,13 @@ export default function InsuranceLossControlPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/membership"
+              href="/membership-pricing"
               className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Start membership
             </Link>
             <Link
-              href="/directory"
+              href="/hiring-firms"
               className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               View directory

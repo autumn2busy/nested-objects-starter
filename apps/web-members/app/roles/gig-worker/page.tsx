@@ -101,13 +101,13 @@ export default function GigWorkerRolePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/membership"
+                href="/membership-pricing"
                 className="inline-flex items-center justify-center bg-brand-copper px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 Explore gig worker plans
               </Link>
               <Link
-                href="/directory"
+                href="/hiring-firms"
                 className="inline-flex items-center justify-center border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 See firms hiring gig pros
@@ -146,7 +146,7 @@ export default function GigWorkerRolePage() {
             </ul>
             <div className="pt-2">
               <Link
-                href="/contact"
+                href="/contact-us"
                 className="inline-flex items-center justify-center bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper"
               >
                 Talk with member success
@@ -230,13 +230,13 @@ export default function GigWorkerRolePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/membership"
+                  href="/membership-pricing"
                   className="inline-flex items-center justify-center bg-brand-copper px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   Choose your membership
                 </Link>
                 <Link
-                  href="/contact"
+                  href="/contact-us"
                   className="inline-flex items-center justify-center border border-white/30 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                   Ask about route pilots

@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { ReactNode } from 'react'
 
 const DEFAULT_NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/membership', label: 'Membership' },
+  { href: '/inspector-dashboard', label: 'Dashboard' },
+  { href: '/hiring-firms', label: 'Directory' },
+  { href: '/membership-pricing', label: 'Membership' },
 ]
 
 interface ToolLayoutProps {

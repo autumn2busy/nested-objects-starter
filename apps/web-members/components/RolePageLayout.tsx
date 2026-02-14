@@ -43,13 +43,13 @@ export function RolePageLayout({
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
-                            href="/membership"
+                            href="/membership-pricing"
                             className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-3 text-base font-semibold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-all"
                         >
                             Start Searching Now <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                         <Link
-                            href="/directory"
+                            href="/hiring-firms"
                             className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 px-8 py-3 text-base font-semibold text-white hover:bg-slate-800 transition-all"
                         >
                             Browse Directory
@@ -88,7 +88,7 @@ export function RolePageLayout({
                             <h2 className="text-2xl font-bold text-slate-900">Firms hiring now</h2>
                             <p className="text-slate-600 mt-2">A live look at who is looking for {roleTitle}s.</p>
                         </div>
-                        <Link href="/directory" className="text-emerald-700 font-semibold hover:underline">
+                        <Link href="/hiring-firms" className="text-emerald-700 font-semibold hover:underline">
                             View all 200+ Firms →
                         </Link>
                     </div>
@@ -108,7 +108,7 @@ export function RolePageLayout({
                         Join thousands of {roleTitle.toLowerCase()}s using Nested Objects to find direct-contract work with no middleman fees.
                     </p>
                     <Link
-                        href="/membership"
+                        href="/membership-pricing"
                         className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-bold text-slate-900 hover:bg-slate-100 transition-colors"
                     >
                         Get Started Free

@@ -3,7 +3,7 @@ const path = require('path');
 const mammoth = require('mammoth');
 const crypto = require('crypto');
 
-const TRAINING_DIR = path.join(__dirname, 'public/training');
+const TRAINING_DIR = path.join(__dirname, 'public/challenges');
 const CSV_PATH = path.join(TRAINING_DIR, 'youtube links - Sheet1.csv');
 const OUTPUT_FILE = path.join(__dirname, 'seed_training_content.sql');
 
@@ -148,7 +148,7 @@ async function processModule(moduleDirName, youtubeMap) {
     for (const file of resourceFiles) {
         if (['.jpg', '.png', '.pdf', '.docx', '.xlsx', '.mp4', '.m4a'].includes(path.extname(file).toLowerCase())) {
             const resourceId = generateUUID();
-            const filePath = `/training/${moduleDirName}/${file}`;
+            const filePath = `/challenges/${moduleDirName}/${file}`;
             const fileType = path.extname(file).replace('.', '');
 
             // Heuristic to link to Lesson 1 (since we mostly make 1 lesson per module for now)

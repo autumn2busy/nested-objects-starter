@@ -79,8 +79,8 @@ export function JobsView() {
                 </div>
 
                 <nav className="flex gap-2">
-                    <Link href="/dashboard" className={buttonVariants({ variant: 'ghost' })}>Dashboard</Link>
-                    <Link href="/directory" className={buttonVariants({ variant: 'ghost' })}>Directory</Link>
+                    <Link href="/inspector-dashboard" className={buttonVariants({ variant: 'ghost' })}>Dashboard</Link>
+                    <Link href="/hiring-firms" className={buttonVariants({ variant: 'ghost' })}>Directory</Link>
                 </nav>
             </header>
 

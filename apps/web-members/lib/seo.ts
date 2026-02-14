@@ -41,8 +41,8 @@ export function getOrganizationSchema() {
             contactType: 'customer service',
         },
         sameAs: [
-            `${SITE_URL}/about`,
-            `${SITE_URL}/contact`,
+            `${SITE_URL}/about-us`,
+            `${SITE_URL}/contact-us`,
         ],
     }
 }
@@ -58,7 +58,7 @@ export function getWebSiteSchema() {
         url: SITE_URL,
         potentialAction: {
             '@type': 'SearchAction',
-            target: `${SITE_URL}/directory?q={search_term_string}`,
+            target: `${SITE_URL}/hiring-firms?q={search_term_string}`,
             'query-input': 'required name=search_term_string',
         },
     }
