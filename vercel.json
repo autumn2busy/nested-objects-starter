@@ -1,6 +1,6 @@
 {
-    "installCommand": "cd apps/web-members && npm install",
-    "buildCommand": "cd apps/web-members && npm run build",
-    "outputDirectory": "apps/web-members/.next",
-    "framework": "nextjs"
+  "installCommand": "npm install && cd apps/web-members && npm install",
+  "buildCommand": "cd apps/web-members && npm run build",
+  "outputDirectory": "apps/web-members/.next",
+  "framework": "nextjs"
 }
