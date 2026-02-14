@@ -121,9 +121,9 @@ export async function POST(req: Request) {
     // 2. Rate Limiting based on IP
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || '127.0.0.1';
-    const { success } = await limiter.check(ip);
-
-    if (!success) {
+    try {
+      await limiter.check(ip);
+    } catch {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
