@@ -276,7 +276,7 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
                     </h1>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs font-semibold tracking-[0.16em]">
-                    <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">
+                    <Link href="/inspector-dashboard" className="text-slate-700 hover:text-slate-900">
                         ← BACK TO DASHBOARD
                     </Link>
                 </div>

@@ -83,7 +83,7 @@ export default async function MemberProfilePage({
                     <p className="text-slate-600">
                         This member has not published their profile yet or the ID is incorrect.
                     </p>
-                    <Link href="/directory" className="inline-block text-blue-600 hover:underline">
+                    <Link href="/hiring-firms" className="inline-block text-blue-600 hover:underline">
                         Return to Directory
                     </Link>
                 </div>
@@ -106,7 +106,7 @@ export default async function MemberProfilePage({
         >
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 mb-8 text-sm text-slate-500">
-                <Link href="/directory" className="text-blue-600 font-medium hover:underline">
+                <Link href="/hiring-firms" className="text-blue-600 font-medium hover:underline">
                     Directory
                 </Link>
                 <span>/</span>

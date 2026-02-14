@@ -7,9 +7,9 @@ import { ToolLayout } from '../_components/ToolLayout'
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/directory', label: 'Directory' },
-  { href: '/membership', label: 'Membership' },
+  { href: '/inspector-dashboard', label: 'Dashboard' },
+  { href: '/hiring-firms', label: 'Directory' },
+  { href: '/membership-pricing', label: 'Membership' },
 ]
 
 const highlights = [

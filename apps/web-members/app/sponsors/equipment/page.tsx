@@ -13,7 +13,7 @@ export default function SponsorEquipmentPage() {
       <div className="mb-8">
         {isAuthenticated && (
           <Link
-            href="/dashboard"
+            href="/inspector-dashboard"
             className="mb-4 inline-flex items-center text-sm text-text-secondary hover:text-brand-copper hover:underline"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />

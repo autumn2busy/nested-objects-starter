@@ -41,6 +41,63 @@ const EXTENSION_TO_MIME: Record<string, string> = {
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
+async function extractTextFromFile(file: File, fileType: string): Promise<string> {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (fileType === 'application/pdf') {
+      const data = await pdf(buffer);
+      return data.text || '';
+    }
+
+    if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      const result = await mammoth.extractRawText({ buffer });
+      return result.value || '';
+    }
+
+    if (fileType === 'text/plain' || fileType === 'application/msword') {
+      // Legacy .doc is often not parseable without external binaries; return best effort text.
+      return buffer.toString('utf-8');
+    }
+  } catch (error) {
+    console.warn('[Resume Parse] Local extraction failed:', error);
+  }
+
+  return '';
+}
+
+function extractRegexData(extractedText: string) {
+  const regexData = {
+    email: '',
+    phone: '',
+    websites: [] as string[],
+    potentialName: '',
+  };
+
+  if (!extractedText) {
+    return regexData;
+  }
+
+  const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) regexData.email = emailMatch[0];
+
+  const phoneMatch = extractedText.match(/(?:\+?1[-. ]?)?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/);
+  if (phoneMatch) regexData.phone = phoneMatch[0];
+
+  const linkMatches = extractedText.matchAll(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g);
+  for (const match of linkMatches) {
+    regexData.websites.push(match[0]);
+  }
+
+  const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+  if (lines.length > 0) {
+    regexData.potentialName = lines[0].substring(0, 50);
+  }
+
+  return regexData;
+}
+
 export async function POST(request: Request) {
   try {
     // 1. Authentication (Cookie or Header)
@@ -147,42 +204,18 @@ export async function POST(request: Request) {
       );
     }
 
+<<<<<<< HEAD
     // ---- LOCAL TEXT EXTRACTION ----
     // We parse locally to have a foolproof fallback for contact info
     // OPTIMIZATION: Skipping local parse to avoid Vercel timeouts. N8N will handle it.
     let extractedText = '';
 
+=======
+>>>>>>> 3a27cd8d142534bc52a947c19e1afabc98db381c
     // ---- REGEX EXTRACTION (FOOLPROOF LAYER) ----
-    const regexData = {
-      email: '',
-      phone: '',
-      websites: [] as string[],
-      potentialName: ''
-    };
-
-    if (extractedText) {
-      // Email
-      const emailMatch = extractedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      if (emailMatch) regexData.email = emailMatch[0];
-
-      // Phone (US formats mostly)
-      // Matches (123) 456-7890, 123-456-7890, 123.456.7890, +1 123...
-      const phoneMatch = extractedText.match(/(?:\+?1[-. ]?)?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/);
-      if (phoneMatch) regexData.phone = phoneMatch[0];
-
-      // Links (LinkedIn, URLs)
-      const linkMatches = extractedText.matchAll(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g);
-      for (const match of linkMatches) {
-        regexData.websites.push(match[0]);
-      }
-
-      // Name Heuristic: Often the first line or first capitalized words
-      const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
-      if (lines.length > 0) {
-        // First non-empty line is a strong candidate for name
-        regexData.potentialName = lines[0].substring(0, 50);
-      }
-    }
+    // We calculate this lazily if AI parsing fails.
+    let extractedText = '';
+    let regexData = extractRegexData(extractedText);
 
 
     // ---- CHECK N8N CONFIG ----
@@ -238,8 +271,9 @@ export async function POST(request: Request) {
         ? n8nResponse.status
         : 500;
 
-      // NEW: If local extraction worked, maybe return partial data instead of error?
-      // User asked for "foolproof way", so returning partial data is better than error.
+      extractedText = await extractTextFromFile(file, fileType);
+      regexData = extractRegexData(extractedText);
+
       if (extractedText) {
         console.warn('[Resume Parse] n8n failed, returning local regex fallback data.');
         return NextResponse.json({

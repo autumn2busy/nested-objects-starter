@@ -27,7 +27,7 @@ export function Sidebar() {
             <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
                 {NAV_ITEMS.map((item) => {
                     // Filter out auth-only items if not logged in
-                    if (!isAuthenticated && ['/profile', '/security', '/directory-preview'].includes(item.href)) {
+                    if (!isAuthenticated && ['/profile', '/security', '/hiring-firms-preview'].includes(item.href)) {
                         return null;
                     }
 

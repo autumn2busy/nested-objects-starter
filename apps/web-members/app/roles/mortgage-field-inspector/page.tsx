@@ -57,24 +57,24 @@ export default function MortgageFieldInspectorPage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link
-                    href="/directory"
+                    href="/hiring-firms"
                     className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                   >
                     See lender directory
                   </Link>
                   <Link
-                    href="/resources"
+                    href="/inspector-resource-center"
                     className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
                   >
                     Open mortgage resources
                   </Link>
                 </div>
                 <div className="flex flex-wrap gap-3 text-sm text-slate-700">
-                  <Link href="/directory" className="underline-offset-4 hover:underline">
+                  <Link href="/hiring-firms" className="underline-offset-4 hover:underline">
                     Directory
                   </Link>
                   <span aria-hidden="true">•</span>
-                  <Link href="/membership" className="underline-offset-4 hover:underline">
+                  <Link href="/membership-pricing" className="underline-offset-4 hover:underline">
                     Membership
                   </Link>
                 </div>
@@ -188,13 +188,13 @@ export default function MortgageFieldInspectorPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/membership"
+              href="/membership-pricing"
               className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Start membership
             </Link>
             <Link
-              href="/directory"
+              href="/hiring-firms"
               className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               View directory

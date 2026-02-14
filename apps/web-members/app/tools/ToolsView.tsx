@@ -39,7 +39,7 @@ export function ToolsView() {
             title: '📝 AI resume builder',
             description:
                 'Turn your experience, routes, and gear into a clean resume for field service firms.',
-            href: '/tools/ai-resume',
+            href: '/tools/tools/ai-resume',
             cta: 'Build my resume →',
         },
         {

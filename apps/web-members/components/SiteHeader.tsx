@@ -14,15 +14,15 @@ type SiteHeaderProps = {
 }
 
 const navLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/inspector-dashboard', label: 'Dashboard' },
   { href: '/hiring-firms', label: 'Directory' },
   { href: '/jobs', label: 'Jobs' },
-  { href: '/training', label: 'Training' },
+  { href: '/challenges', label: 'Training' },
   { href: '/tools', label: 'AI tools' },
-  { href: '/resources', label: 'Resources' },
+  { href: '/inspector-resource-center', label: 'Resources' },
   { href: '/membership-pricing', label: 'Membership' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/about-us', label: 'About' },
+  { href: '/contact-us', label: 'Contact' },
   { href: '/profile', label: 'Profile' },
 ]
 
@@ -95,7 +95,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     () =>
       isAuthenticated
         ? navLinks.filter((link) => link.href !== '/tools')
-        : navLinks.filter((link) => link.href !== '/dashboard' && link.href !== '/profile'),
+        : navLinks.filter((link) => link.href !== '/inspector-dashboard' && link.href !== '/profile'),
     [isAuthenticated],
   )
 

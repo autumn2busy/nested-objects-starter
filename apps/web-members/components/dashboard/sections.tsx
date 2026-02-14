@@ -43,7 +43,7 @@ export function HomeOverviewSection() {
     { label: 'Create briefing', href: '/tools/checklists' },
     { label: 'Log mileage', href: '/tools' },
     { label: 'Share availability', href: '/profile' },
-    { label: 'Open firm directory', href: '/directory' },
+    { label: 'Open firm directory', href: '/hiring-firms' },
   ]
 
   return (
@@ -51,7 +51,7 @@ export function HomeOverviewSection() {
       title="Home analytics"
       subtitle="Your latest performance pulse"
       actions={
-        <Link className="rounded-lg bg-brand-copper px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-copperDark" href="/dashboard">
+        <Link className="rounded-lg bg-brand-copper px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-copperDark" href="/inspector-dashboard">
           View reports
         </Link>
       }
@@ -92,7 +92,7 @@ export function GettingPaidSection() {
       title="Getting paid"
       subtitle="Track earnings and payout status"
       actions={
-        <Link href="/membership" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/membership-pricing" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           Update banking
         </Link>
       }
@@ -182,7 +182,7 @@ export function JobTrackerSection() {
       subtitle="Application pipeline overview"
       actions={
         <Link
-          href="/dashboard/job-tracker"
+          href="/inspector-dashboard/job-tracker"
           className="rounded-lg border border-brand-mist bg-white px-3 py-2 text-xs font-semibold text-brand-copper hover:border-brand-copper hover:text-brand-copperDark"
         >
           Open job tracker →
@@ -249,7 +249,7 @@ export function OnlineTrainingSection() {
       title="Online training"
       subtitle="Pick a lane and finish your next certification"
       actions={
-        <Link href="/training" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/challenges" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           Open training library
         </Link>
       }
@@ -327,7 +327,7 @@ export function InspectorNewsSection() {
       title="Inspector news feed"
       subtitle="Stay briefed without leaving your queue"
       actions={
-        <Link href="/resources" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/inspector-resource-center" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           All intel
         </Link>
       }
@@ -444,7 +444,7 @@ export function MarketingMaterialsSection() {
       title="Marketing materials"
       subtitle="Download leave-behinds to send firms"
       actions={
-        <Link href="/resources" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/inspector-resource-center" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           Browse library
         </Link>
       }
@@ -513,7 +513,7 @@ export function CustomerCommsSection() {
       title="Customer comms"
       subtitle="Inbox for firms and carriers"
       actions={
-        <Link href="/contact" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/contact-us" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           Open inbox
         </Link>
       }

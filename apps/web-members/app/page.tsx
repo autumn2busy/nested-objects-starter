@@ -133,7 +133,7 @@ export default function HomePage() {
                 </p>
               </div>
               <Link
-                href="/membership"
+                href="/membership-pricing"
                 className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-brand-mist px-4 py-2 text-xs font-semibold text-brand-dark hover:bg-white"
               >
                 Compare Starter vs Pro →
@@ -151,7 +151,7 @@ export default function HomePage() {
                   Included with Starter
                 </p>
                 <Link
-                  href="/directory"
+                  href="/hiring-firms"
                   className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   Browse active firms →
@@ -168,7 +168,7 @@ export default function HomePage() {
                   Unlocks with Pro
                 </p>
                 <Link
-                  href="/resources/firm-intel"
+                  href="/inspector-resource-center/firm-intel"
                   className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   View sample snapshots →
@@ -380,7 +380,7 @@ export default function HomePage() {
                   <li>• Get checklists for your first inspections.</li>
                 </ul>
                 <Link
-                  href="/membership"
+                  href="/membership-pricing"
                   className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   Start on Starter (free) →
@@ -401,7 +401,7 @@ export default function HomePage() {
                   <li>• Plan smarter routes around family, day jobs, or other gigs.</li>
                 </ul>
                 <Link
-                  href="/membership"
+                  href="/membership-pricing"
                   className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
                   See Pro features →
@@ -423,13 +423,13 @@ export default function HomePage() {
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
-                href="/membership"
+                href="/membership-pricing"
                 className="inline-flex items-center justify-center rounded-full bg-brand-copper px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
               >
                 Explore membership options
               </Link>
               <Link
-                href="/directory"
+                href="/hiring-firms"
                 className="inline-flex items-center justify-center rounded-full border border-brand-copper/50 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Preview the firm directory

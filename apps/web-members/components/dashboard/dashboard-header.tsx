@@ -24,13 +24,13 @@ export function DashboardHeader({ firstName, initials, planName, onLogout }: Das
             <Link className="transition hover:text-brand-copper" href="/">
               Home
             </Link>
-            <Link className="transition hover:text-brand-copper" href="/directory">
+            <Link className="transition hover:text-brand-copper" href="/hiring-firms">
               Directory
             </Link>
-            <Link className="transition hover:text-brand-copper" href="/membership">
+            <Link className="transition hover:text-brand-copper" href="/membership-pricing">
               Membership
             </Link>
-            <Link className="transition hover:text-brand-copper" href="/resources">
+            <Link className="transition hover:text-brand-copper" href="/inspector-resource-center">
               Resources
             </Link>
           </nav>
