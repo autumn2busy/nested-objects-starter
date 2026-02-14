@@ -42,28 +42,8 @@ const EXTENSION_TO_MIME: Record<string, string> = {
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 async function extractTextFromFile(file: File, fileType: string): Promise<string> {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    if (fileType === 'application/pdf') {
-      const data = await pdf(buffer);
-      return data.text || '';
-    }
-
-    if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      const result = await mammoth.extractRawText({ buffer });
-      return result.value || '';
-    }
-
-    if (fileType === 'text/plain' || fileType === 'application/msword') {
-      // Legacy .doc is often not parseable without external binaries; return best effort text.
-      return buffer.toString('utf-8');
-    }
-  } catch (error) {
-    console.warn('[Resume Parse] Local extraction failed:', error);
-  }
-
+  // Local extraction disabled to avoid Vercel timeouts and missing dependencies (pdf-parse, mammoth).
+  // All parsing is handled by N8N.
   return '';
 }
 
