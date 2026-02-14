@@ -36,8 +36,8 @@ const EXTENSION_TO_MIME: Record<string, string> = {
   '.txt': 'text/plain',
 };
 
-const pdf = require('pdf-parse');
-import mammoth from 'mammoth';
+// const pdf = require('pdf-parse');
+// import mammoth from 'mammoth';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
@@ -151,25 +151,6 @@ export async function POST(request: Request) {
     // We parse locally to have a foolproof fallback for contact info
     // OPTIMIZATION: Skipping local parse to avoid Vercel timeouts. N8N will handle it.
     let extractedText = '';
-    /*
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      if (fileType === 'application/pdf') {
-        const data = await pdf(buffer);
-        extractedText = data.text;
-      } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        const result = await mammoth.extractRawText({ buffer });
-        extractedText = result.value;
-      } else if (fileType === 'text/plain') {
-        extractedText = buffer.toString('utf-8');
-      }
-    } catch (localParseError) {
-      console.warn('[Resume Parse] Local text extraction failed, relying solely on AI:', localParseError);
-      // Continue without local text - not fatal
-    }
-    */
 
     // ---- REGEX EXTRACTION (FOOLPROOF LAYER) ----
     const regexData = {
