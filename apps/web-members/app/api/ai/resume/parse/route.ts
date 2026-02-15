@@ -121,6 +121,7 @@ export async function POST(req: Request) {
     // 2. Rate Limiting based on IP
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || '127.0.0.1';
+
     try {
       await limiter.check(ip);
     } catch {
@@ -178,26 +179,33 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     console.log(`[Resume Parse] Extracting text locally from ${file.name} (${file.size} bytes)...`);
-    const extractedText = await extractTextFromFile(buffer, fileType);
-    const regexData = extractRegexData(extractedText);
+    let extractedText = await extractTextFromFile(buffer, fileType);
 
+    // Fallback logic
     if (!extractedText || extractedText.trim().length < 20) {
-      console.warn('[Resume Parse] Text extraction yielded little data. Skipping n8n request.');
-      return NextResponse.json(
-        {
-          error: 'Resume text missing, empty, or too short.',
-          fileName: file.name,
-          fallback: true,
-          contact: {
-            name: regexData.potentialName,
-            email: regexData.email,
-            phone: regexData.phone,
-            websites: regexData.websites,
-          },
-        },
-        { status: 422 }
-      );
+      console.warn(`[Resume Parse] Text extraction returned empty or short string (${extractedText?.length || 0} chars).`);
+
+      // If PDF parse failed, maybe try a raw string dump?
+      if (fileType.includes('pdf')) {
+        console.log('[Resume Parse] Attempting raw PDF string dump as last resort...');
+        try {
+          const raw = buffer.toString('latin1');
+          // Quick regex to find text inside parentheses (flate decode might still block this but worth a shot)
+          const matches = raw.matchAll(/\(([^)]+)\)\s*Tj/g);
+          const rawExtracted: string[] = [];
+          for (const m of matches) rawExtracted.push(m[1]);
+          if (rawExtracted.length > 5) {
+            extractedText = rawExtracted.join(' ');
+            console.log(`[Resume Parse] Raw dump recovered ${extractedText.length} chars.`);
+          }
+        } catch (e) {
+          console.error('[Resume Parse] Raw dump failed:', e);
+        }
+      }
+      if (!extractedText) extractedText = "";
     }
+
+    let regexData = extractRegexData(extractedText);
 
     // 6. CHECK N8N CONFIG
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
@@ -211,26 +219,36 @@ export async function POST(req: Request) {
     }
 
     console.log(`[Resume Parse] Text extracted (${extractedText.length} chars). Sending to n8n...`);
+    // Sanity check: log the first 100 chars
+    if (extractedText.length > 0) {
+      console.log(`[Resume Parse] Preview: ${extractedText.substring(0, 100).replace(/\n/g, ' ')}...`);
+    } else {
+      console.error('[Resume Parse] CRITICAL: Parsed text is EMPTY.');
+    }
 
     // Track usage
     await trackAIUsage(userId, 'ai_resume');
 
     // 7. SEND TEXT TO N8N
-    // We send 'extractedText' instead of binary 'fileData'
+    const payload = {
+      request_type: 'parse',
+      jwt: token,
+      extractedText: extractedText,
+      fileName: file.name,
+      fileType: fileType,
+      fileSizeBytes: file.size,
+      user_id: userId,
+      outseta_uid: outsetaUid,
+      tier: tier
+    };
+
+    // Log payload
+    console.log(`[Resume Parse] Sending payload to N8N (${JSON.stringify(payload).length} bytes)`);
+
     const n8nResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        request_type: 'parse',
-        jwt: token,
-        extractedText: extractedText, // <--- KEY CHANGE
-        fileName: file.name,
-        fileType: fileType,
-        fileSizeBytes: file.size,
-        user_id: userId,
-        outseta_uid: outsetaUid,
-        tier: tier
-      }),
+      body: JSON.stringify(payload),
     });
 
     // 8. HANDLE N8N RESPONSE
@@ -248,7 +266,7 @@ export async function POST(req: Request) {
         : 500;
 
       // Fallback: If n8n fails but we have text, return local Regex data?
-      if (extractedText) {
+      if (extractedText && extractedText.length > 50) {
         console.warn('[Resume Parse] n8n failed, returning local regex fallback.');
         return NextResponse.json({
           contact: {
@@ -273,6 +291,20 @@ export async function POST(req: Request) {
 
     // 9. RETURN PARSED RESULT
     const aiResult = await n8nResponse.json();
+    // Validate result shape - if empty, fallback to regex
+    if (!aiResult || (!aiResult.contact && !aiResult.experience)) {
+      console.warn('[Resume Parse] AI returned empty result. Merging regex data.');
+      return NextResponse.json({
+        ...aiResult,
+        contact: {
+          name: regexData.potentialName,
+          email: regexData.email,
+          phone: regexData.phone,
+          websites: regexData.websites
+        }
+      });
+    }
+
     return NextResponse.json(aiResult);
 
   } catch (error: any) {
