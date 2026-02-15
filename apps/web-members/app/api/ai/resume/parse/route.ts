@@ -178,15 +178,26 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     console.log(`[Resume Parse] Extracting text locally from ${file.name} (${file.size} bytes)...`);
-    let extractedText = await extractTextFromFile(buffer, fileType);
+    const extractedText = await extractTextFromFile(buffer, fileType);
+    const regexData = extractRegexData(extractedText);
 
-    // Fallback logic
-    if (!extractedText || extractedText.length < 20) {
-      console.warn('[Resume Parse] Text extraction yielded little data. Sending N8N a warning.');
-      extractedText = "";
+    if (!extractedText || extractedText.trim().length < 20) {
+      console.warn('[Resume Parse] Text extraction yielded little data. Skipping n8n request.');
+      return NextResponse.json(
+        {
+          error: 'Resume text missing, empty, or too short.',
+          fileName: file.name,
+          fallback: true,
+          contact: {
+            name: regexData.potentialName,
+            email: regexData.email,
+            phone: regexData.phone,
+            websites: regexData.websites,
+          },
+        },
+        { status: 422 }
+      );
     }
-
-    let regexData = extractRegexData(extractedText);
 
     // 6. CHECK N8N CONFIG
     const n8nWebhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
