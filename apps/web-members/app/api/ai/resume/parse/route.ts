@@ -121,7 +121,6 @@ export async function POST(req: Request) {
     // 2. Rate Limiting based on IP
     const headersList = headers();
     const ip = headersList.get('x-forwarded-for') || '127.0.0.1';
-
     try {
       await limiter.check(ip);
     } catch {
@@ -144,9 +143,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Plan upgrade required.' }, { status: 403 });
     }
 
-    const { allowed, tier } = await checkAIQuota(userId);
-    if (!allowed) {
-      return NextResponse.json({ error: 'AI limit reached. Please upgrade your plan.' }, { status: 403 });
+    const tier = planUid;
+    try {
+      await checkAIQuota(userId, planUid, 'ai_resume');
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error?.message || 'AI limit reached. Please upgrade your plan.' },
+        { status: 403 }
+      );
     }
 
     // 4. File Validation
