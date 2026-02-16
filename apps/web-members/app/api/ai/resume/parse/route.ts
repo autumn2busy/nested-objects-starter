@@ -55,7 +55,8 @@ async function extractTextFromFile(buffer: Buffer, fileType: string): Promise<st
     if (fileType === 'application/pdf') {
       // Dynamic import — unpdf has zero native dependencies
       const { extractText } = await import('unpdf');
-      const { text } = await extractText(new Uint8Array(buffer));
+      const result = await extractText(new Uint8Array(buffer));
+      const text = Array.isArray(result.text) ? result.text.join('\n') : result.text;
       return text || '';
     }
 
