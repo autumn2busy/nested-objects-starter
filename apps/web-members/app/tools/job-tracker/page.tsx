@@ -1,5 +1,5 @@
 'use client'
-
+import { BlurGate } from '@/components/BlurGate'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Search, MapPin, DollarSign, Calendar, Clock, CheckCircle, AlertCircle, Trash2 } from 'lucide-react'
@@ -128,143 +128,149 @@ export default function JobTrackerPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <CheckCircle className="w-8 h-8 text-brand-copper" />
-            Work Order Manager
-          </h1>
-          <Button onClick={() => setIsModalOpen(true)} className="bg-brand-copper hover:bg-brand-copperDark text-white gap-2">
-            <Plus className="w-4 h-4" /> New Work Order
-          </Button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="text-slate-500 text-sm font-medium">Open Orders</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.assigned}</div>
-          </div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="text-slate-500 text-sm font-medium">Submitted</div>
-            <div className="text-2xl font-bold text-purple-600">{stats.submitted}</div>
-          </div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="text-slate-500 text-sm font-medium">Completed (Paid)</div>
-            <div className="text-2xl font-bold text-emerald-600">{stats.paid}</div>
-          </div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="text-slate-500 text-sm font-medium">Total Revenue</div>
-            <div className="text-2xl font-bold text-slate-900">${stats.revenue.toFixed(2)}</div>
+    <BlurGate
+      feature="job_tracking"
+      title="Job Tracker is a paid feature"
+      description="Track applications, manage your pipeline, and stay on top of deadlines."
+    >
+      <main className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <CheckCircle className="w-8 h-8 text-brand-copper" />
+              Work Order Manager
+            </h1>
+            <Button onClick={() => setIsModalOpen(true)} className="bg-brand-copper hover:bg-brand-copperDark text-white gap-2">
+              <Plus className="w-4 h-4" /> New Work Order
+            </Button>
           </div>
         </div>
 
-        {/* List */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
-          {jobs.length === 0 && !isLoading ? (
-            <div className="p-12 text-center text-slate-500">
-              <p>No work orders found. Add one to get started!</p>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="text-slate-500 text-sm font-medium">Open Orders</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.assigned}</div>
             </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {jobs.map(job => (
-                <div key={job.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors group">
-                  <div className="col-span-4">
-                    <div className="font-bold text-slate-900">{job.job_number}</div>
-                    <div className="text-xs text-slate-500 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> {job.property_address}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="text-slate-500 text-sm font-medium">Submitted</div>
+              <div className="text-2xl font-bold text-purple-600">{stats.submitted}</div>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="text-slate-500 text-sm font-medium">Completed (Paid)</div>
+              <div className="text-2xl font-bold text-emerald-600">{stats.paid}</div>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="text-slate-500 text-sm font-medium">Total Revenue</div>
+              <div className="text-2xl font-bold text-slate-900">${stats.revenue.toFixed(2)}</div>
+            </div>
+          </div>
+
+          {/* List */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
+            {jobs.length === 0 && !isLoading ? (
+              <div className="p-12 text-center text-slate-500">
+                <p>No work orders found. Add one to get started!</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {jobs.map(job => (
+                  <div key={job.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors group">
+                    <div className="col-span-4">
+                      <div className="font-bold text-slate-900">{job.job_number}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {job.property_address}
+                      </div>
+                    </div>
+                    <div className="col-span-2 text-sm font-medium text-slate-700">
+                      {job.firm_name || 'Unknown Firm'}
+                    </div>
+                    <div className="col-span-2 text-sm text-slate-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Due: {new Date(job.due_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="col-span-1 font-mono text-sm text-slate-700">
+                      ${job.pay_rate?.toFixed(2)}
+                    </div>
+                    <div className="col-span-2">
+                      <select
+                        value={job.status}
+                        onChange={(e) => updateStatus(job.id, e.target.value)}
+                        className={`text-xs font-semibold px-2 py-1 rounded-full border-0 ${STATUS_COLORS[job.status] || 'bg-slate-100'}`}
+                      >
+                        <option value="assigned">Assigned</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="completed">Completed</option>
+                        <option value="paid">Paid</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <button onClick={() => deleteJob(job.id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="col-span-2 text-sm font-medium text-slate-700">
-                    {job.firm_name || 'Unknown Firm'}
-                  </div>
-                  <div className="col-span-2 text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" /> Due: {new Date(job.due_date).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="col-span-1 font-mono text-sm text-slate-700">
-                    ${job.pay_rate?.toFixed(2)}
-                  </div>
-                  <div className="col-span-2">
-                    <select
-                      value={job.status}
-                      onChange={(e) => updateStatus(job.id, e.target.value)}
-                      className={`text-xs font-semibold px-2 py-1 rounded-full border-0 ${STATUS_COLORS[job.status] || 'bg-slate-100'}`}
-                    >
-                      <option value="assigned">Assigned</option>
-                      <option value="submitted">Submitted</option>
-                      <option value="completed">Completed</option>
-                      <option value="paid">Paid</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                  <div className="col-span-1 text-right">
-                    <button onClick={() => deleteJob(job.id)} className="text-slate-300 hover:text-red-500 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-xl font-bold mb-4">Add Work Order</h2>
-            <form onSubmit={addJob} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Job Number</label>
-                <input required className="w-full border rounded-lg px-3 py-2"
-                  value={newJob.job_number || ''}
-                  onChange={e => setNewJob({ ...newJob, job_number: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Property Address</label>
-                <input required className="w-full border rounded-lg px-3 py-2"
-                  value={newJob.property_address || ''}
-                  onChange={e => setNewJob({ ...newJob, property_address: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Firm</label>
-                <input required className="w-full border rounded-lg px-3 py-2"
-                  value={newJob.firm_name || ''}
-                  onChange={e => setNewJob({ ...newJob, firm_name: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+              <h2 className="text-xl font-bold mb-4">Add Work Order</h2>
+              <form onSubmit={addJob} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Due Date</label>
-                  <input type="date" required className="w-full border rounded-lg px-3 py-2"
-                    value={newJob.due_date}
-                    onChange={e => setNewJob({ ...newJob, due_date: e.target.value })}
+                  <label className="block text-sm font-medium mb-1">Job Number</label>
+                  <input required className="w-full border rounded-lg px-3 py-2"
+                    value={newJob.job_number || ''}
+                    onChange={e => setNewJob({ ...newJob, job_number: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Pay Rate ($)</label>
-                  <input type="number" step="0.01" className="w-full border rounded-lg px-3 py-2"
-                    value={newJob.pay_rate || ''}
-                    onChange={e => setNewJob({ ...newJob, pay_rate: parseFloat(e.target.value) })}
+                  <label className="block text-sm font-medium mb-1">Property Address</label>
+                  <input required className="w-full border rounded-lg px-3 py-2"
+                    value={newJob.property_address || ''}
+                    onChange={e => setNewJob({ ...newJob, property_address: e.target.value })}
                   />
                 </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                <Button type="submit" className="bg-brand-copper text-white">Save Order</Button>
-              </div>
-            </form>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Firm</label>
+                  <input required className="w-full border rounded-lg px-3 py-2"
+                    value={newJob.firm_name || ''}
+                    onChange={e => setNewJob({ ...newJob, firm_name: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Due Date</label>
+                    <input type="date" required className="w-full border rounded-lg px-3 py-2"
+                      value={newJob.due_date}
+                      onChange={e => setNewJob({ ...newJob, due_date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Pay Rate ($)</label>
+                    <input type="number" step="0.01" className="w-full border rounded-lg px-3 py-2"
+                      value={newJob.pay_rate || ''}
+                      onChange={e => setNewJob({ ...newJob, pay_rate: parseFloat(e.target.value) })}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="bg-brand-copper text-white">Save Order</Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </BlurGate>
   )
 }

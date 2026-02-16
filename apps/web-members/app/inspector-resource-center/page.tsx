@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { generatePageMetadata, SITE_NAME } from '@/lib/seo'
 import type { Metadata } from 'next'
+import SmartSidebar from './SmartSidebar'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Resources | Field Inspection Guides & Industry News',
@@ -33,7 +34,7 @@ const resourceHighlights = [
   {
     title: 'Training & safety',
     description:
-      'Practical refreshers for roof work, interior documentation, and respectful tenant interactions—built by people who do the work.',
+      'Practical refreshers for roof work, interior documentation, and respectful tenant interactions\u2014built by people who do the work.',
     items: ['Route planning walkthroughs', 'Hazard spotting and PPE', 'Photo framing tips for adjusters'],
     cta: { label: 'Browse training', href: '/inspector-resource-center/training-safety' },
   },
@@ -43,30 +44,6 @@ const resourceHighlights = [
       'Downloadable forms, AI prompts, and calculators that make your prep faster and more consistent from job to job.',
     items: ['Job packet builder', 'Route ROI worksheet', 'AI prompt library for firm questions'],
     cta: { label: 'See member tools', href: '/inspector-resource-center/tools-templates' },
-  },
-]
-
-const featuredPieces = [
-  {
-    eyebrow: 'New',
-    title: 'Spring 2025 firm outlook',
-    summary: 'Where mortgage and insurance firms are adding coverage and how to prep your paperwork before applying.',
-    tag: 'All members',
-    href: '/inspector-resource-center/firm-intel',
-  },
-  {
-    eyebrow: 'Deep dive',
-    title: 'Photo standards that keep claims moving',
-    summary: 'A visual checklist of angles, measurements, and file organization that reduces rework and callbacks.',
-    tag: 'Pro and above',
-    href: '/challenges',
-  },
-  {
-    eyebrow: 'Template',
-    title: '15-minute pre-route huddle',
-    summary: 'Use this printable to align assistants or crew members before you leave the driveway.',
-    tag: 'Elite & Agency',
-    href: '/tools',
   },
 ]
 
@@ -81,7 +58,7 @@ export default function ResourcesIndexPage() {
               Guidance, intel, and tools that mirror the Nested Objects mission.
             </h1>
             <p className="text-base text-slate-700">
-              Everything here is built to match the parent site experience—modern, calm, and focused on clarity. Explore guides
+              Everything here is built to match the parent site experience&mdash;modern, calm, and focused on clarity. Explore guides
               for brand-new inspectors and seasoned coordinators alike, all tuned to the same dark teal and graphite palette as
               the core Nested Objects platform.
             </p>
@@ -114,7 +91,7 @@ export default function ResourcesIndexPage() {
                   modern layouts, and a calm dark-teal palette that matches the parent site while keeping focus on the work.
                 </p>
                 <div className="mt-4 grid gap-3 text-xs text-brand-dark sm:grid-cols-3">
-                  <span className="rounded-full bg-white px-3 py-1 font-semibold">Route prep & safety</span>
+                  <span className="rounded-full bg-white px-3 py-1 font-semibold">Route prep &amp; safety</span>
                   <span className="rounded-full bg-white px-3 py-1 font-semibold">Firm intel briefs</span>
                   <span className="rounded-full bg-white px-3 py-1 font-semibold">AI-assisted templates</span>
                 </div>
@@ -143,7 +120,7 @@ export default function ResourcesIndexPage() {
                         href={resource.cta.href}
                         className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 px-4 py-2 text-xs font-semibold text-brand-dark transition hover:bg-brand-mist"
                       >
-                        {resource.cta.label} →
+                        {resource.cta.label} &rarr;
                       </Link>
                     </div>
                   </article>
@@ -151,43 +128,8 @@ export default function ResourcesIndexPage() {
               </div>
             </div>
 
-            <div className="space-y-4 rounded-3xl border border-brand-copper/20 bg-brand-dark p-6 text-slate-100 shadow-lg shadow-brand-copper/10">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-copper">Featured</p>
-              <h2 className="text-xl font-semibold text-white">Latest drops from the team</h2>
-              <p className="text-sm text-slate-200">
-                Pull highlights from the same intel powering the parent site. Filtered by plan tier so you know what you can use today.
-              </p>
-              <div className="space-y-3">
-                {featuredPieces.map((piece) => (
-                  <div key={piece.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-brand-copper">
-                      <span>{piece.eyebrow}</span>
-                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white">{piece.tag}</span>
-                    </div>
-                    <h3 className="mt-2 text-base font-semibold text-white">{piece.title}</h3>
-                    <p className="mt-1 text-sm text-slate-200">{piece.summary}</p>
-                    <Link
-                      href={piece.href}
-                      className="mt-3 inline-flex text-sm font-semibold text-brand-mist underline-offset-4 transition hover:text-white"
-                    >
-                      Read now →
-                    </Link>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-sm text-white">
-                <p className="font-semibold">Need something specific?</p>
-                <p className="mt-1 text-slate-200">
-                  Elite and Agency members can request custom guides or briefings that match their routes. Tell us the market and we will queue it up.
-                </p>
-                <Link
-                  href="/contact-us"
-                  className="mt-3 inline-flex text-xs font-semibold text-brand-mist underline-offset-4 transition hover:text-white"
-                >
-                  Request a custom brief →
-                </Link>
-              </div>
-            </div>
+            {/* ── Smart personalized sidebar (replaces static Featured cards) ── */}
+            <SmartSidebar />
           </div>
         </div>
       </section>
