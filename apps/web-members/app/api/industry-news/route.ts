@@ -1,25 +1,94 @@
 import { NextResponse } from 'next/server'
 import Parser from 'rss-parser'
 
-export const revalidate = 1800 // Cache for 30 minutes (RSS feeds update less frequently)
+export const revalidate = 1800 // Cache for 30 minutes
 
-// Industry-specific RSS feeds for mortgage and real estate news
-const RSS_FEEDS = [
+// ─── Feed categories ────────────────────────────────────────────────
+// Each feed is tagged with one or more categories so the frontend
+// can filter or badge articles by niche.
+
+type FeedSource = {
+    url: string
+    name: string
+    categories: string[]
+}
+
+const RSS_FEEDS: FeedSource[] = [
+    // ── Mortgage & Real Estate (original) ──────────────────────────
     {
         url: 'https://www.housingwire.com/feed/',
         name: 'HousingWire',
+        categories: ['mortgage', 'real-estate'],
     },
     {
         url: 'https://www.inman.com/feed/',
         name: 'Inman',
+        categories: ['real-estate'],
     },
     {
         url: 'https://www.mpamag.com/us/rss',
         name: 'Mortgage Professional America',
+        categories: ['mortgage'],
     },
     {
         url: 'https://themortgagereports.com/feed',
         name: 'The Mortgage Reports',
+        categories: ['mortgage'],
+    },
+
+    // ── Notary / Signing Agent ─────────────────────────────────────
+    {
+        url: 'https://www.notarystars.com/rss',
+        name: 'Notary Stars',
+        categories: ['notary'],
+    },
+    {
+        url: 'https://loansigningsystem.com/blog/feed/',
+        name: 'Loan Signing System',
+        categories: ['notary', 'mortgage'],
+    },
+    {
+        url: 'https://notary2pro.com/feed/',
+        name: 'Notary2Pro',
+        categories: ['notary'],
+    },
+
+    // ── Drone / UAV Inspections ────────────────────────────────────
+    {
+        url: 'https://dronelife.com/feed/',
+        name: 'DroneLife',
+        categories: ['drone'],
+    },
+    {
+        url: 'https://suasnews.com/feed/',
+        name: 'sUAS News',
+        categories: ['drone'],
+    },
+
+    // ── HUD / Government Housing ───────────────────────────────────
+    {
+        url: 'https://www.huduser.gov/rss/pub.xml',
+        name: 'HUD Research',
+        categories: ['hud', 'government'],
+    },
+
+    // ── FEMA / Disaster & Field Response ───────────────────────────
+    {
+        url: 'https://www.fema.gov/news/disasters_rss.fema',
+        name: 'FEMA Disasters',
+        categories: ['fema', 'government'],
+    },
+
+    // ── Gig Economy / Field Services ───────────────────────────────
+    {
+        url: 'https://thegigeconomist.com/feed/',
+        name: 'The Gig Economist',
+        categories: ['gig-economy'],
+    },
+    {
+        url: 'https://www.yourbestdelivery.com/feed/',
+        name: 'Your Best Delivery',
+        categories: ['gig-economy', 'medical-courier'],
     },
 ]
 
@@ -41,9 +110,20 @@ interface ParsedArticle {
     url: string
     image: string | null
     publishedAt: string
+    categories: string[]
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    // Optional: allow filtering by category via query param
+    // e.g. /api/industry-news?category=notary
+    const { searchParams } = new URL(request.url)
+    const categoryFilter = searchParams.get('category')?.toLowerCase() || null
+
+    // If a category filter is provided, only fetch matching feeds
+    const feedsToFetch = categoryFilter
+        ? RSS_FEEDS.filter((f) => f.categories.includes(categoryFilter))
+        : RSS_FEEDS
+
     const parser = new Parser({
         customFields: {
             item: [
@@ -51,43 +131,72 @@ export async function GET() {
                 ['enclosure', 'enclosure'],
             ],
         },
+        // 10 second timeout per feed to avoid hanging on slow gov sites
+        timeout: 10000,
     })
 
     try {
-        // Fetch all RSS feeds in parallel
-        const feedPromises = RSS_FEEDS.map(async (feed) => {
+        const feedPromises = feedsToFetch.map(async (feed) => {
             try {
                 const parsed = await parser.parseURL(feed.url)
                 return parsed.items.map((item: FeedItem) => ({
                     source: feed.name,
                     title: item.title || 'Untitled',
-                    description: item.contentSnippet?.slice(0, 200) || item.content?.slice(0, 200) || null,
+                    description:
+                        item.contentSnippet?.slice(0, 200) ||
+                        item.content?.replace(/<[^>]+>/g, '').slice(0, 200) ||
+                        null,
                     url: item.link || '',
-                    image: item.enclosure?.url || item['media:content']?.$?.url || null,
-                    publishedAt: item.isoDate || item.pubDate || new Date().toISOString(),
+                    image:
+                        item.enclosure?.url ||
+                        item['media:content']?.$?.url ||
+                        null,
+                    publishedAt:
+                        item.isoDate || item.pubDate || new Date().toISOString(),
+                    categories: feed.categories,
                 }))
             } catch (error) {
                 console.warn(`Failed to fetch RSS feed from ${feed.name}:`, error)
-                return [] // Return empty array if a feed fails, don't break the whole thing
+                return [] // Don't break the whole response if one feed fails
             }
         })
 
         const feedResults = await Promise.all(feedPromises)
 
-        // Combine all articles and sort by date (newest first)
+        // Combine, sort newest first, limit to 25
         const allArticles: ParsedArticle[] = feedResults
             .flat()
-            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-            .slice(0, 15) // Limit to 15 most recent articles
+            .sort(
+                (a, b) =>
+                    new Date(b.publishedAt).getTime() -
+                    new Date(a.publishedAt).getTime()
+            )
+            .slice(0, 25)
 
         if (allArticles.length === 0) {
             return NextResponse.json(
-                { error: 'Unable to fetch news from any source. Please try again later.' },
+                {
+                    error:
+                        'Unable to fetch news from any source. Please try again later.',
+                },
                 { status: 503 }
             )
         }
 
-        return NextResponse.json({ articles: allArticles }, { status: 200 })
+        // Return available categories for frontend filtering
+        const availableCategories = [
+            ...new Set(allArticles.flatMap((a) => a.categories)),
+        ].sort()
+
+        return NextResponse.json(
+            {
+                articles: allArticles,
+                categories: availableCategories,
+                totalFeeds: feedsToFetch.length,
+                fetchedAt: new Date().toISOString(),
+            },
+            { status: 200 }
+        )
     } catch (error) {
         console.error('Industry News RSS Error:', error)
         return NextResponse.json(
