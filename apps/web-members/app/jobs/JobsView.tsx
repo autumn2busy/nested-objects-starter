@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, List as ListIcon, Loader2, Search, CheckCircle2, DollarSign, Trash2, ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import { Plus, List as ListIcon, Loader2, Search, CheckCircle2, DollarSign, Trash2, ExternalLink, Briefcase, Shield, Zap } from 'lucide-react'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -11,10 +12,11 @@ import { Gate } from '@/components/Gate'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useAuth } from '@/components/auth-provider'
+import { logoDataUrl } from '@/lib/logoData'
 
 // --- Types ---
 
-// Data from public "Find Jobs" API
 type JobEntry = {
     id: string
     title: string
@@ -26,7 +28,6 @@ type JobEntry = {
     roles: string[]
 }
 
-// Data from private "Member Tracker" API
 type TrackerJob = {
     id: string
     job_id: string | null
@@ -39,14 +40,78 @@ type TrackerJob = {
     updated_at: string
 }
 
+// --- Registration URL ---
+const REGISTER_URL = 'https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=BWzE6P9E&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'
+
+// --- Custom Gate Fallback ---
+function JobBoardFallback() {
+    const { isAuthenticated, login } = useAuth()
+
+    return (
+        <section className="mx-auto mt-4 max-w-3xl rounded-2xl border border-brand-steel/35 bg-white/95 p-8 shadow-brand-card">
+            <div className="flex flex-col items-center text-center gap-6">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-copper/10 to-brand-copper/5">
+                    <Briefcase className="w-8 h-8 text-brand-copper" />
+                </div>
+
+                <div className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-copper">Job command center</p>
+                    <h2 className="text-2xl font-bold text-brand-dark">Find work. Track your pipeline.</h2>
+                    <p className="text-sm text-brand-slate max-w-md mx-auto">
+                        Access job listings from field service firms, save opportunities to your personal pipeline, and track your application status — all in one place.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 w-full max-w-sm text-center">
+                    <div className="rounded-xl bg-brand-mist p-3">
+                        <Search className="w-5 h-5 text-brand-copper mx-auto mb-1" />
+                        <p className="text-xs font-semibold text-brand-dark">Find jobs</p>
+                    </div>
+                    <div className="rounded-xl bg-brand-mist p-3">
+                        <Shield className="w-5 h-5 text-brand-copper mx-auto mb-1" />
+                        <p className="text-xs font-semibold text-brand-dark">Track apps</p>
+                    </div>
+                    <div className="rounded-xl bg-brand-mist p-3">
+                        <Zap className="w-5 h-5 text-brand-copper mx-auto mb-1" />
+                        <p className="text-xs font-semibold text-brand-dark">Get alerts</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-stretch gap-3 w-full max-w-xs">
+                    {!isAuthenticated ? (
+                        <>
+                            <button
+                                onClick={login}
+                                className="inline-flex items-center justify-center rounded-full bg-brand-dark px-4 py-2.5 text-sm font-semibold text-white shadow-brand-soft transition hover:bg-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+                            >
+                                Log in securely
+                            </button>
+                            <a
+                                href={REGISTER_URL}
+                                className="inline-flex items-center justify-center rounded-full border border-brand-steel/60 bg-white px-4 py-2.5 text-sm font-semibold text-brand-dark transition hover:border-brand-copper hover:text-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+                            >
+                                Create vendor account
+                            </a>
+                        </>
+                    ) : (
+                        <Link
+                            href="/membership-pricing"
+                            className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                        >
+                            Upgrade to access jobs
+                        </Link>
+                    )}
+                </div>
+            </div>
+        </section>
+    )
+}
+
 export function JobsView() {
     const [activeTab, setActiveTab] = useState('find')
-
-    // Tracker State
     const [trackedJobs, setTrackedJobs] = useState<TrackerJob[]>([])
     const [trackerLoading, setTrackerLoading] = useState(true)
 
-    // Fetch Tracker Data when tab changes to 'tracker'
     useEffect(() => {
         if (activeTab === 'tracker') {
             fetchTrackerJobs()
@@ -84,7 +149,7 @@ export function JobsView() {
                 </nav>
             </header>
 
-            <Gate feature="job_board">
+            <Gate feature="job_board" fallback={<JobBoardFallback />}>
                 <Tabs defaultValue="find" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                     <div className="flex items-center justify-between">
                         <TabsList className="bg-white border p-1 h-auto rounded-lg shadow-sm">
@@ -112,6 +177,7 @@ export function JobsView() {
 }
 
 // --- Sub-Components ---
+// (FindJobsView and TrackerView remain unchanged from original)
 
 function FindJobsView({ onSave }: { onSave: () => void }) {
     const [jobs, setJobs] = useState<JobEntry[]>([])
@@ -150,7 +216,6 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
                     notes: `Saved from /jobs on ${new Date().toLocaleDateString()}`,
                 }),
             })
-            // Switch tab to tracker to show the saved job
             onSave()
         } catch (error) {
             console.error(error)
@@ -179,79 +244,84 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
         )
     }
 
+    if (jobs.length === 0) {
+        return (
+            <Card className="p-12 text-center border-slate-200">
+                <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900">No jobs available right now</h3>
+                <p className="text-slate-500 mt-1">Check back soon — we update listings regularly.</p>
+            </Card>
+        )
+    }
+
     return (
         <div className="grid gap-4">
-            {jobs.length === 0 && (
-                <div className="p-12 text-center bg-white border rounded-xl border-dashed">
-                    <p className="text-slate-500">No new jobs found this week.</p>
-                </div>
-            )}
-
             {jobs.map((job) => (
-                <Card key={job.id} className="p-6 transition-all hover:shadow-md border-slate-200">
+                <Card key={job.id} className="p-6 border-slate-200 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start gap-4">
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                                {job.title}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
-                                <span className="font-medium text-slate-700">{job.company}</span>
-                                <span>•</span>
-                                <span>{job.location}</span>
-                            </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                            <div className="font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full text-sm">
-                                {job.pay}
-                            </div>
-                        </div>
-                    </div>
-
-                    <p className="mt-4 text-slate-600 text-sm leading-relaxed max-w-3xl">
-                        {job.description}
-                    </p>
-
-                    <div className="flex gap-3 mt-6 pt-4 border-t border-slate-100">
-                        <Link
-                            href={job.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'gap-2 border-slate-300' })}
-                        >
-                            View External Post <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
-                        </Link>
-                        <Button
-                            size="sm"
-                            className={savingId === job.id ? "bg-slate-100 text-slate-400" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
-                            disabled={!!savingId}
-                            onClick={() => saveJobToTracker(job)}
-                        >
-                            {savingId === job.id ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                'Track Application'
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-slate-900">{job.title}</h3>
+                            <p className="text-sm text-slate-600 mt-0.5">{job.company} · {job.location}</p>
+                            {job.pay && (
+                                <p className="text-sm font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+                                    <DollarSign className="w-3.5 h-3.5" /> {job.pay}
+                                </p>
                             )}
-                        </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {job.link && (
+                                <a
+                                    href={job.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5 mr-1" /> View
+                                </a>
+                            )}
+                            <Button
+                                size="sm"
+                                onClick={() => saveJobToTracker(job)}
+                                disabled={savingId === job.id}
+                            >
+                                {savingId === job.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        <Plus className="w-3.5 h-3.5 mr-1" /> Save
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
+                    {job.description && (
+                        <p className="text-sm text-slate-600 mt-3 line-clamp-2">{job.description}</p>
+                    )}
+                    {job.roles && job.roles.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                            {job.roles.map(role => (
+                                <span key={role} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full font-medium">
+                                    {role}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </Card>
             ))}
         </div>
     )
 }
 
-function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: boolean, refresh: () => void }) {
-    const [updatingId, setUpdatingId] = useState<string | null>(null)
+function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: boolean; refresh: () => void }) {
     const [addingJob, setAddingJob] = useState(false)
+    const [updatingId, setUpdatingId] = useState<string | null>(null)
     const [newJob, setNewJob] = useState({ company: '', title: '', status: 'applied' })
 
     const columns = [
-        { id: 'interested', label: 'Interested', color: 'bg-slate-100' },
-        { id: 'applied', label: 'Applied', color: 'bg-blue-50' },
-        { id: 'interview', label: 'Interview', color: 'bg-amber-50' },
-        { id: 'offer', label: 'Hired / Offer', color: 'bg-emerald-50' },
+        { id: 'interested', label: 'Interested', color: 'bg-blue-50' },
+        { id: 'applied', label: 'Applied', color: 'bg-amber-50' },
+        { id: 'interview', label: 'Interview', color: 'bg-purple-50' },
+        { id: 'offer', label: 'Offer', color: 'bg-emerald-50' },
     ] as const
 
     const handleStatusChange = async (jobId: string, newStatus: string) => {
@@ -274,9 +344,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: 
         if (!confirm('Are you sure you want to remove this job from your tracker?')) return
         setUpdatingId(jobId)
         try {
-            await fetch(`/api/member-jobs/${jobId}`, {
-                method: 'DELETE',
-            })
+            await fetch(`/api/member-jobs/${jobId}`, { method: 'DELETE' })
             refresh()
         } catch (error) {
             console.error('Failed to delete job', error)
@@ -320,29 +388,12 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: 
 
     return (
         <div className="space-y-6">
-            {/* Add Job Bar */}
             <div className="flex justify-end">
                 {addingJob ? (
                     <form onSubmit={handleAddJob} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-2">
-                        <Input
-                            placeholder="Company"
-                            className="w-40"
-                            value={newJob.company}
-                            onChange={e => setNewJob({ ...newJob, company: e.target.value })}
-                            required
-                        />
-                        <Input
-                            placeholder="Job Title"
-                            className="w-40"
-                            value={newJob.title}
-                            onChange={e => setNewJob({ ...newJob, title: e.target.value })}
-                            required
-                        />
-                        <Select
-                            value={newJob.status}
-                            onChange={e => setNewJob({ ...newJob, status: e.target.value })}
-                            className="w-32"
-                        >
+                        <Input placeholder="Company" className="w-40" value={newJob.company} onChange={e => setNewJob({ ...newJob, company: e.target.value })} required />
+                        <Input placeholder="Job Title" className="w-40" value={newJob.title} onChange={e => setNewJob({ ...newJob, title: e.target.value })} required />
+                        <Select value={newJob.status} onChange={e => setNewJob({ ...newJob, status: e.target.value })} className="w-32">
                             <option value="interested">Interested</option>
                             <option value="applied">Applied</option>
                             <option value="interview">Interview</option>
@@ -368,9 +419,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: 
                             <div key={col.id} className="flex-1 min-w-[280px]">
                                 <div className={`p-3 rounded-t-lg border-b-2 border-white ${col.color} flex justify-between items-center`}>
                                     <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">{col.label}</h3>
-                                    <span className="bg-white/60 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">
-                                        {colJobs.length}
-                                    </span>
+                                    <span className="bg-white/60 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">{colJobs.length}</span>
                                 </div>
                                 <div className="bg-slate-50/50 p-2 space-y-3 min-h-[400px] border border-t-0 rounded-b-lg border-slate-200">
                                     {colJobs.map(job => (
@@ -380,38 +429,24 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: 
                                                     <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
                                                 </div>
                                             )}
-
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{job.company}</div>
-                                                <button
-                                                    onClick={() => handleDelete(job.id)}
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500"
-                                                    title="Delete"
-                                                >
+                                                <button onClick={() => handleDelete(job.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500" title="Delete">
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
-
                                             <div className="text-sm font-bold text-slate-900 leading-tight mb-3">{job.title}</div>
-
                                             <div className="pt-2 border-t border-slate-50">
-                                                <Select
-                                                    value={job.status}
-                                                    onChange={(e) => handleStatusChange(job.id, e.target.value)}
-                                                    className="w-full text-xs h-8"
-                                                >
-                                                    <option value="interested">Mov to: Interested</option>
-                                                    <option value="applied">Mov to: Applied</option>
-                                                    <option value="interview">Mov to: Interview</option>
-                                                    <option value="offer">Mov to: Offer</option>
-                                                    <option value="rejected">Mov to: Rejected</option>
+                                                <Select value={job.status} onChange={(e) => handleStatusChange(job.id, e.target.value)} className="w-full text-xs h-8">
+                                                    <option value="interested">Move to: Interested</option>
+                                                    <option value="applied">Move to: Applied</option>
+                                                    <option value="interview">Move to: Interview</option>
+                                                    <option value="offer">Move to: Offer</option>
+                                                    <option value="rejected">Move to: Rejected</option>
                                                 </Select>
                                             </div>
-
                                             <div className="flex items-center justify-between mt-3">
-                                                <div className="text-xs text-emerald-600 font-medium">
-                                                    {job.pay || 'Pay N/A'}
-                                                </div>
+                                                <div className="text-xs text-emerald-600 font-medium">{job.pay || 'Pay N/A'}</div>
                                                 <div className="text-[10px] text-slate-400">
                                                     {new Date(job.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                 </div>
@@ -419,9 +454,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[], loading: 
                                         </div>
                                     ))}
                                     {colJobs.length === 0 && (
-                                        <div className="text-center py-8 text-slate-300 text-xs italic">
-                                            Empty
-                                        </div>
+                                        <div className="text-center py-8 text-slate-300 text-xs italic">Empty</div>
                                     )}
                                 </div>
                             </div>

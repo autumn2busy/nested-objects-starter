@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
+import ConciergeSection from './ConciergeSection'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Contact Us | Member Support & Partnerships',
@@ -37,7 +38,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Contact</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Let’s talk about your routes, team, or partnership.</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Let&apos;s talk about your routes, team, or partnership.</h1>
             <p className="mt-3 text-sm text-slate-700">
               Whether you are comparing plan tiers, have a billing question, or want to collaborate on training, we are here to help. Choose the lane that fits or send us a quick note below.
             </p>
@@ -68,9 +69,9 @@ export default function ContactPage() {
                 Starter members can use the form below for general questions. Pro receives faster routing in the queue, while Elite and Agency unlock concierge handling with tailored next steps based on your region.
               </p>
               <div className="mt-4 grid gap-2 text-xs text-brand-dark sm:grid-cols-3">
-                <span className="rounded-full bg-white px-3 py-1 font-semibold">Starter · 1-2 business days</span>
-                <span className="rounded-full bg-white px-3 py-1 font-semibold">Pro · priority queue</span>
-                <span className="rounded-full bg-white px-3 py-1 font-semibold">Elite/Agency · concierge routing</span>
+                <span className="rounded-full bg-white px-3 py-1 font-semibold">Starter &middot; 1-2 business days</span>
+                <span className="rounded-full bg-white px-3 py-1 font-semibold">Pro &middot; priority queue</span>
+                <span className="rounded-full bg-white px-3 py-1 font-semibold">Elite/Agency &middot; concierge routing</span>
               </div>
             </div>
 
@@ -85,26 +86,8 @@ export default function ContactPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-brand-copper/20 bg-brand-dark p-5 text-slate-100">
-              <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Call the concierge</p>
-              <p className="mt-2 text-sm text-slate-100">
-                Active Elite and Agency members can request a 15-minute call to review routes, onboarding steps, or crew rollouts.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <a
-                  href="https://nested-objects.outseta.com/support/tickets"
-                  className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-xs font-semibold text-brand-dark transition hover:bg-brand-mist"
-                >
-                  Request a call
-                </a>
-                <Link
-                  href="/membership-pricing"
-                  className="inline-flex items-center justify-center rounded-full border border-white/40 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
-                >
-                  Upgrade for concierge
-                </Link>
-              </div>
-            </div>
+            {/* Plan-aware concierge section (client component) */}
+            <ConciergeSection />
           </div>
 
           <div className="rounded-3xl border border-brand-copper/20 bg-white p-6 shadow-lg shadow-brand-copper/10">
@@ -180,7 +163,7 @@ export default function ContactPage() {
           <div className="grid gap-6 text-sm text-slate-100 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Office hours</p>
-              <p className="mt-2">Mon–Fri · 9am to 6pm CT</p>
+              <p className="mt-2">Mon&ndash;Fri &middot; 9am to 6pm CT</p>
               <p className="text-brand-steel">After-hours responses prioritized for Elite and Agency.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">

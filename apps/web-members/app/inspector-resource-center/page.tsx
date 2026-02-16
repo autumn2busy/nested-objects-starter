@@ -35,7 +35,7 @@ const resourceHighlights = [
     description:
       'Practical refreshers for roof work, interior documentation, and respectful tenant interactions—built by people who do the work.',
     items: ['Route planning walkthroughs', 'Hazard spotting and PPE', 'Photo framing tips for adjusters'],
-    cta: { label: 'Browse training', href: '/inspector-resource-center/challenges-safety' },
+    cta: { label: 'Browse training', href: '/inspector-resource-center/training-safety' },
   },
   {
     title: 'Tools & templates',
