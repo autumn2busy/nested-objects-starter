@@ -81,34 +81,35 @@ const TITLE_BLOCKLIST = [
 const VERTICAL_MUST_MATCH: Record<string, string[]> = {
   'Field Inspection Services': [
     'inspector', 'inspection', 'field service', 'occupancy', 'property condition',
-    'bpo', 'broker price', 'drive-by', 'exterior inspection', 'interior inspection'
+    'bpo', 'broker price', 'drive-by', 'field representative', 'site visit'
   ],
   'Insurance Inspection Services': [
     'inspector', 'inspection', 'loss control', 'underwriting', 'risk assessment',
-    'insurance survey', 'property survey', 'loss prevention'
+    'insurance survey', 'property survey', 'loss prevention', 'field representative'
   ],
   'Property Preservation': [
-    'preservation', 'reo ', 'foreclosure', 'vacant property', 'property maintenance',
-    'winterization', 'lawn maintenance', 'debris removal', 'boarding', 'locksmith'
+    'preservation', 'reo', 'foreclosure', 'vacant property', 'property maintenance',
+    'winterization', 'lawn', 'debris', 'boarding', 'locksmith', 'rehab', 'trash out'
   ],
   'Appraisal & Valuation Services': [
-    'appraiser', 'appraisal', 'valuation', 'bpo', 'broker price', 'amc '
+    'appraiser', 'appraisal', 'valuation', 'bpo', 'broker price', 'amc'
   ],
   'Notary & Signing Services': [
-    'notary', 'signing agent', 'loan signing', 'mobile notary', 'ron ',
-    'remote notarization', 'title closer', 'closing agent'
+    'notary', 'signing agent', 'loan signing', 'mobile notary', 'ron',
+    'notarization', 'title closer', 'closing agent'
   ],
   'Medical & Pharmaceutical Logistics': [
     'courier', 'delivery', 'driver', 'route', 'transport', 'logistics',
     'specimen', 'medical delivery', 'pharmaceutical', 'lab courier'
   ],
   'Quality Assurance & Mystery Evaluation': [
-    'mystery shop', 'secret shop', 'evaluator', 'quality assurance', 'audit',
-    'compliance', 'customer experience', 'field research', 'merchandis'
+    'mystery', 'secret shop', 'evaluator', 'quality assurance', 'audit',
+    'merchandis', 'shopper', 'field research', 'retail audit', 'store audit'
   ],
   'AI & Data Quality Services': [
     'annotation', 'data label', 'ai train', 'ai eval', 'prompt engineer',
-    'data quality', 'rater', 'search quality', 'content evaluation', 'ai test'
+    'data quality', 'rater', 'search quality', 'content evaluation', 'ai test',
+    'data collect', 'robot', 'machine learning'
   ],
   'Professional Test Administration': [
     'proctor', 'proctoring', 'test admin', 'exam admin', 'testing center',
@@ -116,7 +117,8 @@ const VERTICAL_MUST_MATCH: Record<string, string[]> = {
   ],
   'Field Research & Compliance Auditing': [
     'auditor', 'audit', 'merchandis', 'field research', 'compliance',
-    'retail audit', 'store audit', 'shelf audit', 'inventory audit', 'data collect'
+    'retail audit', 'store audit', 'shelf audit', 'inventory audit', 'data collect',
+    'collector', 'collection'
   ],
   'Claims Adjusting & Investigation': [
     'adjuster', 'adjusting', 'claims', 'catastrophe', 'cat adjuster',
@@ -124,19 +126,19 @@ const VERTICAL_MUST_MATCH: Record<string, string[]> = {
   ],
   'Delivery & Logistics Operations': [
     'delivery', 'driver', 'courier', 'route', 'logistics', 'fleet',
-    'last mile', 'freight', 'dispatch', 'trucking', 'cdl'
+    'last mile', 'freight', 'dispatch', 'trucking', 'cdl', 'contractor'
   ],
   'Drone & Aerial Inspection Services': [
-    'drone', 'uas ', 'uav ', 'part 107', 'aerial', 'pilot',
-    'remote pilot', 'rpic', 'unmanned'
+    'drone', 'uas', 'uav', 'part 107', 'aerial', 'pilot',
+    'remote pilot', 'rpic', 'unmanned', 'operator'
   ],
   'Virtual Inspection & Remote Verification': [
     'virtual inspection', 'remote verification', 'photo inspection', 'remote inspector',
-    'virtual survey', 'desktop review'
+    'virtual survey', 'desktop review', 'desktop appraisal'
   ],
   'Energy Auditing & Building Performance': [
-    'energy audit', 'hers ', 'bpi ', 'blower door', 'duct test', 'energy rater',
-    'building performance', 'energy efficiency', 'weatherization'
+    'energy audit', 'hers', 'bpi', 'blower door', 'duct test', 'energy rater',
+    'building performance', 'energy efficiency', 'weatherization', 'energy assess'
   ],
 };
 
@@ -144,21 +146,21 @@ const VERTICAL_MUST_MATCH: Record<string, string[]> = {
 // SEARCH QUERIES (tightened from v1)
 // ============================================
 const VERTICAL_QUERIES = [
-  { vertical: 'Field Inspection Services', queries: ['field inspector property', 'mortgage field inspection occupancy'] },
-  { vertical: 'Insurance Inspection Services', queries: ['loss control inspector insurance', 'insurance field inspection survey'] },
-  { vertical: 'Property Preservation', queries: ['property preservation contractor', 'REO property maintenance foreclosure'] },
-  { vertical: 'Appraisal & Valuation Services', queries: ['real estate appraiser residential', 'property appraiser licensed'] },
-  { vertical: 'Notary & Signing Services', queries: ['notary signing agent loan', 'mobile notary signing'] },
-  { vertical: 'Medical & Pharmaceutical Logistics', queries: ['medical courier driver', 'pharmaceutical delivery route'] },
-  { vertical: 'Quality Assurance & Mystery Evaluation', queries: ['mystery shopper evaluator', 'secret shopper retail audit'] },
-  { vertical: 'AI & Data Quality Services', queries: ['data annotation remote contractor', 'AI evaluator trainer remote'] },
-  { vertical: 'Professional Test Administration', queries: ['test proctor exam', 'proctoring certification exam'] },
-  { vertical: 'Field Research & Compliance Auditing', queries: ['field auditor retail compliance', 'merchandiser audit store'] },
-  { vertical: 'Claims Adjusting & Investigation', queries: ['independent adjuster claims', 'catastrophe adjuster property'] },
-  { vertical: 'Delivery & Logistics Operations', queries: ['delivery contractor 1099 route', 'last mile delivery driver independent'] },
-  { vertical: 'Drone & Aerial Inspection Services', queries: ['drone pilot inspector Part 107', 'drone inspection aerial'] },
-  { vertical: 'Virtual Inspection & Remote Verification', queries: ['virtual property inspection remote', 'remote property verification photo'] },
-  { vertical: 'Energy Auditing & Building Performance', queries: ['energy auditor HERS rater', 'building performance inspector BPI'] },
+  { vertical: 'Field Inspection Services', queries: ['field inspector', 'property inspector mortgage', 'occupancy inspector'] },
+  { vertical: 'Insurance Inspection Services', queries: ['loss control inspector', 'insurance field inspector', 'insurance survey inspector'] },
+  { vertical: 'Property Preservation', queries: ['property preservation', 'REO property maintenance', 'foreclosure maintenance contractor'] },
+  { vertical: 'Appraisal & Valuation Services', queries: ['real estate appraiser', 'property appraiser residential', 'home appraiser'] },
+  { vertical: 'Notary & Signing Services', queries: ['notary signing agent', 'mobile notary', 'loan signing agent'] },
+  { vertical: 'Medical & Pharmaceutical Logistics', queries: ['medical courier', 'pharmaceutical delivery driver', 'lab specimen courier'] },
+  { vertical: 'Quality Assurance & Mystery Evaluation', queries: ['mystery shopper', 'secret shopper', 'retail merchandiser auditor'] },
+  { vertical: 'AI & Data Quality Services', queries: ['data collector field', 'data annotation remote', 'AI trainer evaluator', 'data collection research'] },
+  { vertical: 'Professional Test Administration', queries: ['test proctor', 'exam proctor', 'testing center administrator'] },
+  { vertical: 'Field Research & Compliance Auditing', queries: ['field auditor', 'retail auditor', 'merchandiser field', 'data collector retail'] },
+  { vertical: 'Claims Adjusting & Investigation', queries: ['independent adjuster', 'claims adjuster field', 'catastrophe adjuster'] },
+  { vertical: 'Delivery & Logistics Operations', queries: ['delivery driver independent contractor', 'courier driver 1099', 'last mile delivery', 'route driver contractor'] },
+  { vertical: 'Drone & Aerial Inspection Services', queries: ['drone pilot', 'drone operator', 'UAS pilot', 'aerial surveyor'] },
+  { vertical: 'Virtual Inspection & Remote Verification', queries: ['virtual inspection', 'remote property inspection', 'desktop appraisal review'] },
+  { vertical: 'Energy Auditing & Building Performance', queries: ['energy auditor', 'HERS rater', 'building performance', 'weatherization technician'] },
 ];
 
 // ============================================
