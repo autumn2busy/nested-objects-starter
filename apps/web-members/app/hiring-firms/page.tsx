@@ -90,6 +90,7 @@ async function getFirms(
         'industry_focus',
         'is_published',
         'rating',
+        'contractor_rating',
         'rating_count',
         'verified_at',
         'phone',
