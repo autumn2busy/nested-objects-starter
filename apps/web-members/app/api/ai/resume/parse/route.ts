@@ -3,19 +3,32 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-const pdf = require('pdf-parse');
-import * as mammoth from 'mammoth'; // Wildcard import for mammoth often safer if default is missing
+
+// ============================================================
+// FIX: Removed `pdf-parse` — it pulls in @napi-rs/canvas which
+// requires DOMMatrix (browser-only API) and crashes on Vercel
+// serverless. Using dynamic import of `unpdf` instead, which is
+// built for serverless/edge environments.
+//
+// mammoth is safe — switching to dynamic import to keep the
+// module load lightweight and avoid any tree-shaking issues.
+// ============================================================
 
 /**
  * AI Resume Parser - /api/ai/resume/parse
- * 
+ *
  * Accepts uploaded resume (PDF/DOCX/TXT).
  * PARSING STRATEGY: Local Extraction (Next.js) -> N8N (AI Logic)
- * 
- * We extract text LOCALLY using pdf-parse/mammoth because N8N Cloud
+ *
+ * We extract text LOCALLY using unpdf/mammoth because N8N Cloud
  * has strict restrictions on binary processing (no 'zlib', etc).
  * We then send the RAW TEXT to N8N for LLM processing.
  */
+
+// Force Node.js runtime — required for Buffer / file processing
+export const runtime = 'nodejs';
+// Allow up to 30s for large file parsing + n8n round-trip
+export const maxDuration = 30;
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -40,11 +53,14 @@ const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests 
 async function extractTextFromFile(buffer: Buffer, fileType: string): Promise<string> {
   try {
     if (fileType === 'application/pdf') {
-      const data = await pdf(buffer);
-      return data.text || '';
+      // Dynamic import — unpdf has zero native dependencies
+      const { extractText } = await import('unpdf');
+      const { text } = await extractText(new Uint8Array(buffer));
+      return text || '';
     }
 
     if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ buffer });
       return result.value || '';
     }
@@ -99,7 +115,8 @@ export async function POST(req: Request) {
 
     if (user) {
       const { cookies } = await import('next/headers');
-      token = cookies().get('outseta_access_token')?.value;
+      const cookieStore = cookies();
+      token = cookieStore.get('outseta_access_token')?.value;
     }
 
     if (!user) {
@@ -131,7 +148,6 @@ export async function POST(req: Request) {
     // 3. User & Quota Check
     const userId = getOutsetaUserId(user);
     const formData = await req.formData();
-    // outsetaUid might be redundant if we have user object, but keeping existing logic
     const outsetaUid = userId;
 
     if (!userId) {
@@ -190,7 +206,6 @@ export async function POST(req: Request) {
         console.log('[Resume Parse] Attempting raw PDF string dump as last resort...');
         try {
           const raw = buffer.toString('latin1');
-          // Quick regex to find text inside parentheses (flate decode might still block this but worth a shot)
           const matches = raw.matchAll(/\(([^)]+)\)\s*Tj/g);
           const rawExtracted: string[] = [];
           for (const m of matches) rawExtracted.push(m[1]);
@@ -219,7 +234,6 @@ export async function POST(req: Request) {
     }
 
     console.log(`[Resume Parse] Text extracted (${extractedText.length} chars). Sending to n8n...`);
-    // Sanity check: log the first 100 chars
     if (extractedText.length > 0) {
       console.log(`[Resume Parse] Preview: ${extractedText.substring(0, 100).replace(/\n/g, ' ')}...`);
     } else {
@@ -242,7 +256,6 @@ export async function POST(req: Request) {
       tier: tier
     };
 
-    // Log payload
     console.log(`[Resume Parse] Sending payload to N8N (${JSON.stringify(payload).length} bytes)`);
 
     const n8nResponse = await fetch(n8nWebhookUrl, {
@@ -265,7 +278,7 @@ export async function POST(req: Request) {
         ? n8nResponse.status
         : 500;
 
-      // Fallback: If n8n fails but we have text, return local Regex data?
+      // Fallback: If n8n fails but we have text, return local Regex data
       if (extractedText && extractedText.length > 50) {
         console.warn('[Resume Parse] n8n failed, returning local regex fallback.');
         return NextResponse.json({
@@ -291,7 +304,6 @@ export async function POST(req: Request) {
 
     // 9. RETURN PARSED RESULT
     const aiResult = await n8nResponse.json();
-    // Validate result shape - if empty, fallback to regex
     if (!aiResult || (!aiResult.contact && !aiResult.experience)) {
       console.warn('[Resume Parse] AI returned empty result. Merging regex data.');
       return NextResponse.json({
