@@ -81,8 +81,8 @@ const TITLE_BLOCKLIST = [
 const VERTICAL_MUST_MATCH: Record<string, string[]> = {
   'Field Inspection Services': [
     'inspector', 'inspection', 'field service', 'occupancy', 'property condition',
-    'bpo', 'broker price', 'drive-by', 'field representative', 'site visit'
-  ],
+    'bpo', 'broker price', 'drive-by', 'field representative', 'site visit', 'letter delivery'
+],
   'Insurance Inspection Services': [
     'inspector', 'inspection', 'loss control', 'underwriting', 'risk assessment',
     'insurance survey', 'property survey', 'loss prevention', 'field representative'
@@ -146,8 +146,7 @@ const VERTICAL_MUST_MATCH: Record<string, string[]> = {
 // SEARCH QUERIES (tightened from v1)
 // ============================================
 const VERTICAL_QUERIES = [
-  { vertical: 'Field Inspection Services', queries: ['field inspector', 'property inspector mortgage', 'occupancy inspector'] },
-  { vertical: 'Insurance Inspection Services', queries: ['loss control inspector', 'insurance field inspector', 'insurance survey inspector'] },
+  { vertical: 'Field Inspection Services', queries: ['field inspector', 'property inspector mortgage', 'occupancy inspector', 'letter delivery inspector'] },  { vertical: 'Insurance Inspection Services', queries: ['loss control inspector', 'insurance field inspector', 'insurance survey inspector'] },
   { vertical: 'Property Preservation', queries: ['property preservation', 'REO property maintenance', 'foreclosure maintenance contractor'] },
   { vertical: 'Appraisal & Valuation Services', queries: ['real estate appraiser', 'property appraiser residential', 'home appraiser'] },
   { vertical: 'Notary & Signing Services', queries: ['notary signing agent', 'mobile notary', 'loan signing agent'] },
