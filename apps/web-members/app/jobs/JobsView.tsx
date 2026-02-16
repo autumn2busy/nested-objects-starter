@@ -274,7 +274,7 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
                                     href={job.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                                    className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                                 >
                                     <ExternalLink className="w-3.5 h-3.5 mr-1" /> View
                                 </a>
