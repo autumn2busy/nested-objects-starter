@@ -694,7 +694,7 @@ export default function ResumeBuilder() {
   // ============================================================================
   const exportToDOCX = async () => {
     try {
-      const { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle } = await import('docx');
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
       const { saveAs } = await import('file-saver');
 
       const sections: any[] = [];
@@ -717,11 +717,10 @@ export default function ResumeBuilder() {
           alignment: AlignmentType.LEFT,
           children: [
             new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri" }),
+            new TextRun({ text: '\n', size: 4 }),
+            new TextRun({ text: '\u2500'.repeat(72), size: 12, font: "Calibri", color: "999999" }),
           ],
           spacing: { before: 280, after: 120 },
-          border: {
-            bottom: { color: "999999", space: 1, style: BorderStyle.SINGLE, size: 6 },
-          },
         });
       };
 
