@@ -212,10 +212,35 @@ const TARGET_ROLES = [
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
+// FIX 1: Robust date formatter that handles MM/YYYY, "Present", plain years, etc.
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '';
+  const lower = dateStr.toLowerCase().trim();
+  // Pass through text dates
+  if (lower === 'present' || lower === 'current' || lower === 'unknown') {
+    return dateStr;
+  }
+  // Handle MM/YYYY format (e.g., "01/2022")
+  const mmYYYY = dateStr.match(/^(\d{1,2})\/(\d{4})$/);
+  if (mmYYYY) {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIdx = parseInt(mmYYYY[1], 10) - 1;
+    if (monthIdx >= 0 && monthIdx < 12) {
+      return `${monthNames[monthIdx]} ${mmYYYY[2]}`;
+    }
+    return dateStr;
+  }
+  // Handle plain year "2022"
+  if (/^\d{4}$/.test(dateStr)) return dateStr;
+  // Handle "Aug 2020" or "August 2020" — already formatted, return as-is
+  if (/^[A-Za-z]+ \d{4}$/.test(dateStr.trim())) return dateStr;
+  // Try native Date parse as fallback
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  if (!isNaN(date.getTime())) {
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  }
+  // If all else fails, return the raw string
+  return dateStr;
 };
 
 // ============================================================================
@@ -246,11 +271,8 @@ export default function ResumeBuilder() {
   // ============================================================================
 
   const resetAllData = () => {
-    // Clear localStorage
     localStorage.removeItem('nestedObjects_resumeData');
     localStorage.removeItem('nestedObjects_resumeTemplate');
-
-    // Reset state
     setResumeData(INITIAL_RESUME_DATA);
     setAiAnalysis(null);
     setUploadedFile(null);
@@ -258,8 +280,6 @@ export default function ResumeBuilder() {
     setSelectedTemplate('professional');
     setLastSaved(null);
     setShowResetConfirm(false);
-
-    // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -282,16 +302,13 @@ export default function ResumeBuilder() {
     }
   }, [resumeData, selectedTemplate]);
 
-  // Load from localStorage on mount
   useEffect(() => {
     try {
       const savedData = localStorage.getItem('nestedObjects_resumeData');
       const savedTemplate = localStorage.getItem('nestedObjects_resumeTemplate');
-
       if (savedData) {
         const parsed = JSON.parse(savedData);
         setResumeData(parsed);
-        // Skip upload step if we have saved data with a name
         if (parsed.contact?.fullName) {
           setCurrentStep('contact');
         }
@@ -304,18 +321,15 @@ export default function ResumeBuilder() {
     }
   }, []);
 
-  // Autosave with debounce
   useEffect(() => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
     }
-
     autoSaveTimerRef.current = setTimeout(() => {
       if (resumeData.contact.fullName) {
         saveToLocalStorage();
       }
     }, 2000);
-
     return () => {
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
@@ -336,7 +350,6 @@ export default function ResumeBuilder() {
 
     try {
       if (!isAuthenticated) {
-        // Attempt to login if not authenticated
         login();
         throw new Error('Please log in again to use the AI Resume Builder.');
       }
@@ -368,84 +381,112 @@ export default function ResumeBuilder() {
         throw new Error(data.error || `Error ${response.status}: Failed to parse resume`);
       }
 
-      // Map backend response to frontend state structure
+      // ================================================================
+      // FIX 2: Map contact — handle both n8n field names
+      // ================================================================
       const mappedContact = {
         fullName: data.contact?.name || data.contact?.fullName || '',
         email: data.contact?.email || '',
         phone: data.contact?.phone || '',
-        // Attempt to parse city/state from location if provided
-        city: String(data.contact?.location || '').split(',')[0]?.trim() || '',
-        state: String(data.contact?.location || '').split(',')[1]?.trim() || '',
+        city: data.contact?.city || String(data.contact?.location || '').split(',')[0]?.trim() || '',
+        state: data.contact?.state || String(data.contact?.location || '').split(',')[1]?.trim() || '',
         linkedin: data.contact?.linkedIn || data.contact?.linkedin || '',
         website: data.contact?.website || ''
       };
 
+      // ================================================================
+      // FIX 2: Map experience — read start_date/end_date (snake_case from n8n)
+      // ================================================================
       const mappedExperience = (Array.isArray(data.experience) ? data.experience : []).map((exp: any) => {
-        // Parse dates "Jul 2023 - Present" -> startDate, endDate, current
         let startDate = '';
         let endDate = '';
         let current = false;
 
-        if (exp.dates) {
-          const dateStr = String(exp.dates); // Ensure it's a string
-          if (dateStr.includes('-') || dateStr.includes('–')) {
-            const parts = dateStr.split(/[-–]/).map((s: string) => s.trim());
+        // Priority 1: Separate start_date / end_date fields (n8n snake_case)
+        if (exp.start_date || exp.end_date) {
+          startDate = exp.start_date || '';
+          endDate = exp.end_date || '';
+          if (endDate.toLowerCase().includes('present') || endDate.toLowerCase().includes('current')) {
+            current = true;
+          }
+        }
+        // Priority 2: camelCase startDate / endDate
+        else if (exp.startDate || exp.endDate) {
+          startDate = exp.startDate || '';
+          endDate = exp.endDate || '';
+          if (endDate.toLowerCase().includes('present') || endDate.toLowerCase().includes('current')) {
+            current = true;
+          }
+        }
+        // Priority 3: Combined "dates" string (legacy)
+        else if (exp.dates) {
+          const dateStr = String(exp.dates);
+          if (dateStr.includes('-') || dateStr.includes('\u2013')) {
+            const parts = dateStr.split(/[-\u2013]/).map((s: string) => s.trim());
             if (parts.length > 0) startDate = parts[0];
             if (parts.length > 1) {
               if (parts[1].toLowerCase().includes('present')) {
                 current = true;
-                endDate = '';
               } else {
                 endDate = parts[1];
               }
             }
           } else {
-            // If it's just a single date string (e.g. "2020")
             startDate = dateStr;
           }
         }
+
+        // Build description and bullets
+        const description = exp.description || '';
+        const bullets = Array.isArray(exp.responsibilities)
+          ? exp.responsibilities
+          : Array.isArray(exp.bullets)
+            ? exp.bullets
+            : [];
 
         return {
           id: generateId(),
           company: exp.company || '',
           title: exp.jobTitle || exp.title || '',
-          location: exp.location || '',
+          location: exp.location || 'Not specified',
           startDate,
-          endDate,
+          endDate: current ? '' : endDate,
           current,
-          description: exp.description || '',
-          bullets: Array.isArray(exp.responsibilities) ? exp.responsibilities : [exp.responsibilities || ''],
+          description,
+          bullets,
           transferableSkills: Array.isArray(exp.transferableSkills) ? exp.transferableSkills : []
         };
       });
 
+      // ================================================================
+      // FIX 4: Map education — read graduation_year (snake_case from n8n)
+      // ================================================================
       const mappedEducation = (Array.isArray(data.education) ? data.education : []).map((edu: any) => ({
         id: generateId(),
         school: edu.institution || edu.school || '',
         degree: edu.degree || '',
-        field: edu.fieldOfStudy || edu.field || '', // Map fieldOfStudy if present
-        graduationDate: edu.dates || edu.graduationDate || edu.date || '' // Add edu.date check
+        field: edu.fieldOfStudy || edu.field || '',
+        graduationDate: edu.graduation_year || edu.graduationDate || edu.dates || edu.date || ''
       }));
 
-      // Update resume data with parsed and mapped content
+      // Update resume data
       setResumeData(prev => ({
         ...prev,
         contact: {
           ...prev.contact,
           ...mappedContact
         },
-        summary: data.summary || data.professionalSummary || prev.summary, // Check professionalSummary
+        summary: data.contact?.summary || data.summary || data.professionalSummary || prev.summary,
         experience: mappedExperience.length > 0 ? mappedExperience : prev.experience,
         education: mappedEducation.length > 0 ? mappedEducation : prev.education,
         certifications: Array.isArray(data.certifications) ? data.certifications.map((cert: any) => ({ ...cert, id: generateId() })) : prev.certifications,
         skills: [...new Set([...prev.skills, ...(Array.isArray(data.skills) ? data.skills : [])])],
       }));
 
-      // Map real AI analysis data
-      // Ensure we attempt to pull from root or nested structures if n8n varies
+      // Map AI analysis
       const analysis: AIAnalysis = {
         transferableSkills: Array.isArray(data.transferableSkills) ? data.transferableSkills : (Array.isArray(data.skills) ? data.skills.slice(0, 6) : []),
-        suggestedSummary: data.summary || data.professionalSummary || '',
+        suggestedSummary: data.contact?.summary || data.summary || data.professionalSummary || '',
         industryTermMappings: data.industryTermMappings || [],
         strengthAreas: data.strengthAreas || [],
         improvementSuggestions: data.improvementSuggestions || []
@@ -646,124 +687,121 @@ export default function ResumeBuilder() {
     generateResumePDF(resumeData, selectedTemplate);
   };
 
+  // ============================================================================
+  // FIX 3: Complete DOCX export rewrite
+  // Uses ONLY TextRun children inside Paragraph — no text/heading/bullet shortcuts
+  // that crash in docx 8.x
+  // ============================================================================
   const exportToDOCX = async () => {
     try {
-      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
+      const { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle } = await import('docx');
       const { saveAs } = await import('file-saver');
 
-      if (!Document || !Packer || !Paragraph) {
-        throw new Error('Failed to load DOCX library');
-      }
+      const sections: any[] = [];
 
-      const sections = [];
-
-      // HELPER: Create standard paragraph
-      const createPara = (text: string, bold = false, size = 24, alignment = AlignmentType.LEFT) => {
+      // HELPER: Standard paragraph (safe — uses TextRun children only)
+      const createPara = (text: string, options?: { bold?: boolean; size?: number; alignment?: any; italic?: boolean; color?: string }) => {
+        const { bold = false, size = 22, alignment = AlignmentType.LEFT, italic = false, color } = options || {};
         return new Paragraph({
-          alignment: alignment,
+          alignment,
           children: [
-            new TextRun({
-              text: text,
-              bold: bold,
-              size: size, // 24 = 12pt
-              font: "Calibri"
-            }),
+            new TextRun({ text, bold, size, font: "Calibri", italics: italic, color }),
           ],
-          spacing: { after: 120 }, // 120 = 6pt
+          spacing: { after: 120 },
         });
       };
 
-      // HELPER: Create heading
-      const createHeading = (text: string, level = HeadingLevel.HEADING_2) => {
+      // HELPER: Section heading (manual styling — no heading property)
+      const createSectionHeading = (text: string) => {
         return new Paragraph({
-          text: text.toUpperCase(),
-          heading: level,
-          spacing: { before: 240, after: 120 },
+          alignment: AlignmentType.LEFT,
+          children: [
+            new TextRun({ text: text.toUpperCase(), bold: true, size: 24, font: "Calibri" }),
+          ],
+          spacing: { before: 280, after: 120 },
           border: {
-            bottom: { color: "auto", space: 1, style: "single", size: 6 }
-          }
+            bottom: { color: "999999", space: 1, style: BorderStyle.SINGLE, size: 6 },
+          },
         });
       };
 
-      // 1. HEADER
+      // ---- 1. HEADER ----
       sections.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
           children: [
             new TextRun({
-              text: resumeData.contact.fullName,
+              text: resumeData.contact.fullName || 'Resume',
               bold: true,
-              size: 48, // 24pt
+              size: 48,
               font: "Calibri",
-              color: "10B981" // Emerald
+              color: "10B981",
             }),
           ],
-          spacing: { after: 120 }
+          spacing: { after: 120 },
         })
       );
 
-      const contactInfo = [
+      const contactParts = [
         resumeData.contact.email,
         resumeData.contact.phone,
-        `${resumeData.contact.city}, ${resumeData.contact.state}`
-      ].filter(Boolean).join(" | ");
+        [resumeData.contact.city, resumeData.contact.state].filter(Boolean).join(', '),
+      ].filter(Boolean);
 
-      sections.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [new TextRun({ text: contactInfo, size: 20 })],
-          spacing: { after: 240 }
-        })
-      );
-
-      if (resumeData.contact.linkedin || resumeData.contact.website) {
-        const links = [resumeData.contact.linkedin, resumeData.contact.website].filter(Boolean).join(" | ");
+      if (contactParts.length > 0) {
         sections.push(
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: links, size: 20, color: "0000FF" })],
-            spacing: { after: 240 }
+            children: [new TextRun({ text: contactParts.join('  |  '), size: 20, font: "Calibri" })],
+            spacing: { after: 80 },
           })
         );
       }
 
-      // 2. TARGET ROLES
+      const links = [resumeData.contact.linkedin, resumeData.contact.website].filter(Boolean);
+      if (links.length > 0) {
+        sections.push(
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: links.join('  |  '), size: 20, font: "Calibri", color: "0563C1" })],
+            spacing: { after: 200 },
+          })
+        );
+      }
+
+      // ---- 2. TARGET ROLES ----
       if (resumeData.targetRoles.length > 0) {
         sections.push(
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [
-              new TextRun({
-                text: `Targeting: ${resumeData.targetRoles.join(', ')}`,
-                italics: true,
-                size: 22,
-                color: "505050"
-              })
+              new TextRun({ text: 'Targeting: ', bold: true, size: 22, font: "Calibri", color: "505050" }),
+              new TextRun({ text: resumeData.targetRoles.join(', '), size: 22, font: "Calibri", italics: true, color: "505050" }),
             ],
-            spacing: { after: 240 }
+            spacing: { after: 240 },
           })
         );
       }
 
-      // 3. SUMMARY
+      // ---- 3. PROFESSIONAL SUMMARY ----
       if (resumeData.summary) {
-        sections.push(createHeading("Professional Summary"));
+        sections.push(createSectionHeading('Professional Summary'));
         sections.push(createPara(resumeData.summary));
       }
 
-      // 4. SKILLS
+      // ---- 4. SKILLS & EQUIPMENT ----
       const allSkills = [...resumeData.fieldServicesSkills, ...resumeData.skills];
       if (allSkills.length > 0 || resumeData.equipment.length > 0) {
-        sections.push(createHeading("Skills & Equipment"));
+        sections.push(createSectionHeading('Skills & Equipment'));
 
         if (allSkills.length > 0) {
           sections.push(
             new Paragraph({
               children: [
-                new TextRun({ text: "Skills: ", bold: true }),
-                new TextRun({ text: allSkills.join(" • ") })
+                new TextRun({ text: 'Skills:  ', bold: true, size: 22, font: "Calibri" }),
+                new TextRun({ text: allSkills.join('  \u2022  '), size: 22, font: "Calibri" }),
               ],
-              spacing: { after: 120 }
+              spacing: { after: 120 },
             })
           );
         }
@@ -772,136 +810,152 @@ export default function ResumeBuilder() {
           sections.push(
             new Paragraph({
               children: [
-                new TextRun({ text: "Equipment: ", bold: true }),
-                new TextRun({ text: resumeData.equipment.join(", ") })
+                new TextRun({ text: 'Equipment:  ', bold: true, size: 22, font: "Calibri" }),
+                new TextRun({ text: resumeData.equipment.join(', '), size: 22, font: "Calibri" }),
               ],
-              spacing: { after: 120 }
+              spacing: { after: 120 },
             })
           );
         }
       }
 
-      // 5. COVERAGE
-      if (resumeData.coverage.radius > 0 || resumeData.coverage.hasReliableVehicle) {
-        sections.push(createHeading("Logistics & Coverage"));
-        let logisticsText = "";
-        if (resumeData.coverage.hasReliableVehicle) logisticsText += `Vehicle: Reliable Personal Vehicle (${resumeData.coverage.vehicleType || 'Standard'}). `;
-        if (resumeData.coverage.radius) logisticsText += `Coverage Radius: ${resumeData.coverage.radius} miles. `;
-        if (resumeData.coverage.counties.length > 0) logisticsText += `Counties: ${resumeData.coverage.counties.join(', ')}.`;
-
-        sections.push(createPara(logisticsText));
+      // ---- 5. LOGISTICS & COVERAGE ----
+      if (resumeData.coverage.hasReliableVehicle || resumeData.coverage.radius > 0) {
+        sections.push(createSectionHeading('Logistics & Coverage'));
+        const logisticsParts: string[] = [];
+        if (resumeData.coverage.hasReliableVehicle) {
+          logisticsParts.push(`Vehicle: Reliable Personal Vehicle (${resumeData.coverage.vehicleType || 'Standard'})`);
+        }
+        if (resumeData.coverage.radius) {
+          logisticsParts.push(`Coverage Radius: ${resumeData.coverage.radius} miles`);
+        }
+        if (resumeData.coverage.counties.length > 0) {
+          logisticsParts.push(`Counties: ${resumeData.coverage.counties.join(', ')}`);
+        }
+        if (logisticsParts.length > 0) {
+          sections.push(createPara(logisticsParts.join('  |  ')));
+        }
       }
 
-      // 6. EXPERIENCE
+      // ---- 6. PROFESSIONAL EXPERIENCE ----
       if (resumeData.experience.length > 0) {
-        sections.push(createHeading("Professional Experience"));
+        sections.push(createSectionHeading('Professional Experience'));
 
         resumeData.experience.forEach(exp => {
-          // Company and Date
+          const dateStart = formatDate(exp.startDate);
+          const dateEnd = exp.current ? 'Present' : formatDate(exp.endDate);
+          const dateRange = [dateStart, dateEnd].filter(Boolean).join(' \u2013 ');
+
+          // Company + Date
+          const companyChildren: any[] = [
+            new TextRun({ text: exp.company || 'Company', bold: true, size: 22, font: "Calibri" }),
+          ];
+          if (dateRange) {
+            companyChildren.push(
+              new TextRun({ text: `\t${dateRange}`, size: 20, font: "Calibri" })
+            );
+          }
           sections.push(
             new Paragraph({
-              children: [
-                new TextRun({ text: exp.company, bold: true, size: 22 }),
-                new TextRun({
-                  text: `\t${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate)}`,
-                  size: 20
-                })
-              ],
-              tabStops: [
-                { type: "right", position: 9000 } // Right align date
-              ],
-              spacing: { before: 120 }
+              children: companyChildren,
+              tabStops: [{ type: "right" as const, position: 9000 }],
+              spacing: { before: 160 },
             })
           );
 
-          // Title and Location
+          // Title + Location
+          const titleChildren: any[] = [
+            new TextRun({ text: exp.title || '', italics: true, size: 22, font: "Calibri" }),
+          ];
+          if (exp.location && exp.location !== 'Not specified') {
+            titleChildren.push(
+              new TextRun({ text: `  |  ${exp.location}`, italics: true, size: 20, font: "Calibri" })
+            );
+          }
           sections.push(
             new Paragraph({
-              children: [
-                new TextRun({ text: exp.title, italics: true, size: 22 }),
-                new TextRun({ text: exp.location ? ` | ${exp.location}` : "", italics: true, size: 20 })
-              ],
-              spacing: { after: 120 }
+              children: titleChildren,
+              spacing: { after: 80 },
             })
           );
 
-          // Bullets
+          // Description
+          if (exp.description && exp.description.trim()) {
+            sections.push(createPara(exp.description));
+          }
+
+          // Bullets (skip if identical to description)
           if (exp.bullets && exp.bullets.length > 0) {
-            exp.bullets.forEach(bullet => {
-              if (!bullet) return;
+            exp.bullets.forEach((bullet: string) => {
+              if (!bullet || !bullet.trim()) return;
+              if (bullet.trim() === exp.description?.trim()) return;
               sections.push(
                 new Paragraph({
-                  text: bullet,
-                  bullet: { level: 0 },
-                  spacing: { after: 60 }
+                  children: [
+                    new TextRun({ text: `\u2022  ${bullet}`, size: 22, font: "Calibri" }),
+                  ],
+                  spacing: { after: 60 },
+                  indent: { left: 360 },
                 })
               );
             });
-          } else if (exp.description) {
-            sections.push(createPara(exp.description));
           }
         });
       }
 
-      // 7. EDUCATION
+      // ---- 7. EDUCATION ----
       if (resumeData.education.length > 0) {
-        sections.push(createHeading("Education"));
+        sections.push(createSectionHeading('Education'));
         resumeData.education.forEach(edu => {
           sections.push(
             new Paragraph({
               children: [
-                new TextRun({ text: edu.school, bold: true, size: 22 }),
-                new TextRun({ text: `\t${edu.graduationDate || ''}`, size: 20 })
+                new TextRun({ text: edu.school || 'School', bold: true, size: 22, font: "Calibri" }),
+                new TextRun({ text: `\t${edu.graduationDate || ''}`, size: 20, font: "Calibri" }),
               ],
-              tabStops: [{ type: "right", position: 9000 }],
-              spacing: { before: 120 }
+              tabStops: [{ type: "right" as const, position: 9000 }],
+              spacing: { before: 120 },
             })
           );
-
           const degreeText = edu.field ? `${edu.degree} in ${edu.field}` : edu.degree;
-          sections.push(
-            new Paragraph({
-              children: [new TextRun({ text: degreeText, italics: true, size: 22 })],
-              spacing: { after: 120 }
-            })
-          );
-        });
-      }
-
-      // 8. CERTIFICATIONS
-      if (resumeData.certifications.length > 0) {
-        sections.push(createHeading("Certifications"));
-        resumeData.certifications.forEach(cert => {
-          sections.push(
-            new Paragraph({
-              children: [
-                new TextRun({ text: cert.name, bold: true, size: 22 }),
-                new TextRun({ text: `\t${cert.date ? formatDate(cert.date) : ''}`, size: 20 })
-              ],
-              tabStops: [{ type: "right", position: 9000 }],
-              spacing: { before: 120 }
-            })
-          );
-          if (cert.issuer) {
-            sections.push(
-              new Paragraph({
-                children: [new TextRun({ text: cert.issuer, italics: true, size: 20 })],
-                spacing: { after: 120 }
-              })
-            );
+          if (degreeText) {
+            sections.push(createPara(degreeText, { italic: true }));
           }
         });
       }
 
+      // ---- 8. CERTIFICATIONS ----
+      if (resumeData.certifications.length > 0) {
+        sections.push(createSectionHeading('Certifications'));
+        resumeData.certifications.forEach(cert => {
+          const certDate = cert.date ? formatDate(cert.date) : '';
+          sections.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: cert.name || 'Certification', bold: true, size: 22, font: "Calibri" }),
+                new TextRun({ text: certDate ? `\t${certDate}` : '', size: 20, font: "Calibri" }),
+              ],
+              tabStops: [{ type: "right" as const, position: 9000 }],
+              spacing: { before: 120 },
+            })
+          );
+          if (cert.issuer) {
+            sections.push(createPara(cert.issuer, { italic: true, size: 20 }));
+          }
+        });
+      }
+
+      // BUILD & SAVE
       const doc = new Document({
         sections: [{
           properties: {},
-          children: sections
-        }]
+          children: sections,
+        }],
       });
 
       const blob = await Packer.toBlob(doc);
-      saveAs(blob, `${resumeData.contact.fullName.replace(/\s+/g, '_')}_Resume.docx`);
+      const fileName = (resumeData.contact.fullName || 'Resume').replace(/\s+/g, '_');
+      saveAs(blob, `${fileName}_Resume.docx`);
 
     } catch (error) {
       console.error('DOCX generation failed:', error);
@@ -1029,10 +1083,10 @@ export default function ResumeBuilder() {
           <div className="flex flex-wrap gap-2 mb-4">
             {aiAnalysis.transferableSkills.map(skill => (
               <span
-                key={skill}
+                key={typeof skill === 'string' ? skill : JSON.stringify(skill)}
                 className="px-3 py-1 bg-white border border-emerald-200 rounded-full text-sm text-emerald-700"
               >
-                {skill}
+                {typeof skill === 'string' ? skill : (skill as any)?.original || (skill as any)?.fieldServiceEquivalent || ''}
               </span>
             ))}
           </div>
@@ -1047,7 +1101,7 @@ export default function ResumeBuilder() {
                   <div key={i} className="flex items-center gap-2 text-sm">
                     <span className="text-slate-600">{mapping.original}</span>
                     <ChevronRight className="w-4 h-4 text-emerald-500" />
-                    <span className="font-medium text-emerald-700">{mapping.fieldServices}</span>
+                    <span className="font-medium text-emerald-700">{mapping.fieldServices || (mapping as any).industry_term}</span>
                   </div>
                 ))}
               </div>
@@ -1583,19 +1637,22 @@ export default function ResumeBuilder() {
             AI-Identified Transferable Skills
           </h3>
           <div className="flex flex-wrap gap-2">
-            {aiAnalysis.transferableSkills.map(skill => (
-              <button
-                key={skill}
-                onClick={() => toggleSkill(skill, 'skills')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition ${resumeData.skills.includes(skill)
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                  }`}
-              >
-                {resumeData.skills.includes(skill) && <Check className="w-3 h-3 inline mr-1" />}
-                {skill}
-              </button>
-            ))}
+            {aiAnalysis.transferableSkills.map((skill, idx) => {
+              const label = typeof skill === 'string' ? skill : (skill as any)?.fieldServiceEquivalent || (skill as any)?.original || '';
+              return (
+                <button
+                  key={idx}
+                  onClick={() => toggleSkill(label, 'skills')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${resumeData.skills.includes(label)
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                    }`}
+                >
+                  {resumeData.skills.includes(label) && <Check className="w-3 h-3 inline mr-1" />}
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -1749,14 +1806,15 @@ export default function ResumeBuilder() {
     </div>
   );
 
+  // ============================================================================
+  // PREVIEW STEP — fixed to show dates and descriptions
+  // ============================================================================
   const renderPreviewStep = () => {
-    // Template Styles
     const isModern = selectedTemplate === 'modern';
     const isMinimal = selectedTemplate === 'minimal';
 
-    // Fonts & Colors
     const fontFamily = isModern || isMinimal ? 'Helvetica, Arial, sans-serif' : 'Georgia, serif';
-    const primaryColor = isModern ? '#10b981' : '#000000'; // Emerald or Black
+    const primaryColor = isModern ? '#10b981' : '#000000';
     const headerClass = isModern
       ? "text-3xl font-bold text-emerald-600 mb-2 uppercase tracking-wide"
       : isMinimal
@@ -1848,7 +1906,7 @@ export default function ResumeBuilder() {
             {resumeData.targetRoles.length > 0 && (
               <div className="mb-8 text-center bg-slate-50 py-3 rounded-lg border border-slate-100">
                 <span className="font-semibold text-slate-700 mr-2">Targeting:</span>
-                <span className="text-slate-600">{resumeData.targetRoles.join(' • ')}</span>
+                <span className="text-slate-600">{resumeData.targetRoles.join(' \u2022 ')}</span>
               </div>
             )}
 
@@ -1869,7 +1927,7 @@ export default function ResumeBuilder() {
                   <div className="mb-3">
                     <span className="font-bold text-slate-800 mr-2">Skills:</span>
                     <span className="text-slate-700 leading-relaxed">
-                      {[...resumeData.fieldServicesSkills, ...resumeData.skills].join(' • ')}
+                      {[...resumeData.fieldServicesSkills, ...resumeData.skills].join(' \u2022 ')}
                     </span>
                   </div>
                 )}
@@ -1912,35 +1970,53 @@ export default function ResumeBuilder() {
               </div>
             )}
 
-            {/* Experience */}
+            {/* ============================================================ */}
+            {/* EXPERIENCE — FIXED: uses formatDate() and shows description  */}
+            {/* ============================================================ */}
             {resumeData.experience.length > 0 && (
               <div className="mb-8">
                 <h2 className={sectionTitleClass}>Professional Experience</h2>
                 <div className="space-y-6">
-                  {resumeData.experience.map(exp => (
-                    <div key={exp.id}>
-                      <div className="flex justify-between items-baseline mb-1">
-                        <h3 className="text-lg font-bold text-slate-900">{exp.company}</h3>
-                        <span className="text-sm font-medium text-slate-500 whitespace-nowrap ml-4">
-                          {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2 italic text-slate-600">
-                        <span>{exp.title}</span>
-                        <span className="text-sm">{exp.location}</span>
-                      </div>
+                  {resumeData.experience.map(exp => {
+                    const dateStart = formatDate(exp.startDate);
+                    const dateEnd = exp.current ? 'Present' : formatDate(exp.endDate);
+                    const dateRange = [dateStart, dateEnd].filter(Boolean).join(' \u2013 ');
 
-                      {exp.bullets && exp.bullets.length > 0 ? (
-                        <ul className="list-disc leading-relaxed text-slate-700 ml-4 space-y-1">
-                          {exp.bullets.map((bullet, i) => (
-                            bullet && <li key={i} className="pl-1">{bullet}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-slate-700 leading-relaxed">{exp.description}</p>
-                      )}
-                    </div>
-                  ))}
+                    return (
+                      <div key={exp.id}>
+                        <div className="flex justify-between items-baseline mb-1">
+                          <h3 className="text-lg font-bold text-slate-900">{exp.company}</h3>
+                          {dateRange && (
+                            <span className="text-sm font-medium text-slate-500 whitespace-nowrap ml-4">
+                              {dateRange}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center mb-2 italic text-slate-600">
+                          <span>{exp.title}</span>
+                          {exp.location && exp.location !== 'Not specified' && (
+                            <span className="text-sm">{exp.location}</span>
+                          )}
+                        </div>
+
+                        {/* Show description text */}
+                        {exp.description && (
+                          <p className="text-slate-700 leading-relaxed mb-2">{exp.description}</p>
+                        )}
+
+                        {/* Show bullets if they exist and are different from description */}
+                        {exp.bullets && exp.bullets.filter(b => b && b.trim() && b.trim() !== exp.description?.trim()).length > 0 && (
+                          <ul className="list-disc leading-relaxed text-slate-700 ml-4 space-y-1">
+                            {exp.bullets.map((bullet, i) => {
+                              if (!bullet || !bullet.trim()) return null;
+                              if (bullet.trim() === exp.description?.trim()) return null;
+                              return <li key={i} className="pl-1">{bullet}</li>;
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -2067,7 +2143,6 @@ export default function ResumeBuilder() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Autosave Indicator */}
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 {isSaving ? (
                   <>
@@ -2082,7 +2157,6 @@ export default function ResumeBuilder() {
                 ) : null}
               </div>
 
-              {/* Reset Button */}
               <button
                 onClick={() => setShowResetConfirm(true)}
                 className="px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition flex items-center gap-2"
