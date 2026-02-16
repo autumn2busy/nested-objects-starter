@@ -301,7 +301,7 @@ async function upsertJobs(jobs: any[]) {
   for (let i = 0; i < jobs.length; i += batchSize) {
     const batch = jobs.slice(i, i + batchSize);
     try {
-      const resp = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/jobs?on_conflict=dedup_hash`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
