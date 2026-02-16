@@ -30,6 +30,7 @@ export type Firm = {
     industry_focus: string | null
     is_published?: boolean | null
     rating: number | null
+    contractor_rating: number | null
     rating_count?: number | null
     verified_at?: string | null
     phone: string | null
@@ -230,9 +231,10 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                     <p className="text-slate-900">Rating</p>
                     <div className="mt-0.5 flex justify-end">
                         <StarRating
-                            rating={firm.rating || 0}
-                            count={firm.rating_count || 0}
-                            className={firm.rating ? "" : "opacity-60 grayscale"}
+                            rating={firm.contractor_rating || 0}
+                            count={firm.contractor_rating ? Math.round(firm.contractor_rating) : 0}
+                            showCount={!!firm.contractor_rating}
+                            className={firm.contractor_rating ? "" : "opacity-60 grayscale"}
                         />
                     </div>
                 </div>

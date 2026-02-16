@@ -35,6 +35,7 @@ type FirmRow = {
   email: string | null
   address: string | null
   rating: number | null
+  contractor_rating: number | null
   logo_url?: string | null
   compensation_structure?: string | null
   payment_frequency?: string | null
@@ -895,8 +896,16 @@ export default async function FirmDetailPage({
                 gap: '0.3rem',
               }}
             >
-              {typeof firm.rating === 'number' && (
-                <li>Inspector rating. {firm.rating.toFixed(1)} out of 5</li>
+              {typeof firm.contractor_rating === 'number' && firm.contractor_rating > 0 && (
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  Inspector rating.
+                  <span style={{ color: '#f59e0b', letterSpacing: '1px', fontSize: '1rem' }}>
+                    {'★'.repeat(Math.round(firm.contractor_rating))}
+                    {'☆'.repeat(5 - Math.round(firm.contractor_rating))}
+                  </span>
+                  <strong>{firm.contractor_rating.toFixed(1)}</strong>
+                  <span style={{ color: '#9ca3af' }}>out of 5</span>
+                </li>
               )}
               {firm.bbb_status && <li>BBB status. {firm.bbb_status}</li>}
               {firm.industry_recognition && (
