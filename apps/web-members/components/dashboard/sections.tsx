@@ -241,9 +241,9 @@ export function AIConciergeSection() {
       <div className="rounded-xl border border-brand-mist bg-brand-sand p-4">
         <p className="mb-3 text-sm text-brand-slate data-[theme=dark]:text-white">Try asking:</p>
         <ul className="space-y-2 text-sm">
-          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">"What inspections pay the most in my area?"</li>
-          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">"Help me write a follow-up email to a firm"</li>
-          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">"What certifications should I get next?"</li>
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;What inspections pay the most in my area?&rdquo;</li>
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;Help me write a follow-up email to a firm&rdquo;</li>
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;What certifications should I get next?&rdquo;</li>
         </ul>
       </div>
     </DashboardSectionCard>
