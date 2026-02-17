@@ -565,7 +565,14 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
 function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: boolean; refresh: () => void }) {
     const [addingJob, setAddingJob] = useState(false)
     const [updatingId, setUpdatingId] = useState<string | null>(null)
-    const [newJob, setNewJob] = useState({ company: '', title: '', status: 'applied' })
+    const [newJob, setNewJob] = useState({ 
+        company: '', 
+        title: '', 
+        location: '',
+        pay: '',
+        source_url: '',
+        status: 'interested' 
+    })
     const [showRejected, setShowRejected] = useState(false)
 
     const columns = [
@@ -616,7 +623,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                 body: JSON.stringify(newJob),
             })
             setAddingJob(false)
-            setNewJob({ company: '', title: '', status: 'applied' })
+            setNewJob({ company: '', title: '', location: '', pay: '', source_url: '', status: 'interested' })
             refresh()
         } catch (error) {
             console.error('Failed to add job', error)
@@ -643,19 +650,77 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
         <div className="space-y-6">
             <div className="flex justify-end">
                 {addingJob ? (
-                    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-2">
-                        <Input placeholder="Company" className="w-40" value={newJob.company} onChange={e => setNewJob({ ...newJob, company: e.target.value })} required />
-                        <Input placeholder="Job Title" className="w-40" value={newJob.title} onChange={e => setNewJob({ ...newJob, title: e.target.value })} required />
-                        <Select value={newJob.status} onChange={e => setNewJob({ ...newJob, status: e.target.value })} className="w-32">
-                            <option value="interested">Interested</option>
-                            <option value="applied">Applied</option>
-                            <option value="interview">Interview</option>
-                            <option value="offer">Offer</option>
-                        </Select>
-                        <Button size="sm" disabled={updatingId === 'new'} onClick={handleAddJob}>
-                            {updatingId === 'new' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setAddingJob(false)}>Cancel</Button>
+                    <div className="w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-slate-900">Add Job to Pipeline</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setAddingJob(false)}>
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Company *</label>
+                                <Input 
+                                    placeholder="e.g. National Field Reps" 
+                                    value={newJob.company} 
+                                    onChange={e => setNewJob({ ...newJob, company: e.target.value })} 
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Job Title *</label>
+                                <Input 
+                                    placeholder="e.g. Property Inspector" 
+                                    value={newJob.title} 
+                                    onChange={e => setNewJob({ ...newJob, title: e.target.value })} 
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Location</label>
+                                <Input 
+                                    placeholder="e.g. Atlanta, GA" 
+                                    value={newJob.location} 
+                                    onChange={e => setNewJob({ ...newJob, location: e.target.value })} 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Pay</label>
+                                <Input 
+                                    placeholder="e.g. $45/inspection" 
+                                    value={newJob.pay} 
+                                    onChange={e => setNewJob({ ...newJob, pay: e.target.value })} 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Job Posting URL</label>
+                                <Input 
+                                    placeholder="https://..." 
+                                    type="url"
+                                    value={newJob.source_url} 
+                                    onChange={e => setNewJob({ ...newJob, source_url: e.target.value })} 
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Status</label>
+                                <Select value={newJob.status} onChange={e => setNewJob({ ...newJob, status: e.target.value })} className="w-full">
+                                    <option value="interested">Interested</option>
+                                    <option value="applied">Applied</option>
+                                    <option value="interview">Interview</option>
+                                    <option value="offer">Offer</option>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
+                            <Button variant="ghost" onClick={() => setAddingJob(false)}>Cancel</Button>
+                            <Button 
+                                disabled={updatingId === 'new' || !newJob.company.trim() || !newJob.title.trim()} 
+                                onClick={handleAddJob}
+                            >
+                                {updatingId === 'new' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                                Add to Pipeline
+                            </Button>
+                        </div>
                     </div>
                 ) : (
                     <Button onClick={() => setAddingJob(true)} variant="secondary" className="gap-2">
