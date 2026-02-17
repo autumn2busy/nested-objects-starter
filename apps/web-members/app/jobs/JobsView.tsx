@@ -40,6 +40,7 @@ type TrackerJob = {
     company: string
     location: string
     pay: string | null
+    source_url: string | null
     status: 'interested' | 'applied' | 'interview' | 'offer' | 'rejected'
     notes: string | null
     updated_at: string
@@ -559,7 +560,7 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
 }
 
 // ============================================
-// TRACKER VIEW — unchanged from original
+// TRACKER VIEW — fixed with PATCH and source_url link
 // ============================================
 function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: boolean; refresh: () => void }) {
     const [addingJob, setAddingJob] = useState(false)
@@ -577,7 +578,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
         setUpdatingId(jobId)
         try {
             await fetch(`/api/member-jobs/${jobId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
             })
@@ -680,11 +681,29 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                                             )}
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{job.company}</div>
-                                                <button onClick={() => handleDelete(job.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500" title="Delete">
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    {job.source_url && (
+                                                        <a
+                                                            href={job.source_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-brand-copper"
+                                                            title="View original posting"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                        </a>
+                                                    )}
+                                                    <button onClick={() => handleDelete(job.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500" title="Delete">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="text-sm font-bold text-slate-900 leading-tight mb-3">{job.title}</div>
+                                            {job.location && (
+                                                <div className="text-xs text-slate-500 flex items-center gap-1 mb-2">
+                                                    <MapPin className="w-3 h-3" /> {job.location}
+                                                </div>
+                                            )}
                                             <div className="pt-2 border-t border-slate-50">
                                                 <Select value={job.status} onChange={(e) => handleStatusChange(job.id, e.target.value)} className="w-full text-xs h-8">
                                                     <option value="interested">Move to: Interested</option>
