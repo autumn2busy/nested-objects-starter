@@ -4,6 +4,14 @@ import { createServiceRoleClient } from '@/lib/supabase-server'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+// Verticals to exclude from the job board (not field services)
+const EXCLUDED_VERTICALS = [
+  'AI & Data Quality Services',
+  'Software Engineering',
+  'Data Science',
+  // Add more as needed
+]
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -24,6 +32,11 @@ export async function GET(request: Request) {
       .order('posted_date', { ascending: false })
       .range(offset, offset + limit - 1)
 
+    // Exclude non-field-services verticals
+    for (const excludedVertical of EXCLUDED_VERTICALS) {
+      query = query.neq('service_vertical', excludedVertical)
+    }
+
     // Filters
     if (search) {
       query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`)
@@ -43,6 +56,7 @@ export async function GET(request: Request) {
     }
 
     // Get distinct verticals and states for filter dropdowns
+    // Also exclude non-field-services verticals from the dropdown
     const { data: verticals } = await supabase
       .from('jobs')
       .select('service_vertical')
@@ -57,8 +71,11 @@ export async function GET(request: Request) {
       .not('state', 'is', null)
       .order('state')
 
-    // Deduplicate
-    const uniqueVerticals = [...new Set((verticals || []).map(v => v.service_vertical))].filter(Boolean)
+    // Deduplicate and filter out excluded verticals
+    const uniqueVerticals = [...new Set((verticals || []).map(v => v.service_vertical))]
+      .filter(Boolean)
+      .filter(v => !EXCLUDED_VERTICALS.includes(v))
+    
     const uniqueStates = [...new Set((states || []).map(s => s.state))].filter(Boolean)
 
     return NextResponse.json({
