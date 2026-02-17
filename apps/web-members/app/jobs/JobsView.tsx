@@ -566,6 +566,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
     const [addingJob, setAddingJob] = useState(false)
     const [updatingId, setUpdatingId] = useState<string | null>(null)
     const [newJob, setNewJob] = useState({ company: '', title: '', status: 'applied' })
+    const [showRejected, setShowRejected] = useState(false)
 
     const columns = [
         { id: 'interested', label: 'Interested', color: 'bg-blue-50' },
@@ -573,6 +574,8 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
         { id: 'interview', label: 'Interview', color: 'bg-purple-50' },
         { id: 'offer', label: 'Offer', color: 'bg-emerald-50' },
     ] as const
+
+    const rejectedJobs = jobs.filter(j => j.status === 'rejected')
 
     const handleStatusChange = async (jobId: string, newStatus: string) => {
         setUpdatingId(jobId)
@@ -730,6 +733,68 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                     })}
                 </div>
             </div>
+
+            {/* Rejected Jobs Section */}
+            {rejectedJobs.length > 0 && (
+                <div className="border border-slate-200 rounded-lg bg-white overflow-hidden">
+                    <button
+                        onClick={() => setShowRejected(!showRejected)}
+                        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-400" />
+                            <span className="font-semibold text-slate-700">Rejected</span>
+                            <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                                {rejectedJobs.length}
+                            </span>
+                        </div>
+                        <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${showRejected ? 'rotate-90' : ''}`} />
+                    </button>
+                    
+                    {showRejected && (
+                        <div className="border-t border-slate-100 p-4 bg-slate-50/50">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                {rejectedJobs.map(job => (
+                                    <div key={job.id} className={`bg-white p-3 rounded-lg border border-slate-200 shadow-sm group relative ${updatingId === job.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                                        {updatingId === job.id && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+                                                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{job.company}</div>
+                                            <div className="flex items-center gap-1">
+                                                {job.source_url && (
+                                                    <a
+                                                        href={job.source_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-brand-copper"
+                                                        title="View original posting"
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5" />
+                                                    </a>
+                                                )}
+                                                <button onClick={() => handleDelete(job.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500" title="Delete">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-sm font-bold text-slate-900 leading-tight mb-2">{job.title}</div>
+                                        <Select value={job.status} onChange={(e) => handleStatusChange(job.id, e.target.value)} className="w-full text-xs h-8">
+                                            <option value="interested">Move to: Interested</option>
+                                            <option value="applied">Move to: Applied</option>
+                                            <option value="interview">Move to: Interview</option>
+                                            <option value="offer">Move to: Offer</option>
+                                            <option value="rejected">Keep Rejected</option>
+                                        </Select>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
