@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ReactNode, useEffect, useState } from 'react'
 
 import { useDashboardLayout } from './dashboard-layout-context'
-import type { MemberJob } from '@/types/member-jobs'
+import type { MemberJob, MemberJobStatus } from '@/types/member-jobs'
 
 interface DashboardSectionCardProps {
   title: string
@@ -134,6 +134,9 @@ const endOfWeek = (date = new Date()) => {
   return end
 }
 
+// Terminal statuses = job is no longer active in the pipeline
+const TERMINAL_STATUSES: MemberJobStatus[] = ['accepted', 'rejected', 'withdrawn']
+
 export function JobTrackerSection() {
   const [loading, setLoading] = useState(true)
   const [activeJobs, setActiveJobs] = useState(0)
@@ -156,7 +159,9 @@ export function JobTrackerSection() {
         }
 
         const jobs: MemberJob[] = payload.jobs ?? []
-        setActiveJobs(jobs.filter((job) => job.status !== 'closed').length)
+        
+        // Active = not in a terminal state
+        setActiveJobs(jobs.filter((job) => !TERMINAL_STATUSES.includes(job.status)).length)
         setOffers(jobs.filter((job) => job.status === 'offer').length)
         setAddedThisWeek(
           jobs.filter((job) => {
@@ -202,19 +207,19 @@ export function JobTrackerSection() {
             </div>
             <span className="text-xs font-semibold text-brand-copper">Open or in progress</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-white px-4 py-3">
+          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Offers</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Offers received</p>
               <p className="text-xl font-semibold text-brand-slate">{offers}</p>
             </div>
-            <span className="text-xs text-brand-steel">Refreshed on load</span>
+            <span className="text-xs font-semibold text-brand-copper">Pending decision</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-white px-4 py-3">
+          <div className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
             <div>
               <p className="text-xs uppercase tracking-[0.12em] text-brand-steel">Added this week</p>
               <p className="text-xl font-semibold text-brand-slate">{addedThisWeek}</p>
             </div>
-            <span className="text-xs text-brand-steel">Newly saved roles</span>
+            <span className="text-xs font-semibold text-brand-copper">New opportunities</span>
           </div>
         </div>
       )}
@@ -222,91 +227,58 @@ export function JobTrackerSection() {
   )
 }
 
-export function OnlineTrainingSection() {
-  const tabs = ['Essentials', 'Safety', 'Tech'] as const
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Essentials')
-
-  const lessons: Record<(typeof tabs)[number], { title: string; duration: string; status: 'In progress' | 'Not started' | 'Complete' }[]> = {
-    Essentials: [
-      { title: 'Scoping a residential inspection', duration: '18 min', status: 'In progress' },
-      { title: 'Writing a crisp summary', duration: '11 min', status: 'Complete' },
-      { title: 'Client-ready photos', duration: '9 min', status: 'Not started' },
-    ],
-    Safety: [
-      { title: 'PPE checklist for every visit', duration: '8 min', status: 'In progress' },
-      { title: 'Weather playbooks', duration: '12 min', status: 'Not started' },
-      { title: 'Equipment care', duration: '7 min', status: 'Not started' },
-    ],
-    Tech: [
-      { title: 'Field app tour', duration: '15 min', status: 'In progress' },
-      { title: 'Photo automation', duration: '10 min', status: 'Complete' },
-      { title: 'Upload speeds playbook', duration: '6 min', status: 'Not started' },
-    ],
-  }
-
+export function AIConciergeSection() {
   return (
     <DashboardSectionCard
-      title="Online training"
-      subtitle="Pick a lane and finish your next certification"
+      title="AI concierge"
+      subtitle="Ask anything about your business"
       actions={
-        <Link href="/challenges" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
-          Open training library
+        <Link href="/tools/ai-concierge" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+          Open chat
         </Link>
       }
     >
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`rounded-full px-3 py-2 text-xs font-semibold transition ${activeTab === tab ? 'bg-brand-copper text-white' : 'border border-brand-mist bg-white text-brand-slate data-[theme=dark]:text-white hover:border-brand-copper hover:text-brand-copper'}`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="rounded-xl border border-brand-mist bg-brand-sand p-4">
+        <p className="mb-3 text-sm text-brand-slate data-[theme=dark]:text-white">Try asking:</p>
+        <ul className="space-y-2 text-sm">
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;What inspections pay the most in my area?&rdquo;</li>
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;Help me write a follow-up email to a firm&rdquo;</li>
+          <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;What certifications should I get next?&rdquo;</li>
+        </ul>
       </div>
-      <ul className="space-y-2">
-        {lessons[activeTab].map((lesson) => (
-          <li key={lesson.title} className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold text-brand-slate data-[theme=dark]:text-white">{lesson.title}</p>
-              <p className="text-xs text-brand-steel data-[theme=dark]:text-brand-mist">{lesson.duration}</p>
-            </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{lesson.status}</span>
-          </li>
-        ))}
-      </ul>
     </DashboardSectionCard>
   )
 }
 
-export function BlogManagementSection() {
-  const posts = [
-    { title: 'How to prep for same-day inspections', status: 'Draft', updated: 'Today' },
-    { title: 'Weekly recap: client wins', status: 'Scheduled', updated: 'Tomorrow 8:00am' },
-    { title: 'Photo kit we use on site', status: 'Published', updated: 'Oct 18' },
+export function TrainingProgressSection() {
+  const courses = [
+    { name: 'Property Preservation 101', progress: 100, status: 'Completed' },
+    { name: 'Interior Inspection Mastery', progress: 65, status: 'In progress' },
+    { name: 'Loss Draft Fundamentals', progress: 0, status: 'Not started' },
   ]
 
   return (
     <DashboardSectionCard
-      title="Blog management"
-      subtitle="Ship updates and resources to prospects"
+      title="Training progress"
+      subtitle="Your certification journey"
       actions={
-        <Link href="/blog" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
-          New post
+        <Link href="/training" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+          Browse courses
         </Link>
       }
     >
-      <ul className="space-y-2 text-sm">
-        {posts.map((post) => (
-          <li key={post.title} className="rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-brand-slate data-[theme=dark]:text-white">{post.title}</p>
-                <p className="text-xs text-brand-steel data-[theme=dark]:text-brand-mist">Updated {post.updated}</p>
-              </div>
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{post.status}</span>
+      <ul className="space-y-3">
+        {courses.map((course) => (
+          <li key={course.name} className="rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-semibold text-brand-slate data-[theme=dark]:text-white">{course.name}</p>
+              <span className="text-xs font-semibold text-brand-copper">{course.status}</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-brand-mist">
+              <div
+                className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all"
+                style={{ width: `${course.progress}%` }}
+              />
             </div>
           </li>
         ))}
@@ -315,24 +287,56 @@ export function BlogManagementSection() {
   )
 }
 
-export function InspectorNewsSection() {
-  const articles = [
-    { title: 'Carriers raise CAT response rates', source: 'FieldWire', time: '1h ago' },
-    { title: 'Thermal imaging now preferred in 3 states', source: 'Claims Journal', time: '3h ago' },
-    { title: 'Storm track: Gulf watchlist', source: 'NO Desk', time: '6h ago' },
+export function FirmDirectorySection() {
+  const firms = [
+    { name: 'National Field Representatives', type: 'Property Preservation', status: 'Hiring' },
+    { name: 'Safeguard Properties', type: 'REO Services', status: 'Hiring' },
+    { name: 'Mortgage Contracting Services', type: 'Inspections', status: 'Waitlist' },
   ]
 
   return (
     <DashboardSectionCard
-      title="Inspector news feed"
-      subtitle="Stay briefed without leaving your queue"
+      title="Firm directory"
+      subtitle="Companies actively seeking vendors"
+      actions={
+        <Link href="/hiring-firms" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+          View all firms
+        </Link>
+      }
+    >
+      <ul className="space-y-2">
+        {firms.map((firm) => (
+          <li key={firm.name} className="flex items-center justify-between rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-brand-slate data-[theme=dark]:text-white">{firm.name}</p>
+              <p className="text-xs text-brand-steel data-[theme=dark]:text-brand-mist">{firm.type}</p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-copper">{firm.status}</span>
+          </li>
+        ))}
+      </ul>
+    </DashboardSectionCard>
+  )
+}
+
+export function IndustryNewsSection() {
+  const articles = [
+    { title: 'New HUD inspection guidelines released', source: 'HUD.gov', time: '2h ago' },
+    { title: 'Storm season prep: what vendors need to know', source: 'Industry Weekly', time: '5h ago' },
+    { title: 'Tech tools reshaping field services', source: 'PropTech Today', time: '1d ago' },
+  ]
+
+  return (
+    <DashboardSectionCard
+      title="Industry news"
+      subtitle="Stay current on field services"
       actions={
         <Link href="/inspector-resource-center" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
-          All intel
+          Read more
         </Link>
       }
     >
-      <ul className="space-y-3 text-sm">
+      <ul className="space-y-2">
         {articles.map((article) => (
           <li key={article.title} className="flex items-start justify-between gap-3 rounded-xl border border-brand-mist bg-brand-sand px-4 py-3">
             <div>
