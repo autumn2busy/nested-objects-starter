@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
-import { createClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 import type { MemberJobStatus } from '@/types/member-jobs'
 
 type MemberJobUpdatePayload = {
@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json().catch(() => ({}))
     const updates = normalizeUpdatePayload(body)
 
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('member_job_tracker')
       .update({ ...updates, user_id: userId })
@@ -108,7 +108,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Could not resolve user identity.' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     const { error } = await supabase
       .from('member_job_tracker')
       .delete()

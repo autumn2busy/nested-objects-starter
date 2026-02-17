@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { getCurrentUser, getOutsetaUserId, hasAccess } from '@/lib/auth-server'
-import { createClient } from '@/lib/supabase-server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 import type { MemberJobStatus } from '@/types/member-jobs'
 
 type MemberJobPayload = {
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Could not resolve user identity.' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     const { searchParams } = new URL(req.url)
     const statusFilter = searchParams.get('status')
 
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const payload = normalizePayload(body)
 
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     const { data, error } = await supabase
       .from('member_job_tracker')
       .insert({ user_id: userId, ...payload })
