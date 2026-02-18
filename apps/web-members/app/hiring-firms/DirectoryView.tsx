@@ -12,6 +12,7 @@ import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
+import { FirmLogo } from '@/components/ui/FirmLogo'
 import { US_STATES } from './constants'
 
 export type Firm = {
@@ -119,21 +120,6 @@ function FilterBar({
     )
 }
 
-function getAccentColor(seed: string): string {
-    let hash = 0
-    for (let i = 0; i < seed.length; i++) {
-        hash = seed.charCodeAt(i) + ((hash << 5) - hash)
-    }
-    const hue = Math.abs(hash) % 360
-    return `hsl(${hue}, 32%, 58%)`
-}
-
-function getInitials(name: string): string {
-    const parts = name.trim().split(/\s+/)
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-}
-
 type FirmCardProps = {
     firm: Firm
     isHovered: boolean
@@ -142,7 +128,6 @@ type FirmCardProps = {
 }
 
 function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
-    const accent = getAccentColor(firm.name)
     const payText =
         firm.pay_min != null || firm.pay_max != null
             ? [
@@ -187,28 +172,20 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
         >
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-wrap items-center gap-4 sm:flex-nowrap">
-                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden border border-slate-200 bg-slate-50 relative">
-                        {firm.logo_url ? (
-                            <Image
-                                src={firm.logo_url}
-                                alt={`${firm.name} logo`}
-                                fill
-                                sizes="56px"
-                                className="object-contain mix-blend-multiply p-1"
-                            />
-                        ) : (
-                            <span className="text-xs font-semibold tracking-[0.18em] text-slate-600">
-                                {getInitials(firm.name)}
-                            </span>
-                        )}
-                    </div>
+                    {/* Use FirmLogo component with fallback handling */}
+                    <FirmLogo
+                        name={firm.name}
+                        logoUrl={firm.logo_url}
+                        websiteUrl={firm.url}
+                        size="md"
+                        className="shrink-0"
+                    />
                     <div className="min-w-0 space-y-0.5 break-words">
                         <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
                         <div className="flex items-center gap-2">
                             {firm.verified_at ? (
                                 <VerifiedBadge date={firm.verified_at} />
                             ) : (
-                                // Fallback "AI Verified" for legacy data if needed, or remove completely
                                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                     <BadgeCheck className="w-3 h-3" />
                                     <span>Directory Listed</span>
@@ -259,7 +236,7 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
             <Link
                 href={`/firms/${firm.slug ?? firm.id}`}
-                className="mt-4 border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
+                className="mt-4 border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white text-center block"
             >
                 VIEW PROFILE
             </Link>
