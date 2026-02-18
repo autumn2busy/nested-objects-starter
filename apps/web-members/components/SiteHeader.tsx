@@ -3,7 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
+import { Camera, Loader2 } from 'lucide-react'
 
 import { useAuth } from './auth-provider'
 import { useProfile } from '@/lib/use-profile'
@@ -17,9 +18,8 @@ const navLinks = [
   { href: '/inspector-dashboard', label: 'Dashboard' },
   { href: '/hiring-firms', label: 'Directory' },
   { href: '/jobs', label: 'Jobs' },
-  { href: '/challenges', label: 'Training' },
-  { href: '/tools', label: 'AI tools' },
-  { href: '/inspector-resource-center', label: 'Resources' },
+  { href: '/training', label: 'Training' },
+  { href: '/tools', label: 'Resources' },
   { href: '/membership-pricing', label: 'Membership' },
   { href: '/about-us', label: 'About' },
   { href: '/contact-us', label: 'Contact' },
@@ -36,8 +36,12 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     planUid,
     profileDisplayName,
     profileAvatarUrl,
+    updateProfileAvatarUrl,
   } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
@@ -99,6 +103,56 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     [isAuthenticated],
   )
 
+  // Handle avatar upload
+  const handleAvatarClick = () => {
+    avatarInputRef.current?.click()
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB')
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed')
+      return
+    }
+
+    setIsUploadingAvatar(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Upload failed')
+      }
+
+      if (data.url) {
+        updateProfileAvatarUrl(data.url)
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to upload avatar')
+    } finally {
+      setIsUploadingAvatar(false)
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = ''
+      }
+    }
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/85 text-text-primary backdrop-blur-md shadow-sm">
       <div className={containerClass + ' flex items-center justify-between py-3'}>
@@ -148,26 +202,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
             >
               {visibleNavLinks.map((link) => {
-                if (link.label === 'Profile') {
-                  return (
-                    <button
-                      key={link.href}
-                      type="button"
-                      onClick={() => {
-                        setIsNavOpen(false)
-                          ; (window as any).Outseta?.profile?.open()
-                      }}
-                      className={buttonVariants({
-                        variant: 'ghost',
-                        size: 'sm',
-                        shape: 'rounded',
-                        className: 'w-full justify-start md:w-auto md:justify-center',
-                      })}
-                    >
-                      {link.label}
-                    </button>
-                  )
-                }
+                // Profile now links to /profile page instead of Outseta modal
                 return (
                   <Link
                     key={link.href}
@@ -193,19 +228,52 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
             <span className="text-xs text-text-secondary">Checking your hub…</span>
           ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
+              {/* Hidden file input for avatar upload */}
+              <input
+                type="file"
+                ref={avatarInputRef}
+                onChange={handleAvatarChange}
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+              />
+
               <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/90 px-3 py-2 shadow-brand-card">
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt={displayName}
-                    className="h-10 w-10 rounded-full object-cover shadow-sm"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
-                    {initials}
-                  </div>
-                )}
+                {/* Clickable Avatar */}
+                <button
+                  type="button"
+                  onClick={handleAvatarClick}
+                  disabled={isUploadingAvatar}
+                  className="relative group"
+                  title="Click to change profile picture"
+                >
+                  {isUploadingAvatar ? (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15">
+                      <Loader2 className="w-5 h-5 animate-spin text-brand-copper" />
+                    </div>
+                  ) : avatarUrl ? (
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        className="h-10 w-10 rounded-full object-cover shadow-sm"
+                      />
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
+                      {initials}
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+
                 <div className="hidden flex-col text-left text-xs sm:flex">
                   <span className="font-semibold text-text-primary">
                     {profileDisplayName ?? displayName}

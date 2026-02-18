@@ -1,5 +1,756 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { 
+  User, Mail, Phone, MapPin, Briefcase, Shield, Award, 
+  CheckCircle2, XCircle, Clock, ChevronRight, ExternalLink,
+  Camera, Save, Loader2, AlertCircle, Star, TrendingUp,
+  GraduationCap, FileCheck, Calendar, Activity
+} from 'lucide-react'
+
+import { useAuth } from '@/components/auth-provider'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import { Card } from '@/components/ui/card'
+import { Gate } from '@/components/Gate'
+import { AvatarUpload } from '@/components/profile/AvatarUpload'
+
+// --- Types ---
+
+type ProfileData = {
+  id: string
+  user_email: string
+  full_name: string | null
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  phone: string | null
+  avatar_url: string | null
+  headline: string | null
+  bio: string | null
+  city: string | null
+  state: string | null
+  service_areas: string[] | null
+  primary_services: string | null
+  experience_level: string | null
+  tools_used: string[] | null
+  preferred_job_types: string[] | null
+  max_travel_distance: number | null
+  // Trust score fields
+  trust_score: number
+  trust_tier: string
+  trust_score_breakdown: {
+    background_check?: number
+    training?: number
+    profile_completeness?: number
+    identity?: number
+    tenure?: number
+    inspections?: number
+  } | null
+  background_check_status: string
+  background_check_verified_at: string | null
+  training_modules_completed: number
+  training_modules_total: number
+  inspections_completed: number
+  certifications: { name: string; verified: boolean; uploaded_at: string }[] | null
+  identity_verified: boolean
+  phone_verified: boolean
+  email_verified: boolean
+  verified_at: string | null
+  created_at: string
+  subscription_tier: string | null
+  subscription_status: string | null
+}
+
+const US_STATES = [
+  { code: '', label: 'Select state' },
+  { code: 'AL', label: 'Alabama' },
+  { code: 'AK', label: 'Alaska' },
+  { code: 'AZ', label: 'Arizona' },
+  { code: 'AR', label: 'Arkansas' },
+  { code: 'CA', label: 'California' },
+  { code: 'CO', label: 'Colorado' },
+  { code: 'CT', label: 'Connecticut' },
+  { code: 'DE', label: 'Delaware' },
+  { code: 'FL', label: 'Florida' },
+  { code: 'GA', label: 'Georgia' },
+  { code: 'HI', label: 'Hawaii' },
+  { code: 'ID', label: 'Idaho' },
+  { code: 'IL', label: 'Illinois' },
+  { code: 'IN', label: 'Indiana' },
+  { code: 'IA', label: 'Iowa' },
+  { code: 'KS', label: 'Kansas' },
+  { code: 'KY', label: 'Kentucky' },
+  { code: 'LA', label: 'Louisiana' },
+  { code: 'ME', label: 'Maine' },
+  { code: 'MD', label: 'Maryland' },
+  { code: 'MA', label: 'Massachusetts' },
+  { code: 'MI', label: 'Michigan' },
+  { code: 'MN', label: 'Minnesota' },
+  { code: 'MS', label: 'Mississippi' },
+  { code: 'MO', label: 'Missouri' },
+  { code: 'MT', label: 'Montana' },
+  { code: 'NE', label: 'Nebraska' },
+  { code: 'NV', label: 'Nevada' },
+  { code: 'NH', label: 'New Hampshire' },
+  { code: 'NJ', label: 'New Jersey' },
+  { code: 'NM', label: 'New Mexico' },
+  { code: 'NY', label: 'New York' },
+  { code: 'NC', label: 'North Carolina' },
+  { code: 'ND', label: 'North Dakota' },
+  { code: 'OH', label: 'Ohio' },
+  { code: 'OK', label: 'Oklahoma' },
+  { code: 'OR', label: 'Oregon' },
+  { code: 'PA', label: 'Pennsylvania' },
+  { code: 'RI', label: 'Rhode Island' },
+  { code: 'SC', label: 'South Carolina' },
+  { code: 'SD', label: 'South Dakota' },
+  { code: 'TN', label: 'Tennessee' },
+  { code: 'TX', label: 'Texas' },
+  { code: 'UT', label: 'Utah' },
+  { code: 'VT', label: 'Vermont' },
+  { code: 'VA', label: 'Virginia' },
+  { code: 'WA', label: 'Washington' },
+  { code: 'WV', label: 'West Virginia' },
+  { code: 'WI', label: 'Wisconsin' },
+  { code: 'WY', label: 'Wyoming' },
+]
+
+const EXPERIENCE_LEVELS = [
+  { value: '', label: 'Select experience level' },
+  { value: 'new', label: 'New (0-1 years)' },
+  { value: 'intermediate', label: 'Intermediate (1-3 years)' },
+  { value: 'experienced', label: 'Experienced (3-5 years)' },
+  { value: 'expert', label: 'Expert (5+ years)' },
+]
+
+const SERVICE_TYPES = [
+  'Property Inspections',
+  'Occupancy Verification',
+  'Loss Draft Inspections',
+  'REO/Foreclosure',
+  'Insurance Claims',
+  'Notary Services',
+  'Appraisals',
+  'Property Preservation',
+  'Door Knocks',
+  'Skip Tracing',
+]
+
+// --- Helper Components ---
+
+function TrustScoreBadge({ score, tier }: { score: number; tier: string }) {
+  const tierColors = {
+    platinum: 'from-slate-400 to-slate-600 text-white',
+    gold: 'from-yellow-400 to-yellow-600 text-white',
+    silver: 'from-gray-300 to-gray-500 text-white',
+    bronze: 'from-orange-300 to-orange-500 text-white',
+  }
+  
+  const tierColor = tierColors[tier as keyof typeof tierColors] || tierColors.bronze
+
+  return (
+    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${tierColor} font-bold shadow-lg`}>
+      <Shield className="w-5 h-5" />
+      <span className="text-lg">{score}</span>
+      <span className="text-sm uppercase tracking-wide">{tier}</span>
+    </div>
+  )
+}
+
+function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['trust_score_breakdown']; total: number }) {
+  if (!breakdown) return null
+
+  const items = [
+    { key: 'background_check', label: 'Background Check', max: 25, icon: Shield },
+    { key: 'training', label: 'Training', max: 20, icon: GraduationCap },
+    { key: 'profile_completeness', label: 'Profile', max: 20, icon: User },
+    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck },
+    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar },
+    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity },
+  ]
+
+  return (
+    <div className="space-y-3">
+      {items.map(item => {
+        const value = breakdown[item.key as keyof typeof breakdown] || 0
+        const pct = (value / item.max) * 100
+        const Icon = item.icon
+        
+        return (
+          <div key={item.key} className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 text-slate-600">
+                <Icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </div>
+              <span className="font-semibold text-slate-900">{value}/{item.max}</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function VerificationStatus({ verified, label }: { verified: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      {verified ? (
+        <CheckCircle2 className="w-4 h-4 text-green-600" />
+      ) : (
+        <XCircle className="w-4 h-4 text-slate-300" />
+      )}
+      <span className={verified ? 'text-green-700' : 'text-slate-500'}>{label}</span>
+    </div>
+  )
+}
+
+function BackgroundCheckStatus({ status }: { status: string }) {
+  const statusConfig = {
+    verified: { color: 'bg-green-100 text-green-800', icon: CheckCircle2, label: 'Verified' },
+    pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Pending' },
+    failed: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Failed' },
+    not_started: { color: 'bg-slate-100 text-slate-600', icon: AlertCircle, label: 'Not Started' },
+  }
+  
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.not_started
+  const Icon = config.icon
+
+  return (
+    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${config.color}`}>
+      <Icon className="w-4 h-4" />
+      {config.label}
+    </div>
+  )
+}
+
+// --- Main Component ---
 
 export default function ProfilePage() {
-    redirect('/inspector-dashboard')
+  const { user, isLoading: authLoading, isAuthenticated, profileAvatarUrl } = useAuth()
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  // Editable form state
+  const [formData, setFormData] = useState({
+    headline: '',
+    bio: '',
+    city: '',
+    state: '',
+    primary_services: '',
+    experience_level: '',
+    service_areas: [] as string[],
+    max_travel_distance: '',
+  })
+
+  // Fetch profile
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setIsLoading(false)
+      return
+    }
+
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true)
+        const res = await fetch('/api/profile')
+        
+        if (!res.ok) {
+          throw new Error('Failed to load profile')
+        }
+        
+        const data = await res.json()
+        setProfile(data.profile)
+        
+        // Populate form with existing data
+        if (data.profile) {
+          setFormData({
+            headline: data.profile.headline || '',
+            bio: data.profile.bio || '',
+            city: data.profile.city || '',
+            state: data.profile.state || '',
+            primary_services: data.profile.primary_services || '',
+            experience_level: data.profile.experience_level || '',
+            service_areas: data.profile.service_areas || [],
+            max_travel_distance: data.profile.max_travel_distance?.toString() || '',
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err)
+        setError('Unable to load your profile. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [isAuthenticated, user])
+
+  // Save profile
+  const handleSave = async () => {
+    try {
+      setIsSaving(true)
+      setError(null)
+      setSuccess(null)
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          headline: formData.headline || null,
+          bio: formData.bio || null,
+          city: formData.city || null,
+          state: formData.state || null,
+          primary_services: formData.primary_services || null,
+          experience_level: formData.experience_level || null,
+          service_areas: formData.service_areas.length > 0 ? formData.service_areas : null,
+          max_travel_distance: formData.max_travel_distance ? parseInt(formData.max_travel_distance) : null,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to save profile')
+      }
+
+      const data = await res.json()
+      setProfile(data.profile)
+      setSuccess('Profile saved successfully!')
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000)
+    } catch (err) {
+      console.error('Error saving profile:', err)
+      setError('Unable to save your profile. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Toggle service area
+  const toggleServiceArea = (area: string) => {
+    setFormData(prev => ({
+      ...prev,
+      service_areas: prev.service_areas.includes(area)
+        ? prev.service_areas.filter(a => a !== area)
+        : [...prev.service_areas, area]
+    }))
+  }
+
+  // Open Outseta profile modal
+  const openOutsetaProfile = () => {
+    if (typeof window !== 'undefined' && (window as any).Outseta?.profile?.open) {
+      (window as any).Outseta.profile.open()
+    }
+  }
+
+  // Computed values
+  const displayName = profile?.display_name || profile?.full_name || profile?.first_name || 'Member'
+  const email = profile?.email || profile?.user_email || user?.email || ''
+  const phone = profile?.phone || ''
+  const memberSince = profile?.created_at 
+    ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : ''
+
+  if (authLoading || isLoading) {
+    return (
+      <main className="mx-auto max-w-5xl px-4 py-12">
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-copper" />
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <Gate feature="directory_access">
+      <main className="mx-auto max-w-5xl px-4 py-8 md:py-12">
+        {/* Header */}
+        <header className="mb-8">
+          <nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
+            <Link href="/inspector-dashboard" className="hover:text-brand-copper">Dashboard</Link>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-slate-900 font-medium">Profile</span>
+          </nav>
+          <h1 className="text-3xl font-bold text-slate-900">Your Vendor Profile</h1>
+          <p className="text-slate-600 mt-1">Manage your profile, track your trust score, and showcase your qualifications.</p>
+        </header>
+
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            {success}
+          </div>
+        )}
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left Column - Profile Card & Trust Score */}
+          <div className="space-y-6">
+            {/* Profile Card */}
+            <Card className="p-6 border-slate-200">
+              <div className="flex flex-col items-center text-center">
+                {/* Avatar */}
+                <div className="mb-4">
+                  <AvatarUpload size="lg" />
+                </div>
+                
+                <h2 className="text-xl font-bold text-slate-900">{displayName}</h2>
+                {formData.headline && (
+                  <p className="text-slate-600 mt-1">{formData.headline}</p>
+                )}
+                
+                {/* Location */}
+                {(formData.city || formData.state) && (
+                  <div className="flex items-center gap-1 text-sm text-slate-500 mt-2">
+                    <MapPin className="w-4 h-4" />
+                    {[formData.city, formData.state].filter(Boolean).join(', ')}
+                  </div>
+                )}
+
+                {/* Member Since */}
+                {memberSince && (
+                  <p className="text-xs text-slate-400 mt-2">Member since {memberSince}</p>
+                )}
+
+                {/* Trust Score Badge */}
+                {profile && (
+                  <div className="mt-4">
+                    <TrustScoreBadge 
+                      score={profile.trust_score || 0} 
+                      tier={profile.trust_tier || 'bronze'} 
+                    />
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Trust Score Breakdown */}
+            <Card className="p-6 border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-brand-copper" />
+                Trust Score Breakdown
+              </h3>
+              
+              {profile?.trust_score_breakdown ? (
+                <TrustScoreBreakdown 
+                  breakdown={profile.trust_score_breakdown} 
+                  total={profile.trust_score || 0} 
+                />
+              ) : (
+                <p className="text-sm text-slate-500">Complete your profile to build your trust score.</p>
+              )}
+
+              <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                <VerificationStatus verified={profile?.email_verified || false} label="Email verified" />
+                <VerificationStatus verified={profile?.phone_verified || false} label="Phone verified" />
+                <VerificationStatus verified={!!profile?.avatar_url || !!profileAvatarUrl} label="Profile photo" />
+                <VerificationStatus verified={profile?.identity_verified || false} label="Identity verified" />
+              </div>
+            </Card>
+
+            {/* Background Check */}
+            <Card className="p-6 border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-brand-copper" />
+                Background Check
+              </h3>
+              
+              <BackgroundCheckStatus status={profile?.background_check_status || 'not_started'} />
+              
+              {profile?.background_check_status !== 'verified' && (
+                <div className="mt-4">
+                  <p className="text-sm text-slate-600 mb-3">
+                    A verified background check adds 25 points to your trust score and unlocks premium job opportunities.
+                  </p>
+                  <Button variant="secondary" size="sm" className="w-full">
+                    Start Background Check
+                  </Button>
+                </div>
+              )}
+              
+              {profile?.background_check_verified_at && (
+                <p className="text-xs text-slate-500 mt-3">
+                  Verified on {new Date(profile.background_check_verified_at).toLocaleDateString()}
+                </p>
+              )}
+            </Card>
+          </div>
+
+          {/* Right Column - Editable Fields */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Account Info (Read-only, Outseta managed) */}
+            <Card className="p-6 border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                  <User className="w-5 h-5 text-brand-copper" />
+                  Account Information
+                </h3>
+                <button
+                  onClick={openOutsetaProfile}
+                  className="text-sm text-brand-copper hover:text-brand-copperDark flex items-center gap-1"
+                >
+                  Edit account <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</label>
+                  <p className="text-slate-900 mt-1">{displayName}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</label>
+                  <p className="text-slate-900 mt-1 flex items-center gap-2">
+                    {email}
+                    {profile?.email_verified && <CheckCircle2 className="w-4 h-4 text-green-600" />}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Phone</label>
+                  <p className="text-slate-900 mt-1">{phone || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Subscription</label>
+                  <p className="text-slate-900 mt-1 capitalize">{profile?.subscription_tier || 'Free'} Plan</p>
+                </div>
+              </div>
+              
+              <p className="text-xs text-slate-500 mt-4">
+                Name, email, phone, and billing are managed in your account settings.
+              </p>
+            </Card>
+
+            {/* Vendor Profile (Editable) */}
+            <Card className="p-6 border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-brand-copper" />
+                Vendor Profile
+              </h3>
+
+              <div className="space-y-4">
+                {/* Headline */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                    Professional Headline
+                  </label>
+                  <Input
+                    placeholder="e.g. Certified Property Inspector | 5+ Years Experience"
+                    value={formData.headline}
+                    onChange={e => setFormData(prev => ({ ...prev, headline: e.target.value }))}
+                    maxLength={120}
+                  />
+                  <p className="text-xs text-slate-400 mt-1">{formData.headline.length}/120 characters</p>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                    Bio
+                  </label>
+                  <textarea
+                    placeholder="Tell firms about your experience, certifications, and what makes you reliable..."
+                    value={formData.bio}
+                    onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                    rows={4}
+                    maxLength={500}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-copper focus:outline-none focus:ring-1 focus:ring-brand-copper"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">{formData.bio.length}/500 characters</p>
+                </div>
+
+                {/* Location */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                      City
+                    </label>
+                    <Input
+                      placeholder="e.g. Atlanta"
+                      value={formData.city}
+                      onChange={e => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                      State
+                    </label>
+                    <Select
+                      value={formData.state}
+                      onChange={e => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                      className="w-full"
+                    >
+                      {US_STATES.map(s => (
+                        <option key={s.code} value={s.code}>{s.label}</option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Experience Level */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                    Experience Level
+                  </label>
+                  <Select
+                    value={formData.experience_level}
+                    onChange={e => setFormData(prev => ({ ...prev, experience_level: e.target.value }))}
+                    className="w-full"
+                  >
+                    {EXPERIENCE_LEVELS.map(level => (
+                      <option key={level.value} value={level.value}>{level.label}</option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Primary Services */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                    Primary Services
+                  </label>
+                  <Input
+                    placeholder="e.g. Property Inspections, Occupancy Verification"
+                    value={formData.primary_services}
+                    onChange={e => setFormData(prev => ({ ...prev, primary_services: e.target.value }))}
+                  />
+                </div>
+
+                {/* Service Areas (Checkboxes) */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">
+                    Service Types You Offer
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {SERVICE_TYPES.map(service => (
+                      <button
+                        key={service}
+                        type="button"
+                        onClick={() => toggleServiceArea(service)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          formData.service_areas.includes(service)
+                            ? 'bg-brand-copper text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {service}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Travel Distance */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">
+                    Max Travel Distance (miles)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 50"
+                    value={formData.max_travel_distance}
+                    onChange={e => setFormData(prev => ({ ...prev, max_travel_distance: e.target.value }))}
+                    min={0}
+                    max={500}
+                  />
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+                <Button onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Profile
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+
+            {/* Training Progress */}
+            <Card className="p-6 border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-brand-copper" />
+                  Training Progress
+                </h3>
+                <Link href="/training" className="text-sm text-brand-copper hover:text-brand-copperDark">
+                  View courses →
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-600">Modules completed</span>
+                  <span className="font-semibold text-slate-900">
+                    {profile?.training_modules_completed || 0} / {profile?.training_modules_total || 5}
+                  </span>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all"
+                    style={{ 
+                      width: `${((profile?.training_modules_completed || 0) / (profile?.training_modules_total || 5)) * 100}%` 
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">
+                  Complete training modules to increase your trust score and unlock more opportunities.
+                </p>
+              </div>
+            </Card>
+
+            {/* Stats */}
+            <Card className="p-6 border-slate-200">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-brand-copper" />
+                Your Stats
+              </h3>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="text-center p-4 bg-slate-50 rounded-xl">
+                  <p className="text-3xl font-bold text-brand-copper">{profile?.inspections_completed || 0}</p>
+                  <p className="text-sm text-slate-600">Inspections Completed</p>
+                </div>
+                <div className="text-center p-4 bg-slate-50 rounded-xl">
+                  <p className="text-3xl font-bold text-brand-copper flex items-center justify-center gap-1">
+                    {profile?.rating || 0}
+                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  </p>
+                  <p className="text-sm text-slate-600">Average Rating</p>
+                </div>
+                <div className="text-center p-4 bg-slate-50 rounded-xl">
+                  <p className="text-3xl font-bold text-brand-copper">{profile?.rating_count || 0}</p>
+                  <p className="text-sm text-slate-600">Reviews</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </Gate>
+  )
 }
