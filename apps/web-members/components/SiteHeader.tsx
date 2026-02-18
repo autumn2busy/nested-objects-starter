@@ -37,6 +37,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
     profileDisplayName,
     profileAvatarUrl,
     updateProfileAvatarUrl,
+    accessToken,
   } = useAuth()
   const [isNavOpen, setIsNavOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
@@ -128,8 +129,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
       const formData = new FormData()
       formData.append('file', file)
 
+      const headers: HeadersInit = {}
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`
+      }
+
       const res = await fetch('/api/profile/avatar', {
         method: 'POST',
+        headers,
         body: formData,
       })
 
