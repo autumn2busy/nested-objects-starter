@@ -63,6 +63,8 @@ type ProfileData = {
   created_at: string
   subscription_tier: string | null
   subscription_status: string | null
+  rating: number | null
+  rating_count: number | null
 }
 
 const US_STATES = [
