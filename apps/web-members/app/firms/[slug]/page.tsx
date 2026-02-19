@@ -2,18 +2,25 @@ import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
+import {
+  MapPin, Phone, Mail, Globe, ExternalLink, Users,
+  DollarSign, Clock, FileText, ChevronRight, Star,
+  ShieldCheck, TrendingUp, CalendarDays
+} from 'lucide-react'
 import { FirmMap } from '@/components/FirmMap'
-import { generatePageMetadata, getLocalBusinessSchema } from '@/lib/seo'
+import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
+import { FirmDetailTabs } from './FirmDetailTabs'
 
-
-// Development SSL fix
+/* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 }
 
 export const revalidate = 3600
 
-type FirmRow = {
+/* ── Types ─────────────────────────────────────────────── */
+
+export type FirmRow = {
   id: string
   name: string
   slug: string | null
@@ -27,40 +34,47 @@ type FirmRow = {
   assignment_process: string | null
   specializations: string | null
   services: string | null
+  categories: string[] | string | null
   pay_range: string | null
   pay_min: number | null
   pay_max: number | null
   pay_type: string | null
+  compensation_structure: string | null
+  payment_frequency: string | null
+  job_volume: string | null
   phone: string | null
   email: string | null
   address: string | null
   rating: number | null
   contractor_rating: number | null
-  logo_url?: string | null
-  compensation_structure?: string | null
-  payment_frequency?: string | null
-  job_volume?: string | null
-  qualifications?: string | null
-  required_technology?: string | null
-  equipment_requirements?: string | null
-  equipment_provision?: string | null
-  training_provided?: string | null
-  onboarding_process?: string | null
-  bbb_status?: string | null
-  industry_recognition?: string | null
-  client_reviews?: string | null
-  latitude?: number | null
-  longitude?: number | null
+  logo_url: string | null
+  qualifications: string | null
+  required_technology: string | null
+  equipment_requirements: string | null
+  equipment_provision: string | null
+  training_provided: string | null
+  onboarding_process: string | null
+  bbb_status: string | null
+  industry_recognition: string | null
+  client_reviews: string | null
+  founded: string | null
+  social_links: string | null
+  recruiter_contact: string | null
+  latitude: number | null
+  longitude: number | null
+  vendor_verified: boolean | null
+  is_published: boolean | null
+  brand_primary: string | null
+  brand_secondary: string | null
 }
+
+/* ── Supabase helpers ──────────────────────────────────── */
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY
 
 function getSupabase() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase env vars')
-  }
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing Supabase env vars')
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
@@ -71,870 +85,360 @@ async function getFirmBySlug(slug: string): Promise<FirmRow | null> {
     .eq('slug', slug)
     .eq('is_published', true)
     .maybeSingle()
-
-  if (error) {
-    console.error('Error loading firm by slug', error)
-    return null
-  }
-
+  if (error) { console.error('Error loading firm by slug', error); return null }
   return data as FirmRow | null
 }
 
-function formatPay(firm: FirmRow): string | null {
+async function getSimilarFirms(firm: FirmRow): Promise<FirmRow[]> {
+  const { data } = await getSupabase()
+    .from('firms')
+    .select('id, name, slug, industry_focus, geographic_coverage, pay_min, pay_max, pay_type, logo_url, url, vendor_verified, contractor_rating')
+    .eq('is_published', true)
+    .neq('id', firm.id)
+    .limit(4)
+  return (data || []) as FirmRow[]
+}
+
+/* ── Formatting helpers ────────────────────────────────── */
+
+export function formatPay(firm: FirmRow): string | null {
   if (firm.pay_min && firm.pay_max) {
-    const min = Math.round(firm.pay_min)
-    const max = Math.round(firm.pay_max)
+    const min = Math.round(Number(firm.pay_min))
+    const max = Math.round(Number(firm.pay_max))
     const unit = firm.pay_type || '/inspection'
-    return `$${min.toLocaleString()} - $${max.toLocaleString()} ${unit}`
+    return `$${min} – $${max} ${unit}`
   }
   if (firm.pay_range) return firm.pay_range
   return null
 }
 
-function buildAddress(firm: FirmRow): string | null {
-  return firm.address || null
+export function parseCategories(cats: string[] | string | null): string[] {
+  if (!cats) return []
+  if (Array.isArray(cats)) return cats.filter(Boolean)
+  try { const p = JSON.parse(cats); if (Array.isArray(p)) return p.filter(Boolean) } catch { }
+  return cats.split(',').map((s: string) => s.trim()).filter(Boolean)
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}) {
+export function parseSocialLinks(social: string | null): string[] {
+  if (!social) return []
+  try { const p = JSON.parse(social); if (Array.isArray(p)) return p.filter(Boolean) } catch { }
+  return []
+}
+
+/* ── Metadata ──────────────────────────────────────────── */
+
+export async function generateMetadata({ params }: { params: { slug: string } }) {
   const firm = await getFirmBySlug(params.slug)
   if (!firm) return {}
+  const pay = formatPay(firm)
+  const desc = firm.description
+    ? firm.description.slice(0, 155).replace(/\n/g, ' ')
+    : `${firm.name} hiring profile — coverage: ${firm.geographic_coverage || 'National'}${pay ? `, pay: ${pay}` : ''}. Requirements, onboarding, and apply info.`
 
   return generatePageMetadata({
-    title: `${firm.name} | Hiring Firm Profile`,
-    description: firm.description || `Snapshot of ${firm.name}. Coverage: ${firm.geographic_coverage || 'National'}. Roles, pay, and vendor signup details.`,
+    title: `${firm.name} — Hiring Profile & Pay | Nested Objects`,
+    description: desc,
     path: `/firms/${firm.slug}`,
     type: 'profile',
-    image: firm.logo_url || undefined
+    image: firm.logo_url || undefined,
   })
 }
 
-export default async function FirmDetailPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+/* ── Page ──────────────────────────────────────────────── */
+
+export default async function FirmDetailPage({ params }: { params: { slug: string } }) {
   const firm = await getFirmBySlug(params.slug)
   if (!firm) notFound()
 
   const pay = formatPay(firm)
-  const fullAddress = buildAddress(firm)
+  const categories = parseCategories(firm.categories)
+  const socialLinks = parseSocialLinks(firm.social_links)
+  const hasCoordinates = firm.latitude != null && firm.longitude != null
+  const similarFirms = await getSimilarFirms(firm)
 
-  const latitude = firm.latitude ?? undefined
-  const longitude = firm.longitude ?? undefined
+  const contactHref =
+    firm.vendor_page_url ||
+    (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry — ${firm.name}`)}` : null) ||
+    (firm.phone ? `tel:${firm.phone}` : null)
 
-  // Generate LocalBusiness Schema
+  /* JSON-LD */
   const jsonLd = getLocalBusinessSchema({
     name: firm.name,
-    description: firm.description || '',
-    url: firm.url || '',
+    description: firm.description || `${firm.name} — field services hiring firm`,
+    url: firm.url || `${SITE_URL}/firms/${firm.slug}`,
     logo: firm.logo_url || '',
     telephone: firm.phone || '',
     email: firm.email || '',
-    address: {
-      streetAddress: firm.address || '',
-      addressLocality: '', // Parse if available, else empty
-      addressRegion: '',
-      postalCode: '',
-      addressCountry: 'US'
-    },
-    geo: (latitude && longitude) ? { latitude, longitude } : undefined,
+    address: firm.address || '',
+    geo: hasCoordinates ? { latitude: firm.latitude!, longitude: firm.longitude! } : undefined,
     areaServed: firm.geographic_coverage || undefined,
-    priceRange: formatPay(firm) || undefined
+    priceRange: pay || undefined,
   })
+  const breadcrumbLd = getBreadcrumbSchema([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Hiring Firms', url: `${SITE_URL}/hiring-firms` },
+    { name: firm.name, url: `${SITE_URL}/firms/${firm.slug}` },
+  ])
 
-  // ... rest of formatting logic
-  const contactHref =
-    firm.vendor_page_url ||
-    (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry for ${firm.name}`)}` : null) ||
-    (firm.phone ? `tel:${firm.phone}` : null)
+  /* Quick stats */
+  const quickStats = [
+    pay ? { icon: DollarSign, label: 'Pay range', value: pay } : null,
+    firm.payment_frequency ? { icon: Clock, label: 'Frequency', value: firm.payment_frequency } : null,
+    firm.geographic_coverage ? { icon: MapPin, label: 'Coverage', value: firm.geographic_coverage } : null,
+    firm.company_size ? { icon: Users, label: 'Size', value: firm.company_size } : null,
+    firm.job_volume ? { icon: TrendingUp, label: 'Volume', value: firm.job_volume } : null,
+    firm.founded ? { icon: CalendarDays, label: 'Founded', value: firm.founded } : null,
+  ].filter(Boolean) as { icon: any; label: string; value: string }[]
 
-  const hasCoordinates = !!(latitude && longitude)
-  const coordinateQuery = hasCoordinates ? `${latitude},${longitude}` : null
-
-  const googleMapsCoordinateUrl = coordinateQuery
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinateQuery)}`
-    : null
-  const googleMapsAddressUrl =
-    !coordinateQuery && fullAddress
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`
-      : null
+  /* Section flags */
+  const hasCompensation = !!(pay || firm.compensation_structure || firm.payment_frequency || firm.pay_type || firm.job_volume)
+  const hasRequirements = !!(firm.qualifications || firm.required_technology || firm.equipment_requirements || firm.equipment_provision || firm.training_provided || firm.onboarding_process)
+  const hasReputation = !!(firm.contractor_rating || firm.bbb_status || firm.industry_recognition || firm.client_reviews)
+  const hasContact = !!(firm.phone || firm.email || firm.address || firm.assignment_process)
 
   return (
-    <main
-      style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '1.75rem 1.25rem 3.5rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      <Script
-        id="firm-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <Script id="firm-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Script id="firm-bc-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 text-sm text-slate-500">
+        <Link href="/" className="transition hover:text-brand">Home</Link>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+        <Link href="/hiring-firms" className="transition hover:text-brand">Hiring firms</Link>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate font-medium text-text-primary">{firm.name}</span>
+      </nav>
 
-      {/* crumb and links */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          fontSize: '0.9rem',
-          color: '#6b7280',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Link href="/hiring-firms" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600 }}>
-            Field services directory
-          </Link>
-          <span style={{ color: '#9ca3af' }}>→</span>
-          <span style={{ color: '#6b7280' }}>{firm.name}</span>
-        </div>
+      {/* ═══ Hero card ═══ */}
+      <section className="mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm">
+        <div className="h-1.5 bg-gradient-to-r from-brand via-brand-copper to-amber-400" />
 
-        <Link
-          href="/membership-pricing"
-          style={{ color: '#6b7280', textDecoration: 'none' }}
-        >
-          Membership and pricing
-        </Link>
-      </div>
-
-      {/* Hero */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.3fr)',
-          gap: '1.1rem',
-          marginBottom: '1.6rem',
-          alignItems: 'stretch',
-        }}
-      >
-        <div
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.06))',
-            borderRadius: '16px',
-            padding: '1.35rem 1.35rem 1.2rem',
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.85rem',
-              flexWrap: 'wrap',
-            }}
-          >
-            {firm.logo_url ? (
-              <div
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  backgroundColor: '#f3f4f6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={firm.logo_url}
-                  alt={`${firm.name} logo`}
-                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                />
-              </div>
-            ) : (
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '999px',
-                  backgroundColor: '#1d4ed8',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                }}
-              >
-                {firm.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: '0.5rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <h1
-                  style={{
-                    fontSize: '1.85rem',
-                    fontWeight: 700,
-                    margin: 0,
-                  }}
-                >
-                  {firm.name}
-                </h1>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '0.5rem',
-                    marginBottom: '0.05rem',
-                  }}
-                >
-                  {firm.geographic_coverage && (
-                    <span
-                      style={{
-                        padding: '0.28rem 0.7rem',
-                        borderRadius: '999px',
-                        backgroundColor: '#eff6ff',
-                        color: '#1d4ed8',
-                        fontSize: '0.78rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Coverage. {firm.geographic_coverage}
-                    </span>
-                  )}
-
-                  {firm.company_size && (
-                    <span
-                      style={{
-                        padding: '0.28rem 0.7rem',
-                        borderRadius: '999px',
-                        backgroundColor: '#ecfdf5',
-                        color: '#047857',
-                        fontSize: '0.78rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Size. {firm.company_size}
-                    </span>
-                  )}
-
-                  {pay && (
-                    <span
-                      style={{
-                        padding: '0.28rem 0.7rem',
-                        borderRadius: '999px',
-                        backgroundColor: '#fef3c7',
-                        color: '#92400e',
-                        fontSize: '0.78rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Typical pay. {pay}
-                    </span>
-                  )}
-
-                  {firm.pay_type && (
-                    <span
-                      style={{
-                        padding: '0.28rem 0.7rem',
-                        borderRadius: '999px',
-                        backgroundColor: '#eef2ff',
-                        color: '#4338ca',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      Pay model. {firm.pay_type}
+        <div className="p-6 sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            {/* Identity */}
+            <div className="flex items-start gap-4 sm:gap-5">
+              <LogoBlock name={firm.name} logoUrl={firm.logo_url} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">{firm.name}</h1>
+                  {firm.vendor_verified && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Verified
                     </span>
                   )}
                 </div>
+                <p className="mt-1 text-sm text-text-muted">
+                  {firm.industry_focus || 'Field services & inspections'}
+                  {firm.company_type && <span> · {firm.company_type}</span>}
+                </p>
+
+                {firm.contractor_rating != null && firm.contractor_rating > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star key={i} className={`h-4 w-4 ${i <= Math.round(firm.contractor_rating!) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
+                      ))}
+                    </div>
+                    <span className="text-sm font-semibold text-amber-700">{firm.contractor_rating.toFixed(1)}</span>
+                    <span className="text-xs text-slate-400">contractor rating</span>
+                  </div>
+                )}
+
+                {categories.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {categories.map((cat) => (
+                      <span key={cat} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200/60">{cat}</span>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: '#6b7280',
-                  fontSize: '0.94rem',
-                }}
-              >
-                {firm.industry_focus || 'Field services and inspections'}
-              </p>
             </div>
-          </div>
 
-          {firm.description && (
-            <p
-              style={{
-                marginTop: '0.8rem',
-                marginBottom: 0,
-                fontSize: '0.95rem',
-                color: '#4b5563',
-                maxWidth: '46rem',
-              }}
-            >
-              {firm.description}
-            </p>
-          )}
-        </div>
-
-        {/* actions + map */}
-        <aside
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem 1.5rem 1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.05rem',
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Get hired by this firm
-            </h2>
-
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.6rem',
-              }}
-            >
+            {/* CTAs */}
+            <div className="flex shrink-0 flex-col gap-2.5 sm:flex-row lg:flex-col lg:items-end">
               {contactHref && (
                 <a
                   href={contactHref}
                   target={contactHref.startsWith('http') ? '_blank' : undefined}
                   rel={contactHref.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.85rem 1rem',
-                    borderRadius: '999px',
-                    border: 'none',
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    fontSize: '0.98rem',
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.18)',
-                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                 >
-                  Contact / Apply
+                  <FileText className="h-4 w-4" /> Apply / Contact
                 </a>
               )}
-
-              {firm.vendor_page_url && (
-                <a
-                  href={firm.vendor_page_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.7rem 1rem',
-                    borderRadius: '999px',
-                    border: 'none',
-                    backgroundColor: '#16a34a',
-                    color: 'white',
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Vendor signup portal
+              {firm.vendor_page_url && contactHref !== firm.vendor_page_url && (
+                <a href={firm.vendor_page_url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
+                  <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
                 </a>
               )}
-
               {firm.url && (
-                <a
-                  href={firm.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.65rem 1rem',
-                    borderRadius: '999px',
-                    border: '1px solid #d1d5db',
-                    backgroundColor: 'white',
-                    color: '#111827',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Visit company website
+                <a href={firm.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
+                  <Globe className="h-3.5 w-3.5" />
+                  {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return firm.url } })()}
                 </a>
               )}
             </div>
           </div>
 
-          <div
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.25rem 1.5rem',
-              fontSize: '0.85rem',
-              color: '#4b5563',
-            }}
-          >
-            <h3
-              style={{
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                marginTop: 0,
-                marginBottom: '0.6rem',
-              }}
-            >
-              Contact
-            </h3>
+          {firm.description && (
+            <p className="mt-5 max-w-3xl text-sm leading-relaxed text-text-secondary">{firm.description}</p>
+          )}
+        </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {fullAddress && <p style={{ margin: 0 }}>{fullAddress}</p>}
-              {firm.phone && <p style={{ margin: 0 }}>Phone. {firm.phone}</p>}
-              {firm.email && (
-                <p style={{ margin: 0 }}>
-                  Email.{' '}
-                  <a href={`mailto:${firm.email}`} style={{ color: '#3b82f6' }}>
-                    {firm.email}
-                  </a>
-                </p>
+        {/* Quick stats */}
+        {quickStats.length > 0 && (
+          <div className="border-t border-border-subtle bg-surface-muted px-6 py-4 sm:px-8">
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              {quickStats.map((stat, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <stat.icon className="h-4 w-4 text-brand/60" />
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{stat.label}</p>
+                    <p className="text-sm font-semibold text-text-primary">{stat.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ═══ Content grid ═══ */}
+      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+        {/* Main — tabs */}
+        <div className="min-w-0">
+          <FirmDetailTabs
+            firm={firm}
+            pay={pay}
+            hasCompensation={hasCompensation}
+            hasRequirements={hasRequirements}
+            hasReputation={hasReputation}
+            hasContact={hasContact}
+            hasCoordinates={hasCoordinates}
+            socialLinks={socialLinks}
+          />
+        </div>
+
+        {/* Sidebar */}
+        <aside className="flex flex-col gap-6">
+          {/* Map */}
+          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm">
+            <div className="border-b border-border-subtle px-5 py-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <MapPin className="h-4 w-4 text-brand" /> Service area
+              </h3>
+            </div>
+            <div className="h-56">
+              {hasCoordinates ? (
+                <FirmMap firms={[firm as any]} center={{ lat: firm.latitude!, lng: firm.longitude! }} zoom={10} className="h-full w-full" />
+              ) : firm.address ? (
+                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firm.address)}`} target="_blank" rel="noopener noreferrer"
+                  className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-500 transition hover:text-brand">
+                  <MapPin className="mb-2 h-6 w-6 text-slate-300" /> Open in Google Maps
+                </a>
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-400">
+                  <MapPin className="mb-2 h-6 w-6 text-slate-200" /> No location data yet
+                </div>
               )}
             </div>
-
-            {firm.assignment_process && (
-              <p style={{ marginTop: '0.8rem', marginBottom: 0 }}>
-                <strong>Assignment process.</strong>{' '}
-                {firm.assignment_process}
-              </p>
+            {firm.address && (
+              <div className="border-t border-border-subtle px-5 py-3">
+                <p className="text-xs text-slate-500">{firm.address}</p>
+              </div>
             )}
           </div>
 
-          <div
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '0.75rem',
-              backgroundColor: '#f9fafb',
-              minHeight: 200,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: '0.5rem',
-              }}
-            >
-              Service area map
-            </h3>
-
-            <div
-              style={{
-                borderRadius: '12px',
-                overflow: 'hidden',
-                border: '1px solid #e5e7eb',
-                height: 240,
-              }}
-            >
-              {hasCoordinates && latitude !== null && longitude !== null ? (
-                <FirmMap
-                  firms={[firm as any]}
-                  center={{ lat: latitude, lng: longitude }}
-                  zoom={12}
-                  className="h-full w-full"
-                />
-              ) : googleMapsCoordinateUrl ? (
-                <a
-                  href={googleMapsCoordinateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.8rem',
-                    color: '#374151',
-                    textDecoration: 'none',
-                    padding: '1rem',
-                    textAlign: 'center',
-                    backgroundColor: '#e5e7eb',
-                  }}
-                >
-                  Open this firm&apos;s location in Google Maps
-                </a>
-              ) : googleMapsAddressUrl ? (
-                <a
-                  href={googleMapsAddressUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.8rem',
-                    color: '#374151',
-                    textDecoration: 'none',
-                    padding: '1rem',
-                    textAlign: 'center',
-                    backgroundColor: '#e5e7eb',
-                  }}
-                >
-                  Open this firm&apos;s address in Google Maps
-                </a>
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.8rem',
-                    color: '#6b7280',
-                    padding: '1rem',
-                    textAlign: 'center',
-                    backgroundColor: '#e5e7eb',
-                  }}
-                >
-                  Map preview not available yet. Add coordinates or address details.
-                </div>
-              )}
+          {/* Contact card */}
+          {hasContact && (
+            <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <Phone className="h-4 w-4 text-brand" /> Contact info
+              </h3>
+              <div className="space-y-2 text-sm">
+                {firm.phone && (
+                  <a href={`tel:${firm.phone}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                    <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.phone}
+                  </a>
+                )}
+                {firm.email && (
+                  <a href={`mailto:${firm.email}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                    <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.email}
+                  </a>
+                )}
+                {firm.url && (
+                  <a href={firm.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                    <Globe className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return 'Website' } })()}
+                  </a>
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Pro tip */}
+          <div className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/30 p-5 shadow-sm">
+            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-amber-700">Pro tip for inspectors</p>
+            <p className="text-sm leading-relaxed text-amber-900/80">
+              Save this firm, collect 3–5 you&apos;re excited about, then batch your applications Sunday night so you hit their queue before Monday&apos;s hiring rush.
+            </p>
           </div>
+
+          {/* Similar firms */}
+          {similarFirms.length > 0 && (
+            <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-sm font-semibold text-text-primary">Similar firms hiring</h3>
+              <div className="space-y-3">
+                {similarFirms.slice(0, 3).map((f) => (
+                  <Link key={f.id} href={`/firms/${f.slug ?? f.id}`}
+                    className="group flex items-center gap-3 rounded-lg p-2 transition hover:bg-slate-50">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-500">
+                      {f.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-text-primary group-hover:text-brand">{f.name}</p>
+                      <p className="truncate text-xs text-slate-400">{f.industry_focus || 'Field services'}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-brand" />
+                  </Link>
+                ))}
+              </div>
+              <Link href="/hiring-firms" className="mt-3 block text-center text-xs font-semibold text-brand transition hover:text-brand-copperDark">
+                View all firms →
+              </Link>
+            </div>
+          )}
         </aside>
-      </section>
-
-      {/* lower sections */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.2fr)',
-          gap: '1.75rem',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* snapshot */}
-          <section
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem 1.5rem 1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Firm snapshot
-            </h2>
-
-            <dl
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                gap: '0.75rem 1.5rem',
-                margin: 0,
-              }}
-            >
-              {firm.industry_focus && (
-                <div>
-                  <dt
-                    style={{
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    Industry focus
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
-                    {firm.industry_focus}
-                  </dd>
-                </div>
-              )}
-
-              {firm.company_type && (
-                <div>
-                  <dt
-                    style={{
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    Company type
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
-                    {firm.company_type}
-                  </dd>
-                </div>
-              )}
-
-              {firm.geographic_coverage && (
-                <div>
-                  <dt
-                    style={{
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    Coverage / territory
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
-                    {firm.geographic_coverage}
-                  </dd>
-                </div>
-              )}
-
-              {firm.services && (
-                <div>
-                  <dt
-                    style={{
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    Services
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
-                    {firm.services}
-                  </dd>
-                </div>
-              )}
-
-              {firm.specializations && (
-                <div>
-                  <dt
-                    style={{
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#9ca3af',
-                    }}
-                  >
-                    Specializations
-                  </dt>
-                  <dd style={{ margin: 0, fontSize: '0.9rem' }}>
-                    {firm.specializations}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </section>
-
-          {/* compensation */}
-          <section
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem 1.5rem 1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Pay and volume
-            </h2>
-
-            <ul
-              style={{
-                listStyle: 'disc',
-                paddingLeft: '1.25rem',
-                margin: 0,
-                fontSize: '0.9rem',
-                color: '#4b5563',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.35rem',
-              }}
-            >
-              {pay && (
-                <li>
-                  Typical pay range. <strong>{pay}</strong>
-                </li>
-              )}
-
-              {firm.compensation_structure && (
-                <li>{firm.compensation_structure}</li>
-              )}
-
-              {firm.payment_frequency && (
-                <li>Payment frequency. {firm.payment_frequency}</li>
-              )}
-
-              {firm.pay_type && <li>Pay model. {firm.pay_type}</li>}
-
-              {firm.job_volume && <li>Job volume. {firm.job_volume}</li>}
-            </ul>
-          </section>
-
-          {/* requirements */}
-          <section
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.5rem 1.5rem 1.25rem',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Requirements and tools
-            </h2>
-
-            <ul
-              style={{
-                listStyle: 'disc',
-                paddingLeft: '1.25rem',
-                margin: 0,
-                fontSize: '0.9rem',
-                color: '#4b5563',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.35rem',
-              }}
-            >
-              {firm.qualifications && <li>{firm.qualifications}</li>}
-              {firm.required_technology && (
-                <li>Required technology. {firm.required_technology}</li>
-              )}
-              {firm.equipment_requirements && (
-                <li>Equipment. {firm.equipment_requirements}</li>
-              )}
-              {firm.equipment_provision && (
-                <li>Equipment provided. {firm.equipment_provision}</li>
-              )}
-              {firm.training_provided && (
-                <li>Training. {firm.training_provided}</li>
-              )}
-              {firm.onboarding_process && (
-                <li>Onboarding. {firm.onboarding_process}</li>
-              )}
-            </ul>
-          </section>
-        </div>
-
-        {/* reputation */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <section
-            style={{
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb',
-              padding: '1.25rem 1.5rem',
-              fontSize: '0.9rem',
-              color: '#4b5563',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '1.05rem',
-                fontWeight: 600,
-                marginTop: 0,
-                marginBottom: '0.75rem',
-              }}
-            >
-              Reputation
-            </h2>
-
-            <ul
-              style={{
-                listStyle: 'disc',
-                paddingLeft: '1.2rem',
-                margin: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.3rem',
-              }}
-            >
-              {typeof firm.contractor_rating === 'number' && firm.contractor_rating > 0 && (
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  Inspector rating.
-                  <span style={{ color: '#f59e0b', letterSpacing: '1px', fontSize: '1rem' }}>
-                    {'★'.repeat(Math.round(firm.contractor_rating))}
-                    {'☆'.repeat(5 - Math.round(firm.contractor_rating))}
-                  </span>
-                  <strong>{firm.contractor_rating.toFixed(1)}</strong>
-                  <span style={{ color: '#9ca3af' }}>out of 5</span>
-                </li>
-              )}
-              {firm.bbb_status && <li>BBB status. {firm.bbb_status}</li>}
-              {firm.industry_recognition && (
-                <li>{firm.industry_recognition}</li>
-              )}
-              {firm.client_reviews && <li>{firm.client_reviews}</li>}
-            </ul>
-          </section>
-
-          <section
-            style={{
-              borderRadius: '16px',
-              border: '1px dashed #e5e7eb',
-              padding: '1.25rem 1.5rem',
-              fontSize: '0.85rem',
-              color: '#6b7280',
-            }}
-          >
-            <p style={{ marginTop: 0, marginBottom: '0.4rem' }}>
-              Pro tip for inspectors.
-            </p>
-            <p style={{ margin: 0 }}>
-              Save this firm, collect three to five you are excited about, then batch
-              your applications on Sunday night so you hit their queue before Monday
-              hiring rush.
-            </p>
-          </section>
-        </div>
-      </section>
+      </div>
     </main>
+  )
+}
+
+/* ── Logo (server component, no client deps) ─────────── */
+
+function LogoBlock({ name, logoUrl }: { name: string; logoUrl: string | null }) {
+  const initials = name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join('').toUpperCase()
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  const hue = Math.abs(hash) % 360
+  const isValid = logoUrl && !logoUrl.startsWith('wix:') && (logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))
+
+  if (isValid) {
+    return (
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white p-1.5 shadow-sm sm:h-20 sm:w-20">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl!} alt={`${name} logo`} className="h-full w-full object-contain" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white shadow-sm sm:h-20 sm:w-20 sm:text-xl"
+      style={{ backgroundColor: `hsl(${hue}, 45%, 52%)` }}>
+      {initials}
+    </div>
   )
 }
