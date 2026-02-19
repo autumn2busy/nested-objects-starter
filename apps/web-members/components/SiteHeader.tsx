@@ -18,7 +18,7 @@ const navLinks = [
   { href: '/inspector-dashboard', label: 'Dashboard' },
   { href: '/hiring-firms', label: 'Directory' },
   { href: '/jobs', label: 'Jobs' },
-  { href: '/training', label: 'Training' },
+  { href: '/challenges', label: 'Training' },
   { href: '/tools', label: 'Resources' },
   { href: '/membership-pricing', label: 'Membership' },
   { href: '/about-us', label: 'About' },
@@ -42,7 +42,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const [isNavOpen, setIsNavOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
-  
+
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 

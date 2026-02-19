@@ -159,7 +159,7 @@ export function JobTrackerSection() {
         }
 
         const jobs: MemberJob[] = payload.jobs ?? []
-        
+
         // Active = not in a terminal state
         setActiveJobs(jobs.filter((job) => !TERMINAL_STATUSES.includes(job.status)).length)
         setOffers(jobs.filter((job) => job.status === 'offer').length)
@@ -262,7 +262,7 @@ export function TrainingProgressSection() {
       title="Training progress"
       subtitle="Your certification journey"
       actions={
-        <Link href="/training" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+        <Link href="/challenges" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
           Browse courses
         </Link>
       }

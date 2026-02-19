@@ -68,11 +68,11 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
             try {
                 setIsLoading(true);
                 const res = await fetch('/api/dashboard/stats');
-                
+
                 if (!res.ok) {
                     throw new Error('Failed to load dashboard stats');
                 }
-                
+
                 const data = await res.json();
                 setStats(data);
                 setError(null);
@@ -171,13 +171,13 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         <span>{stats.trainingProgress}%</span>
                                     </div>
                                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div 
+                                        <div
                                             className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all"
                                             style={{ width: `${stats.trainingProgress}%` }}
                                         />
                                     </div>
                                 </div>
-                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
                                     Continue training →
                                 </Link>
                             </CardContent>
