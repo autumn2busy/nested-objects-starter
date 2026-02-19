@@ -10,6 +10,7 @@ import {
 import { FirmMap } from '@/components/FirmMap'
 import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
+import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -97,32 +98,6 @@ async function getSimilarFirms(firm: FirmRow): Promise<FirmRow[]> {
     .neq('id', firm.id)
     .limit(4)
   return (data || []) as FirmRow[]
-}
-
-/* ── Formatting helpers ────────────────────────────────── */
-
-export function formatPay(firm: FirmRow): string | null {
-  if (firm.pay_min && firm.pay_max) {
-    const min = Math.round(Number(firm.pay_min))
-    const max = Math.round(Number(firm.pay_max))
-    const unit = firm.pay_type || '/inspection'
-    return `$${min} – $${max} ${unit}`
-  }
-  if (firm.pay_range) return firm.pay_range
-  return null
-}
-
-export function parseCategories(cats: string[] | string | null): string[] {
-  if (!cats) return []
-  if (Array.isArray(cats)) return cats.filter(Boolean)
-  try { const p = JSON.parse(cats); if (Array.isArray(p)) return p.filter(Boolean) } catch { }
-  return cats.split(',').map((s: string) => s.trim()).filter(Boolean)
-}
-
-export function parseSocialLinks(social: string | null): string[] {
-  if (!social) return []
-  try { const p = JSON.parse(social); if (Array.isArray(p)) return p.filter(Boolean) } catch { }
-  return []
 }
 
 /* ── Metadata ──────────────────────────────────────────── */

@@ -218,8 +218,8 @@ export function FirmDetailTabs({
                                                 <Star
                                                     key={i}
                                                     className={`h-3.5 w-3.5 ${i <= Math.round(firm.contractor_rating!)
-                                                            ? 'fill-amber-400 text-amber-400'
-                                                            : 'text-slate-200'
+                                                        ? 'fill-amber-400 text-amber-400'
+                                                        : 'text-slate-200'
                                                         }`}
                                                 />
                                             ))}
