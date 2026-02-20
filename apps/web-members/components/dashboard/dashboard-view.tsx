@@ -57,17 +57,27 @@ const TIER_TEXT_COLORS: Record<string, string> = {
 };
 
 export function DashboardView({ showOnboarding }: DashboardViewProps) {
-    const { user, profileDisplayName, planUid } = useAuth();
+    const { user, profileDisplayName, planUid, isLoading: authLoading, isAuthenticated, refreshAuth } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch dashboard stats
+    // Fetch dashboard stats — wait for auth to settle first
     useEffect(() => {
+        // Don't fetch until auth provider has finished loading
+        if (authLoading) return;
+
         const fetchStats = async () => {
             try {
                 setIsLoading(true);
-                const res = await fetch('/api/dashboard/stats');
+                let res = await fetch('/api/dashboard/stats');
+
+                // If 401, auth cookie may not have settled yet — retry once after a short delay
+                if (res.status === 401 && isAuthenticated) {
+                    await new Promise(r => setTimeout(r, 800));
+                    await refreshAuth();
+                    res = await fetch('/api/dashboard/stats');
+                }
 
                 if (!res.ok) {
                     throw new Error('Failed to load dashboard stats');
@@ -85,7 +95,8 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
         };
 
         fetchStats();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading]);
 
     const planLabel = (() => {
         switch (planUid) {
@@ -177,7 +188,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         />
                                     </div>
                                 </div>
-                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
                                     Continue training →
                                 </Link>
                             </CardContent>

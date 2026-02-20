@@ -74,6 +74,9 @@ function CallbackContent() {
 
         setStatus('Success! Redirecting...')
 
+        // Signal to AuthProvider that we just logged in (helps with retry logic)
+        try { sessionStorage.setItem('outseta_just_logged_in', '1') } catch { }
+
         // Redirect to directory
         const redirectTo = searchParams.get('redirect') || '/inspector-dashboard'
 

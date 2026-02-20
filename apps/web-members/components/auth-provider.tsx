@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
@@ -27,6 +28,7 @@ type AuthContextValue = {
   login: () => void
   signup: () => void
   logout: () => void
+  refreshAuth: () => Promise<void>
   refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
   updateProfileAvatarUrl: (url: string | null) => void
@@ -95,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const hasInitialized = useRef(false)
 
   const persistProfileDisplayName = useCallback((name: string | null) => {
     const safeName = name?.trim() || null
@@ -141,94 +144,119 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Load auth state from server session
-  useEffect(() => {
-    let cancelled = false
+  /* ── Core auth loader ─────────────────────────────────
+   * This is extracted so it can be called:
+   *  1. On initial mount
+   *  2. After callback sets the cookie
+   *  3. After Outseta widget login
+   *  4. Exposed as refreshAuth() for any component that needs it
+   * ──────────────────────────────────────────────────── */
+  const loadUser = useCallback(async (opts?: { retry?: boolean }) => {
+    try {
+      const res = await fetch('/api/auth/session')
 
-    const loadUser = async () => {
-      try {
-        const res = await fetch('/api/auth/session')
+      if (res.ok) {
+        const data = await res.json()
 
-        if (cancelled) return
+        if (data.user) {
+          setUser(data.user)
+          setPlanUid(data.user['outseta:planUid'] ?? null)
+          setAccessToken(null) // httpOnly cookie manages the token
+          setIsAuthenticated(true)
 
-        if (res.ok) {
-          const data = await res.json()
-
-          if (data.user) {
-            setUser(data.user)
-            setPlanUid(data.user['outseta:planUid'] ?? null)
-            setIsAuthenticated(true)
-
-            // Derive display name if missing
-            try {
-              const cachedName = window.localStorage.getItem('profileDisplayName')
-              if (!cachedName) {
-                persistProfileDisplayName(deriveDisplayName(data.user))
-              }
-            } catch {
+          // Derive display name if missing
+          try {
+            const cachedName = window.localStorage.getItem('profileDisplayName')
+            if (!cachedName) {
               persistProfileDisplayName(deriveDisplayName(data.user))
             }
-          } else {
-            // 401/403 or just null user
-            setUser(null)
-            setPlanUid(null)
-            setIsAuthenticated(false)
+          } catch {
+            persistProfileDisplayName(deriveDisplayName(data.user))
           }
-        } else {
-          setUser(null)
-          setPlanUid(null)
-          setIsAuthenticated(false)
+          return true
         }
-      } catch (error) {
-        console.error('Error loading session', error)
-        if (!cancelled) {
-          setUser(null)
-          setPlanUid(null)
-          setIsAuthenticated(false)
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false)
       }
-    }
 
-    loadUser()
+      // If we're retrying (e.g. right after login redirect), give the cookie
+      // a moment to settle and try once more before giving up
+      if (opts?.retry) {
+        await new Promise((r) => setTimeout(r, 600))
+        const retryRes = await fetch('/api/auth/session')
+        if (retryRes.ok) {
+          const retryData = await retryRes.json()
+          if (retryData.user) {
+            setUser(retryData.user)
+            setPlanUid(retryData.user['outseta:planUid'] ?? null)
+            setAccessToken(null)
+            setIsAuthenticated(true)
+            persistProfileDisplayName(deriveDisplayName(retryData.user))
+            return true
+          }
+        }
+      }
 
-    return () => {
-      cancelled = true
+      // No valid session
+      setUser(null)
+      setPlanUid(null)
+      setIsAuthenticated(false)
+      return false
+    } catch (error) {
+      console.error('Error loading session', error)
+      setUser(null)
+      setPlanUid(null)
+      setIsAuthenticated(false)
+      return false
     }
   }, [persistProfileDisplayName])
 
+  // Initial auth load on mount
+  useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
+    const init = async () => {
+      // Check if we just came from a login redirect (callback page sets this)
+      const justLoggedIn = typeof window !== 'undefined' &&
+        (window.location.search.includes('access_token') ||
+          sessionStorage.getItem('outseta_just_logged_in') === '1')
+
+      await loadUser({ retry: justLoggedIn })
+
+      // Clean up the signal
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('outseta_just_logged_in')
+      }
+
+      setIsLoading(false)
+    }
+
+    init()
+  }, [loadUser])
+
+  // Handle access_token in URL (Outseta redirect flow on non-callback pages)
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!pathname || pathname.startsWith('/auth/callback')) return
 
     const url = new URL(window.location.href)
-    const accessToken = url.searchParams.get('access_token')
+    const token = url.searchParams.get('access_token')
 
-    if (!accessToken) return
+    if (!token) return
 
     const syncSession = async () => {
       try {
         const response = await fetch('/api/auth/session', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ accessToken }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: token }),
         })
 
-        if (response.ok && window.Outseta?.setAccessToken) {
-          window.Outseta.setAccessToken(accessToken)
-          // Immediately reload user state to reflect the new session
-          const res = await fetch('/api/auth/session')
-          if (res.ok) {
-            const data = await res.json()
-            if (data.user) {
-              setUser(data.user)
-              setPlanUid(data.user['outseta:planUid'] ?? null)
-              setIsAuthenticated(true)
-            }
+        if (response.ok) {
+          if (window.Outseta?.setAccessToken) {
+            window.Outseta.setAccessToken(token)
           }
+          // Reload user state now that cookie is set
+          await loadUser({ retry: true })
         }
       } catch (error) {
         console.error('Error syncing session token', error)
@@ -241,7 +269,73 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     void syncSession()
-  }, [pathname])
+  }, [pathname, loadUser])
+
+  /* ── Outseta widget event listener ────────────────────
+   * When a user logs in via the Outseta popup (not the callback page),
+   * Outseta fires a custom event. We listen for it and sync the session.
+   * This eliminates the "have to refresh" problem for popup-based logins.
+   * ──────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleOutsetaAuth = async () => {
+      // Small delay — Outseta needs a tick to update its internal state
+      await new Promise((r) => setTimeout(r, 300))
+
+      const token = window.Outseta?.getAccessToken?.()
+      if (!token) return
+
+      try {
+        const res = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken: token }),
+        })
+        if (res.ok) {
+          await loadUser({ retry: true })
+        }
+      } catch (err) {
+        console.error('Error syncing Outseta widget login', err)
+      }
+    }
+
+    // Outseta fires 'o-authenticated' when login/signup completes in the widget
+    window.addEventListener('o-authenticated', handleOutsetaAuth)
+
+    // Also handle the case where Outseta already has a token on page load
+    // (e.g. returning user with tokenStorage: 'local') but our httpOnly cookie is missing
+    const checkExistingOutsetaToken = async () => {
+      // Wait for Outseta to initialize
+      await new Promise((r) => setTimeout(r, 1500))
+
+      if (!isAuthenticated && window.Outseta?.getAccessToken) {
+        const existingToken = window.Outseta.getAccessToken()
+        if (existingToken) {
+          console.log('[Auth] Found existing Outseta token, syncing session...')
+          try {
+            const res = await fetch('/api/auth/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accessToken: existingToken }),
+            })
+            if (res.ok) {
+              await loadUser({ retry: true })
+            }
+          } catch (err) {
+            console.error('Error syncing existing Outseta token', err)
+          }
+        }
+      }
+    }
+
+    checkExistingOutsetaToken()
+
+    return () => {
+      window.removeEventListener('o-authenticated', handleOutsetaAuth)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadUser])
 
   const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
@@ -269,7 +363,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (!res.ok) {
-        // Fall back to derived name if Supabase doesn’t have one yet
+        // Fall back to derived name if Supabase doesn't have one yet
         persistProfileDisplayName(deriveDisplayName(user))
         return
       }
@@ -304,11 +398,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
-
-    // Removed Directory-only restriction as Starter plan now includes more features
-    // if (planUid === DIRECTORY_ONLY_PLAN_UID) {
-    //   return feature === 'directory_access'
-    // }
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     // Default to "deny" for unknown features so new feature flags are opt-in secure
@@ -365,12 +454,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (Outseta?.setAccessToken) {
           Outseta.setAccessToken(null)
         }
+        // Clear cached profile data
+        localStorage.removeItem('profileDisplayName')
+        localStorage.removeItem('profileAvatarUrl')
       }
 
       setUser(null)
       setPlanUid(null)
       setAccessToken(null)
       setIsAuthenticated(false)
+      setProfileDisplayName(null)
+      setProfileAvatarUrl(null)
     } catch (error) {
       console.error('Error during logout', error)
     }
@@ -390,6 +484,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
+    refreshAuth: () => loadUser({ retry: true }).then(() => { }),
     refreshProfileDisplayName: fetchProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
