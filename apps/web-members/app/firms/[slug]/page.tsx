@@ -10,6 +10,7 @@ import {
 import { FirmMap } from '@/components/FirmMap'
 import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
+import { FirmGatedContent } from './FirmGatedContent'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 
 /* Dev SSL fix */
@@ -265,129 +266,133 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
 
         {/* Quick stats */}
         {quickStats.length > 0 && (
-          <div className="border-t border-border-subtle bg-surface-muted px-6 py-4 sm:px-8">
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              {quickStats.map((stat, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <stat.icon className="h-4 w-4 text-brand/60" />
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{stat.label}</p>
-                    <p className="text-sm font-semibold text-text-primary">{stat.value}</p>
+          <FirmGatedContent>
+            <div className="border-t border-border-subtle bg-surface-muted px-6 py-4 sm:px-8">
+              <div className="flex flex-wrap gap-x-8 gap-y-3">
+                {quickStats.map((stat, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <stat.icon className="h-4 w-4 text-brand/60" />
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{stat.label}</p>
+                      <p className="text-sm font-semibold text-text-primary">{stat.value}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </FirmGatedContent>
         )}
       </section>
 
-      {/* ═══ Content grid ═══ */}
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-        {/* Main — tabs */}
-        <div className="min-w-0">
-          <FirmDetailTabs
-            firm={firm}
-            pay={pay}
-            hasCompensation={hasCompensation}
-            hasRequirements={hasRequirements}
-            hasReputation={hasReputation}
-            hasContact={hasContact}
-            hasCoordinates={hasCoordinates}
-            socialLinks={socialLinks}
-          />
-        </div>
+      {/* ═══ Content grid — gated for non-members ═══ */}
+      <FirmGatedContent>
+        <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+          {/* Main — tabs */}
+          <div className="min-w-0">
+            <FirmDetailTabs
+              firm={firm}
+              pay={pay}
+              hasCompensation={hasCompensation}
+              hasRequirements={hasRequirements}
+              hasReputation={hasReputation}
+              hasContact={hasContact}
+              hasCoordinates={hasCoordinates}
+              socialLinks={socialLinks}
+            />
+          </div>
 
-        {/* Sidebar */}
-        <aside className="flex flex-col gap-6">
-          {/* Map */}
-          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm">
-            <div className="border-b border-border-subtle px-5 py-3">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-                <MapPin className="h-4 w-4 text-brand" /> Service area
-              </h3>
-            </div>
-            <div className="h-56">
-              {hasCoordinates ? (
-                <FirmMap firms={[firm as any]} center={{ lat: firm.latitude!, lng: firm.longitude! }} zoom={10} className="h-full w-full" />
-              ) : firm.address ? (
-                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firm.address)}`} target="_blank" rel="noopener noreferrer"
-                  className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-500 transition hover:text-brand">
-                  <MapPin className="mb-2 h-6 w-6 text-slate-300" /> Open in Google Maps
-                </a>
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-400">
-                  <MapPin className="mb-2 h-6 w-6 text-slate-200" /> No location data yet
+          {/* Sidebar */}
+          <aside className="flex flex-col gap-6">
+            {/* Map */}
+            <div className="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm">
+              <div className="border-b border-border-subtle px-5 py-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <MapPin className="h-4 w-4 text-brand" /> Service area
+                </h3>
+              </div>
+              <div className="h-56">
+                {hasCoordinates ? (
+                  <FirmMap firms={[firm as any]} center={{ lat: firm.latitude!, lng: firm.longitude! }} zoom={10} className="h-full w-full" />
+                ) : firm.address ? (
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firm.address)}`} target="_blank" rel="noopener noreferrer"
+                    className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-500 transition hover:text-brand">
+                    <MapPin className="mb-2 h-6 w-6 text-slate-300" /> Open in Google Maps
+                  </a>
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-400">
+                    <MapPin className="mb-2 h-6 w-6 text-slate-200" /> No location data yet
+                  </div>
+                )}
+              </div>
+              {firm.address && (
+                <div className="border-t border-border-subtle px-5 py-3">
+                  <p className="text-xs text-slate-500">{firm.address}</p>
                 </div>
               )}
             </div>
-            {firm.address && (
-              <div className="border-t border-border-subtle px-5 py-3">
-                <p className="text-xs text-slate-500">{firm.address}</p>
+
+            {/* Contact card */}
+            {hasContact && (
+              <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <Phone className="h-4 w-4 text-brand" /> Contact info
+                </h3>
+                <div className="space-y-2 text-sm">
+                  {firm.phone && (
+                    <a href={`tel:${firm.phone}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.phone}
+                    </a>
+                  )}
+                  {firm.email && (
+                    <a href={`mailto:${firm.email}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                      <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.email}
+                    </a>
+                  )}
+                  {firm.url && (
+                    <a href={firm.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                      <Globe className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return 'Website' } })()}
+                    </a>
+                  )}
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Contact card */}
-          {hasContact && (
-            <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
-                <Phone className="h-4 w-4 text-brand" /> Contact info
-              </h3>
-              <div className="space-y-2 text-sm">
-                {firm.phone && (
-                  <a href={`tel:${firm.phone}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
-                    <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.phone}
-                  </a>
-                )}
-                {firm.email && (
-                  <a href={`mailto:${firm.email}`} className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
-                    <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.email}
-                  </a>
-                )}
-                {firm.url && (
-                  <a href={firm.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
-                    <Globe className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return 'Website' } })()}
-                  </a>
-                )}
-              </div>
+            {/* Pro tip */}
+            <div className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/30 p-5 shadow-sm">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wider text-amber-700">Pro tip for inspectors</p>
+              <p className="text-sm leading-relaxed text-amber-900/80">
+                Save this firm, collect 3–5 you&apos;re excited about, then batch your applications Sunday night so you hit their queue before Monday&apos;s hiring rush.
+              </p>
             </div>
-          )}
 
-          {/* Pro tip */}
-          <div className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/30 p-5 shadow-sm">
-            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-amber-700">Pro tip for inspectors</p>
-            <p className="text-sm leading-relaxed text-amber-900/80">
-              Save this firm, collect 3–5 you&apos;re excited about, then batch your applications Sunday night so you hit their queue before Monday&apos;s hiring rush.
-            </p>
-          </div>
-
-          {/* Similar firms */}
-          {similarFirms.length > 0 && (
-            <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-text-primary">Similar firms hiring</h3>
-              <div className="space-y-3">
-                {similarFirms.slice(0, 3).map((f) => (
-                  <Link key={f.id} href={`/firms/${f.slug ?? f.id}`}
-                    className="group flex items-center gap-3 rounded-lg p-2 transition hover:bg-slate-50">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-500">
-                      {f.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-text-primary group-hover:text-brand">{f.name}</p>
-                      <p className="truncate text-xs text-slate-400">{f.industry_focus || 'Field services'}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-brand" />
-                  </Link>
-                ))}
+            {/* Similar firms */}
+            {similarFirms.length > 0 && (
+              <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
+                <h3 className="mb-4 text-sm font-semibold text-text-primary">Similar firms hiring</h3>
+                <div className="space-y-3">
+                  {similarFirms.slice(0, 3).map((f) => (
+                    <Link key={f.id} href={`/firms/${f.slug ?? f.id}`}
+                      className="group flex items-center gap-3 rounded-lg p-2 transition hover:bg-slate-50">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-500">
+                        {f.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-text-primary group-hover:text-brand">{f.name}</p>
+                        <p className="truncate text-xs text-slate-400">{f.industry_focus || 'Field services'}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-brand" />
+                    </Link>
+                  ))}
+                </div>
+                <Link href="/hiring-firms" className="mt-3 block text-center text-xs font-semibold text-brand transition hover:text-brand-copperDark">
+                  View all firms →
+                </Link>
               </div>
-              <Link href="/hiring-firms" className="mt-3 block text-center text-xs font-semibold text-brand transition hover:text-brand-copperDark">
-                View all firms →
-              </Link>
-            </div>
-          )}
-        </aside>
-      </div>
+            )}
+          </aside>
+        </div>
+      </FirmGatedContent>
     </main>
   )
 }
