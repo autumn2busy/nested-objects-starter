@@ -11,6 +11,7 @@ import { FirmMap } from '@/components/FirmMap'
 import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmGatedContent } from './FirmGatedContent'
+import { AuthCTA } from './AuthCTA'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 
 /* Dev SSL fix */
@@ -231,30 +232,36 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
               </div>
             </div>
 
-            {/* CTAs */}
+            {/* CTAs — guests get login prompt instead of real links */}
             <div className="flex shrink-0 flex-col gap-2.5 sm:flex-row lg:flex-col lg:items-end">
               {contactHref && (
-                <a
-                  href={contactHref}
-                  target={contactHref.startsWith('http') ? '_blank' : undefined}
-                  rel={contactHref.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-                >
-                  <FileText className="h-4 w-4" /> Apply / Contact
-                </a>
+                <AuthCTA>
+                  <a
+                    href={contactHref}
+                    target={contactHref.startsWith('http') ? '_blank' : undefined}
+                    rel={contactHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                  >
+                    <FileText className="h-4 w-4" /> Apply / Contact
+                  </a>
+                </AuthCTA>
               )}
               {firm.vendor_page_url && contactHref !== firm.vendor_page_url && (
-                <a href={firm.vendor_page_url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
-                  <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
-                </a>
+                <AuthCTA>
+                  <a href={firm.vendor_page_url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
+                    <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
+                  </a>
+                </AuthCTA>
               )}
               {firm.url && (
-                <a href={firm.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
-                  <Globe className="h-3.5 w-3.5" />
-                  {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return firm.url } })()}
-                </a>
+                <AuthCTA>
+                  <a href={firm.url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
+                    <Globe className="h-3.5 w-3.5" />
+                    {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return firm.url } })()}
+                  </a>
+                </AuthCTA>
               )}
             </div>
           </div>
