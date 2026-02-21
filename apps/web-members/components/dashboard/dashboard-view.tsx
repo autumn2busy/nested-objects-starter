@@ -188,7 +188,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         />
                                     </div>
                                 </div>
-                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
                                     Continue training →
                                 </Link>
                             </CardContent>
@@ -213,7 +213,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         <span className="text-purple-600 font-medium">{stats.pipeline.interviewing} interviews</span>
                                     )}
                                 </div>
-                                <Link href="/jobs" className="text-xs text-brand-copper hover:underline mt-1 block">
+                                <Link href="/jobs?tab=tracker" className="text-xs text-brand-copper hover:underline mt-1 block">
                                     View pipeline →
                                 </Link>
                             </CardContent>

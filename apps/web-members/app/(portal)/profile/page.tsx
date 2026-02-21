@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  User, Mail, Phone, MapPin, Briefcase, Shield, Award, 
+import {
+  User, Mail, Phone, MapPin, Briefcase, Shield, Award,
   CheckCircle2, XCircle, Clock, ChevronRight, ExternalLink,
   Camera, Save, Loader2, AlertCircle, Star, TrendingUp,
   GraduationCap, FileCheck, Calendar, Activity
@@ -151,7 +151,7 @@ function TrustScoreBadge({ score, tier }: { score: number; tier: string }) {
     silver: 'from-gray-300 to-gray-500 text-white',
     bronze: 'from-orange-300 to-orange-500 text-white',
   }
-  
+
   const tierColor = tierColors[tier as keyof typeof tierColors] || tierColors.bronze
 
   return (
@@ -181,7 +181,7 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
         const value = breakdown[item.key as keyof typeof breakdown] || 0
         const pct = (value / item.max) * 100
         const Icon = item.icon
-        
+
         return (
           <div key={item.key} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
@@ -192,7 +192,7 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
               <span className="font-semibold text-slate-900">{value}/{item.max}</span>
             </div>
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all duration-500"
                 style={{ width: `${pct}%` }}
               />
@@ -224,7 +224,7 @@ function BackgroundCheckStatus({ status }: { status: string }) {
     failed: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Failed' },
     not_started: { color: 'bg-slate-100 text-slate-600', icon: AlertCircle, label: 'Not Started' },
   }
-  
+
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.not_started
   const Icon = config.icon
 
@@ -269,14 +269,14 @@ export default function ProfilePage() {
       try {
         setIsLoading(true)
         const res = await fetch('/api/profile')
-        
+
         if (!res.ok) {
           throw new Error('Failed to load profile')
         }
-        
+
         const data = await res.json()
         setProfile(data.profile)
-        
+
         // Populate form with existing data
         if (data.profile) {
           setFormData({
@@ -330,7 +330,7 @@ export default function ProfilePage() {
       const data = await res.json()
       setProfile(data.profile)
       setSuccess('Profile saved successfully!')
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
@@ -362,7 +362,7 @@ export default function ProfilePage() {
   const displayName = profile?.display_name || profile?.full_name || profile?.first_name || 'Member'
   const email = profile?.email || profile?.user_email || user?.email || ''
   const phone = profile?.phone || ''
-  const memberSince = profile?.created_at 
+  const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : ''
 
@@ -414,12 +414,12 @@ export default function ProfilePage() {
                 <div className="mb-4">
                   <AvatarUpload size="lg" />
                 </div>
-                
+
                 <h2 className="text-xl font-bold text-slate-900">{displayName}</h2>
                 {formData.headline && (
                   <p className="text-slate-600 mt-1">{formData.headline}</p>
                 )}
-                
+
                 {/* Location */}
                 {(formData.city || formData.state) && (
                   <div className="flex items-center gap-1 text-sm text-slate-500 mt-2">
@@ -436,9 +436,9 @@ export default function ProfilePage() {
                 {/* Trust Score Badge */}
                 {profile && (
                   <div className="mt-4">
-                    <TrustScoreBadge 
-                      score={profile.trust_score || 0} 
-                      tier={profile.trust_tier || 'bronze'} 
+                    <TrustScoreBadge
+                      score={profile.trust_score || 0}
+                      tier={profile.trust_tier || 'bronze'}
                     />
                   </div>
                 )}
@@ -451,11 +451,11 @@ export default function ProfilePage() {
                 <TrendingUp className="w-5 h-5 text-brand-copper" />
                 Trust Score Breakdown
               </h3>
-              
+
               {profile?.trust_score_breakdown ? (
-                <TrustScoreBreakdown 
-                  breakdown={profile.trust_score_breakdown} 
-                  total={profile.trust_score || 0} 
+                <TrustScoreBreakdown
+                  breakdown={profile.trust_score_breakdown}
+                  total={profile.trust_score || 0}
                 />
               ) : (
                 <p className="text-sm text-slate-500">Complete your profile to build your trust score.</p>
@@ -475,9 +475,9 @@ export default function ProfilePage() {
                 <Shield className="w-5 h-5 text-brand-copper" />
                 Background Check
               </h3>
-              
+
               <BackgroundCheckStatus status={profile?.background_check_status || 'not_started'} />
-              
+
               {profile?.background_check_status !== 'verified' && (
                 <div className="mt-4">
                   <p className="text-sm text-slate-600 mb-3">
@@ -488,7 +488,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               )}
-              
+
               {profile?.background_check_verified_at && (
                 <p className="text-xs text-slate-500 mt-3">
                   Verified on {new Date(profile.background_check_verified_at).toLocaleDateString()}
@@ -513,7 +513,7 @@ export default function ProfilePage() {
                   Edit account <ExternalLink className="w-3.5 h-3.5" />
                 </button>
               </div>
-              
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</label>
@@ -535,7 +535,7 @@ export default function ProfilePage() {
                   <p className="text-slate-900 mt-1 capitalize">{profile?.subscription_tier || 'Free'} Plan</p>
                 </div>
               </div>
-              
+
               <p className="text-xs text-slate-500 mt-4">
                 Name, email, phone, and billing are managed in your account settings.
               </p>
@@ -646,11 +646,10 @@ export default function ProfilePage() {
                         key={service}
                         type="button"
                         onClick={() => toggleServiceArea(service)}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                          formData.service_areas.includes(service)
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${formData.service_areas.includes(service)
                             ? 'bg-brand-copper text-white'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
+                          }`}
                       >
                         {service}
                       </button>
@@ -699,7 +698,7 @@ export default function ProfilePage() {
                   <GraduationCap className="w-5 h-5 text-brand-copper" />
                   Training Progress
                 </h3>
-                <Link href="/training" className="text-sm text-brand-copper hover:text-brand-copperDark">
+                <Link href="/challenges" className="text-sm text-brand-copper hover:text-brand-copperDark">
                   View courses →
                 </Link>
               </div>
@@ -712,10 +711,10 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all"
-                    style={{ 
-                      width: `${((profile?.training_modules_completed || 0) / (profile?.training_modules_total || 5)) * 100}%` 
+                    style={{
+                      width: `${((profile?.training_modules_completed || 0) / (profile?.training_modules_total || 5)) * 100}%`
                     }}
                   />
                 </div>

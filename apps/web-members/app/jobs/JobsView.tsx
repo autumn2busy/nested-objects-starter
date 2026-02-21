@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Plus, Loader2, Search, DollarSign, Trash2, ExternalLink, Briefcase, Shield, Zap, MapPin, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -156,7 +157,11 @@ function JobBoardFallback() {
 // MAIN EXPORT
 // ============================================
 export function JobsView() {
-    const [activeTab, setActiveTab] = useState('find')
+    const searchParams = useSearchParams()
+    const [activeTab, setActiveTab] = useState(() => {
+        const tab = searchParams.get('tab')
+        return tab === 'tracker' ? 'tracker' : 'find'
+    })
     const [trackedJobs, setTrackedJobs] = useState<TrackerJob[]>([])
     const [trackerLoading, setTrackerLoading] = useState(true)
 
@@ -534,11 +539,10 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
                                 <button
                                     key={pageNum}
                                     onClick={() => setPage(pageNum)}
-                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                                        page === pageNum
-                                            ? 'bg-brand-copper text-white'
-                                            : 'text-slate-600 hover:bg-slate-100'
-                                    }`}
+                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${page === pageNum
+                                        ? 'bg-brand-copper text-white'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                        }`}
                                 >
                                     {pageNum}
                                 </button>
@@ -565,13 +569,13 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
 function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: boolean; refresh: () => void }) {
     const [addingJob, setAddingJob] = useState(false)
     const [updatingId, setUpdatingId] = useState<string | null>(null)
-    const [newJob, setNewJob] = useState({ 
-        company: '', 
-        title: '', 
+    const [newJob, setNewJob] = useState({
+        company: '',
+        title: '',
         location: '',
         pay: '',
         source_url: '',
-        status: 'interested' 
+        status: 'interested'
     })
     const [showRejected, setShowRejected] = useState(false)
 
@@ -660,45 +664,45 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Company *</label>
-                                <Input 
-                                    placeholder="e.g. National Field Reps" 
-                                    value={newJob.company} 
-                                    onChange={e => setNewJob({ ...newJob, company: e.target.value })} 
-                                    required 
+                                <Input
+                                    placeholder="e.g. National Field Reps"
+                                    value={newJob.company}
+                                    onChange={e => setNewJob({ ...newJob, company: e.target.value })}
+                                    required
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Job Title *</label>
-                                <Input 
-                                    placeholder="e.g. Property Inspector" 
-                                    value={newJob.title} 
-                                    onChange={e => setNewJob({ ...newJob, title: e.target.value })} 
-                                    required 
+                                <Input
+                                    placeholder="e.g. Property Inspector"
+                                    value={newJob.title}
+                                    onChange={e => setNewJob({ ...newJob, title: e.target.value })}
+                                    required
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Location</label>
-                                <Input 
-                                    placeholder="e.g. Atlanta, GA" 
-                                    value={newJob.location} 
-                                    onChange={e => setNewJob({ ...newJob, location: e.target.value })} 
+                                <Input
+                                    placeholder="e.g. Atlanta, GA"
+                                    value={newJob.location}
+                                    onChange={e => setNewJob({ ...newJob, location: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Pay</label>
-                                <Input 
-                                    placeholder="e.g. $45/inspection" 
-                                    value={newJob.pay} 
-                                    onChange={e => setNewJob({ ...newJob, pay: e.target.value })} 
+                                <Input
+                                    placeholder="e.g. $45/inspection"
+                                    value={newJob.pay}
+                                    onChange={e => setNewJob({ ...newJob, pay: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Job Posting URL</label>
-                                <Input 
-                                    placeholder="https://..." 
+                                <Input
+                                    placeholder="https://..."
                                     type="url"
-                                    value={newJob.source_url} 
-                                    onChange={e => setNewJob({ ...newJob, source_url: e.target.value })} 
+                                    value={newJob.source_url}
+                                    onChange={e => setNewJob({ ...newJob, source_url: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -713,8 +717,8 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                         </div>
                         <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-100">
                             <Button variant="ghost" onClick={() => setAddingJob(false)}>Cancel</Button>
-                            <Button 
-                                disabled={updatingId === 'new' || !newJob.company.trim() || !newJob.title.trim()} 
+                            <Button
+                                disabled={updatingId === 'new' || !newJob.company.trim() || !newJob.title.trim()}
                                 onClick={handleAddJob}
                             >
                                 {updatingId === 'new' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
@@ -815,7 +819,7 @@ function TrackerView({ jobs, loading, refresh }: { jobs: TrackerJob[]; loading: 
                         </div>
                         <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${showRejected ? 'rotate-90' : ''}`} />
                     </button>
-                    
+
                     {showRejected && (
                         <div className="border-t border-slate-100 p-4 bg-slate-50/50">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
