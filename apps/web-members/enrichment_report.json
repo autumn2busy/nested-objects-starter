@@ -1,0 +1,18 @@
+{
+  "started_at": "2026-02-21T18:22:53.134Z",
+  "model": "llama-3.3-70b-versatile",
+  "total_firms": 410,
+  "enriched": 5,
+  "failed": 0,
+  "fields_filled": {
+    "compensation_structure": 5,
+    "client_reviews": 5,
+    "pay_min": 4,
+    "pay_max": 4,
+    "pay_type": 4,
+    "contractor_rating": 4,
+    "services": 4
+  },
+  "errors": [],
+  "finished_at": "2026-02-21T18:22:58.267Z"
+}

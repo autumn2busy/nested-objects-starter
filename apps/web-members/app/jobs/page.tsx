@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { JobsView } from './JobsView'
 import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
@@ -9,5 +10,9 @@ export const metadata: Metadata = generatePageMetadata({
 })
 
 export default function JobsPage() {
-  return <JobsView />
+  return (
+    <Suspense>
+      <JobsView />
+    </Suspense>
+  )
 }
