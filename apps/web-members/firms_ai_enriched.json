@@ -1750,7 +1750,7 @@
     "industry_focus": "Mortgage Field Services,Property Preservation,Real Estate Inspections",
     "specializations": "We also conduct physical inspections of businesses for several credit reporting agencieslenders and pre-employment/tenant screening companies prior to the business being accepted for membership that would allow them to access credit bureau information at their locations.",
     "social_links": "[\"https://www.linkedin.com/company/crown-field-services-llc/\"\"https://www.facebook.com/crownfs/\"\"https://www.instagram.com/crownandfield/\"]",
-    "contractor_rating": 2.5,
+    "contractor_rating": 4.5,
     "client_reviews": "Contractors praise Crown Field Services LLC for their fair pay rates, reliable payment schedules, and straightforward communication, making them a preferred partner in the field services industry.",
     "equipment_requirements": "For Preservation: Truck/vantoolssmartphone/tabletinsurance. For Inspectors: Reliable vehiclesmartphone/camerainternet access.",
     "training_provided": "TRUE",
@@ -1796,7 +1796,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:23.601Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.5,
+    "_indeed_reviews": 38
   },
   {
     "id": "8ffd6c16-31f5-4f53-b245-8016e7ca8b90",
@@ -1814,7 +1818,7 @@
     "industry_focus": "Real Estate",
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise AmeriSpec Chicago for its steady stream of inspection assignments and fair compensation, but some note that the company's administrative requirements can be tedious.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -1858,11 +1862,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:24.706Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "AmeriSpec on Indeed (parent company)",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 12
   },
   {
     "id": "90c607f7-34fc-40b5-bc0c-f8074eb08a33",
@@ -1929,7 +1937,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:41.021Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "9ec4cc62-33f6-4dbf-8ee8-c73039e880fd",
@@ -1947,7 +1958,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.6,
     "client_reviews": "Contractors praise K&A Engineering for their clear communication and prompt payment processing.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -1992,12 +2003,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:26.693Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "K&A Engineering Consulting on Indeed",
+    "_indeed_rating": 3.6,
+    "_indeed_reviews": 17
   },
   {
     "id": "05d49ad7-cd15-4868-9242-fd0bc88d9523",
@@ -2064,7 +2079,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:27.791Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Only 1 review (Admin Asst, 5 star). No overall company rating."
   },
   {
     "id": "a9276e97-684d-4c45-a188-33365b92a5ef",
@@ -2082,7 +2100,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.8,
     "client_reviews": "Contractors generally report positive experiences with Afirm, citing clear communication and timely payments.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2126,12 +2144,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:28.897Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Afirm (formerly US-Reports) on Indeed",
+    "_indeed_rating": 2.8,
+    "_indeed_reviews": 70
   },
   {
     "id": "aba96ebe-2a56-43c4-93ac-15fbdb2343ff",
@@ -2149,7 +2171,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 4.5,
     "client_reviews": "Contractors praise Vision Realty & Management for their efficient communication and fair pay rates, making them a reliable partner in the field services industry.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2194,12 +2216,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:30.266Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Vision Realty Centers on Indeed",
+    "_indeed_rating": 4.5,
+    "_indeed_reviews": 6
   },
   {
     "id": "af8e4538-e7dc-4f07-aad4-2cc782b7988d",
@@ -2217,7 +2243,7 @@
     "industry_focus": "Insurance Services",
     "specializations": "Claims Support, Adjusting",
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.8,
     "client_reviews": "Contractors generally report timely payment and clear communication from Premier Claims, but note variable inspection volume and occasional delays in assignment notifications.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2261,12 +2287,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:31.486Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.8,
+    "_indeed_reviews": 11
   },
   {
     "id": "b4cb538b-291d-49a8-be84-419829589286",
@@ -2333,7 +2362,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:32.796Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed page. BBB A+."
   },
   {
     "id": "b5b6bd8c-c2c0-4fbd-a6ec-c2b5521d372c",
@@ -2400,7 +2432,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:33.896Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed page exists but no overall rating in search results."
   },
   {
     "id": "b678ef2a-0b84-4098-a5f3-200a7564ce30",
@@ -2467,7 +2502,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:35.010Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "ResNet on Indeed is university IT department - wrong entity. RESNET (energy rating org) not found."
   },
   {
     "id": "ba052409-e211-4add-ba1a-b2746f147141",
@@ -2485,7 +2523,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[\"https://www.facebook.com/CMLSfinancial\", \"http://www.linkedin.com/company/cmls-financial\", \"http://www.youtube.com/cmlsfinancial\"]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.4,
     "client_reviews": "Contractors praise the firm's organized workflow and clear communication, but note that pay rates can be on the lower end for certain types of inspections.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2531,12 +2569,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:36.292Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Perry Johnson Registrars on Indeed",
+    "_indeed_rating": 2.4,
+    "_indeed_reviews": 27
   },
   {
     "id": "95d74519-fca3-4d65-9cb4-7d62aafb2e35",
@@ -2603,7 +2645,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:37.494Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed page found."
   },
   {
     "id": "bf06e095-c29b-4a9b-94fe-9a53660262c0",
@@ -2669,7 +2714,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:38.499Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "1st Choice Mortgage on Indeed (4.0/2) may be different entity from 1st Choice MFS."
   },
   {
     "id": "c5fe1e05-09de-4e6c-b318-2e5dc76af163",
@@ -2687,7 +2735,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise Dominion Due Diligence Group for their clear communication and prompt payment processing.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2732,12 +2780,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:39.748Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 9
   },
   {
     "id": "c9d279ed-a680-4328-a858-a974ee5a5b18",
@@ -2755,7 +2806,7 @@
     "industry_focus": "Real EstateMortgage Lending",
     "specializations": "Compliance-focused appraisal management",
     "social_links": "[]",
-    "contractor_rating": 3.4,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise Absolute Value Management Corporation for its efficient communication, timely payments, and steady stream of available work assignments, although some note that pay rates can be on the lower side for certain types of inspections.",
     "equipment_requirements": "Computer with internet accessAppraisal softwareDigital cameraMeasuring toolsReliable transportation",
     "training_provided": "FALSE",
@@ -2801,7 +2852,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:41.036Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 5
   },
   {
     "id": "05ede11a-cd06-435c-80c5-abd24038161d",
@@ -2819,7 +2874,7 @@
     "industry_focus": "Insurance (Underwriting SurveysLoss Control InspectionsClaims Support)Mortgage Field Services (Property Condition ReportsOccupancy Verifications)Commercial Property AssessmentsBanking & Finance (Merchant Site InspectionsCollateral Inspections).",
     "specializations": "National provider of field inspection services for the insurancemortgageand commercial real estate/finance industries. Focuses on delivering accurate and timely underwriting supportrisk assessment datasite verificationsand property condition information through its extensive network of independent field contractors and proprietary technology platform (GIS Connect).",
     "social_links": "[\"https://www.linkedin.com/company/gis-field-services\"\"https://x.com/GISInspections\"\"https://www.facebook.com/GISfieldservices\"\"https://www.instagram.com/gisfieldservices\"]",
-    "contractor_rating": 3.2,
+    "contractor_rating": 2.8,
     "client_reviews": "Contractors praise GIS Field Services for its efficient platform, timely payments, and wide range of available inspection opportunities, but some note that pay rates can be on the lower end for certain services.",
     "equipment_requirements": "Reliable transportation (often requiring travel within an assigned territory)”Smartphone or tablet (iOS or Android) with a high-quality camera (minimum 8MP often recommended) and GPS capabilities (for geo-tagging photos and using the GIS Connect mobile app)”Reliable internet access (for receiving assignments and uploading reportsoften from the field)”Computer or laptop for report reviewsubmissionand communication if not solely mobile-based”Measuring devices (e.g.tape measuremeasuring wheellaser measure as appropriate for specific inspection typesespecially for property diagrams or replacement cost details)”Ladder (may be required for some exterior inspectionsparticularly roof condition assessmentsdepending on client scope).”",
     "training_provided": "TRUE",
@@ -2864,7 +2919,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:42.131Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.8,
+    "_indeed_reviews": 22
   },
   {
     "id": "0763b772-6acf-4c4a-bb87-3f6e45cb78ad",
@@ -2882,7 +2941,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.6,
     "client_reviews": "Contractors praise the firm's clear communication and steady stream of chimney sweeping and repair jobs.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -2926,12 +2985,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:43.232Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Spotless Chimney Sweeping & Solutions on Indeed. Also Spotless Chimney (1.6/8). Using the more specific match.",
+    "_indeed_rating": 2.6,
+    "_indeed_reviews": 5
   },
   {
     "id": "07d986b9-cf1e-42dd-a64e-3be6dc5f2c82",
@@ -2949,7 +3012,7 @@
     "industry_focus": "Mortgage ServicingReal EstateFinancial Services",
     "specializations": "Technology-driven provider of services and solutions for the mortgage lifecycle and real estate industries",
     "social_links": "[\"https://www.linkedin.com/company/altisource\"\"https://twitter.com/altisource\"\"https://www.facebook.com/altisource\"]",
-    "contractor_rating": 3.2,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors generally report timely payments and a high volume of available work, but sometimes criticize the firm's strict quality control measures and low per-unit pay rates.",
     "equipment_requirements": "Varies by service",
     "training_provided": "TRUE",
@@ -2995,7 +3058,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:44.308Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": 714
   },
   {
     "id": "07ff0d6b-e092-42fa-840b-53926178f51f",
@@ -3013,7 +3080,7 @@
     "industry_focus": "Insurance",
     "specializations": "National provider of field inspection and data collection services for the insurance industry",
     "social_links": "[\"https://www.linkedin.com/company/graniteriskmanagement\"]",
-    "contractor_rating": 3,
+    "contractor_rating": 4.6,
     "client_reviews": "Contractors praise Associated Services InspectionsLTD for their reliable payment processing and varied inspection opportunities across the Northwest region.",
     "equipment_requirements": "Reliable transportationSmartphone or tablet with high-quality camera and data planReliable internet accessMeasuring devicesLadder",
     "training_provided": "TRUE",
@@ -3057,7 +3124,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:45.353Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.6,
+    "_indeed_reviews": 7
   },
   {
     "id": "0821ad8d-a798-4fe6-b165-a22574044a3d",
@@ -3124,7 +3195,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:46.636Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed page exists but no overall rating found."
   },
   {
     "id": "08dda74b-adb1-417a-bea6-199358d6d343",
@@ -3192,7 +3266,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:47.874Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Two CCDI entities on Indeed: CCDI (4.0/10) and CCDI Composites (4.3/4). Unclear which matches."
   },
   {
     "id": "08e30418-a1eb-4f5a-b380-e72e12176b47",
@@ -3210,7 +3287,7 @@
     "industry_focus": "Construction & Building Services",
     "specializations": "Insulation Installation, Building Materials Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/topbuild\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.5,
     "client_reviews": "TopBuild is a large and reliable client with a steady stream of work, but can be slow to pay at times",
     "equipment_requirements": "Construction tools, PPE",
     "training_provided": "Yes",
@@ -3254,12 +3331,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:49.053Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": 38
   },
   {
     "id": "09629088-b3bd-48c7-b1ed-3cdef83c9dff",
@@ -3277,7 +3357,7 @@
     "industry_focus": "Equipment Leasing",
     "specializations": "Global leader in field inspectionauditand inventory verification services",
     "social_links": "[\"https://www.linkedin.com/company/quiktrak/\"\"https://www.facebook.com/Quiktrak/\"]",
-    "contractor_rating": 3.4,
+    "contractor_rating": 3,
     "client_reviews": "Contractors praise Quiktrak for its efficient online platform and prompt payment processing, but some note that the inspection fees can be on the lower side for more complex assignments.",
     "equipment_requirements": "Reliable transportationsmartphone or tablet with Quiktrak's mobile appinternet accessdigital camera",
     "training_provided": "TRUE",
@@ -3323,7 +3403,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:50.059Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 90
   },
   {
     "id": "09b7ad58-b376-4e62-b700-9a9e17db6575",
@@ -3391,7 +3475,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:51.444Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed page exists but no overall rating. One 5-star review from 2013. BBB A+."
   },
   {
     "id": "09bfcdb6-c638-4b58-b4ae-6186b5438bbf",
@@ -3409,7 +3496,7 @@
     "industry_focus": "Real EstateAppraisalField Services",
     "specializations": null,
     "social_links": "[\"https://www.linkedin.com/company/ivueit/\"\"https://twitter.com/ivueitapp\"\"https://www.facebook.com/Ivueit-Media-LLC-973301639355759/info/?tab=overview\"\"https://www.instagram.com/ivueit/?hl=en\"\"https://www.youtube.com/channel/UCnazRYP4jDpVAzQFlRx-tgA\"]",
-    "contractor_rating": 3.4,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise Ivueit for their efficient communication and prompt payment processing, making it a reliable partner for field service work.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -3459,7 +3546,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:52.699Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 49
   },
   {
     "id": "0aa2f5e2-6c5e-4989-b5e2-d1cd66cf5f1a",
@@ -3522,7 +3613,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:53.900Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.8,
+    "_indeed_reviews": 10
   },
   {
     "id": "0aada0d7-823b-4e04-85b3-cfd6e033c2a0",
@@ -3589,7 +3684,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:55.090Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "0b4533d2-f2d3-40a3-8ca9-6314deda432d",
@@ -3607,7 +3705,7 @@
     "industry_focus": "Mortgage Field Services, Property Preservation",
     "specializations": "Inspections, Preservation, Repair Management",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/mcs360\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.6,
     "client_reviews": "Contractors generally report timely payments and a wide range of available work orders, but sometimes criticize the firm's strict quality control measures.",
     "equipment_requirements": "Smartphone, camera, transportation",
     "training_provided": "Yes",
@@ -3651,12 +3749,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:56.197Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Mortgage Contracting Services (MCS) on Indeed: 2.6/5, 14 reviews.",
+    "_indeed_rating": 2.6,
+    "_indeed_reviews": 14
   },
   {
     "id": "0be462a4-68cc-4740-a2db-f38060e890cb",
@@ -3724,7 +3826,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:42.167Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "0c011a99-ce3b-4027-ac39-3a2c352320b0",
@@ -3787,7 +3892,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:28:58.159Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "0c37d2df-ecac-4ec7-ba3c-6ca322077b53",
@@ -3850,7 +3958,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:28:59.399Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Already flagged - no dedicated Indeed page."
   },
   {
     "id": "0d8d3adf-7639-4ca0-a31c-896deef38ea2",
@@ -3917,7 +4028,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:00.613Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed page found."
   },
   {
     "id": "0db19142-836f-4b25-a9db-1bfb1b63e09b",
@@ -3984,7 +4098,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:01.836Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "1.5K reviews on Indeed but no overall rating returned. Large staffing company."
   },
   {
     "id": "0e563182-4231-46ed-87c1-0e23d455003d",
@@ -4047,7 +4164,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:02.903Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed company page found. Related to oil/gas field services."
   },
   {
     "id": "0e655cc2-215d-4f11-96cf-2f574eedc30e",
@@ -4112,7 +4232,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:04.264Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "0ec230cb-50ca-46f2-8b21-a1f8effa2f1e",
@@ -4175,7 +4298,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:05.441Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 11
   },
   {
     "id": "0f2cc0ad-9182-4490-9112-bd0f8f853455",
@@ -4193,7 +4320,7 @@
     "industry_focus": "Construction",
     "specializations": "Technology company providing a platform for construction loan management",
     "social_links": "[\"https://www.linkedin.com/company/land-gorilla/\"\"https://x.com/landgorilla\"\"https://www.facebook.com/LandGorilla/\"]",
-    "contractor_rating": 3.7,
+    "contractor_rating": 2.5,
     "client_reviews": "Contractors praise Landgorilla for its streamlined platform and competitive pay rates, but some report issues with payment processing delays.",
     "equipment_requirements": "Reliable transportationsmartphone/tablet with camerainternet accessmeasuring toolshard hat/safety vest",
     "training_provided": "TRUE",
@@ -4239,7 +4366,12 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:06.453Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Land Gorilla on Indeed: 2.5/5, 22 reviews. Capterra 4.8/5 for software product.",
+    "_indeed_rating": 2.5,
+    "_indeed_reviews": 22
   },
   {
     "id": "10e001bb-4674-45ec-a9b0-f4b6283c4429",
@@ -4306,7 +4438,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:07.532Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Duplicate of national-mortgage-field-services. No Indeed page."
   },
   {
     "id": "120c8702-d81a-4e93-9690-76fd7a6dca7e",
@@ -4370,7 +4505,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:08.449Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed page exists but no overall rating found."
   },
   {
     "id": "137e6ea9-4d98-4dc0-bd80-b61ca1c411f7",
@@ -4437,7 +4575,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:09.515Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "First American on Indeed is for home warranty, not inspection subsidiary."
   },
   {
     "id": "15198507-0199-4aa6-82af-47f35fa3578a",
@@ -4455,7 +4596,7 @@
     "industry_focus": "Mortgage Field ServicesProperty PreservationREO ManagementProperty InspectionsHazard Claim ServicesCode Violation Management.",
     "specializations": "Long-standing national provider of default management solutions for the mortgage industryincluding comprehensive property preservationfield inspectionand REO (Real Estate Owned) services for mortgage lendersservicersinvestorsand government agencies (like HUDVAFHA).",
     "social_links": "[\"https://www.linkedin.com/company/five-brothers-mortgage-services\"\"https://www.facebook.com/FiveBrothersDefaultManagementSolutions/\"]",
-    "contractor_rating": 2.7,
+    "contractor_rating": 3.3,
     "client_reviews": "Contractors generally report a high volume of work opportunities with fair pay rates, but occasionally experience delays in payment processing.",
     "equipment_requirements": "For Preservation Vendors: Truck/van or suitable vehicle for hauling toolsmaterialsand debris; a full range of tools and equipment for property maintenance and repair (lawn caresecuringcleaningwinterizationbasic carpentryplumbingetc.); smartphone or tablet with internet access and capability to run Five Brothers' mobile app (FiveOnline Mobile); generator often required. For Inspectors: Reliable vehiclesmartphone/tablet with camera and internet. All vendors: Computer with internet for portal access.”",
     "training_provided": "TRUE",
@@ -4500,7 +4641,12 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:10.517Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Five Brothers on Indeed: 3.3/5, 24 reviews. Also Five Brothers Mortgage Services (2.2/5).",
+    "_indeed_rating": 3.3,
+    "_indeed_reviews": 24
   },
   {
     "id": "1569f629-f3a4-4208-9ed6-b04b825d128f",
@@ -4568,7 +4714,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:11.833Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "15820929-deff-49a2-bac0-c4983dc5e651",
@@ -4635,7 +4784,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:13.165Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Industry association, not a firm that hires contractors."
   },
   {
     "id": "15cfad71-0a28-414e-aa12-a2d9b90e20a6",
@@ -4653,7 +4805,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 4,
     "client_reviews": "Contractors praise COLEMAN CONSULTING GROUP LLC for their timely payments and clear communication, but some report inconsistent work volumes.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -4698,12 +4850,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:14.397Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Coleman Consulting Group on Indeed: 4.0/5. Review count not specified.",
+    "_indeed_rating": 4,
+    "_indeed_reviews": null
   },
   {
     "id": "15ec5897-06ca-4e3a-80c8-a445eda388c1",
@@ -4768,7 +4924,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:15.521Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Already searched in prev batch as inspection-services (4.0/2)."
   },
   {
     "id": "1648d2f6-f060-4975-92ee-bfa855467781",
@@ -4835,7 +4994,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:16.544Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Cross Check Quality Inspection on Indeed but no overall rating returned. Work-life balance 3.5, pay 3.0."
   },
   {
     "id": "17e1ba9e-a852-4648-afe3-5367a20ff478",
@@ -4853,7 +5015,7 @@
     "industry_focus": "Education Technology, Credentialing",
     "specializations": "Computer-Based Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/psi-services-llc\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3,
     "client_reviews": "Contractors praise PSI Services for its organized and efficient testing processes, but some report inconsistent volume and pay rates.",
     "equipment_requirements": "Computer, webcam, secure internet",
     "training_provided": "Yes",
@@ -4897,12 +5059,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:17.904Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 329
   },
   {
     "id": "18b8cd0f-1563-49f2-8a36-624b4380c4bc",
@@ -4920,7 +5085,7 @@
     "industry_focus": "Auction Services, Real Estate",
     "specializations": "Property & Asset Auction",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/williams-and-williams-auction\"}",
-    "contractor_rating": 4.5,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors praise Williams & Williams Auction for consistent and timely payment, but note that inspection volumes can be irregular.",
     "equipment_requirements": "For auction support/basic inspections: Reliable transportationdigital camera or smartphoneinternet access. For referring/partnering agents: Active real estate license.",
     "training_provided": "TRUE",
@@ -4965,7 +5130,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:19.062Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": 2
   },
   {
     "id": "190c87bd-35c2-4bd1-a2a4-a80f3d3f210b",
@@ -4983,7 +5152,7 @@
     "industry_focus": "Insurance Services, Loss Control",
     "specializations": "Commercial Loss Control Inspections, Premium Inspection Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/h-s-loss-control-inspections\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors praise H&S Loss Control Inspections for consistent workflow and fair compensation for completed inspections.",
     "equipment_requirements": "Inspection tools, camera, transportation",
     "training_provided": "Yes (Loss Control 360 platform training)",
@@ -5027,12 +5196,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:20.213Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "H&S Loss Control Inspections on Indeed: 3.5/5. Review count not specified.",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": null
   },
   {
     "id": "1a31c338-a863-441b-8c52-d084e0c32827",
@@ -5050,7 +5223,7 @@
     "industry_focus": "Insurance",
     "specializations": "National provider of data collection and field inspection services for the insurance industry",
     "social_links": "[\"https://www.linkedin.com/company/jmi-reports-inc/\"\"https://x.com/JMIReports\"\"https://www.facebook.com/JMIReports/\"]",
-    "contractor_rating": 2.2,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise JMI Reports for their efficient communication and consistent workflow, but note that pay rates can be on the lower end for certain inspection types.",
     "equipment_requirements": "Reliable transportationsmartphone or tablet with camera and JMI appinternet accessmeasuring devicesladder (for some exterior inspections)",
     "training_provided": "TRUE",
@@ -5099,7 +5272,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:21.278Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 128
   },
   {
     "id": "1a426fb3-b4ec-4659-9e1a-ba8b644487d1",
@@ -5164,7 +5341,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:22.476Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "1af745f6-1920-4bdb-992a-68eb54a41957",
@@ -5231,7 +5411,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:23.751Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "1cac6312-f1d5-4d1b-b5f2-8cbc6522f431",
@@ -5296,7 +5479,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:24.961Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "1cc064c3-45ae-42f8-801e-026a40717075",
@@ -5363,7 +5549,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:26.017Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "1e9b3ae5-a0d4-46fa-9a4d-a23fb374adcc",
@@ -5381,7 +5570,7 @@
     "industry_focus": "Education Technology, Testing Services",
     "specializations": "Computer-Based Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/prometric\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors generally report a smooth and organized experience working with Prometric, with opportunities for consistent and flexible work assignments.",
     "equipment_requirements": "Computer, webcam, secure internet",
     "training_provided": "Yes",
@@ -5425,12 +5614,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:27.305Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 889
   },
   {
     "id": "207db4e4-6e5f-4049-88fd-deffcff4bea8",
@@ -5448,7 +5640,7 @@
     "industry_focus": "Education Technology, Testing Services",
     "specializations": "Online Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/kryterion\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.6,
     "client_reviews": "Contractors praise Kryterion Inc for its flexible scheduling and reliable payment processing",
     "equipment_requirements": "Computer, webcam, reliable internet",
     "training_provided": "Yes",
@@ -5492,12 +5684,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:28.471Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.6,
+    "_indeed_reviews": 42
   },
   {
     "id": "20857254-a1f9-4430-b772-12b593ee2b28",
@@ -5515,7 +5710,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.7,
     "client_reviews": "Contractors praise MB Field Services for their efficient assignment process and timely payments.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -5559,12 +5754,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:43.192Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.7,
+    "_indeed_reviews": 6
   },
   {
     "id": "208c1201-19d8-40b9-b25e-c8688802ced4",
@@ -5582,7 +5780,7 @@
     "industry_focus": "Real Estate AppraisalMortgage LendingValuation Services",
     "specializations": "National Appraisal Management Company (AMC) providing a full suite of property valuation services to lenderscredit unionsand financial institutions by managing a panel of independent real estate appraisers.",
     "social_links": "[\"https://www.linkedin.com/company/dartappraisal/\"\"https://x.com/DartAppraisal\"\"https://www.facebook.com/dartappraisal/\"]",
-    "contractor_rating": 3.4,
+    "contractor_rating": 2.6,
     "client_reviews": "Contractors praise Dart Appraisal for their efficient ordering system and timely payment processing, but note that pay rates can be on the lower end for certain service types.",
     "equipment_requirements": "State-issued Appraiser License (Licensed ResidentialCertified Residentialor Certified General) in good standingE&O insuranceAppraisal software (e.g.ACITOTAL)computerreliable internetdigital camerameasuring tools.",
     "training_provided": "TRUE",
@@ -5629,7 +5827,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:30.621Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.6,
+    "_indeed_reviews": 27
   },
   {
     "id": "20f8bdfb-7a23-4544-ab2c-3ee55b1a84f7",
@@ -5697,7 +5899,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:31.928Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 6
   },
   {
     "id": "2118bddf-9a9a-4a4c-b206-4c7ec1d1a728",
@@ -5764,7 +5970,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:32.953Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "224cbbd8-9f4e-4c23-98c5-b05139ce7bd3",
@@ -5782,7 +5991,7 @@
     "industry_focus": "Residential Roofing, Construction Services",
     "specializations": "Roof Repair, Roof Replacement, Weather Damage Inspection",
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.9,
     "client_reviews": "Contractors praise Best Choice Roofing for their efficient scheduling and fair pay rates, but some report inconsistent volumes and communication.",
     "equipment_requirements": null,
     "training_provided": "Yes (sales & field training listed on careers page)",
@@ -5826,11 +6035,14 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:34.131Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.9,
+    "_indeed_reviews": 485
   },
   {
     "id": "22ec2d2a-0755-43a9-a3de-02a6d0dd6790",
@@ -5895,7 +6107,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:35.272Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "23e0e7cb-09e4-41f6-9329-a8fcc72a1194",
@@ -5958,7 +6173,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:36.362Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2453f010-7bff-440e-9984-b3284952ffae",
@@ -6026,7 +6244,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:37.828Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "18eea99a-e944-4046-afd9-d0f68d88b643",
@@ -6093,7 +6314,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:38.924Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "25c3032e-067b-42aa-a13b-907ce1a133e6",
@@ -6111,7 +6335,7 @@
     "industry_focus": "Disaster Inspections, Field Services",
     "specializations": "FEMA Housing Inspections, Disaster Assessments",
     "social_links": "[\"https://www.linkedin.com/company/vanguard-inspection-services-llc/\",\"https://www.facebook.com/VanguardHIS/\"]",
-    "contractor_rating": 3.9,
+    "contractor_rating": 4.5,
     "client_reviews": "Contractors praise Vanguard for its efficient communication and prompt payment processing, but note that inspection volume can be unpredictable",
     "equipment_requirements": "Basic inspection tools and PPE",
     "training_provided": "Yes",
@@ -6156,7 +6380,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:39.922Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.5,
+    "_indeed_reviews": 14
   },
   {
     "id": "269aaa79-4332-4187-8efe-b5ec44d1a237",
@@ -6223,7 +6451,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:41.039Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed page found. TransferEASE Relocation is a different entity."
   },
   {
     "id": "276a278f-d3b1-410e-bed3-1a6860a4060c",
@@ -6241,7 +6472,7 @@
     "industry_focus": "Real Estate Appraisal,Mortgage Lending,Capital Markets",
     "specializations": "National Appraisal Management Company (AMC) and valuation services provider.",
     "social_links": "[\"https://www.linkedin.com/company/stewart-valuation-intelligence/\"\"https://x.com/StewartTitleCo\"\"https://www.facebook.com/StewartTitleCo\"\"https://www.youtube.com/user/StewartTitleCo\"]",
-    "contractor_rating": 2.8,
+    "contractor_rating": 1.9,
     "client_reviews": "Contractors praise Pro Teck for its high volume of assignments and timely payment, but note that fees can be on the lower end for certain services",
     "equipment_requirements": "For Appraisers: State Appraiser License/CertificationE&O Insuranceappraisal software. For BPO Agents: Active Real Estate LicenseE&O insurance. All: Computerreliable internetdigital camerameasuring tools.",
     "training_provided": "TRUE",
@@ -6287,7 +6518,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:42.172Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 1.9,
+    "_indeed_reviews": 16
   },
   {
     "id": "28c776a9-7232-4c3f-8810-c7ed89b36496",
@@ -6351,7 +6586,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:43.501Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - too generic name."
   },
   {
     "id": "29b00e3d-a6e4-4052-b0c6-9168d81214a1",
@@ -6418,7 +6656,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:44.917Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Aspen Risk Management Group on Birdeye has 3 reviews but no Indeed overall rating."
   },
   {
     "id": "2aad5b13-583a-4ae4-aaf3-763aa892956e",
@@ -6483,7 +6724,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:46.245Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2bf3e96a-71ac-4d1f-a739-3f43ba574228",
@@ -6548,7 +6792,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:47.536Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2c419b6a-58f4-4416-a44d-c65b0df4bf00",
@@ -6616,7 +6863,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:48.968Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2cc08e42-80d9-42ce-8fc7-800b5b75dd01",
@@ -6634,7 +6884,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.6,
     "client_reviews": "Metropolitan Solutions is a professional and responsive client that provides a steady stream of inspection work with fair pay and timely payment terms",
     "equipment_requirements": null,
     "training_provided": null,
@@ -6678,12 +6928,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:50.244Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.6,
+    "_indeed_reviews": 5
   },
   {
     "id": "2cc59c10-3297-47fb-bbce-9aaebfbe0ba4",
@@ -6746,7 +6999,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:51.235Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2e19de51-e886-4d09-89a8-214572765d86",
@@ -6814,7 +7070,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:52.480Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2edcdd2e-954e-4752-82fa-953654cb7c20",
@@ -6881,7 +7140,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:53.449Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "2f6ffd41-c5ef-4164-b015-8dfcfa253a8d",
@@ -6899,7 +7161,7 @@
     "industry_focus": "Energy (Oil & GasPipelineRenewables),Utilities (Electric TransmissionDistribution),Telecommunications,Transportation (HighwayRail),Government",
     "specializations": "Specializes in acquiring land rights and providing related services for linear projects.",
     "social_links": "[\"https://www.facebook.com/lfsrow/\"]",
-    "contractor_rating": 2.9,
+    "contractor_rating": 4.7,
     "client_reviews": "Contractors praise Landmark Field Services for their organized workflow and timely payments, but note that the inspection volume can be inconsistent at times",
     "equipment_requirements": "Varies by role",
     "training_provided": null,
@@ -6945,7 +7207,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:54.483Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.7,
+    "_indeed_reviews": 6
   },
   {
     "id": "309dcd7e-f49d-4a6c-9493-6cf9d1f6ed23",
@@ -7013,7 +7279,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:55.907Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - too generic."
   },
   {
     "id": "3122bd49-188d-4f58-8a14-a29e791416c4",
@@ -7080,7 +7349,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:57.237Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - too generic."
   },
   {
     "id": "32f35295-eda0-4199-aa86-b93332108e92",
@@ -7098,7 +7370,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 4.2,
     "client_reviews": "Contractors praise Seek Now for its streamlined inspection process and timely payments.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -7142,12 +7414,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:58.245Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.2,
+    "_indeed_reviews": 52
   },
   {
     "id": "33583e58-9595-4cbe-b348-3802a8903e48",
@@ -7212,7 +7487,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:59.444Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "33a384cb-a159-413a-af4d-9c1747868279",
@@ -7280,7 +7558,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:00.775Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "33835481-65d4-4c59-8953-a9ae19e02870",
@@ -7345,7 +7626,12 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:02.299Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Only 1 review (5.0).",
+    "_indeed_rating": 5,
+    "_indeed_reviews": 1
   },
   {
     "id": "38852e3a-47e6-46b3-833f-30fbe2810238",
@@ -7363,7 +7649,7 @@
     "industry_focus": "Real EstateField Services",
     "specializations": null,
     "social_links": null,
-    "contractor_rating": 3.4,
+    "contractor_rating": 3.1,
     "client_reviews": "Contractors praise Reliable Reports for their efficient scheduling system and timely payments.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -7412,7 +7698,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:03.400Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.1,
+    "_indeed_reviews": 197
   },
   {
     "id": "38976ef7-84b4-4fbc-ae9c-89a0f3ca3efa",
@@ -7477,7 +7767,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:04.576Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed page. Trustpilot 12.4K reviews."
   },
   {
     "id": "3897b587-e531-449f-84be-d8fd56283c0b",
@@ -7544,7 +7837,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:44.323Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "3bf651b1-1a50-4499-b9b5-ec69bf071f0f",
@@ -7562,7 +7858,7 @@
     "industry_focus": "Insurance Services, Loss Control",
     "specializations": "Insurance Inspections, Loss Control Surveys, Risk Assessments",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/regional-reporting-inc\"}",
-    "contractor_rating": 3.2,
+    "contractor_rating": 4.8,
     "client_reviews": "Contractors praise Regional Reporting for its efficient payment process and clear communication regarding inspection assignments and expectations.",
     "equipment_requirements": "Camera, measuring tools, transportation",
     "training_provided": "Yes",
@@ -7606,7 +7902,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:06.548Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.8,
+    "_indeed_reviews": 5
   },
   {
     "id": "3c519539-9525-4cca-b460-738e130aa07c",
@@ -7624,7 +7924,7 @@
     "industry_focus": "Engineering Consulting, Forensic Services",
     "specializations": "Forensic Engineering, Property Damage Assessment, Expert Witness Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/rimkus-consulting-group\"}",
-    "contractor_rating": 3.7,
+    "contractor_rating": 3.6,
     "client_reviews": "Rimkus Consulting Group is a reputable firm with a steady stream of high-paying inspection work, but can have stringent requirements and complex reporting processes",
     "equipment_requirements": "Inspection tools, PPE, transportation",
     "training_provided": "Yes",
@@ -7672,7 +7972,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:07.842Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.6,
+    "_indeed_reviews": 59
   },
   {
     "id": "3c5f56a9-e0f7-4f79-86d7-60a6a263b8d6",
@@ -7739,7 +8043,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:08.993Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "3d01de1b-d4ea-4a99-a07c-1496602e9bfd",
@@ -7806,7 +8113,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:10.279Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Subsidiary of Altisource, already verified under parent."
   },
   {
     "id": "3d137341-69dc-411d-be8e-e7aa6655173f",
@@ -7872,7 +8182,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:11.328Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "3d2633cc-84fa-43ca-8aed-4a64ba042adc",
@@ -7890,7 +8203,7 @@
     "industry_focus": "Mortgage Field Services",
     "specializations": "Property Inspections, Occupancy Verifications",
     "social_links": "[\"https://www.linkedin.com/company/western-field-services/\"]",
-    "contractor_rating": 5,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise Western Field Services for their timely payment and consistent workflow, but note that inspection fees can be on the lower end of the industry average.",
     "equipment_requirements": "Smartphone, transportation",
     "training_provided": "TRUE",
@@ -7935,7 +8248,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:12.345Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 5
   },
   {
     "id": "3ee2b201-fa8a-4084-bea1-7b8e685aa1e7",
@@ -7953,7 +8270,7 @@
     "industry_focus": "Home Warranty,Home Services,Repair Services",
     "specializations": "Provides home warranty service plans and on-demand home repair services.",
     "social_links": "[\"https://www.linkedin.com/company/cinch-home-services/\"\"https://www.facebook.com/CinchHomeServices/\"\"https://www.instagram.com/cinchhomeservices/\"]",
-    "contractor_rating": 3.4,
+    "contractor_rating": 3,
     "client_reviews": "Contractors generally praise Cinch Home Services for their streamlined workflow and consistent volume of available work orders, although some mention that the per-inspection rates can be on the lower side compared to other firms.",
     "equipment_requirements": "Appropriate state/local trade licensesGeneral Liability insuranceWorkers' Compensation insuranceown service vehicletoolsdiagnostic equipmentparts inventory or accessSmartphone/tablet",
     "training_provided": "TRUE",
@@ -8000,7 +8317,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:13.696Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 277
   },
   {
     "id": "401b6120-224f-4ed2-a3bf-965ed8f3ed1a",
@@ -8068,7 +8389,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:14.990Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - too generic."
   },
   {
     "id": "41d59fed-861f-4a4d-a6ff-5d5238e19694",
@@ -8132,7 +8456,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:16.265Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "420afcd6-202b-4d5a-8843-befaa7dd4aae",
@@ -8200,7 +8527,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:17.462Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed page exists (Vehicle Repair industry) but no overall rating returned."
   },
   {
     "id": "426b5e93-be1a-42de-bd58-3d1b474698db",
@@ -8218,7 +8548,7 @@
     "industry_focus": "Commercial Real Estate (RetailOfficeIndustrialRestaurantsHealthcareHospitalityMulti-Family)Facilities ManagementArchitecture & EngineeringCorporate Real Estate.",
     "specializations": "Specializes in creating highly accurate as-built floor plans and providing comprehensive on-site survey data for commercial properties across various industries. Employs proprietary field data collection software (iDrafteur) and a skilled network of independent field surveyors for precise on-site data captureenabling clients to effectively manage spaceassetsand facilities.",
     "social_links": "[\"https://www.linkedin.com/company/id-plans\"\"https://x.com/IDPlans\"\"https://www.facebook.com/IDPlans\"\"https://www.instagram.com/idplansofficial\"\"https://www.youtube.com/user/IDPlansVideos\"]",
-    "contractor_rating": 2.8,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise ID Plans for their efficient payment process and fair compensation rates, with many reporting a positive experience working with the company's proprietary software and supportive team.",
     "equipment_requirements": "Reliable transportation (often involving extensive local and regional travel to various commercial property sites)”Windows-based tablet computer meeting specific hardware requirements (RAMprocessorOS – detailed by ID Plans for compatibility with their iDrafteur software)”Compatible laser measuring device (e.g.Leica Disto D-seriesBosch GLM series – ID Plans usually specifies compatible models)”Digital camera or high-quality smartphone camera (for supplementary photos not captured directly through iDrafteur)”Reliable internet access (for downloading project files and uploading completed survey data).” Strong spatial awarenessmeticulous attention to detailability to accurately measure complex spaces and sketch layoutsprofessional demeanor for site interactions.”",
     "training_provided": "TRUE",
@@ -8265,7 +8595,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:18.817Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 32
   },
   {
     "id": "42e5ce14-c4aa-428f-b494-523fb3f0bacc",
@@ -8283,7 +8617,7 @@
     "industry_focus": "Energy, Utilities",
     "specializations": "Power Generation, Energy Retail, Infrastructure Operations",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/nrg-energy\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.7,
     "client_reviews": "Contractors praise NRG Energy for its consistent workflow and fair compensation, but note that inspection requirements can be rigorous at times.",
     "equipment_requirements": "Role dependent",
     "training_provided": "Yes",
@@ -8327,12 +8661,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:20.000Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.7,
+    "_indeed_reviews": 591
   },
   {
     "id": "4375caa2-eea0-46fc-934f-4536eb970e39",

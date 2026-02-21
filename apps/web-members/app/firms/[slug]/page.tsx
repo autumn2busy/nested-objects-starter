@@ -7,7 +7,7 @@ import {
   DollarSign, Clock, FileText, ChevronRight, Star,
   ShieldCheck, TrendingUp, CalendarDays
 } from 'lucide-react'
-import { FirmMap } from '@/components/FirmMap'
+import { FirmServiceArea } from '@/components/FirmServiceArea'
 import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmGatedContent } from './FirmGatedContent'
@@ -310,33 +310,14 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
 
           {/* Sidebar */}
           <aside className="flex flex-col gap-6">
-            {/* Map */}
-            <div className="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm">
-              <div className="border-b border-border-subtle px-5 py-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-                  <MapPin className="h-4 w-4 text-brand" /> Service area
-                </h3>
-              </div>
-              <div className="h-56">
-                {hasCoordinates ? (
-                  <FirmMap firms={[firm as any]} center={{ lat: firm.latitude!, lng: firm.longitude! }} zoom={10} className="h-full w-full" />
-                ) : firm.address ? (
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firm.address)}`} target="_blank" rel="noopener noreferrer"
-                    className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-500 transition hover:text-brand">
-                    <MapPin className="mb-2 h-6 w-6 text-slate-300" /> Open in Google Maps
-                  </a>
-                ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center bg-slate-50 p-4 text-center text-sm text-slate-400">
-                    <MapPin className="mb-2 h-6 w-6 text-slate-200" /> No location data yet
-                  </div>
-                )}
-              </div>
-              {firm.address && (
-                <div className="border-t border-border-subtle px-5 py-3">
-                  <p className="text-xs text-slate-500">{firm.address}</p>
-                </div>
-              )}
-            </div>
+            {/* Map / Service Area */}
+            <FirmServiceArea
+              name={firm.name}
+              latitude={firm.latitude}
+              longitude={firm.longitude}
+              coverage={firm.geographic_coverage}
+              address={firm.address}
+            />
 
             {/* Contact card */}
             {hasContact && (
