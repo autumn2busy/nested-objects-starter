@@ -181,10 +181,13 @@ async function main() {
         return
     }
 
-    const { driftFields, inJsonNotDb } = await checkSync(jsonFirms)
-    if (driftFields === 0 && inJsonNotDb === 0) {
-        console.log('Nothing to push. Exiting.')
-        return
+    const FORCE = process.argv.includes('--force')
+    if (!FORCE) {
+        const { driftFields, inJsonNotDb } = await checkSync(jsonFirms)
+        if (driftFields === 0 && inJsonNotDb === 0) {
+            console.log('Nothing to push. Use --force to update existing records. Exiting.')
+            return
+        }
     }
 
     await pushToSupabase(jsonFirms)

@@ -165,7 +165,14 @@ Return ONLY the JSON object with the field values. No wrapping, no markdown, no 
 // ─── Main ───────────────────────────────────────────────────────
 
 async function main() {
-    const firms = JSON.parse(fs.readFileSync(FIRMS_PATH, 'utf8'))
+    let firms
+    if (fs.existsSync(OUTPUT_PATH)) {
+        console.log(`Reading existing output from ${OUTPUT_PATH}`)
+        firms = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'))
+    } else {
+        console.log(`Reading source from ${FIRMS_PATH}`)
+        firms = JSON.parse(fs.readFileSync(FIRMS_PATH, 'utf8'))
+    }
     console.log(`Loaded ${firms.length} firms from JSON`)
     console.log(`Model: ${MODEL}`)
 

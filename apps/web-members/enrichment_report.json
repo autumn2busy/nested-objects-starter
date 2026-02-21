@@ -1,19 +1,6 @@
 {
-  "started_at": "2026-02-21T19:06:40.079Z",
-  "model": "llama-3.3-70b-versatile",
   "total_firms": 460,
-  "enriched": 60,
-  "failed": 0,
-  "fields_filled": {
-    "pay_min": 9,
-    "pay_max": 9,
-    "pay_type": 9,
-    "compensation_structure": 17,
-    "contractor_rating": 57,
-    "client_reviews": 60,
-    "services": 50,
-    "description": 4
-  },
-  "errors": [],
-  "finished_at": "2026-02-21T19:07:44.451Z"
+  "firms_to_enrich": 0,
+  "gap_counts": {},
+  "sample_firms": []
 }
