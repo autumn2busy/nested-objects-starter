@@ -15,6 +15,35 @@ import { StarRating } from '@/components/ui/StarRating'
 import { FirmLogo } from '@/components/ui/FirmLogo'
 import { US_STATES } from './constants'
 
+// ─── Industry focus options (based on actual data distribution) ──
+
+const INDUSTRY_OPTIONS = [
+    { value: 'ALL', label: 'All Industries' },
+    { value: 'Mortgage', label: 'Mortgage Field Services' },
+    { value: 'Insurance', label: 'Insurance & Loss Control' },
+    { value: 'Real Estate', label: 'Real Estate' },
+    { value: 'Construction', label: 'Construction' },
+    { value: 'Engineering', label: 'Engineering & Infrastructure' },
+    { value: 'Preservation', label: 'Property Preservation & REO' },
+    { value: 'Appraisal', label: 'Appraisal & Valuation' },
+    { value: 'Mystery', label: 'Mystery Shopping & Audits' },
+    { value: 'Notary', label: 'Notary & Signing' },
+    { value: 'AI', label: 'AI & Data Services' },
+    { value: 'Staffing', label: 'Staffing & Workforce' },
+    { value: 'Medical', label: 'Medical & Logistics' },
+    { value: 'Energy', label: 'Energy & Utilities' },
+] as const
+
+const RATING_OPTIONS = [
+    { value: 'ALL', label: 'All Ratings' },
+    { value: '4', label: '4+ Stars' },
+    { value: '3.5', label: '3.5+ Stars' },
+    { value: '3', label: '3+ Stars' },
+    { value: '2', label: '2+ Stars' },
+] as const
+
+// ─── Types ──────────────────────────────────────────────────────
+
 export type Firm = {
     id: string
     slug: string | null
@@ -41,25 +70,36 @@ export type Firm = {
     longitude: number | null
 }
 
+// ─── Filter Bar ─────────────────────────────────────────────────
+
 type FilterBarProps = {
     stateFilter: string
     search: string
+    ratingFilter: string
+    industryFilter: string
     isFree: boolean
     isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
+    onRatingChange: (value: string) => void
+    onIndustryChange: (value: string) => void
 }
 
 function FilterBar({
     stateFilter,
     search,
+    ratingFilter,
+    industryFilter,
     isFree,
     isAuthenticated,
     onSearchChange,
     onStateChange,
+    onRatingChange,
+    onIndustryChange,
 }: FilterBarProps) {
     return (
         <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
+            {/* Row 1: State + Search */}
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
@@ -91,15 +131,9 @@ function FilterBar({
                                 type="text"
                                 disabled
                                 tone="warning"
-                                placeholder={!isAuthenticated ? "Login to search..." : "Search + advanced filters available on paid plans"}
+                                placeholder={!isAuthenticated ? "Login to search..." : "Search + filters available on paid plans"}
                                 className="cursor-not-allowed"
                             />
-                            <FieldHelperText className="text-amber-800">
-                                {!isAuthenticated ? 'Log in' : 'Upgrade to Starter or higher'} to search by firm, service type, and region.{' '}
-                                <Link href="/membership-pricing" className="font-semibold text-amber-900 underline">
-                                    View plans
-                                </Link>
-                            </FieldHelperText>
                         </div>
                     ) : (
                         <Input
@@ -113,12 +147,68 @@ function FilterBar({
                 </div>
             </div>
 
-            <FieldHelperText className="mt-3">
-                Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
-            </FieldHelperText>
+            {/* Row 2: Rating + Industry */}
+            <div className="mt-4 grid gap-4 md:grid-cols-2 md:items-end">
+                <div className="space-y-1">
+                    <FieldLabel htmlFor="rating-filter">MINIMUM RATING</FieldLabel>
+                    {isFree ? (
+                        <Select disabled value="ALL">
+                            <option value="ALL">All Ratings (Upgrade to filter)</option>
+                        </Select>
+                    ) : (
+                        <Select
+                            id="rating-filter"
+                            value={ratingFilter}
+                            onChange={(e) => onRatingChange(e.target.value)}
+                        >
+                            {RATING_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </Select>
+                    )}
+                </div>
+
+                <div className="space-y-1">
+                    <FieldLabel htmlFor="industry-filter">INDUSTRY FOCUS</FieldLabel>
+                    {isFree ? (
+                        <Select disabled value="ALL">
+                            <option value="ALL">All Industries (Upgrade to filter)</option>
+                        </Select>
+                    ) : (
+                        <Select
+                            id="industry-filter"
+                            value={industryFilter}
+                            onChange={(e) => onIndustryChange(e.target.value)}
+                        >
+                            {INDUSTRY_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </Select>
+                    )}
+                </div>
+            </div>
+
+            {isFree ? (
+                <FieldHelperText className="mt-3 text-amber-800">
+                    {!isAuthenticated ? 'Log in' : 'Upgrade to Starter or higher'} to unlock all filters and search the full directory.{' '}
+                    <Link href="/membership-pricing" className="font-semibold text-amber-900 underline">
+                        View plans
+                    </Link>
+                </FieldHelperText>
+            ) : (
+                <FieldHelperText className="mt-3">
+                    Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
+                </FieldHelperText>
+            )}
         </Card>
     )
 }
+
+// ─── Firm Card ──────────────────────────────────────────────────
 
 type FirmCardProps = {
     firm: Firm
@@ -172,7 +262,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
         >
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-wrap items-center gap-4 sm:flex-nowrap">
-                    {/* Use FirmLogo component with fallback handling */}
                     <FirmLogo
                         name={firm.name}
                         logoUrl={firm.logo_url}
@@ -206,7 +295,7 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
 
                 <div className="text-right">
                     <p className="text-slate-900">Rating</p>
-                    <div className="mt-0.5 flex justify-end">
+                    <div className="mt-0.5 flex items-center justify-end">
                         <StarRating
                             rating={Number(firm.contractor_rating) || 0}
                             count={firm.rating_count ?? undefined}
@@ -249,6 +338,8 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
     )
 }
 
+// ─── Directory View ─────────────────────────────────────────────
+
 interface DirectoryViewProps {
     initialFirms: Firm[]
     totalCount: number
@@ -260,6 +351,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const { isAuthenticated, planUid, isLoading } = useAuth()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
+    const [ratingFilter, setRatingFilter] = useState<string>('ALL')
+    const [industryFilter, setIndustryFilter] = useState<string>('ALL')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -267,23 +360,29 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
 
     const urlStateFilter = searchParams?.get('state') ?? 'ALL'
     const urlSearch = searchParams?.get('search') ?? ''
+    const urlRating = searchParams?.get('rating') ?? 'ALL'
+    const urlIndustry = searchParams?.get('industry') ?? 'ALL'
 
     useEffect(() => {
         setStateFilter(urlStateFilter)
         setSearch(urlSearch)
-    }, [urlSearch, urlStateFilter])
+        setRatingFilter(urlRating)
+        setIndustryFilter(urlIndustry)
+    }, [urlSearch, urlStateFilter, urlRating, urlIndustry])
 
     const isGuest = !isAuthenticated
     const isFree = planUid === 'L9nbKV9Z'
     const isRestricted = isGuest || isFree
 
-    // Safeguard: If a guest/free user tries to use URL params to filter, redirect them to the root /hiring-firms
-    // We wait for isLoading to be false so we don't redirect Pro users while their auth is initializing.
+    // Safeguard: If a guest/free user tries to use URL params to filter, redirect
     useEffect(() => {
-        if (!isLoading && isRestricted && (urlStateFilter !== 'ALL' || urlSearch.trim() !== '')) {
+        if (!isLoading && isRestricted && (
+            urlStateFilter !== 'ALL' || urlSearch.trim() !== '' ||
+            urlRating !== 'ALL' || urlIndustry !== 'ALL'
+        )) {
             router.replace('/hiring-firms')
         }
-    }, [isLoading, isRestricted, urlStateFilter, urlSearch, router])
+    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, router])
 
     const isProOrHigher = !!planUid && !isRestricted
 
@@ -293,60 +392,63 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const endIndex = Math.min(page * limit, totalCount)
     const canGoBack = page > 1
     const canGoForward = page < totalPages
-    const paginationHref = useMemo(() => {
-        return (nextPage: number) => {
-            const params = new URLSearchParams(searchParams?.toString())
-            params.set('page', String(nextPage))
-            params.set('limit', String(limit))
-            if (stateFilter && stateFilter !== 'ALL') {
-                params.set('state', stateFilter)
-            } else {
-                params.delete('state')
-            }
 
-            if (search.trim()) {
-                params.set('search', search.trim())
-            } else {
-                params.delete('search')
-            }
-            const query = params.toString()
-            return query ? `/hiring-firms?${query}` : '/hiring-firms'
-        }
-    }, [limit, search, searchParams, stateFilter])
+    // Build URL with all current filters
+    const buildUrl = (overrides: Record<string, string> = {}) => {
+        const params = new URLSearchParams()
+        const nextState = overrides.state ?? stateFilter
+        const nextSearch = overrides.search ?? search
+        const nextRating = overrides.rating ?? ratingFilter
+        const nextIndustry = overrides.industry ?? industryFilter
+        const nextPage = overrides.page ?? '1'
 
-    const updateFilters = (nextState: string, nextSearch: string, nextPage = 1) => {
-        const params = new URLSearchParams(searchParams?.toString())
-        if (nextState && nextState !== 'ALL') {
-            params.set('state', nextState)
-        } else {
-            params.delete('state')
-        }
-
-        if (nextSearch.trim()) {
-            params.set('search', nextSearch.trim())
-        } else {
-            params.delete('search')
-        }
-
-        params.set('page', String(nextPage))
+        if (nextState && nextState !== 'ALL') params.set('state', nextState)
+        if (nextSearch.trim()) params.set('search', nextSearch.trim())
+        if (nextRating && nextRating !== 'ALL') params.set('rating', nextRating)
+        if (nextIndustry && nextIndustry !== 'ALL') params.set('industry', nextIndustry)
+        params.set('page', nextPage)
         params.set('limit', String(limit))
+
         const query = params.toString()
-        router.push(query ? `/hiring-firms?${query}` : '/hiring-firms')
+        return query ? `/hiring-firms?${query}` : '/hiring-firms'
+    }
+
+    const paginationHref = useMemo(() => {
+        return (nextPage: number) => buildUrl({ page: String(nextPage) })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [limit, search, stateFilter, ratingFilter, industryFilter, searchParams])
+
+    const handleStateChange = (value: string) => {
+        setStateFilter(value)
+        router.push(buildUrl({ state: value }))
+    }
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value)
+        router.push(buildUrl({ search: value }))
+    }
+
+    const handleRatingChange = (value: string) => {
+        setRatingFilter(value)
+        router.push(buildUrl({ rating: value }))
+    }
+
+    const handleIndustryChange = (value: string) => {
+        setIndustryFilter(value)
+        router.push(buildUrl({ industry: value }))
     }
 
     const handlePageChange = (nextPage: number) => {
         router.push(paginationHref(nextPage))
     }
 
-    const handleStateChange = (value: string) => {
-        setStateFilter(value)
-        updateFilters(value, search)
-    }
-
-    const handleSearchChange = (value: string) => {
-        setSearch(value)
-        updateFilters(stateFilter, value)
-    }
+    // Active filter count (for showing "clear filters" hint)
+    const activeFilterCount = [
+        stateFilter !== 'ALL',
+        search.trim() !== '',
+        ratingFilter !== 'ALL',
+        industryFilter !== 'ALL',
+    ].filter(Boolean).length
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -372,11 +474,29 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             <FilterBar
                 stateFilter={stateFilter}
                 search={search}
+                ratingFilter={ratingFilter}
+                industryFilter={industryFilter}
                 isFree={isRestricted}
                 isAuthenticated={isAuthenticated}
                 onSearchChange={handleSearchChange}
                 onStateChange={handleStateChange}
+                onRatingChange={handleRatingChange}
+                onIndustryChange={handleIndustryChange}
             />
+
+            {/* Active filters summary */}
+            {!isRestricted && activeFilterCount > 0 && (
+                <div className="mb-4 flex items-center gap-3 text-xs text-slate-600">
+                    <span className="font-semibold">{totalCount} firm{totalCount !== 1 ? 's' : ''} match your filters</span>
+                    <button
+                        type="button"
+                        onClick={() => router.push('/hiring-firms')}
+                        className="font-semibold text-brand underline hover:text-brand/80"
+                    >
+                        Clear all filters
+                    </button>
+                </div>
+            )}
 
             {isRestricted && (
                 <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
@@ -411,6 +531,19 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
             <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                 {/* Cards */}
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    {displayedFirms.length === 0 && !isRestricted && (
+                        <div className="col-span-full rounded-md border border-slate-200 bg-slate-50 px-6 py-10 text-center">
+                            <p className="text-sm font-semibold text-slate-700">No firms match your filters</p>
+                            <p className="mt-1 text-xs text-slate-500">Try broadening your search or clearing a filter.</p>
+                            <button
+                                type="button"
+                                onClick={() => router.push('/hiring-firms')}
+                                className="mt-3 inline-flex border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white"
+                            >
+                                CLEAR FILTERS
+                            </button>
+                        </div>
+                    )}
                     {displayedFirms.map((firm) => (
                         <FirmCard
                             key={firm.id}

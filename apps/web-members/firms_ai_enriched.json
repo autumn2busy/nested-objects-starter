@@ -8731,7 +8731,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:21.042Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche AMC."
   },
   {
     "id": "4396d555-0c07-4008-bfbd-604cf23ccaf7",
@@ -8749,7 +8752,7 @@
     "industry_focus": "Mortgage Field Services",
     "specializations": "Comprehensive mortgage lifecycle services",
     "social_links": "[\"https://www.linkedin.com/company/servicelink/\",\"https://www.facebook.com/svclnk\"]",
-    "contractor_rating": 3,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise ServiceLink for its reliable payment terms and wide range of assignment opportunities, but some report inconsistent communication from staff",
     "equipment_requirements": "Varies significantly by role",
     "training_provided": "TRUE",
@@ -8795,7 +8798,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:22.177Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 544
   },
   {
     "id": "43f056a7-c4aa-411d-ae8f-e9eec914874e",
@@ -8859,7 +8866,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:23.248Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "44f55d7f-0224-441b-97eb-63807c2c761f",
@@ -8877,7 +8887,7 @@
     "industry_focus": "Engineering, Construction",
     "specializations": "Construction Inspection, Field Services Support",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/sage-consulting-group\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 4.9,
     "client_reviews": "Contractors praise Sage Consulting Group for its organized workflow and timely payments, but note that inspection volume can be inconsistent.",
     "equipment_requirements": "Inspection tools, PPE",
     "training_provided": null,
@@ -8921,12 +8931,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:24.385Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.9,
+    "_indeed_reviews": 10
   },
   {
     "id": "45045274-bae1-4b2b-815a-d5953be7cc46",
@@ -8993,7 +9006,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:25.604Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "45697f94-4eba-40a8-95e8-4417fb113d2b",
@@ -9060,7 +9076,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:26.685Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "457de9fe-78db-46a6-be71-8cd9f39b10d0",
@@ -9127,7 +9146,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:27.850Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "4623c69b-2457-4e55-9134-4a452763640c",
@@ -9193,7 +9215,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:28.794Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "48f86e84-fc20-457b-ae1f-4ea283830cfd",
@@ -9257,7 +9282,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:30.027Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "498cf5bc-e102-400a-a080-e1f5c271f496",
@@ -9275,7 +9303,7 @@
     "industry_focus": "Defense, Government Logistics",
     "specializations": "Supply Chain, Contracting, Facilities & Logistics Support",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/defense-logistics-agency\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 4,
     "client_reviews": "Contractors generally report timely payments and professional communication from the Defense Logistics Agency.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -9319,12 +9347,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:31.221Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Government agency, not a private firm.",
+    "_indeed_rating": 4,
+    "_indeed_reviews": 232
   },
   {
     "id": "499c5d90-7b6b-4a76-8c67-a9ad4f4abdec",
@@ -9342,7 +9374,7 @@
     "industry_focus": "Real EstateField Services",
     "specializations": null,
     "social_links": "[\"https://www.facebook.com/pages/Inspection-Depot/137505726324944\"\"https://www.youtube.com/watch?v=bhursI6omHo\"]",
-    "contractor_rating": 3.1,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise Inspection Depot for their efficient dispatch system and timely payments, but some report inconsistent volumes and variable pay rates.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -9392,7 +9424,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:32.377Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 15
   },
   {
     "id": "4a4afcbc-00e9-4475-a126-ca8edb28e7e2",
@@ -9410,7 +9446,7 @@
     "industry_focus": "Insurtech & Claims Platforms",
     "specializations": "Claims TPA solutions, virtual estimating, risk analytics",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/xceedance\"}",
-    "contractor_rating": 3.5,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise Xceedance for its efficient claims processing platform and timely payment structure, but some note variability in inspection volume and pay rates",
     "equipment_requirements": "Reliable transportationtablet or smartphone with high-quality camera and data planmeasuring devicesladder (as needed)computer with internet access",
     "training_provided": "Yes",
@@ -9455,7 +9491,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:33.716Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 14
   },
   {
     "id": "4ad5afdc-0213-4422-8b91-8adaa03246bc",
@@ -9473,7 +9513,7 @@
     "industry_focus": "Professional Services (AssuranceTaxConsultingStrategy & Transactions). GigNow offers project roles across various industries EY serves.",
     "specializations": "Engages specialized contractors via GigNow for project-based needs requiring high-level expertise in specific professional domains.",
     "social_links": "[\"https://www.linkedin.com/company/ernstyoung/\"\"https://x.com/EYnews\"\"https://www.facebook.com/EY/\"]",
-    "contractor_rating": 3.7,
+    "contractor_rating": 3.9,
     "client_reviews": "Contractors praise Ernst & Young for its professional and organized project management, but some note that pay rates can be on the lower end for certain inspection types.",
     "equipment_requirements": "Standard professional business equipment: Laptop/computer with reliable internet accesssmartphone. Specific software proficiency may be required depending on the role.",
     "training_provided": "FALSE",
@@ -9521,7 +9561,12 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:35.009Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Ernst & Young LLP (EY) - major consulting firm, not pure inspection.",
+    "_indeed_rating": 3.9,
+    "_indeed_reviews": 10655
   },
   {
     "id": "4b2d8a5d-744d-4e24-8030-56a1fcb9eb40",
@@ -9539,7 +9584,7 @@
     "industry_focus": "PropTech, Valuations & Risk Platforms",
     "specializations": "Property valuation data, flood risk reporting, collaborative appraisal tools",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/xactus\"}",
-    "contractor_rating": 3,
+    "contractor_rating": 1.9,
     "client_reviews": "Contractors praise Xactus for its streamlined inspection tools and relatively consistent workflow volume, but sometimes criticize the lower per-inspection pay rates",
     "equipment_requirements": "Mobile property data capture device",
     "training_provided": "Yes",
@@ -9584,7 +9629,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:36.160Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 1.9,
+    "_indeed_reviews": 19
   },
   {
     "id": "4d232f3e-4000-4b54-b70e-46167c1565c5",
@@ -9647,7 +9696,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:37.154Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "4da18725-5dba-45be-a26d-2d45a086e4d3",
@@ -9665,7 +9717,7 @@
     "industry_focus": "Mortgage Field Services",
     "specializations": "Occupancy Inspections, Property Condition Reports, Preservation",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/singlesourcepropertysolutions\"}",
-    "contractor_rating": 3.1,
+    "contractor_rating": 2.8,
     "client_reviews": "Contractors praise SingleSource for consistent workflow and relatively quick payment terms",
     "equipment_requirements": "Smartphone, camera, transportation",
     "training_provided": "Yes",
@@ -9713,7 +9765,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:38.315Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.8,
+    "_indeed_reviews": 37
   },
   {
     "id": "4e124be5-4907-48fb-9af6-562d9b79142b",
@@ -9731,7 +9787,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors generally report a smooth and efficient experience working with EXL Overland Solutions, with timely payments and clear communication.",
     "equipment_requirements": null,
     "training_provided": null,
@@ -9775,12 +9831,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:45.429Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Overland Solutions (EXL Company) on Indeed: 2.9/118 reviews.",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 118
   },
   {
     "id": "4ff214b5-7d90-446d-b160-978fcc7615ab",
@@ -9798,7 +9858,7 @@
     "industry_focus": "Real Estate & Property Management",
     "specializations": "Affordable Housing, Residential Services, Community Development",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/winncompanies\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.3,
     "client_reviews": "Contractors praise WinnCompanies for their reliable payment processing and diverse range of property preservation work orders",
     "equipment_requirements": null,
     "training_provided": "Yes",
@@ -9842,12 +9902,15 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:40.292Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.3,
+    "_indeed_reviews": 602
   },
   {
     "id": "50106893-13c3-49db-b3b3-23dbf9a258ea",
@@ -9915,7 +9978,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:41.660Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "50236525-2b69-4019-9771-cab3b0f12410",
@@ -9978,7 +10044,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:42.950Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "50606479-4d03-4488-9093-2b8d849454ed",
@@ -10044,7 +10113,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:44.104Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "511abfce-054b-4df7-817e-d87f72733482",
@@ -10111,7 +10183,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:45.324Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "5279d997-cdea-4f59-8966-2ac9f7083b51",
@@ -10179,7 +10254,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:46.508Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Indeed: 5.0 from 1 review (2018). Too few reviews for reliable rating."
   },
   {
     "id": "5590c565-f72d-4244-875d-72ad4d3a06c0",
@@ -10244,7 +10322,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:47.788Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not searched - niche company."
   },
   {
     "id": "55c9dd9e-44ee-4abc-923e-7df304990d9a",
@@ -10311,7 +10392,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:49.003Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Freelance platform, not an inspection firm."
   },
   {
     "id": "55ca393d-37d4-4365-b6fc-bd18ef6c0416",
@@ -10378,7 +10462,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:50.471Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "564ca5a2-55cd-48d3-9ee7-aaf5dcf9db70",
@@ -10445,7 +10532,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:51.591Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "58436800-d577-4de4-b497-54805f7502c4",
@@ -10510,7 +10600,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:46.842Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "58a56de6-8578-473a-bf7a-78a8527266a1",
@@ -10578,7 +10671,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:48.307Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "58ad7a19-6e28-43ee-b975-a53b25b77c45",
@@ -10645,7 +10741,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:49.496Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "889c4d2b-c820-4def-bc69-aad00e7fe6c1",
@@ -10713,7 +10812,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:50.762Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "591b5b26-b8bf-472f-b904-cb0928198448",
@@ -10780,7 +10882,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:51.878Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "5935c3f1-3a65-460c-bdca-e15238542777",
@@ -10847,7 +10952,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:38:56.973Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "5c088743-9e55-42e3-8e3e-8e30fe00fd92",
@@ -10910,7 +11018,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:38:58.150Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "5f704618-11c9-486a-9c55-b56dde6a3c67",
@@ -10973,7 +11084,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:38:59.231Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "5fdd484d-636c-4095-9a81-301f580628d8",
@@ -11038,7 +11152,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:00.460Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "60092990-0e96-403b-9190-d9247c42d2b2",
@@ -11101,7 +11218,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:01.623Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6091f45c-e49d-4892-a52e-b7d005f7b057",
@@ -11164,7 +11284,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:02.791Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "615a0396-c265-4c6c-bae1-e22c6986d4e1",
@@ -11230,7 +11353,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:04.001Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "61fa0153-cb48-401f-ae37-2310baceeb38",
@@ -11297,7 +11423,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:05.176Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "624363b1-9389-4b95-9784-9db09bd4814c",
@@ -11364,7 +11493,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:06.273Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "62f407dc-07ec-461e-af5f-9e00158854cc",
@@ -11431,7 +11563,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:07.449Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6300f9aa-a336-4674-b718-7b326c101497",
@@ -11495,7 +11630,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:08.555Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "639d33f3-8b28-4182-8913-e7880c7eb86b",
@@ -11562,7 +11700,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:09.703Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "649e3420-fc2d-416d-aed6-ca636af50d59",
@@ -11630,7 +11771,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:10.789Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "65b83c38-b6f6-47bf-96b5-0eecf280cfe0",
@@ -11696,7 +11840,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:12.246Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "65cf6f7f-fc86-48c3-a1ba-a4a2ac6da86c",
@@ -11763,7 +11910,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:13.342Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "665c0254-6887-4c60-815f-b87f14f241a6",
@@ -11830,7 +11980,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:14.504Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "25bc6fd8-0d93-4c80-8d35-871d81c0c3fc",
@@ -11898,7 +12051,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:15.947Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "69282c1d-ce5b-4254-854c-43f9556f0c40",
@@ -11965,7 +12121,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:17.020Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "697c5f34-c21f-46ea-ada7-5f77eb6b77e1",
@@ -12029,7 +12188,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:18.281Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6a15d942-0f24-4ec3-a9d4-862fccac025c",
@@ -12096,7 +12258,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:19.400Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6a8fbcf8-2ce7-4e6b-bb3a-821561c9e4d4",
@@ -12162,7 +12327,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:20.552Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6aaa18d2-0568-4f4e-b032-86474296ff97",
@@ -12225,7 +12393,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:21.615Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6d08cac5-d1f1-42e2-84f9-bb4c144679b1",
@@ -12292,7 +12463,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:22.798Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6d8a0fbd-9157-40ff-bfc9-a3fb7ee95837",
@@ -12358,7 +12532,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:23.942Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6e6e461c-dd4a-4c72-a2da-c869db7a6722",
@@ -12425,7 +12602,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:25.090Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6ff7d098-1c88-4cdd-abc0-9f55cc3ef650",
@@ -12492,7 +12672,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:26.198Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "709385ce-fd48-4375-8233-6bc0c1b5ef33",
@@ -12559,7 +12742,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:27.292Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "70d80bce-4817-47f9-a8db-b3fb717e503a",
@@ -12627,7 +12813,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:28.682Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "718adea1-6a8a-4bcc-9439-e4e23ace6215",
@@ -12694,7 +12883,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:29.737Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7627ca5b-103c-4956-8a31-eec813b93da3",
@@ -12761,7 +12953,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:30.832Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7663304a-19d6-42c7-8064-8d5fa2c18a4e",
@@ -12828,7 +13023,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:32.030Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7729ce81-ddea-4352-b0ca-eac8ed35f46c",
@@ -12892,7 +13090,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:33.261Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "776decac-54f3-47f1-a0b7-3504c92c68fb",
@@ -12956,7 +13157,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:34.421Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7a4c35ff-4dce-484d-b606-6a3dd29b084d",
@@ -13018,7 +13222,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:35.405Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7c86a2e0-5ae8-4b55-9903-7478984b69b8",
@@ -13085,7 +13292,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:36.649Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7ed83087-564b-481f-a8ea-bf0afc30914e",
@@ -13152,7 +13362,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:37.601Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7efc9b49-8692-427c-bdf3-f3f3041b903b",
@@ -13216,7 +13429,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:38.612Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7f91193c-9115-49a4-a3e3-c78c79d36385",
@@ -13283,7 +13499,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:39.849Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "7f306b14-f901-41eb-a8d4-33cdfaddb89c",
@@ -13350,7 +13569,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:41.093Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "80a63759-fa0c-4508-9bf5-a1124d0f2694",
@@ -13413,7 +13635,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:42.332Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8278e5e9-1a80-4084-90af-cbf5fdd3d28c",
@@ -13479,7 +13704,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:43.407Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "829e94e4-3795-4da7-83cd-3b0abd23df85",
@@ -13546,7 +13774,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:44.530Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "84268ac6-3c1c-4327-8008-1b85292e5131",
@@ -13613,7 +13844,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:45.598Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "842ad485-5c16-4944-b900-dd7a0aab2da1",
@@ -13676,7 +13910,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:46.735Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8457ff41-f7dd-478f-bde3-02ae64d84458",
@@ -13739,7 +13976,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:47.893Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "84659f1c-be2e-406d-aea9-271e5335b3ac",
@@ -13807,7 +14047,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:49.021Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "84aa3832-d147-44f7-ac94-acec5e9589a9",
@@ -13874,7 +14117,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:50.093Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "85aec7f5-1bed-418e-b902-aac1f4b7c5ab",
@@ -13941,7 +14187,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:51.322Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "85c4271d-1a54-484d-949a-b7dca2dd55ae",
@@ -14004,7 +14253,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:52.402Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8628bbe8-6399-461a-9cd3-d32eb23c0df3",
@@ -14067,7 +14319,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:53.438Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "86de5166-c746-4c87-894e-c9f3afa731f9",
@@ -14130,7 +14385,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:54.733Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "876e0ec4-da80-4af3-b34b-399ddaee7dfc",
@@ -14194,7 +14452,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:55.811Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "88bc9edb-a5e6-41c6-9d10-fec11e2c9fd9",
@@ -14259,7 +14520,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:57.078Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "89c752d0-20ea-413a-990f-1edd692233cd",
@@ -14324,7 +14588,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:58.293Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "89ea35dc-1ef9-44b8-9c27-b61127dfbdad",
@@ -14391,7 +14658,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:39:59.345Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8a61ef19-734e-4c52-b99c-71f77463de16",
@@ -14457,7 +14727,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:00.449Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8a664249-adff-4590-bb8a-e1b3dd01bd72",
@@ -14521,7 +14794,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:01.540Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8ac1e054-3e71-4519-92e5-3e3a3d66ccb4",
@@ -14588,7 +14864,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:02.754Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8b597d36-8bce-48b7-b5b7-e8bed4691eb7",
@@ -14656,7 +14935,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:04.106Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8b88cdba-f7a5-4ce1-96d9-34cbbdaa85f9",
@@ -14721,7 +15003,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:05.336Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8c3ae1a2-4519-419a-90c8-deb65dc4d5f4",
@@ -14788,7 +15073,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:06.342Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "1752d6e8-5144-4955-87e2-d42f4e696598",
@@ -14856,7 +15144,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:07.463Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8c63e72a-fb7a-4002-a81f-ab6d2c1aa14b",
@@ -14922,7 +15213,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:08.472Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8d3644ef-be9c-4db7-bb2d-190ddb2c03f4",
@@ -14988,7 +15282,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:09.506Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8fb22941-c826-44d7-8b89-ce06451bdf83",
@@ -15055,7 +15352,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:10.802Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9096884c-e8da-4b29-88f0-cc01d1e72630",
@@ -15119,7 +15419,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:12.175Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "944608e1-e429-4ab6-ae9e-dbd63d74a12e",
@@ -15182,7 +15485,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:13.150Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "947b350f-b87b-4780-9fcf-6e85ddd0b567",
@@ -15247,7 +15553,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:14.346Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "94dba10a-ce3c-4169-b158-679025ad09f5",
@@ -15312,7 +15621,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:15.407Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "95280f90-9d0c-42fe-9069-663366264a94",
@@ -15378,7 +15690,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:16.683Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "97ef2052-d898-4224-ba82-c4447f5dbb3b",
@@ -15445,7 +15760,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:17.808Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9a9fdc24-3e08-49fd-8cd4-77a46013d638",
@@ -15512,7 +15830,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:18.834Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9c56dd85-ee74-4d82-aeb5-b013ed8ea68f",
@@ -15579,7 +15900,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:19.931Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9c817bed-f573-427f-9d98-057fadb3c4b2",
@@ -15646,7 +15970,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:21.050Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "35250c60-45dd-493a-899b-e69bb3ee102a",
@@ -15712,7 +16039,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:22.108Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9d1a48e5-0045-4710-9835-b8407790e075",
@@ -15775,7 +16105,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:23.305Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9d305f43-f3cb-4e0d-91a7-2c3c1d70edae",
@@ -15843,7 +16176,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:24.546Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9e5d14c0-089d-422f-b8db-af41d75f6e0a",
@@ -15905,7 +16241,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:25.629Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9ed09d78-084c-4dd2-af3f-257d80584904",
@@ -15972,7 +16311,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:26.790Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "9f6968b8-7264-46de-b171-27139ad6331a",
@@ -16035,7 +16377,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:27.862Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a0f475dc-b5de-4159-a059-22dc5bf51dbd",
@@ -16097,7 +16442,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:29.037Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a1200579-586e-43d9-97c3-4956702a63f5",
@@ -16164,7 +16512,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:30.183Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a19caf1c-a842-405c-b871-bdf93f91dcae",
@@ -16230,7 +16581,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:31.246Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a2f140c3-66c3-43fc-a356-01f642135136",
@@ -16293,7 +16647,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:32.367Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a3144142-1341-44d2-ada4-14fc2ac2b4cb",
@@ -16360,7 +16717,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:33.393Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a3cf3edb-2c31-42e0-ab34-ad48bb712019",
@@ -16425,7 +16785,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:34.585Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a479456b-6422-4999-80ab-26c9d4b41efe",
@@ -16492,7 +16855,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:35.808Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a5199c15-f573-47eb-bfc5-6277f8d70c6b",
@@ -16557,7 +16923,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:36.923Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a53ab0a8-c782-4296-84ec-81feadf58d9b",
@@ -16622,7 +16991,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:38.015Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a5455c84-ca4a-4914-9a07-28cc66b1d03b",
@@ -16685,7 +17057,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:39.085Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a5636a33-13b0-43f9-a4e5-ebc295d11cac",
@@ -16752,7 +17127,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:40.153Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a5a4410a-d8cc-44b6-a40b-58035c07b2bd",
@@ -16818,7 +17196,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:41.084Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a5aa8dc8-ab9d-4f8b-82a6-88c8493e4273",
@@ -16885,7 +17266,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:42.187Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a61ebad7-2e5e-4432-a8d5-cab873e1c227",
@@ -16950,7 +17334,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:43.521Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a6b62850-ebc1-46bd-a3ee-6b776ca28151",
@@ -17015,7 +17402,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:44.735Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a871e7a9-dd0d-43f9-bd11-3bce6262bbf2",
@@ -17083,7 +17473,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:46.094Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "a8a9001c-72ff-452d-ba2b-926b8095c06b",
@@ -17149,7 +17542,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:47.242Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "aa25d37c-8b25-4abf-ae06-cff50a3fc4d5",
@@ -17214,7 +17610,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:48.648Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "aa722d1a-dc80-404c-9423-96df9b0abcab",
@@ -17281,7 +17680,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:49.763Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ac3c51ea-cc9a-421c-9e9f-30bee8340073",
@@ -17348,7 +17750,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:50.826Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ad3f8a4b-47e0-43e9-ba26-cf0b3cb1665c",
@@ -17415,7 +17820,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:53.235Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "aebcbf58-c532-475d-a23e-7b8707844862",
@@ -17483,7 +17891,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:54.417Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "af131975-a272-4a74-bcf1-2bf367955d11",
@@ -17551,7 +17962,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:55.830Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "af6cfcf0-6aec-48ea-b38e-b9d626e31c6b",
@@ -17618,7 +18032,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:56.892Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "4ad7a879-c4aa-427d-bbd8-1fa0456a10a7",
@@ -17685,7 +18102,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:58.017Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b000a14f-0ebc-49e2-861d-a4553a3ec996",
@@ -17750,7 +18170,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:40:59.099Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b0354240-3bd9-49bf-8714-84a994fc9ee7",
@@ -17818,7 +18241,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:00.511Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b0725b87-11df-4fb4-8814-002d71b90c63",
@@ -17885,7 +18311,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:01.671Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b123264b-d2c0-4dfc-a731-644c0d0114c6",
@@ -17950,7 +18379,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:03.080Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b1519426-33d7-4e6d-a6f3-8edde932545a",
@@ -18017,7 +18449,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:04.363Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b1778732-5cc6-422c-9246-3a75de57ead6",
@@ -18085,7 +18520,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:05.728Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b1df2c39-71d6-4515-b1e7-cf69543df43c",
@@ -18152,7 +18590,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:06.803Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b2c0ae3d-effd-4398-a07f-61827382c825",
@@ -18216,7 +18657,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:07.764Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b4876501-9de2-4d3c-839e-f8d5688169c3",
@@ -18283,7 +18727,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:09.068Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b4a75c1a-5ce5-479b-b33f-c885e3efa418",
@@ -18350,7 +18797,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:10.342Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b50c0b7a-269c-4bd9-956e-a9461e9cc7f1",
@@ -18417,7 +18867,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:11.492Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b5109052-6b85-4846-b1d8-69793e1f1607",
@@ -18480,7 +18933,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:12.759Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b5615bd2-c5d9-4c26-ba17-2e386a4de579",
@@ -18547,7 +19003,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:13.735Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b56d33cd-f384-48c9-b525-990162902f73",
@@ -18614,7 +19073,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:14.821Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b73f63a4-5168-43cd-bf70-efa7d3ce990e",
@@ -18681,7 +19143,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:16.007Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b78bc0cc-8f80-4d7e-ae82-bf23ef59f6da",
@@ -18748,7 +19213,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:17.007Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b9602957-da3e-4906-9624-43a4921e9dab",
@@ -18815,7 +19283,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:18.254Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b964e8e1-a0b6-4b12-bc1e-7d7dc3c6150e",
@@ -18882,7 +19353,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:19.461Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "baa91236-bb1f-4c23-b39c-23e3572fac2a",
@@ -18946,7 +19420,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:20.594Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "babf25e4-97ca-45d6-93df-ba5787bcb07e",
@@ -19010,7 +19487,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:21.510Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bb3668ff-a98e-426e-8ae3-4d2d7f55aa03",
@@ -19078,7 +19558,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:22.809Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bb4c773d-dff6-4004-8040-398765b06cab",
@@ -19143,7 +19626,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:24.261Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bb943ab6-54d6-4a8d-bdbb-f266b523b6a9",
@@ -19206,7 +19692,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:25.312Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bbd42ab8-7935-44f1-a55c-7ff9e388b021",
@@ -19271,7 +19760,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:26.421Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "59f466b9-524a-4eed-b429-bf7d723ae5ce",
@@ -19337,7 +19829,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:27.460Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bca4fb82-da35-4ba2-ac66-2aba42ed05bb",
@@ -19404,7 +19899,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:28.736Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bceadf3c-ffc0-4e7a-b24b-14940f7f8978",
@@ -19471,7 +19969,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:29.941Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bd358743-5b1a-481b-b976-fb3861bdfc0f",
@@ -19535,7 +20036,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:31.234Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bd53ad3a-6653-4174-baaf-02376270372c",
@@ -19672,7 +20176,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:33.448Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bf1ee4fa-891c-4947-8bc3-2bcf0aa635b1",
@@ -19739,7 +20246,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:34.445Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "bf4cd942-6759-4646-94e9-d37597ef8df2",
@@ -19757,7 +20267,7 @@
     "industry_focus": "Field Services & Inspections",
     "specializations": "On-Demand Inspections, Asset Verification, Photo & Report Capture",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/wegolook\"}",
-    "contractor_rating": 4.5,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise the flexibility and variety of inspections, but some report inconsistent volume and pay rates",
     "equipment_requirements": "Smartphone, mobile app access",
     "training_provided": "Yes",
@@ -19802,7 +20312,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:35.634Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 66
   },
   {
     "id": "c0f32c88-3a49-4ef4-bd6b-375ffdcfe924",
@@ -19869,7 +20383,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:36.855Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c1683811-0ef0-40e4-911a-3838f298b1eb",
@@ -19932,7 +20449,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:37.843Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c16f03d6-66a7-4eeb-b86a-6b4ae8112520",
@@ -19999,7 +20519,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:38.946Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c22664fa-184a-4888-8837-47d9149457bd",
@@ -20064,7 +20587,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:40.025Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c2a07764-e18a-4a65-ae18-afc15c582f9d",
@@ -20128,7 +20654,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:41.243Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c3065797-be32-4063-ab0e-5c97a0820f75",
@@ -20195,7 +20724,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:42.380Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c32f2bbd-ce33-4b09-badc-5cd42fb9fbae",
@@ -20260,7 +20792,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:43.687Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c39eb6c9-8570-4155-aaa6-10ddfbb10926",
@@ -20327,7 +20862,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:44.807Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c3c15840-5c95-4fc0-ae1d-2b68a95519fa",
@@ -20392,7 +20930,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:46.043Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c42ed8e5-5e98-4ce4-88b2-2630d4ade784",
@@ -20459,7 +21000,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:47.157Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c57f9fa2-fcd6-4683-9006-653e5a3fad8e",
@@ -20526,7 +21070,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:48.329Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c5b4f065-a73a-418a-ae74-faac635f15b1",
@@ -20593,7 +21140,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:49.488Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c61395ac-d6c3-4abb-a3b6-b888ba2e13ea",
@@ -20658,7 +21208,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:50.803Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c7b12931-a58c-47ac-9ef2-c97304d62997",
@@ -20725,7 +21278,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:52.113Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c818276c-bd53-4d77-9f32-4885b2b908e6",
@@ -20793,7 +21349,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:53.421Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c8864cca-417d-46d8-b14c-a78299083b12",
@@ -20860,7 +21419,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:54.563Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c89f3f6a-eb99-4926-a829-9d3a4c66231c",
@@ -20927,7 +21489,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:55.549Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c958af3b-6a94-4780-9363-a27761b899e2",
@@ -20992,7 +21557,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:56.825Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "caca4934-ad41-4d84-b79b-0b235b96118c",
@@ -21059,7 +21627,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:58.071Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "cb327f9f-5796-4d48-b423-1bc90a4cc968",
@@ -21126,7 +21697,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:59.272Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "cbb25e50-1450-4d77-a4f9-931983507123",
@@ -21189,7 +21763,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:00.387Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "cbfde6c7-127d-447d-9438-c840ebb1c44f",
@@ -21256,7 +21833,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:01.749Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "cc7aadd3-a89a-4d27-9c5e-d5ccbbb97874",
@@ -21323,7 +21903,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:02.788Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ccee3d19-5518-4efd-80a3-a88f775f24bb",
@@ -21389,7 +21972,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:03.954Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "b3a1eed5-5ab3-4095-abe2-1e818d71824a",
@@ -21457,7 +22043,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:05.126Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "cd285517-7cef-4c75-ac80-dbf504f9a669",
@@ -21522,7 +22111,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:06.521Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ce5fdf45-3a1e-4cfa-a8c2-bd56baf3d6b3",
@@ -21589,7 +22181,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:07.621Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "cf4f5c28-1fc4-4cb2-be4f-88952d26cfcd",
@@ -21651,7 +22246,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:08.741Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "cf80107b-36f7-4c44-bd20-24c53dca2d14",
@@ -21718,7 +22316,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:09.850Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "cfcdc447-af17-4c51-8e16-e18c268f638d",
@@ -21784,7 +22385,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:10.888Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d0189987-d274-49ca-a535-cf254f7282a9",
@@ -21848,7 +22452,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:12.042Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d04edb03-fd43-4e8d-bd13-15f2bcc96d72",
@@ -21914,7 +22521,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:13.205Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "d3bb7cb3-6f9b-467b-884d-5b368732fb02",
@@ -21980,7 +22590,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:14.358Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "d50e38c9-250b-46e3-a71b-dd79d933e637",
@@ -22047,7 +22660,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:15.569Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Listed as The Shield Companies on Indeed. No direct EcoShield page."
   },
   {
     "id": "d5f47f26-f85d-409e-a7f6-5e3436f8cc27",
@@ -22109,7 +22725,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:16.516Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d6c2dfae-f9b0-4bd2-88dd-6fabbc6064fb",
@@ -22174,7 +22793,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:17.625Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d7124a90-b0e4-47cb-a30d-8d4f9082cdb5",
@@ -22238,7 +22860,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:18.908Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "25ac3042-935e-47a9-ab89-c4a8e4d7af94",
@@ -22306,7 +22931,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:20.298Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d867bbad-fcab-43b6-a86b-b51a8e114a92",
@@ -22324,7 +22952,7 @@
     "industry_focus": "Insurance, Risk Management",
     "specializations": "Title Insurance, Property & Casualty Insurance, Specialty Risk",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/old-republic-international\"}",
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise Old Republic for its efficient communication and prompt payment, but note that the per-unit pay can be on the lower side for certain services",
     "equipment_requirements": "Role dependent",
     "training_provided": "Yes",
@@ -22368,12 +22996,16 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:21.474Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Old Republic International on Indeed.",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 586
   },
   {
     "id": "d8b4fdda-eb9f-4e5e-8ede-654660b27917",
@@ -22440,7 +23072,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:22.582Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "da2c7c31-b4e1-4ac4-ade8-5f439291aec7",
@@ -22507,7 +23142,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:23.731Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "db8f5019-09f1-498d-b173-0d1d9885482a",
@@ -22575,7 +23213,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:25.078Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "dde9bf30-446c-4877-bd1a-7028d761ec03",
@@ -22642,7 +23283,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:26.284Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "de04cc81-bc73-458c-999d-e9cc791e6b0a",
@@ -22709,7 +23353,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:27.428Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e0f1f7be-0fec-4fc1-b192-7ebe5ec63abf",
@@ -22727,7 +23374,7 @@
     "industry_focus": "Mortgage Field Services,Property Preservation,REO Management",
     "specializations": "Provides comprehensive field services for mortgage servicerslendersgovernment-sponsored enterprises (GSEs)and asset managers.",
     "social_links": "[\"https://www.linkedin.com/company/cyprexx-services-llc/\"\"https://x.com/Cyprexx\"\"https://www.facebook.com/CyprexxServices/\"]",
-    "contractor_rating": 2.8,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise Cyprexx Services for their reliable payment processing and flexible scheduling opportunities.",
     "equipment_requirements": "Truck/vanextensive toolssmartphone/tablet with high-quality camerainternet accessgenerator",
     "training_provided": "TRUE",
@@ -22775,7 +23422,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:28.432Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 125
   },
   {
     "id": "e11dcb08-4631-44c7-ac69-bc6b27ac59f6",
@@ -22842,7 +23493,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:29.469Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e154889e-ef68-40f9-b8b1-625621806c0c",
@@ -22905,7 +23559,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:30.530Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e1fa4f1b-fb6f-4206-af99-3a3f2a296802",
@@ -22972,7 +23629,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:31.630Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e29e03fe-1369-4065-a0b9-ba59bfe31fb3",
@@ -23035,7 +23695,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:33.079Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "56681e30-9163-4830-8a1d-b159cb620fdc",
@@ -23102,7 +23765,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:34.287Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e40a7dac-c4ac-4c37-9ed1-a36488d0501b",
@@ -23167,7 +23833,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:35.437Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e60a3fa9-8bba-4c2a-9aa1-596dce1754c5",
@@ -23230,7 +23899,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:36.486Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e6670ad8-a9da-4730-b6f7-41c322199dee",
@@ -23293,7 +23965,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:37.654Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e678de81-0f5f-497c-8f1f-8c8bea5e0866",
@@ -23361,7 +24036,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:39.102Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e6d98f7b-a142-409a-9409-033eb4ca1f4b",
@@ -23428,7 +24106,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:40.226Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e7c2e200-9044-4d93-91fc-cf353f54637a",
@@ -23492,7 +24173,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:41.258Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e8540ca0-14d0-4305-91c9-c08882f85382",
@@ -23559,7 +24243,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:42.524Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e9247764-96e5-4e51-903d-f01c5950da87",
@@ -23622,7 +24309,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:43.624Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e932c949-3b65-4aa0-ab01-8f6287bdb4f8",
@@ -23689,7 +24379,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:44.852Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e93e5a87-1f7c-4097-9f87-32b6648283ae",
@@ -23754,7 +24447,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:46.045Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e96d2ed5-8ba9-497f-87e4-b54e15b0937f",
@@ -23821,7 +24517,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:47.214Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e998e298-b521-4bce-90fc-dfa28cfc5d62",
@@ -23889,7 +24588,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:48.354Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e9c62194-6e0a-46f9-b2ba-724017e794c9",
@@ -23957,7 +24659,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:49.818Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "e9e2125d-0ca7-459a-982e-95da4009ecbe",
@@ -24022,7 +24727,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:50.945Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ea36872c-0b52-45e2-8560-4e0b8480fa39",
@@ -24085,7 +24793,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:52.149Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "ea3e124f-a800-44ae-8f47-a514c35ab816",
@@ -24152,7 +24863,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:53.349Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "eb8df776-fb34-40e3-8b45-9a88368982e1",
@@ -24219,7 +24933,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:54.457Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ebbb2ae3-3be5-4f0e-970a-48da79cae638",
@@ -24287,7 +25004,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:55.708Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "ebd067a4-4e3d-4d7d-889a-08d02c1be52b",
@@ -24351,7 +25071,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:56.931Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ec26cf70-7bfa-4dec-bb37-3e2a0c3599b4",
@@ -24418,7 +25141,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:57.995Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "ed6081ba-f4ba-427a-b7ce-1ff1dc328798",
@@ -24485,7 +25211,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:59.164Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ed7362cb-4dd7-4715-9fe7-bbcac84ef134",
@@ -24549,7 +25278,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:00.163Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "fb6f8b08-850e-47c2-874b-32985fe7ee0d",
@@ -24615,7 +25347,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:01.518Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ee43f354-5b2a-408b-9eb3-5a44b9851b25",
@@ -24680,7 +25415,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:02.701Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "ef8e159b-39d9-43a4-802e-cbfafa618d37",
@@ -24748,7 +25486,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:04.002Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "f04128e8-9d08-4299-bd9b-11412785abc8",
@@ -24813,7 +25554,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:05.258Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f050cfba-0153-4aa6-9ea6-8a3379db603c",
@@ -24880,7 +25624,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:06.451Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f0df7873-a7fe-4ffe-99ee-90c6a49df41f",
@@ -24898,7 +25645,7 @@
     "industry_focus": "Information Technology (IT Field Support)TelecommunicationsRetail TechnologySecurity Systems Installation & MaintenanceElectrical & CablingAudio/Visual (A/V) SystemsPoint of Sale (POS) SystemsATM ServicingSite Surveys.",
     "specializations": "Leading online marketplace platform designed for sourcingmanagingand paying on-demand field service labor. Enables businesses to find and dispatch qualified freelance technicians for a vast array of technical field assignments across numerous industrieswhile providing technicians with access to a wide range of work opportunities.",
     "social_links": "[\"https://www.linkedin.com/company/field-nation\"\"https://x.com/fieldnation\"\"https://www.facebook.com/FieldNation\"\"https://www.instagram.com/fieldnation\"\"https://www.youtube.com/user/FieldNation\"]",
-    "contractor_rating": 4.6,
+    "contractor_rating": 4.1,
     "client_reviews": "Field Nation is a great platform to find consistent and varied work as a freelance technician, with prompt payment and a user-friendly interface.",
     "equipment_requirements": "Varies significantly by specific work order requirements. Generally includes: Relevant technical skills and demonstrable experience for the specific job type (e.g.IT hardware supportnetworking protocolslow-voltage cabling standardsPOS system repairspecific vendor hardware).” Technician must supply their own reliable transportation.” Technician must possess their own tools appropriate for the work being performed (e.g.comprehensive IT toolkitnetwork cable testerscrimperspunch-down toolsdrillladdersafety gear as needed).” Laptop computer for diagnosticsconfigurationand reporting.” Smartphone with the Field Nation mobile app installed (iOS or Android) for managing work orderscommunicationand submitting deliverables.” General Liability insurance is often required by Buyers posting work orders and is highly recommended for all technicians.”",
     "training_provided": "TRUE",
@@ -24944,7 +25691,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:07.517Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4.1,
+    "_indeed_reviews": 203
   },
   {
     "id": "f1a2d925-6adf-4e5b-8a09-914ab1fc00a3",
@@ -25007,7 +25758,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:08.530Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "0d51036c-a418-43d5-860d-9ef64522b79e",
@@ -25074,7 +25828,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:09.766Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f1aa8b36-de42-4bb1-94f6-e30a7d0c96aa",
@@ -25141,7 +25898,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:10.889Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f25cc160-4361-4467-a2bf-e400051c5dc3",
@@ -25204,7 +25964,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:11.959Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f3448278-6274-40c5-aa86-2a3d385ccaec",
@@ -25273,7 +26036,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:13.411Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f3aa6369-967b-473e-aa9a-6190df0aaed9",
@@ -25340,7 +26106,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:14.461Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f4b85bf3-1390-4c91-91ad-b5aae1f9fba5",
@@ -25404,7 +26173,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:15.493Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "f51b2501-b667-4445-b512-9517e3936676",
@@ -25474,7 +26246,10 @@
     ],
     "_ai_enriched_at": "2026-02-21T18:43:16.601Z",
     "website": "http://www.ms-inspections.com",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f6333b76-df91-480f-b8f8-8a873c0d42c2",
@@ -25609,7 +26384,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:19.245Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f7425d7c-7bec-4f0d-97a0-ab1632aa41e5",
@@ -25676,7 +26454,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:20.461Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f7676bb2-2680-4619-b494-fef3ef9b1d4f",
@@ -25743,7 +26524,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:21.669Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f81ce845-3801-4f97-b3ec-b6f6cf5e6cb2",
@@ -25808,7 +26592,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:22.953Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f8ca4d4d-f871-45e5-9a81-e5bc9e0e5918",
@@ -25826,7 +26613,7 @@
     "industry_focus": "Real Estate, PropTech",
     "specializations": "Property Marketplace, Pre-acquisition Inspections",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/roofstock\"}",
-    "contractor_rating": 3.3,
+    "contractor_rating": 3.1,
     "client_reviews": "Contractors praise Roofstock for its efficient platform and consistent workflow, but note that pay can be on the lower end for certain types of inspections",
     "equipment_requirements": "Reliable transportationsmartphone with high-quality camerainternet accessmeasuring toolsladder (if required)",
     "training_provided": "TRUE",
@@ -25871,7 +26658,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:24.009Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.1,
+    "_indeed_reviews": 24
   },
   {
     "id": "f8fdc7b5-d47d-4545-80c3-93f25b2d0edc",
@@ -25938,7 +26729,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:25.031Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "4be3096c-026b-4d91-840b-c1252f5153cb",
@@ -26001,7 +26795,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:26.052Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "aec61070-ba17-487f-9c1c-6dbe34d912f1",
@@ -26064,7 +26861,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:27.105Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f928c1b0-721d-4de5-9f42-b4c66caea5eb",
@@ -26128,7 +26928,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:28.321Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "face98eb-a02e-4bfd-b62b-586b4d2664cf",
@@ -26193,7 +26996,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:29.453Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "d028da87-6e45-434c-bd58-159ac3859da4",
@@ -26260,7 +27066,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:30.901Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d10e70b6-14b2-47f4-b9d1-4f93fd20fcf8",
@@ -26327,7 +27136,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:31.961Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d2463c33-c660-4c66-a66d-8e56470a95f4",
@@ -26394,7 +27206,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:33.174Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "d55591ba-7840-4393-ad00-1a7a52aa7f6c",
@@ -26461,7 +27276,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:34.410Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "da6125e9-0bb2-4177-9db7-9d2c5d34a312",
@@ -26528,7 +27346,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:35.647Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "dfb5b1a4-cbd9-4069-887e-54fc35adc65e",
@@ -26596,7 +27417,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:36.850Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ef209e92-5888-4b29-95db-7791a2796cfa",
@@ -26663,7 +27487,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:38.141Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f7ee6556-98b9-47e2-8f19-2334c5d88372",
@@ -26728,7 +27555,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:39.317Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f890b82d-210f-461a-8f0e-f44385556106",
@@ -26794,7 +27624,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:40.293Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "f9eeb030-0d27-4c2d-8193-f9e730bbfb1c",
@@ -26860,7 +27693,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:41.334Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "feed7e04-4aa2-43b4-9aa3-0e2df318b54d",
@@ -26927,7 +27763,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:42.488Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "fa54593c-2f4a-4815-a382-4e2859d0d288",
@@ -26945,7 +27784,7 @@
     "industry_focus": "Mortgage Field Services",
     "specializations": "Property Inspections, REO, Preservation",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/safeguardproperties\"}",
-    "contractor_rating": 2.2,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise Safeguard for its high volume of available work and timely payment processing, but some report inconsistent communication from staff.",
     "equipment_requirements": "Camera, transportation, mobile device",
     "training_provided": "Yes",
@@ -26990,7 +27829,11 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:43.618Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 555
   },
   {
     "id": "fb834409-ac4d-45df-97cd-90d052b901ff",
@@ -27057,7 +27900,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:44.657Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "fd2bc9fc-077d-4648-9e15-664871c04130",
@@ -27075,7 +27921,7 @@
     "industry_focus": "Insurance (Property & Casualty Claims SupportLadder AssistRoof InspectionsDamage Assessment)Restoration Support.",
     "specializations": "National provider of specialized field services for the Property & Casualty insurance claims industryprimarily focusing on ladder assist for roof inspectionsdirect roof damage assessmentsand related property inspection tasks. Known for its large network of specialized technicians and its proprietary technology platform. Part of CRDNan Envista Forensics company.",
     "social_links": "[\"https://www.linkedin.com/company/hancockclaims\"\"https://x.com/HancockClaims\"\"https://www.facebook.com/HancockLadderAssist\"]",
-    "contractor_rating": 2.9,
+    "contractor_rating": 3.1,
     "client_reviews": "Contractors praise Hancock Claims Consultants for their efficient scheduling system and prompt payment, but note that assignment volume can be inconsistent at times",
     "equipment_requirements": "Reliable truck or van capable of safely transporting and deploying extension ladders (typically 28ft to 40ft ladders are requiredspecific requirements vary by market and assignment types)”Appropriate ladders (e.g.28ft32ft40ft extension ladders meeting safety standards)”Comprehensive fall protection and safety equipment (harnessropesroof anchorsstabilizersetc.meeting OSHA and Hancock standards)”Smartphone or tablet (iOS or Android) with the Hancock Hancock On The Go mobile application installed and reliable internet access”Measuring tools (tape measuredigital toolsshingle gaugepitch gauge)”Tool belt with basic hand tools for minor temporary repairs or securing tarps if part of service scope.” Excellent physical condition suitable for demanding ladder workroof traversaland working at heights in various weather conditions.”",
     "training_provided": "TRUE",
@@ -27121,7 +27967,11 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:45.796Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.1,
+    "_indeed_reviews": 126
   },
   {
     "id": "fd823fb0-bbea-4418-9883-b1e4d0e5d2a3",
@@ -27186,7 +28036,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:47.014Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "fe43acf6-f561-4374-83c7-cde03f0194a0",
@@ -27251,7 +28104,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:48.070Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "fe8df3bd-a3ff-480c-87f7-e23d03e9775a",
@@ -27318,7 +28174,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:49.174Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "fe95044a-e6ac-4fcd-a8ab-f97ac1fb2684",
@@ -27385,7 +28244,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:50.317Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "ffa61299-af90-4645-9fc9-cf29336676b0",
@@ -27452,7 +28314,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:51.547Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c98528f7-4146-4ef2-b21c-1f11daa3b3d5",
@@ -27470,7 +28335,7 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Healthcare Route Services",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.2,
     "client_reviews": "Contractors praise MedSpeed for its reliable routing and scheduling, but some express frustration with the variable hourly pay and lack of benefits.",
     "equipment_requirements": "Reliable vehicle, clean driving record, HIPAA awareness, temperature-controlled containers",
     "training_provided": null,
@@ -27513,12 +28378,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:52.837Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.2,
+    "_indeed_reviews": 581
   },
   {
     "id": "77aa23de-e681-468a-9cc1-51bcd80043ba",
@@ -27584,7 +28452,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:53.879Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "2b9a8abc-7c15-4ecb-9e57-ba5756fa6be2",
@@ -27650,7 +28521,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:55.020Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "a70be9e4-3dd5-46ab-8bdd-d2506047c1cc",
@@ -27716,7 +28590,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:55.968Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "adbb0882-69da-426d-b0a8-eeee24b89364",
@@ -27782,7 +28659,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:57.254Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "61bf4d16-d302-4691-8563-ba9845c5ea8c",
@@ -27848,7 +28728,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:58.317Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "0a26633c-5f29-4082-9f48-8d63faf15e3d",
@@ -27914,7 +28797,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:59.332Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "35371b60-232d-4610-b7fa-eb1ef1a4d68d",
@@ -27980,7 +28866,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:00.331Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "c0b6c6ec-610a-4e93-9ebf-57f32eb2ce01",
@@ -28046,7 +28935,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:01.318Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "8c12001f-1931-4d4c-a155-14a233d891bf",
@@ -28064,7 +28956,7 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Retail & Restaurant QA",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors generally report flexible scheduling and fair pay, but some have noted inconsistent assignment availability and limited support from the company.",
     "equipment_requirements": "Smartphone, attention to detail, professional reporting skills",
     "training_provided": null,
@@ -28107,12 +28999,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:02.308Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 106
   },
   {
     "id": "8bc7c02e-2c60-4915-9173-ef90574c2b65",
@@ -28178,7 +29073,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:03.300Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "06a5f02c-5139-43cd-bb93-a75d2eb59b56",
@@ -28244,7 +29142,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:04.475Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "7880a784-ac2a-405f-99b4-418de5b86ab2",
@@ -28310,7 +29211,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:05.562Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "8e2f95a8-c8bc-48b2-b25f-bb876542a404",
@@ -28376,7 +29280,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:06.931Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "f98058bd-e779-4157-b0ba-e12635057f1f",
@@ -28442,7 +29349,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:07.928Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "08fab923-9381-478c-a6ca-dfdfcb3c004d",
@@ -28508,7 +29418,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:08.838Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "1e2822db-6b73-4228-8793-e3ffe696212e",
@@ -28574,7 +29487,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:09.818Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "90cfacb2-fcb6-448c-9e2a-4fc80ad29fd8",
@@ -28640,7 +29556,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:10.927Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "0b8546bd-bf68-4a9c-8e29-57da46047b9d",
@@ -28658,7 +29577,7 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Food Safety & Compliance QA",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.8,
     "client_reviews": "Contractors praise NSF International for its organized assignment process and fair pay rates, but some report inconsistent volumes of available work.",
     "equipment_requirements": "Vehicle, food safety knowledge, smartphone",
     "training_provided": null,
@@ -28701,12 +29620,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:11.935Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.8,
+    "_indeed_reviews": 162
   },
   {
     "id": "52fa3025-1618-47c5-8758-06e21d1b6b2d",
@@ -28724,7 +29646,7 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Data Labeling & Annotation",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.1,
     "client_reviews": "Contractors praise the flexibility of task-based work, but some report inconsistent task availability and low pay rates.",
     "equipment_requirements": "Computer, internet, attention to detail, analytical thinking",
     "training_provided": null,
@@ -28768,12 +29690,16 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:12.916Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Remotasks on Indeed: 3.1/181. Scale AI separately: 2.5/101.",
+    "_indeed_rating": 3.1,
+    "_indeed_reviews": 181
   },
   {
     "id": "7a0985a7-070c-450b-aa93-22ff07e00893",
@@ -28840,7 +29766,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:14.010Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "98382ce7-07c2-4fc9-aff7-6e4078a095aa",
@@ -28906,7 +29835,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:15.123Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "No Indeed overall rating found. WorthEPenny shows 2.9/80."
   },
   {
     "id": "2ab3c92c-7fb3-411b-82e7-4d5f13a2a0a0",
@@ -28924,7 +29856,7 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Search & Social Evaluation",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors praise TELUS Digital AI for its flexible remote work opportunities and fair hourly pay, but some report inconsistent workflow and limited support.",
     "equipment_requirements": "Computer, internet, language proficiency, analytical skills",
     "training_provided": null,
@@ -28968,12 +29900,16 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:16.122Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "TELUS Digital on Indeed: 3.5/5 overall.",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": null
   },
   {
     "id": "26020873-4e2c-4230-9268-e431e51935f4",
@@ -29040,7 +29976,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:17.169Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "e6f38b78-0465-41cb-a320-f2e21864a386",
@@ -29107,7 +30046,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:18.136Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "9d92df80-ac5f-44a5-9bc9-f3cb5a23b2e0",
@@ -29174,7 +30116,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:19.103Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "c9465de1-c123-4e5c-b0b9-f73dfa422b73",
@@ -29240,7 +30185,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:20.040Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "6ec05875-5348-4da4-890b-3ce61814f8b8",
@@ -29258,7 +30206,7 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "Field Verification",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3,
     "client_reviews": "Gigwalk offers a wide range of assignments, but pay can be low for some tasks and the platform can be glitchy at times.",
     "equipment_requirements": "Smartphone, vehicle, GPS, professional communication",
     "training_provided": null,
@@ -29301,12 +30249,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:21.156Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 2
   },
   {
     "id": "44a358ba-adcd-47bd-9e46-7f9a5937a50a",
@@ -29372,7 +30323,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:22.163Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "992da176-a913-4eb4-9801-8515280123ab",
@@ -29438,7 +30392,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:23.102Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "945283fb-fb86-45f1-8980-db8c8025b66a",
@@ -29456,7 +30413,7 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "Merchandising & Compliance",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors generally report positive experiences with CROSSMARK, citing steady work opportunities and flexible scheduling, but some express frustration with the hourly pay rate and lack of benefits.",
     "equipment_requirements": "Smartphone, vehicle, retail experience helpful but not required",
     "training_provided": null,
@@ -29499,12 +30456,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:24.333Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": 3341
   },
   {
     "id": "dc28d7f3-4f01-4fc6-96dd-d1ff96ca032c",
@@ -29522,7 +30482,7 @@
     "industry_focus": "Claims Adjusting & Investigation",
     "specializations": "Multi-Line Claims",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise Crawford & Company for its steady volume of claims and organized workflow, but some report variable pay rates and communication challenges with staff.",
     "equipment_requirements": "Adjuster license (state-specific), vehicle, Xactimate, smartphone",
     "training_provided": null,
@@ -29565,12 +30525,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:25.335Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 704
   },
   {
     "id": "8a40a983-b997-4852-b149-8cef50ac1df2",
@@ -29588,7 +30551,7 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "Package Logistics",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors generally report a flexible and autonomous work environment, but with varying block availability and pay rates.",
     "equipment_requirements": "Vehicle, smartphone, 21+, valid license",
     "training_provided": null,
@@ -29631,12 +30594,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:26.262Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 4550
   },
   {
     "id": "46e53b44-cb59-4198-8fda-23f993714a42",
@@ -29702,7 +30668,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:27.337Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "354b7915-a6ea-40aa-bf7f-8b0cfa81890e",
@@ -29720,7 +30689,7 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "En-Route Logistics",
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors generally appreciate the flexibility of route assignments and supplemental income opportunities, but sometimes report issues with payment processing and customer support.",
     "equipment_requirements": "Vehicle, smartphone, 18+",
     "training_provided": null,
@@ -29763,12 +30732,15 @@
     "verified_at": null,
     "rating_count": 0,
     "_ai_enriched_fields": [
-      "contractor_rating",
       "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:28.489Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 305
   },
   {
     "id": "19c5fda2-4ad5-4aec-b939-688766979a00",
@@ -29834,7 +30806,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:29.474Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "a549498d-04e3-453e-b0e2-b026f4a42fd2",
@@ -29900,7 +30875,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:30.441Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "463e970e-98a3-4525-af12-3d20b268b3fd",
@@ -29966,7 +30944,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:31.622Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "5db0e5f6-edc3-46d9-82e7-1ddd2561dac5",
@@ -30032,7 +31013,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:32.777Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "1868ab67-658c-4896-af67-f889e00e07a5",
@@ -30098,7 +31082,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:33.929Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "9b942027-9ef4-4e1b-a525-d480eeb376f4",
@@ -30164,7 +31151,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:35.038Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "59702ced-c2a3-4875-9d4d-9ebbc211fb42",
@@ -30231,7 +31221,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:36.080Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Small/niche company - auto-marked, not searched on Indeed."
   },
   {
     "id": "3c9a3751-7933-4f62-8b94-7e1987d02190",
@@ -30249,7 +31242,7 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": 3.8,
+    "contractor_rating": 3.5,
     "client_reviews": "Contractors praise the flexibility and variety of projects, but some criticize the inconsistent pay and availability of work.",
     "equipment_requirements": "Computer with internet, smartphone optional (unlocks additional projects)",
     "training_provided": "Yes (project-specific guidelines and qualification quizzes)",
@@ -30295,11 +31288,14 @@
     "rating_count": 45,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "contractor_rating",
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:37.200Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 3.5,
+    "_indeed_reviews": 1269
   },
   {
     "id": "2f99cc63-12f9-41e1-aa52-061a0f2c2ec4",
@@ -30366,7 +31362,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:38.295Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "d056550f-ac15-4779-a5a0-e9634dd8b663",
@@ -30433,7 +31432,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:39.382Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "b1e2b73a-e0db-4b92-9d23-79036a4a52a4",
@@ -30500,7 +31502,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:40.425Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "02859c2d-f383-40c3-aaaa-1e3e663cdc9c",
@@ -30568,7 +31573,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:41.499Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "14c3acc2-47ee-436b-8125-da26ec975f09",
@@ -30635,7 +31643,10 @@
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:42.405Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "85941530-615a-4f0d-8780-8d7932fab40c",
@@ -30702,7 +31713,10 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:43.438Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   },
   {
     "id": "ec4c81e6-0f43-453f-bfa1-dd4d7dd357d5",
@@ -30769,6 +31783,9 @@
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:44.451Z",
-    "pay_verified": false
+    "pay_verified": false,
+    "_indeed_source": "conflict",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_note": "Not individually searched on Indeed. Retains AI-estimated rating."
   }
 ]
