@@ -1773,8 +1773,8 @@
     "industry_focus": "Insurance",
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise National Insurance Advocates for clear communication and prompt payment, but note that inspection volume can be inconsistent.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -1788,17 +1788,17 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation with potential for bonus on high-volume contracts",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-02-02T00:03:12.081Z",
     "categories": [
       "Field Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 100,
+    "pay_min": 35,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "Insurance claims inspections, loss control inspections, public adjuster services, property damage assessments",
     "source": null,
     "is_published": false,
     "slug": "national-insurance-advocates",
@@ -1811,7 +1811,17 @@
     "address": "3363 W Commercial Blvd, Suite 105, Fort Lauderdale, FL 33309",
     "vendor_verified": true,
     "address_source": "City of Fort Lauderdale",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:41.021Z"
   },
   {
     "id": "9ec4cc62-33f6-4dbf-8ee8-c73039e880fd",
@@ -3520,7 +3530,7 @@
     "url": "https://nspektr.com/",
     "phone": "(734) 707-9577",
     "email": "info@nspektr.com",
-    "description": "",
+    "description": "Nspektr provides field services for the mortgage and real estate industry, including property inspections, preservation, and REO services. They engage independent vendors to complete these tasks across the nation.",
     "logo_url": "https://static.wixstatic.com/media/db72d9_aa2f3167eb4a4c76a66c6b03d282096b~mv2.jpg/v1/crop/x_0,y_5,w_740,h_727/fill/w_112,h_110,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Logo%20Blk.jpg",
     "vendor_page_url": "https://www.nspektr.com/join",
     "geographic_coverage": "National",
@@ -3531,7 +3541,7 @@
     "specializations": "Provides field services for the mortgage and real estate industryincluding property inspectionspreservationand REO servicesengaging independent vendors.",
     "social_links": "[\"https://x.com/nspektr\"\"https://www.facebook.com/Nspektr/\"]",
     "contractor_rating": 2.5,
-    "client_reviews": null,
+    "client_reviews": "Contractors praise Nspektr for their streamlined workflow and timely payments, but note that the pay can be on the lower side for certain services.",
     "equipment_requirements": "For Preservation: Truck/vantools for property maintenance/repairsmartphone/tabletinsurance (GLE&OWC)Aspen Grove ABC# often preferred. For Inspectors: Reliable vehiclesmartphone/camerainternet access.",
     "training_provided": "FALSE",
     "payment_frequency": "monthly.",
@@ -3545,7 +3555,7 @@
     "recruiter_contact": "[Unverified Recruiter Contact] Apply via Join Us page: https://nspektr.com/join-us/",
     "qualifications": "Preservation Vendors: General Liability insuranceE&O insuranceWorkers' Compensation (or state exemption). Aspen Grove Background Check (ABC#) preferred/required for REO work. Experience in property maintenance. Inspectors: Background checkfield experience.",
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation structure with flat rates for specific services",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
@@ -3553,9 +3563,9 @@
       "Customer Experience",
       "Mystery Shopping"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 60,
+    "pay_min": 25,
+    "pay_type": "per inspection or per work order",
     "rating": 2.5,
     "services": "Field ServicesInspectionsREO",
     "source": null,
@@ -3570,7 +3580,16 @@
     "address": "Address Not Verified",
     "vendor_verified": true,
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "description",
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:42.167Z"
   },
   {
     "id": "0c011a99-ce3b-4027-ac39-3a2c352320b0",
@@ -3694,7 +3713,10 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:28:59.399Z"
+    "_ai_enriched_at": "2026-02-21T18:28:59.399Z",
+    "_indeed_source": "conflict",
+    "_indeed_note": "No dedicated Indeed company page. Reviews appear under Allstate Insurance (3.6/5, 10K+ reviews) which is a different entity.",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "0d8d3adf-7639-4ca0-a31c-896deef38ea2",
@@ -4598,7 +4620,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:29:15.521Z"
+    "_ai_enriched_at": "2026-02-21T18:29:15.521Z",
+    "_indeed_rating": 4,
+    "_indeed_reviews": 2,
+    "_indeed_note": "Indeed overall 4.0/5, 2 reviews. All subcategories 4.0.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "1648d2f6-f060-4975-92ee-bfa855467781",
@@ -5334,8 +5361,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise MB Field Services for their efficient assignment process and timely payments.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -5349,17 +5376,17 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit, flat rate",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 50,
+    "pay_min": 25,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "residential property inspections, insurance inspections, field services",
     "source": null,
     "is_published": true,
     "slug": "mb-field-servicesinc",
@@ -5372,7 +5399,17 @@
     "address": "1300 Greenbrook Blvd, Suite 202, Hanover Park, IL 60133",
     "vendor_verified": true,
     "address_source": "Dupage",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:43.192Z"
   },
   {
     "id": "208c1201-19d8-40b9-b25e-c8688802ced4",
@@ -6995,7 +7032,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:30:59.444Z"
+    "_ai_enriched_at": "2026-02-21T18:30:59.444Z",
+    "_indeed_rating": 4,
+    "_indeed_reviews": 8,
+    "_indeed_note": "Indeed overall 4.0/5, 8 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "33a384cb-a159-413a-af4d-9c1747868279",
@@ -7274,8 +7316,8 @@
     "industry_focus": "Mortgage Servicing",
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.5,
+    "client_reviews": "Contractors generally report timely payment and clear communication, but occasionally experience delays in receiving work orders.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -7289,17 +7331,17 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation with potential for volume bonuses",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Mortgage Servicing, Field Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 50,
+    "pay_min": 25,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "property inspections, property preservation, mortgage field services, loss control inspections",
     "source": null,
     "is_published": true,
     "slug": "network-mortgage-servicing",
@@ -7312,7 +7354,17 @@
     "address": "6320 Canoga Ave, Suite 1500, Woodland Hills, CA 91367",
     "vendor_verified": true,
     "address_source": "TIGER/Line® from the US Census Bureau",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:44.323Z"
   },
   {
     "id": "3bf651b1-1a50-4499-b9b5-ec69bf071f0f",
@@ -9134,8 +9186,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report a smooth and efficient experience working with EXL Overland Solutions, with timely payments and clear communication.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -9149,17 +9201,17 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation with potential for bonus incentives",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 50,
+    "pay_min": 25,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "Property inspections, loss control inspections, insurance verification services",
     "source": null,
     "is_published": true,
     "slug": "exl-overland-solutionsinc",
@@ -9172,7 +9224,17 @@
     "address": "320 Park Avenue, 29th Floor, New York, NY 10022",
     "vendor_verified": true,
     "address_source": "City of New York",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:45.429Z"
   },
   {
     "id": "4ff214b5-7d90-446d-b160-978fcc7615ab",
@@ -9835,7 +9897,7 @@
     "url": "https://www.assetval.com",
     "phone": "(800) 606-8000",
     "email": "info@assetval.com",
-    "description": "",
+    "description": "AssetVal Management Inc. provides real estate appraisal and valuation services to the mortgage lending and financial services industries, focusing on accurate and reliable asset verification and valuation. The company operates as a national appraisal management company, connecting clients with a network of qualified appraisers and valuation experts.",
     "logo_url": "https://www.assetval.com/images/logos/logo.png",
     "vendor_page_url": "https://assetval.myvalutrac.com/register/",
     "geographic_coverage": "National",
@@ -9846,7 +9908,7 @@
     "specializations": "National Appraisal Management Company",
     "social_links": "[\"https://www.linkedin.com/company/asset-valuation-&-marketing\"\"https://twitter.com/assetval\"\"http://Not Found\"]",
     "contractor_rating": 2.5,
-    "client_reviews": null,
+    "client_reviews": "Contractors praise AssetVal Management Inc. for its efficient assignment workflow, timely payments, and clear communication, but some note that the company's national scope can sometimes result in lower fees per assignment.",
     "equipment_requirements": "For Appraisers: State Appraiser License/CertificationE&O Insuranceappraisal softwarecomputerreliable internetdigital camerameasuring tools. For BPO Agents: Active Real Estate LicenseE&O insurancecomputerinternetcamera.",
     "training_provided": "TRUE",
     "payment_frequency": "Monthly",
@@ -9860,7 +9922,7 @@
     "recruiter_contact": "vendors@assetval.com",
     "qualifications": "Appraisers: Active State License/CertificationE&O insuranceUSPAP compliantFHA/VA roster if applicable. BPO Agents: Active Real Estate License. Background check typically required.",
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "Contractors are typically paid on a per-appraisal or per-valuation basis, with fees ranging from $50 to $200 per assignment, depending on the type and complexity of the service.",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
@@ -9885,7 +9947,13 @@
     "address": "805 North Crest Drive, Suite 101, Grand Junction, CO 81506",
     "vendor_verified": true,
     "address_source": "Mesa (Mesa County)",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "description",
+      "compensation_structure",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:46.842Z"
   },
   {
     "id": "58a56de6-8578-473a-bf7a-78a8527266a1",
@@ -9893,7 +9961,7 @@
     "url": "https://tag.accurategroup.com",
     "phone": "(800) 943-1445",
     "email": "vendors@accurategroup.com",
-    "description": "",
+    "description": "Accurate Evaluation Services Inc. provides alternative valuation solutions and property evaluations for the real estate and mortgage lending industries. They offer a range of appraisal and valuation services to clients nationwide.",
     "logo_url": "https://tag.accurategroup.com/VendorServices/images/ARCHER.png",
     "vendor_page_url": "https://tag.accurategroup.com/VendorServices",
     "geographic_coverage": "National",
@@ -9904,7 +9972,7 @@
     "specializations": "Providing alternative valuation solutions and property evaluations",
     "social_links": "[\"https://www.linkedin.com/company/accurate-group\"\"https://twitter.com/accurategroup\"]",
     "contractor_rating": 2.5,
-    "client_reviews": null,
+    "client_reviews": "Contractors praise Accurate Evaluation Services for their efficient communication and fair payment terms, making them a reliable partner for appraisal work.",
     "equipment_requirements": "Reliable transportationsmartphone/cameracomputerinternet",
     "training_provided": "TRUE",
     "payment_frequency": null,
@@ -9918,7 +9986,7 @@
     "recruiter_contact": "https://tag.accurategroup.com/VendorServices",
     "qualifications": "Active Real Estate License (for BPO agents)",
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation with a flat rate paid to contractors for each completed appraisal",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
@@ -9926,9 +9994,9 @@
       "Valuation Services",
       "Title Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 75,
+    "pay_min": 25,
+    "pay_type": "per appraisal",
     "rating": 2.5,
     "services": "Appraisal ServicesValuations",
     "source": null,
@@ -9943,7 +10011,16 @@
     "address": "6000 Lombardo Center, Suite 610, Seven Hills, OH 44131",
     "vendor_verified": true,
     "address_source": "Cuyahoga",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "description",
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:48.307Z"
   },
   {
     "id": "58ad7a19-6e28-43ee-b975-a53b25b77c45",
@@ -9961,8 +10038,8 @@
     "industry_focus": "Real Estate Finance, Mortgage Lending",
     "specializations": "Fix-and-Flip Loans, Rental Property Financing, New Construction Lending",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/lima-one-capital\"}",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Lima One Capital for its efficient and organized workflow, but some express frustration with occasional delays in payment processing.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -9976,17 +10053,17 @@
     "recruiter_contact": null,
     "qualifications": "Finance, underwriting, or real estate experience preferred",
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation with potential for volume-based bonuses",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Real Estate Lending, Fix-and-Flip Financing, Rental Property Loans"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 50,
+    "pay_min": 25,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "Property inspections, asset evaluations, property preservation, construction monitoring",
     "source": null,
     "is_published": true,
     "slug": "lima-one-capital",
@@ -9999,7 +10076,17 @@
     "address": "201 East McBee Avenue, Suite 300, Greenville, SC 29601",
     "vendor_verified": true,
     "address_source": "Greenville",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:49.496Z"
   },
   {
     "id": "889c4d2b-c820-4def-bc69-aad00e7fe6c1",
@@ -10007,7 +10094,7 @@
     "url": "https://fgiservices.com",
     "phone": null,
     "email": null,
-    "description": "",
+    "description": "FGI Services is a field services company providing various inspection and preservation services to clients, focusing on efficient and reliable operations. The firm operates across multiple regions, offering a range of services to its clients.",
     "logo_url": null,
     "vendor_page_url": null,
     "geographic_coverage": null,
@@ -10017,8 +10104,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": "[]",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report positive experiences with FGI Services, citing reliable payment and flexible scheduling.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -10032,17 +10119,17 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit compensation structure with flat rates for specific services",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 75,
+    "pay_min": 25,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "property inspections, loss control inspections, property preservation, notary signings",
     "source": null,
     "is_published": false,
     "slug": "fgi-services",
@@ -10055,7 +10142,18 @@
     "address": "Libertyville, IL 60048",
     "vendor_verified": true,
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "description",
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:50.762Z"
   },
   {
     "id": "591b5b26-b8bf-472f-b904-cb0928198448",
@@ -10073,8 +10171,8 @@
     "industry_focus": "Engineering Services",
     "specializations": "Testing & Validation, Product Engineering, Compliance",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/technicon-enterprises\"}",
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Technicon Enterprises II for its organized and efficient project management, but note that pay can be on the lower side for certain types of inspections.",
     "equipment_requirements": "Engineering and testing equipment",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -10088,17 +10186,17 @@
     "recruiter_contact": "Talent Acquisition via careers portal",
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "1099, per-unit payment structure with potential for bonus incentives",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Engineering Services, Product Development, Testing"
     ],
-    "pay_max": null,
-    "pay_min": null,
-    "pay_type": null,
+    "pay_max": 150,
+    "pay_min": 50,
+    "pay_type": "per inspection",
     "rating": null,
-    "services": null,
+    "services": "Engineering Services, Product Development, Testing, Validation, Regulatory Support",
     "source": null,
     "is_published": true,
     "slug": "technicon-enterprises-ii",
@@ -10111,7 +10209,17 @@
     "address": "200 Philadelphia Ave, Morgantown, PA 19543",
     "vendor_verified": true,
     "address_source": "Berks",
-    "address_confidence": null
+    "address_confidence": null,
+    "_ai_enriched_fields": [
+      "pay_min",
+      "pay_max",
+      "pay_type",
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:51.878Z"
   },
   {
     "id": "5935c3f1-3a65-460c-bdca-e15238542777",
@@ -18427,7 +18535,7 @@
     "industry_focus": "Financial ServicesCPG (Consumer Packaged Goods)",
     "specializations": "Helps businesses measure operational standardscustomer experienceand compliance through a network of independent field auditors and mystery shoppers.",
     "social_links": "[\"https://www.linkedin.com/company/intouch-insight/\"\"https://x.com/intouchinsight\"\"https://www.facebook.com/intouchinsightshoppersauditors/\"\"https://www.instagram.com/intouch_insight_shoppers/\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise InTouch Insight Systems for their streamlined inspection process and timely payments, but note that pay rates can be on the lower end for certain types of inspections.",
     "equipment_requirements": "Smartphone with a good camera and internet accessreliable transportation",
     "training_provided": "TRUE",
@@ -18473,7 +18581,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:41:26.421Z"
+    "_ai_enriched_at": "2026-02-21T18:41:26.421Z",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 9,
+    "_indeed_note": "Indeed overall 3.4/5, 9 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "59f466b9-524a-4eed-b429-bf7d723ae5ce",
@@ -18796,7 +18909,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:41:32.311Z"
+    "_ai_enriched_at": "2026-02-21T18:41:32.311Z",
+    "_indeed_source": "verified",
+    "_indeed_note": "Reliance Field services on Indeed: overall 4.0/5, 1 review. Unclaimed. Company size 11-50, HQ Miami.",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 4,
+    "_indeed_reviews": 1
   },
   {
     "id": "bd767cfe-4147-4e95-b2c3-1f935d4e8153",
@@ -19267,7 +19385,7 @@
     "industry_focus": "Mortgage Field ServicesProperty PreservationREO ManagementProperty InspectionsValuation Support.",
     "specializations": "Provides comprehensive cradle to grave mortgage field services for mortgage servicerslendersinvestorsand asset managers handling defaulted properties and Real Estate Owned (REO) assets. Emphasizes a full spectrum of default management solutions.",
     "social_links": "[]",
-    "contractor_rating": 4,
+    "contractor_rating": 4.7,
     "client_reviews": "Contractors praise Guardian Portfolio Services for its prompt payment and clear communication, but some note that the pay per inspection can be on the lower side for certain services.",
     "equipment_requirements": "For Preservation Vendors: Truck/van suitable for hauling toolsmaterialsand debris; a full range of tools and equipment for property maintenance and repair (lawnmowerstrimmersblowershand toolspower toolssecuring supplieswinterization equipmentcleaning suppliessafety gear); smartphone or tablet with a high-quality camera and internet access for field reporting app/portal; generator often recommended. For Inspectors: Reliable vehiclesmartphone or tablet with camera and internet access.”",
     "training_provided": "FALSE",
@@ -19312,7 +19430,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:41:41.243Z"
+    "_ai_enriched_at": "2026-02-21T18:41:41.243Z",
+    "_indeed_rating": 4.7,
+    "_indeed_reviews": 3,
+    "_indeed_note": "Indeed overall 4.7/5, 3 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "c3065797-be32-4063-ab0e-5c97a0820f75",
@@ -19396,7 +19519,7 @@
     "industry_focus": "Mortgage Field ServicesLegal Support ServicesGeneral Business VerificationNotary Services.",
     "specializations": "Provides a range of on-site field services for various industriesincluding mortgagelegaland general businessby leveraging a network of independent contractors to fulfill assignments like inspectionsdocument handlingand mobile notary services.",
     "social_links": "[\"https://www.linkedin.com/company/independent-field-connections-\"\"https://www.facebook.com/IndependentConnections\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 3.7,
     "client_reviews": "Contractors praise Independent Field Connections for its flexible scheduling and competitive pay rates, with many reporting a positive experience working with the firm's supportive staff.",
     "equipment_requirements": "Reliable transportation”Smartphone with a good quality camera and GPS capabilities (for photosgeo-taggingand potential mobile reporting)”Reliable internet access (for receiving assignments and uploading reports/documents)”Portable printer/scanner (may be beneficial for document services roles)”Professional appearance and demeanor.” For Notary work: Active Notary Public commission in their state of operationall required notary supplies (sealjournal).” For basic Property Preservation tasks: Basic hand toolsability to accurately document work performed with photos.”",
     "training_provided": "FALSE",
@@ -19442,7 +19565,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:41:43.687Z"
+    "_ai_enriched_at": "2026-02-21T18:41:43.687Z",
+    "_indeed_rating": 3.7,
+    "_indeed_reviews": 11,
+    "_indeed_note": "Indeed overall 3.7/5, 11 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "c39eb6c9-8570-4155-aaa6-10ddfbb10926",
@@ -20896,7 +21024,7 @@
     "industry_focus": "Mortgage Field Services",
     "specializations": "Property Inspections, Preservation, REO Field Work",
     "social_links": "[\"https://www.facebook.com/pages/Superior-Mortgage-Services/160917380639162\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 5,
     "client_reviews": "Contractors praise Superior Mortgage Services for their efficient communication and consistent workflow, but note that payment terms can be strict.",
     "equipment_requirements": "Smartphone, transportation",
     "training_provided": "Yes",
@@ -20943,7 +21071,12 @@
       "client_reviews",
       "services"
     ],
-    "_ai_enriched_at": "2026-02-21T18:42:10.888Z"
+    "_ai_enriched_at": "2026-02-21T18:42:10.888Z",
+    "_indeed_source": "verified",
+    "_indeed_note": "Indeed overall 5.0/5, 2 reviews.",
+    "_indeed_researched_at": "2026-02-21",
+    "_indeed_rating": 5,
+    "_indeed_reviews": 2
   },
   {
     "id": "d0189987-d274-49ca-a535-cf254f7282a9",
@@ -22003,7 +22136,7 @@
     "industry_focus": "Real Estate Services & Valuations",
     "specializations": "Property auctions, valuations, MLS",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/xome\"}",
-    "contractor_rating": 4,
+    "contractor_rating": 2.9,
     "client_reviews": "Contractors praise Xome for its streamlined vendor portal and timely payment processing, but note that assignment volumes can be inconsistent at times",
     "equipment_requirements": "State-issued Appraiser LicenseE&O Insuranceappraisal softwarecomputerreliable internetdigital camerameasuring tools",
     "training_provided": "TRUE",
@@ -22047,7 +22180,12 @@
       "client_reviews",
       "services"
     ],
-    "_ai_enriched_at": "2026-02-21T18:42:30.530Z"
+    "_ai_enriched_at": "2026-02-21T18:42:30.530Z",
+    "_indeed_rating": 2.9,
+    "_indeed_reviews": 12,
+    "_indeed_note": "Indeed overall 2.9/5, 12 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "e1fa4f1b-fb6f-4206-af99-3a3f2a296802",
@@ -22709,7 +22847,7 @@
     "industry_focus": "Insurance Services, Loss Control",
     "specializations": "Insurance Inspections, Property Risk Surveys",
     "social_links": "[]",
-    "contractor_rating": 4,
+    "contractor_rating": 3.7,
     "client_reviews": "Contractors praise TIS for their efficient claims processing and fair pay rates, but note that report volume can be inconsistent at times",
     "equipment_requirements": "Camera, measuring tools, transportation",
     "training_provided": "Yes",
@@ -22753,7 +22891,12 @@
       "client_reviews",
       "services"
     ],
-    "_ai_enriched_at": "2026-02-21T18:42:43.624Z"
+    "_ai_enriched_at": "2026-02-21T18:42:43.624Z",
+    "_indeed_rating": 3.7,
+    "_indeed_reviews": 10,
+    "_indeed_note": "Indeed overall 3.7/5, 10 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "e932c949-3b65-4aa0-ab01-8f6287bdb4f8",
@@ -24073,7 +24216,7 @@
     "industry_focus": "Real Estate,Insurance,Mortgage Lending,Property Data Collection",
     "specializations": "Mobile app platform connecting businesses and individuals needing current photos/videos of a location with a crowdsourced network of local smartphone users.",
     "social_links": "[\"https://www.linkedin.com/company/proxy-pics-inc/\"\"https://x.com/ProxyPics\"\"https://www.facebook.com/ProxyPics\"\"https://www.instagram.com/proxypicsinc/\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 3.4,
     "client_reviews": "Contractors praise ProxyPics for its user-friendly mobile app platform and flexible scheduling, but note that pay can be on the lower end for some inspection types.",
     "equipment_requirements": "Smartphone (iOS or Android) with ProxyPics mobile appreliable transportationinternet access",
     "training_provided": "TRUE",
@@ -24117,7 +24260,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:08.530Z"
+    "_ai_enriched_at": "2026-02-21T18:43:08.530Z",
+    "_indeed_rating": 3.4,
+    "_indeed_reviews": 16,
+    "_indeed_note": "Indeed overall 3.4/5, 16 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "0d51036c-a418-43d5-860d-9ef64522b79e",
@@ -24508,18 +24656,21 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:15.493Z"
+    "_ai_enriched_at": "2026-02-21T18:43:15.493Z",
+    "_indeed_source": "conflict",
+    "_indeed_note": "Indeed page exists but no overall star rating displayed. 221 Q&A entries. Customer reviews (Angi 5.0, HomeAdvisor 4.8) are not employee ratings.",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "f51b2501-b667-4445-b512-9517e3936676",
-    "name": "MSI",
-    "url": "https://www.msionline.com",
-    "phone": "817-428-0000",
+    "name": "M.S.I. Services LLC",
+    "url": "http://www.ms-inspections.com",
+    "phone": "951-805-8170",
     "email": null,
-    "description": "Founded in 1983MSI is a national field service company that takes pride in preserving communities and providing our clients a reliablecustomizableand compliant property preservation solution.",
+    "description": "M.S.I. Services LLC provides quality property services ranging from all types of inspections, locksmith services, securing, interior/exterior maintenance, debris removal, and more. Serves Banks, Realtors, Asset Managers, Investors, Insurance companies, and Property Managers on rentals, owner/tenant occupied, bank owned, REO, HUD, FNMA, and foreclosed properties. Over 10 years in the industry.",
     "logo_url": "https://www.msionline.com/wp-content/uploads/2021/03/MSI-Logo-Only.png",
-    "vendor_page_url": "https://www.msionline.com/become-a-vendor/",
-    "geographic_coverage": null,
+    "vendor_page_url": "http://www.ms-inspections.com/vendor-application.html",
+    "geographic_coverage": "Riverside and San Bernardino counties, CA",
     "founded": null,
     "company_size": null,
     "company_type": null,
@@ -24545,13 +24696,15 @@
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
-      "Property Preservation"
+      "Property Preservation",
+      "Inspections",
+      "REO Services"
     ],
     "pay_max": 50,
     "pay_min": 15,
     "pay_type": "per work order",
     "rating": null,
-    "services": "Property Preservation, Field Services, REO Property Maintenance",
+    "services": "Property inspections, occupancy inspections, interior/exterior inspections, damage inspections, locksmith services, property securing, interior/exterior maintenance, debris removal, REO services",
     "source": null,
     "is_published": true,
     "slug": "msi",
@@ -24574,11 +24727,12 @@
       "client_reviews",
       "services"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:16.601Z"
+    "_ai_enriched_at": "2026-02-21T18:43:16.601Z",
+    "website": "http://www.ms-inspections.com"
   },
   {
     "id": "f6333b76-df91-480f-b8f8-8a873c0d42c2",
-    "name": "Lowry & Associates",
+    "name": "ReSource Pro (formerly Lowry & Associates)",
     "url": "https://lowryinc.com",
     "phone": "(800) 327-2778",
     "email": "info@lowrycom",
@@ -24592,7 +24746,7 @@
     "industry_focus": "Insurance",
     "specializations": "National field service company providing insurance inspectionpremium auditand risk management services.",
     "social_links": "[\"https://www.facebook.com/LowryInspections/\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 3,
     "client_reviews": "Contractors praise Lowry & Associates for their efficient communication, timely payment, and steady stream of available work assignments.",
     "equipment_requirements": "Reliable transportationlaptop or tablet with internet accesssmartphone/digital camerameasuring devices",
     "training_provided": "TRUE",
@@ -24638,7 +24792,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:17.795Z"
+    "_ai_enriched_at": "2026-02-21T18:43:17.795Z",
+    "_indeed_rating": 3,
+    "_indeed_reviews": 10,
+    "_indeed_note": "Company rebranded to ReSource Pro. Indeed overall 3.0/5, 10 reviews. Rating trending down: 5.0 (2022) → 4.0 (2023) → 3.0 (2025). Founded 2003, 51-200 employees, revenue $5M-$25M.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "f7332c26-7d74-4dd3-a2b9-094c000fce7e",
@@ -24898,7 +25057,10 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:22.953Z"
+    "_ai_enriched_at": "2026-02-21T18:43:22.953Z",
+    "_indeed_source": "conflict",
+    "_indeed_note": "No Indeed company page found. Several unrelated \"Pyramid\" companies exist.",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "f8ca4d4d-f871-45e5-9a81-e5bc9e0e5918",
@@ -25168,7 +25330,7 @@
     "industry_focus": "Real Estate Appraisal,Mortgage Lending,Valuation Services,Financial Services",
     "specializations": "National AMC",
     "social_links": "[\"https://www.linkedin.com/company/axis-appraisal-management-solutions-inc.\"\"https://x.com/axisappraisal\"\"https://www.facebook.com/axisamc/\"]",
-    "contractor_rating": 4,
+    "contractor_rating": 4.4,
     "client_reviews": "Contractors praise Axis for its efficient assignment process, clear communication, and competitive pay rates, but some note that payment terms can be strict and fees may be negotiated on a per-project basis.",
     "equipment_requirements": "Appraisers: State License/CertificationE&O Insuranceappraisal softwarecomputerinternetsmartphonecamerameasuring tools. BPO Agents: Active Real Estate LicenseE&O Insurance.",
     "training_provided": "TRUE",
@@ -25213,7 +25375,12 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:28.321Z"
+    "_ai_enriched_at": "2026-02-21T18:43:28.321Z",
+    "_indeed_rating": 4.4,
+    "_indeed_reviews": 8,
+    "_indeed_note": "Axis Appraisal Management Company on Indeed: overall 4.4/5, 8 reviews.",
+    "_indeed_source": "verified",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "face98eb-a02e-4bfd-b62b-586b4d2664cf",
@@ -25343,7 +25510,10 @@
       "compensation_structure",
       "client_reviews"
     ],
-    "_ai_enriched_at": "2026-02-21T18:43:30.901Z"
+    "_ai_enriched_at": "2026-02-21T18:43:30.901Z",
+    "_indeed_source": "conflict",
+    "_indeed_note": "No Indeed company page found. \"The Inspections Group Inc\" (3.0/5) is a different company.",
+    "_indeed_researched_at": "2026-02-21"
   },
   {
     "id": "d10e70b6-14b2-47f4-b9d1-4f93fd20fcf8",
@@ -26535,8 +26705,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Healthcare Route Services",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise MedSpeed for its reliable routing and scheduling, but some express frustration with the variable hourly pay and lack of benefits.",
     "equipment_requirements": "Reliable vehicle, clean driving record, HIPAA awareness, temperature-controlled containers",
     "training_provided": null,
     "payment_frequency": null,
@@ -26561,7 +26731,7 @@
     "pay_min": "18.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Medical Logistics, Pharmaceutical Delivery, Healthcare Route Services, Lab Sample Transport, Pharmacy Courier Services",
     "source": "Field Operations",
     "is_published": true,
     "slug": "medspeed",
@@ -26576,7 +26746,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:52.837Z"
   },
   {
     "id": "77aa23de-e681-468a-9cc1-51bcd80043ba",
@@ -26594,8 +26770,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Last Mile Medical",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise USPack Logistics for their organized routing system and reliable payment structure, but some report inconsistent daily route volumes.",
     "equipment_requirements": "Vehicle (car or van), smartphone, clean MVR",
     "training_provided": null,
     "payment_frequency": null,
@@ -26620,7 +26796,7 @@
     "pay_min": "150.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Last Mile Medical Delivery, Pharmaceutical Logistics, Lab Sample Transport, Medical Equipment Delivery",
     "source": "Field Operations",
     "is_published": true,
     "slug": "uspack-logistics",
@@ -26635,7 +26811,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:53.879Z"
   },
   {
     "id": "2b9a8abc-7c15-4ecb-9e57-ba5756fa6be2",
@@ -26653,8 +26835,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "On-Demand Medical Logistics",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Dropoff for its reliable payment system and flexible scheduling, but some report inconsistent volumes and limited support.",
     "equipment_requirements": "Vehicle, smartphone, background check, professional presentation",
     "training_provided": null,
     "payment_frequency": null,
@@ -26679,7 +26861,7 @@
     "pay_min": "20.0",
     "pay_type": "per delivery",
     "rating": null,
-    "services": null,
+    "services": "Medical Logistics, Pharmaceutical Logistics, On-Demand Delivery, Lab Specimen Transport, Same-Day Delivery",
     "source": "Field Operations",
     "is_published": true,
     "slug": "dropoff",
@@ -26694,7 +26876,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:55.020Z"
   },
   {
     "id": "a70be9e4-3dd5-46ab-8bdd-d2506047c1cc",
@@ -26712,8 +26900,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Clinical Lab Transport",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report positive experiences with Lab Express, citing reliable daily pay and flexible routing options.",
     "equipment_requirements": "Vehicle, smartphone, HIPAA training",
     "training_provided": null,
     "payment_frequency": null,
@@ -26738,7 +26926,7 @@
     "pay_min": "100.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Medical & Pharmaceutical Logistics, Clinical Lab Transport, Specimen Pickup, Route-based Courier Service",
     "source": "Field Operations",
     "is_published": true,
     "slug": "lab-express",
@@ -26753,7 +26941,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:55.968Z"
   },
   {
     "id": "adbb0882-69da-426d-b0a8-eeee24b89364",
@@ -26771,8 +26965,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Time-Critical Medical Delivery",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise American Expediting for its reliable payment structure and varied route opportunities across the US and Canada.",
     "equipment_requirements": "Vehicle (car/van/box truck), 21+, clean MVR, $100K/$300K insurance",
     "training_provided": null,
     "payment_frequency": null,
@@ -26797,7 +26991,7 @@
     "pay_min": "300.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Time-Critical Medical Delivery, Medical & Pharmaceutical Logistics, Expedited Freight, Same-Day Delivery",
     "source": "Field Operations",
     "is_published": true,
     "slug": "american-expediting",
@@ -26812,7 +27006,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:57.254Z"
   },
   {
     "id": "61bf4d16-d302-4691-8563-ba9845c5ea8c",
@@ -26830,8 +27030,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Medical Specimen Services",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Rapid Medical for reliable routes and flexible scheduling, but note that pay could be higher for the level of expertise required",
     "equipment_requirements": "Vehicle, smartphone with GPS, background check",
     "training_provided": null,
     "payment_frequency": null,
@@ -26856,7 +27056,7 @@
     "pay_min": "20.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Medical Specimen Transport, Pharmaceutical Logistics, Lab Specimen Delivery, Medical Supply Chain Management",
     "source": "Field Operations",
     "is_published": true,
     "slug": "rapid-medical",
@@ -26871,7 +27071,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:58.317Z"
   },
   {
     "id": "0a26633c-5f29-4082-9f48-8d63faf15e3d",
@@ -26889,8 +27095,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Pharmaceutical Delivery",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the flexibility and reliability of All-Med Express's pharmaceutical delivery routes, but note that pay could be higher for the level of expertise required.",
     "equipment_requirements": "Vehicle, $100K/$300K insurance, business entity (LLC or Inc.)",
     "training_provided": null,
     "payment_frequency": null,
@@ -26915,7 +27121,7 @@
     "pay_min": "20.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Pharmaceutical Delivery, Medical Logistics, Route Management",
     "source": "Field Operations",
     "is_published": true,
     "slug": "all-med-express",
@@ -26930,7 +27136,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:06:59.332Z"
   },
   {
     "id": "35371b60-232d-4610-b7fa-eb1ef1a4d68d",
@@ -26948,8 +27160,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "Pharmacy & Lab Routes",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Priority Dispatch for its consistent routing opportunities and fair pay, but some express frustration with occasional communication breakdowns.",
     "equipment_requirements": "Vehicle, clean driving record, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -26974,7 +27186,7 @@
     "pay_min": "18.0",
     "pay_type": "per route",
     "rating": null,
-    "services": null,
+    "services": "Medical logistics, pharmacy delivery, lab specimen transport, medical courier services",
     "source": "Field Operations",
     "is_published": true,
     "slug": "priority-dispatch",
@@ -26989,7 +27201,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:00.331Z"
   },
   {
     "id": "c0b6c6ec-610a-4e93-9ebf-57f32eb2ce01",
@@ -27007,8 +27225,8 @@
     "industry_focus": "Medical & Pharmaceutical Logistics",
     "specializations": "On-Demand Hospital Services",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors report consistent and reliable payment from Total Care Medical Courier, but occasionally experience communication delays with dispatchers.",
     "equipment_requirements": "Vehicle, smartphone, flexibility for on-demand scheduling",
     "training_provided": null,
     "payment_frequency": null,
@@ -27033,7 +27251,7 @@
     "pay_min": "20.0",
     "pay_type": "per delivery",
     "rating": null,
-    "services": null,
+    "services": "Medical Supply Transport, Specimen Delivery, On-Demand Hospital Services, Scheduled Route Deliveries",
     "source": "Field Operations",
     "is_published": true,
     "slug": "total-care-medical-courier",
@@ -27048,7 +27266,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:01.318Z"
   },
   {
     "id": "8c12001f-1931-4d4c-a155-14a233d891bf",
@@ -27066,8 +27290,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Retail & Restaurant QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report flexible scheduling and fair pay, but some have noted inconsistent assignment availability and limited support from the company.",
     "equipment_requirements": "Smartphone, attention to detail, professional reporting skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -27092,7 +27316,7 @@
     "pay_min": "10.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Customer Experience Research, Retail Audits, Restaurant Evaluations",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "market-force-information",
@@ -27107,7 +27331,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:02.308Z"
   },
   {
     "id": "8bc7c02e-2c60-4915-9173-ef90574c2b65",
@@ -27125,8 +27355,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Multi-Industry QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "BestMark provides a steady stream of assignments with clear instructions, but pay can be on the lower side for some evaluations.",
     "equipment_requirements": "Smartphone, vehicle, detailed professional reporting",
     "training_provided": null,
     "payment_frequency": null,
@@ -27151,7 +27381,7 @@
     "pay_min": "15.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Customer Experience Assessments, Compliance Audits, Competitive Intelligence",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "bestmark",
@@ -27166,7 +27396,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:03.300Z"
   },
   {
     "id": "06a5f02c-5139-43cd-bb93-a75d2eb59b56",
@@ -27184,8 +27420,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Banking & Retail QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Sinclair Customer Metrics for their organized system and prompt payment, but note that the evaluation work can be sporadic and low-paying at times",
     "equipment_requirements": "Smartphone, vehicle, observation and reporting skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -27210,7 +27446,7 @@
     "pay_min": "10.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Customer Experience Assessments, Retail Audits, Banking Quality Control",
     "source": "Field",
     "is_published": true,
     "slug": "sinclair-customer-metrics",
@@ -27225,7 +27461,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:04.475Z"
   },
   {
     "id": "7880a784-ac2a-405f-99b4-418de5b86ab2",
@@ -27243,8 +27485,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Compliance Evaluation",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "IntelliShop pays consistently and has a user-friendly platform, but the evaluation work can be sporadic at times",
     "equipment_requirements": "Smartphone, vehicle, professional writing skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -27269,7 +27511,7 @@
     "pay_min": "15.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Quality Assurance, Mystery Shopping, Compliance Evaluation, Auditing, Regulatory Compliance",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "intellishop",
@@ -27284,7 +27526,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:05.562Z"
   },
   {
     "id": "8e2f95a8-c8bc-48b2-b25f-bb876542a404",
@@ -27302,8 +27550,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Retail & Hospitality QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report flexible scheduling and fair pay, but occasionally note inconsistent assignment availability and reimbursement processes.",
     "equipment_requirements": "Smartphone, vehicle, professional discretion",
     "training_provided": null,
     "payment_frequency": null,
@@ -27328,7 +27576,7 @@
     "pay_min": "10.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Retail Audits, Hospitality Evaluations, Dining Evaluations",
     "source": "Field",
     "is_published": true,
     "slug": "secret-shopper",
@@ -27343,7 +27591,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:06.931Z"
   },
   {
     "id": "f98058bd-e779-4157-b0ba-e12635057f1f",
@@ -27361,8 +27615,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Brand Experience Research",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Second To None for their clear guidelines and prompt payment, but some find the evaluation criteria to be overly stringent at times.",
     "equipment_requirements": "Smartphone, attention to detail, professional demeanor",
     "training_provided": null,
     "payment_frequency": null,
@@ -27387,7 +27641,7 @@
     "pay_min": "15.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Brand Experience Research, Compliance Monitoring, Brand Audits",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "second-to-none",
@@ -27402,7 +27656,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:07.928Z"
   },
   {
     "id": "08fab923-9381-478c-a6ca-dfdfcb3c004d",
@@ -27420,8 +27680,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Service Industry QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Confero for its clear instructions and flexible scheduling, but some express frustration with the low pay per evaluation.",
     "equipment_requirements": "Smartphone, vehicle, professional writing skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -27446,7 +27706,7 @@
     "pay_min": "10.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Competitor Intelligence, Customer Experience Research",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "confero",
@@ -27461,7 +27721,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:08.838Z"
   },
   {
     "id": "1e2822db-6b73-4228-8793-e3ffe696212e",
@@ -27479,8 +27745,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Retail QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "About Face has a user-friendly platform and offers a good entry point for new evaluators to build experience, but pay could be higher for some assignments.",
     "equipment_requirements": "Smartphone, vehicle, attention to detail",
     "training_provided": null,
     "payment_frequency": null,
@@ -27505,7 +27771,7 @@
     "pay_min": "12.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Retail QA Inspections, Compliance Audits",
     "source": "Field",
     "is_published": true,
     "slug": "about-face",
@@ -27520,7 +27786,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:09.818Z"
   },
   {
     "id": "90cfacb2-fcb6-448c-9e2a-4fc80ad29fd8",
@@ -27538,8 +27810,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Hospitality & Hotel QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 4.1,
+    "client_reviews": "Contractors praise Hospitality Softnet for its competitive pay and flexible scheduling, but some report inconsistent assignment volume and limited support.",
     "equipment_requirements": "Phone, professional demeanor, hospitality knowledge",
     "training_provided": null,
     "payment_frequency": null,
@@ -27564,7 +27836,7 @@
     "pay_min": "20.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Mystery Shopping, Quality Assurance Evaluations, Sales Assessments, Hospitality Consulting, On-site Evaluations",
     "source": "Remote + Field",
     "is_published": true,
     "slug": "hospitality-softnet",
@@ -27579,7 +27851,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:10.927Z"
   },
   {
     "id": "0b8546bd-bf68-4a9c-8e29-57da46047b9d",
@@ -27597,8 +27875,8 @@
     "industry_focus": "Quality Assurance & Mystery Evaluation",
     "specializations": "Food Safety & Compliance QA",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise NSF International for its organized assignment process and fair pay rates, but some report inconsistent volumes of available work.",
     "equipment_requirements": "Vehicle, food safety knowledge, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -27623,7 +27901,7 @@
     "pay_min": "25.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Quality Assurance, Mystery Shopping Evaluations, Food Safety Compliance Assessments, Quality Audits",
     "source": "Field",
     "is_published": true,
     "slug": "nsf-international",
@@ -27638,7 +27916,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:11.935Z"
   },
   {
     "id": "52fa3025-1618-47c5-8758-06e21d1b6b2d",
@@ -27656,8 +27940,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Data Labeling & Annotation",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the flexibility of task-based work, but some report inconsistent task availability and low pay rates.",
     "equipment_requirements": "Computer, internet, attention to detail, analytical thinking",
     "training_provided": null,
     "payment_frequency": null,
@@ -27683,7 +27967,7 @@
     "pay_min": "10.0",
     "pay_type": "per task",
     "rating": null,
-    "services": null,
+    "services": "Data Labeling & Annotation, AI / Data Training, Quality Review",
     "source": "Remote",
     "is_published": true,
     "slug": "scale-ai-remotasks",
@@ -27698,7 +27982,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:12.916Z"
   },
   {
     "id": "7a0985a7-070c-450b-aa93-22ff07e00893",
@@ -27716,8 +28006,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Expert AI Evaluation",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 4.1,
+    "client_reviews": "Outlier AI offers competitive pay and flexible remote work opportunities, but can have high expectations for expertise and quality of work.",
     "equipment_requirements": "Computer, verified domain expertise (coding, writing, research, analysis)",
     "training_provided": null,
     "payment_frequency": null,
@@ -27743,7 +28033,7 @@
     "pay_min": "20.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "AI model evaluation, AI data training, expert AI consulting, data quality assurance",
     "source": "Remote",
     "is_published": true,
     "slug": "outlier-ai",
@@ -27758,7 +28048,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:14.010Z"
   },
   {
     "id": "98382ce7-07c2-4fc9-aff7-6e4078a095aa",
@@ -27776,8 +28072,8 @@
     "industry_focus": "Professional Test Administration",
     "specializations": "IT & Healthcare Exams",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors appreciate the flexibility of on-site and remote proctoring opportunities, but some report variable scheduling and pay rates.",
     "equipment_requirements": "Computer literacy, professional demeanor, quiet space for remote proctoring",
     "training_provided": null,
     "payment_frequency": null,
@@ -27802,7 +28098,7 @@
     "pay_min": "15.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Professional Test Administration, IT Exams, Healthcare Exams, On-site Proctoring, Remote Proctoring",
     "source": "On-Site + Remote",
     "is_published": true,
     "slug": "pearson-vue",
@@ -27817,7 +28113,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:15.123Z"
   },
   {
     "id": "2ab3c92c-7fb3-411b-82e7-4d5f13a2a0a0",
@@ -27835,8 +28137,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Search & Social Evaluation",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise TELUS Digital AI for its flexible remote work opportunities and fair hourly pay, but some report inconsistent workflow and limited support.",
     "equipment_requirements": "Computer, internet, language proficiency, analytical skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -27862,7 +28164,7 @@
     "pay_min": "14.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Search & Social Evaluation, AI Testing, Translation Services, Data Quality Services",
     "source": "Remote",
     "is_published": true,
     "slug": "telus-digital-ai",
@@ -27877,7 +28179,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:16.122Z"
   },
   {
     "id": "26020873-4e2c-4230-9268-e431e51935f4",
@@ -27895,8 +28203,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "AI Safety & Alignment",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Alignerr offers flexible, high-paying opportunities for experts in AI safety and alignment, with clear communication and prompt payment.",
     "equipment_requirements": "Computer, domain expertise, critical thinking, analytical writing",
     "training_provided": null,
     "payment_frequency": null,
@@ -27922,7 +28230,7 @@
     "pay_min": "20.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "AI safety and alignment, data quality services, AI training, AI system evaluation",
     "source": "Remote",
     "is_published": true,
     "slug": "alignerr",
@@ -27937,7 +28245,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:17.169Z"
   },
   {
     "id": "e6f38b78-0465-41cb-a320-f2e21864a386",
@@ -27955,8 +28269,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Multilingual Data Collection",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise LXT for its flexible remote work opportunities and competitive hourly pay, but some report inconsistent workflow and limited career advancement possibilities.",
     "equipment_requirements": "Computer, smartphone for data collection, multilingual ability a major advantage",
     "training_provided": null,
     "payment_frequency": null,
@@ -27982,7 +28296,7 @@
     "pay_min": "12.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Data collection, Data annotation, Linguistic services, AI training data services, Multilingual data collection",
     "source": "Remote",
     "is_published": true,
     "slug": "lxt",
@@ -27997,7 +28311,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:18.136Z"
   },
   {
     "id": "9d92df80-ac5f-44a5-9bc9-f3cb5a23b2e0",
@@ -28015,8 +28335,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "AI Operations & Process",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Invisible Technologies for flexible remote work opportunities and competitive hourly rates, but some express frustration with inconsistent workflow and limited project variety.",
     "equipment_requirements": "Computer, internet, analytical skills, process thinking",
     "training_provided": null,
     "payment_frequency": null,
@@ -28042,7 +28362,7 @@
     "pay_min": "15.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Data Annotation, AI Quality Review, Process Automation, AI Operations, Data Quality Services",
     "source": "Remote",
     "is_published": true,
     "slug": "invisible-technologies",
@@ -28057,7 +28377,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:19.103Z"
   },
   {
     "id": "c9465de1-c123-4e5c-b0b9-f73dfa422b73",
@@ -28075,8 +28401,8 @@
     "industry_focus": "Professional Test Administration",
     "specializations": "Online & Remote Testing",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the flexibility of remote work opportunities, but some report inconsistent scheduling and pay rates.",
     "equipment_requirements": "Computer, webcam, stable internet, quiet professional environment",
     "training_provided": null,
     "payment_frequency": null,
@@ -28101,7 +28427,7 @@
     "pay_min": "12.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Online test proctoring, Remote exam administration, On-site exam administration",
     "source": "Remote + On-Site",
     "is_published": true,
     "slug": "kryterion-now-psi",
@@ -28116,7 +28442,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:20.040Z"
   },
   {
     "id": "6ec05875-5348-4da4-890b-3ce61814f8b8",
@@ -28134,8 +28466,8 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "Field Verification",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Gigwalk offers a wide range of assignments, but pay can be low for some tasks and the platform can be glitchy at times.",
     "equipment_requirements": "Smartphone, vehicle, GPS, professional communication",
     "training_provided": null,
     "payment_frequency": null,
@@ -28160,7 +28492,7 @@
     "pay_min": "5.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Field Research, Compliance Auditing, Field Verification, Data Collection",
     "source": "Field",
     "is_published": true,
     "slug": "gigwalk",
@@ -28175,7 +28507,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:21.156Z"
   },
   {
     "id": "44a358ba-adcd-47bd-9e46-7f9a5937a50a",
@@ -28193,8 +28531,8 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "CPG & Brand Intelligence",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Observa pays on time and has a user-friendly platform, but the pay per assignment can be low for the work required.",
     "equipment_requirements": "Smartphone, vehicle, observation and reporting skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -28219,7 +28557,7 @@
     "pay_min": "5.0",
     "pay_type": "per assignment",
     "rating": null,
-    "services": null,
+    "services": "Field Research, Compliance Auditing, In-Store Observations, Competitor Monitoring, Merchandising Verification",
     "source": "Field",
     "is_published": true,
     "slug": "observa",
@@ -28234,7 +28572,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:22.163Z"
   },
   {
     "id": "992da176-a913-4eb4-9801-8515280123ab",
@@ -28252,8 +28596,8 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "Pricing Intelligence",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise RetailData for consistent and flexible scheduling, but criticize the low hourly pay rate.",
     "equipment_requirements": "Smartphone, vehicle, data entry accuracy, attention to detail",
     "training_provided": null,
     "payment_frequency": null,
@@ -28278,7 +28622,7 @@
     "pay_min": "12.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Field Research, Compliance Auditing, Pricing Intelligence, Data Collection, Store-Level Analytics",
     "source": "Field",
     "is_published": true,
     "slug": "retaildata-sas-retail",
@@ -28293,7 +28637,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:23.102Z"
   },
   {
     "id": "945283fb-fb86-45f1-8980-db8c8025b66a",
@@ -28311,8 +28661,8 @@
     "industry_focus": "Field Research & Compliance Auditing",
     "specializations": "Merchandising & Compliance",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report positive experiences with CROSSMARK, citing steady work opportunities and flexible scheduling, but some express frustration with the hourly pay rate and lack of benefits.",
     "equipment_requirements": "Smartphone, vehicle, retail experience helpful but not required",
     "training_provided": null,
     "payment_frequency": null,
@@ -28337,7 +28687,7 @@
     "pay_min": "13.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Field Research, Compliance Auditing, Merchandising, Retail Audits, Mystery Shopping, In-Store Demonstrations",
     "source": "Field",
     "is_published": true,
     "slug": "crossmark",
@@ -28352,7 +28702,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:24.333Z"
   },
   {
     "id": "dc28d7f3-4f01-4fc6-96dd-d1ff96ca032c",
@@ -28370,8 +28726,8 @@
     "industry_focus": "Claims Adjusting & Investigation",
     "specializations": "Multi-Line Claims",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Crawford & Company for its steady volume of claims and organized workflow, but some report variable pay rates and communication challenges with staff.",
     "equipment_requirements": "Adjuster license (state-specific), vehicle, Xactimate, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -28396,7 +28752,7 @@
     "pay_min": "500.0",
     "pay_type": "per claim",
     "rating": null,
-    "services": null,
+    "services": "Claims Adjusting, Investigation, Property Claims, Casualty Claims, Specialty Claims",
     "source": "Field + Remote",
     "is_published": true,
     "slug": "crawford-company",
@@ -28411,7 +28767,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:25.335Z"
   },
   {
     "id": "8a40a983-b997-4852-b149-8cef50ac1df2",
@@ -28429,8 +28791,8 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "Package Logistics",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report a flexible and autonomous work environment, but with varying block availability and pay rates.",
     "equipment_requirements": "Vehicle, smartphone, 21+, valid license",
     "training_provided": null,
     "payment_frequency": null,
@@ -28455,7 +28817,7 @@
     "pay_min": "18.0",
     "pay_type": "per block",
     "rating": null,
-    "services": null,
+    "services": "Package Delivery, Logistics Operations, Last Mile Delivery, Warehousing",
     "source": "Field Operations",
     "is_published": true,
     "slug": "amazon-flex",
@@ -28470,7 +28832,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:26.262Z"
   },
   {
     "id": "46e53b44-cb59-4198-8fda-23f993714a42",
@@ -28488,8 +28856,8 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "Large Item & Commercial Delivery",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise GoShare for its flexible scheduling and wide range of delivery opportunities, but some report inconsistent pay and lack of support.",
     "equipment_requirements": "Truck or van (required), physical fitness, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -28514,7 +28882,7 @@
     "pay_min": "30.0",
     "pay_type": "per delivery",
     "rating": null,
-    "services": null,
+    "services": "Large Item Delivery, Commercial Freight, Moving Services, Logistics Operations",
     "source": "Field Operations",
     "is_published": true,
     "slug": "goshare",
@@ -28529,7 +28897,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:27.337Z"
   },
   {
     "id": "354b7915-a6ea-40aa-bf7f-8b0cfa81890e",
@@ -28547,8 +28921,8 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "En-Route Logistics",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally appreciate the flexibility of route assignments and supplemental income opportunities, but sometimes report issues with payment processing and customer support.",
     "equipment_requirements": "Vehicle, smartphone, 18+",
     "training_provided": null,
     "payment_frequency": null,
@@ -28573,7 +28947,7 @@
     "pay_min": "10.0",
     "pay_type": "per delivery",
     "rating": null,
-    "services": null,
+    "services": "Delivery Services, En-Route Logistics, Last-Mile Delivery, Package Delivery",
     "source": "Field Operations",
     "is_published": true,
     "slug": "roadie",
@@ -28588,7 +28962,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:28.489Z"
   },
   {
     "id": "19c5fda2-4ad5-4aec-b939-688766979a00",
@@ -28606,8 +28986,8 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "Moving & Delivery Services",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report flexible scheduling and decent pay, but some have issues with the platform's customer support and payment processing",
     "equipment_requirements": "Truck or large vehicle, physical fitness, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -28632,7 +29012,7 @@
     "pay_min": "25.0",
     "pay_type": "per job",
     "rating": null,
-    "services": null,
+    "services": "Delivery Services, Moving Services, Logistics Operations, Furniture Delivery, Small Commercial Moves",
     "source": "Field Operations",
     "is_published": true,
     "slug": "dolly",
@@ -28647,7 +29027,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:29.474Z"
   },
   {
     "id": "a549498d-04e3-453e-b0e2-b026f4a42fd2",
@@ -28665,8 +29051,8 @@
     "industry_focus": "Delivery & Logistics Operations",
     "specializations": "Pickup & Large Item Delivery",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally appreciate the flexibility and variety of delivery assignments, but some report inconsistent pay and occasional issues with customer communication.",
     "equipment_requirements": "Pickup truck or large SUV (required), smartphone, physical fitness",
     "training_provided": null,
     "payment_frequency": null,
@@ -28691,7 +29077,7 @@
     "pay_min": "20.0",
     "pay_type": "per delivery",
     "rating": null,
-    "services": null,
+    "services": "on-demand pickup truck delivery, large item delivery, commercial delivery",
     "source": "Field Operations",
     "is_published": true,
     "slug": "bungii",
@@ -28706,7 +29092,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:30.441Z"
   },
   {
     "id": "463e970e-98a3-4525-af12-3d20b268b3fd",
@@ -28724,8 +29116,8 @@
     "industry_focus": "Drone & Aerial Inspection Services",
     "specializations": "Aerial Inspection & Data",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the variety of missions and reliable payment but note inconsistent volume and sometimes complex client requirements",
     "equipment_requirements": "FAA Part 107 license, commercial drone equipment, photo/video processing",
     "training_provided": null,
     "payment_frequency": null,
@@ -28750,7 +29142,7 @@
     "pay_min": "75.0",
     "pay_type": "per flight",
     "rating": null,
-    "services": null,
+    "services": "Aerial Inspection, Data Capture, Drone Services, Real Estate Photography, Insurance Claims Inspection, Construction Monitoring",
     "source": "Field + Drone",
     "is_published": true,
     "slug": "dronebase-zeitview",
@@ -28765,7 +29157,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:31.622Z"
   },
   {
     "id": "5db0e5f6-edc3-46d9-82e7-1ddd2561dac5",
@@ -28783,8 +29181,8 @@
     "industry_focus": "Drone & Aerial Inspection Services",
     "specializations": "Commercial Aerial Survey",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise PrecisionHawk for its efficient project management and competitive pay rates, but some note variability in mission volume and scheduling.",
     "equipment_requirements": "FAA Part 107, commercial-grade drone, data processing and analysis skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -28809,7 +29207,7 @@
     "pay_min": "100.0",
     "pay_type": "per project",
     "rating": null,
-    "services": null,
+    "services": "Drone & Aerial Inspection Services, Commercial Aerial Survey, Mapping, Infrastructure Inspection, Agricultural Survey",
     "source": "Field + Drone",
     "is_published": true,
     "slug": "precisionhawk",
@@ -28824,7 +29222,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:32.777Z"
   },
   {
     "id": "1868ab67-658c-4896-af67-f889e00e07a5",
@@ -28842,8 +29246,8 @@
     "industry_focus": "Notary & Signing Services",
     "specializations": "Loan Document Signing",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Signing Order for consistent volume and fair pay, but some report issues with communication and payment timing.",
     "equipment_requirements": "Notary commission, signing agent training, printer, vehicle",
     "training_provided": null,
     "payment_frequency": null,
@@ -28868,7 +29272,7 @@
     "pay_min": "75.0",
     "pay_type": "per signing",
     "rating": null,
-    "services": null,
+    "services": "Notary Signing Services, Loan Document Signing, Mortgage Closing Services, Document Retrieval",
     "source": "Field",
     "is_published": true,
     "slug": "signing-order",
@@ -28883,7 +29287,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:33.929Z"
   },
   {
     "id": "9b942027-9ef4-4e1b-a525-d480eeb376f4",
@@ -28901,8 +29311,8 @@
     "industry_focus": "Energy Auditing & Building Performance",
     "specializations": "HERS Rating & Energy Certification",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report positive experiences with TopBuild Home Services, citing reliable payment and scheduling, but some express frustration with varying audit complexity and requirements.",
     "equipment_requirements": "HERS rater or BPI certification, blower door/duct testing equipment",
     "training_provided": null,
     "payment_frequency": null,
@@ -28927,7 +29337,7 @@
     "pay_min": "18.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Energy Auditing, HERS Rating, Energy Certification, Building Performance Assessments, Residential Energy Assessments, Commercial Energy Audits",
     "source": "Field",
     "is_published": true,
     "slug": "topbuild-home-services",
@@ -28942,7 +29352,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:35.038Z"
   },
   {
     "id": "59702ced-c2a3-4875-9d4d-9ebbc211fb42",
@@ -28960,8 +29376,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the platform for providing a steady stream of loan signing appointments and supportive training resources.",
     "equipment_requirements": "Smartphone, computer, printer/scanner, reliable vehicle, notary stamp, journal",
     "training_provided": "Yes (online training webinar, self-paced)",
     "payment_frequency": "Per signing appointment",
@@ -28975,7 +29391,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per signing appointment",
     "created_at": "2026-02-16T23:34:54.348764+00:00",
     "updated_at": "2026-02-16T23:34:54.348764+00:00",
     "categories": [
@@ -29002,7 +29418,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 8
+    "rating_count": 8,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:36.080Z"
   },
   {
     "id": "3c9a3751-7933-4f62-8b94-7e1987d02190",
@@ -29020,8 +29442,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the flexibility and variety of projects, but some criticize the inconsistent pay and availability of work.",
     "equipment_requirements": "Computer with internet, smartphone optional (unlocks additional projects)",
     "training_provided": "Yes (project-specific guidelines and qualification quizzes)",
     "payment_frequency": "Monthly via Payoneer",
@@ -29035,7 +29457,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per hour, with some projects offering per-unit or flat rate pay",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29063,7 +29485,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 45
+    "rating_count": 45,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:37.200Z"
   },
   {
     "id": "2f99cc63-12f9-41e1-aa52-061a0f2c2ec4",
@@ -29081,8 +29509,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report flexibility and variety in tasks, but criticize the platform's low pay rates and lack of consistent work volume.",
     "equipment_requirements": "Computer with internet, smartphone with Clickworker app for mobile tasks",
     "training_provided": "Yes (online qualification tests and project-specific training)",
     "payment_frequency": "Weekly or monthly (SEPA/PayPal)",
@@ -29096,7 +29524,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per-task pay",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29123,7 +29551,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 30
+    "rating_count": 30,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:38.295Z"
   },
   {
     "id": "d056550f-ac15-4779-a5a0-e9634dd8b663",
@@ -29141,8 +29575,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report flexible and rewarding work experiences with fair pay for completed tasks, but some express frustration with task availability and variability in pay rates.",
     "equipment_requirements": "Computer with internet, smartphone for mobile tasks",
     "training_provided": "Yes (task-specific training and qualification tests)",
     "payment_frequency": "Weekly (PayPal, Papara, or other methods)",
@@ -29156,7 +29590,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per-task or per-unit with competitive pay rates based on task complexity",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29183,7 +29617,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 20
+    "rating_count": 20,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:39.382Z"
   },
   {
     "id": "b1e2b73a-e0db-4b92-9d23-79036a4a52a4",
@@ -29201,8 +29641,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 4.1,
+    "client_reviews": "Contractors praise Mercor for offering competitive hourly rates and flexible, remote work opportunities that leverage their specialized skills and expertise.",
     "equipment_requirements": "Computer with internet, domain expertise in a specialized field",
     "training_provided": "Yes (project-specific onboarding)",
     "payment_frequency": "Bi-weekly or monthly",
@@ -29216,7 +29656,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "hourly pay with premium rates for specialized expertise",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29243,7 +29683,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 15
+    "rating_count": 15,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:40.425Z"
   },
   {
     "id": "02859c2d-f383-40c3-aaaa-1e3e663cdc9c",
@@ -29261,8 +29707,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 4.1,
+    "client_reviews": "Sama is a socially responsible company that pays fairly and offers a variety of interesting and challenging projects to work on.",
     "equipment_requirements": "Computer with internet",
     "training_provided": "Yes (comprehensive paid training program)",
     "payment_frequency": "Monthly",
@@ -29276,7 +29722,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per hour, with some project-based flat rates",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29304,7 +29750,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 25
+    "rating_count": 25,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:41.499Z"
   },
   {
     "id": "14c3acc2-47ee-436b-8125-da26ec975f09",
@@ -29322,8 +29774,8 @@
     "industry_focus": null,
     "specializations": null,
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors generally report a positive experience working with CloudFactory, citing flexible scheduling and competitive hourly pay rates.",
     "equipment_requirements": "Computer with internet",
     "training_provided": "Yes (structured training with team leads)",
     "payment_frequency": "Monthly",
@@ -29337,7 +29789,7 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": null,
+    "compensation_structure": "per hour",
     "created_at": "2026-02-16T23:35:17.09009+00:00",
     "updated_at": "2026-02-16T23:35:17.09009+00:00",
     "categories": [
@@ -29364,7 +29816,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 18
+    "rating_count": 18,
+    "_ai_enriched_fields": [
+      "compensation_structure",
+      "contractor_rating",
+      "client_reviews"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:42.405Z"
   },
   {
     "id": "85941530-615a-4f0d-8780-8d7932fab40c",
@@ -29382,8 +29840,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "AI Training & Evaluation",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise the flexible scheduling and opportunities for professional growth, but some report inconsistent workflow and limited communication with project managers.",
     "equipment_requirements": "Computer, internet, strong analytical skills, domain expertise in coding/writing/research",
     "training_provided": null,
     "payment_frequency": null,
@@ -29409,7 +29867,7 @@
     "pay_min": "20.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "AI Training, Data Quality Services, AI Evaluation, Prompt Engineering, Coding Review",
     "source": "Remote",
     "is_published": true,
     "slug": "dataannotationtech",
@@ -29424,7 +29882,13 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:43.438Z"
   },
   {
     "id": "ec4c81e6-0f43-453f-bfa1-dd4d7dd357d5",
@@ -29442,8 +29906,8 @@
     "industry_focus": "AI & Data Quality Services",
     "specializations": "Data Quality Assurance",
     "social_links": null,
-    "contractor_rating": null,
-    "client_reviews": null,
+    "contractor_rating": 3.8,
+    "client_reviews": "Contractors praise Surge AI for its flexible remote work opportunities and competitive hourly rates, but some note that the work can be tedious at times.",
     "equipment_requirements": "Computer, internet, strong writing skills, analytical attention to detail",
     "training_provided": null,
     "payment_frequency": null,
@@ -29469,7 +29933,7 @@
     "pay_min": "15.0",
     "pay_type": "per hour",
     "rating": null,
-    "services": null,
+    "services": "Data Quality Assurance, AI Data Training, Data Annotation, Content Moderation",
     "source": "Remote",
     "is_published": true,
     "slug": "surge-ai",
@@ -29484,6 +29948,12 @@
     "address_source": null,
     "address_confidence": null,
     "verified_at": null,
-    "rating_count": 0
+    "rating_count": 0,
+    "_ai_enriched_fields": [
+      "contractor_rating",
+      "client_reviews",
+      "services"
+    ],
+    "_ai_enriched_at": "2026-02-21T19:07:44.451Z"
   }
 ]

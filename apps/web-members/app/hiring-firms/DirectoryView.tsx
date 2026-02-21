@@ -131,11 +131,11 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
     const payText =
         firm.pay_min != null || firm.pay_max != null
             ? [
-                firm.pay_min != null ? `$${firm.pay_min}` : null,
-                firm.pay_max != null ? `$${firm.pay_max}` : null,
+                firm.pay_min != null ? `$${Math.round(Number(firm.pay_min))}` : null,
+                firm.pay_max != null ? `$${Math.round(Number(firm.pay_max))}` : null,
             ]
                 .filter(Boolean)
-                .join(' - ') +
+                .join(' – ') +
             (firm.pay_type ? ` ${firm.pay_type}` : '')
             : firm.pay_type || 'Shared with members inside the hub'
 
@@ -208,11 +208,16 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                     <p className="text-slate-900">Rating</p>
                     <div className="mt-0.5 flex justify-end">
                         <StarRating
-                            rating={firm.contractor_rating || 0}
-                            count={firm.contractor_rating ? Math.round(firm.contractor_rating) : 0}
-                            showCount={!!firm.contractor_rating}
+                            rating={Number(firm.contractor_rating) || 0}
+                            count={firm.rating_count ?? undefined}
+                            showCount={!!firm.rating_count}
                             className={firm.contractor_rating ? "" : "opacity-60 grayscale"}
                         />
+                        {firm.contractor_rating && !firm.rating_count && (
+                            <span className="ml-1.5 text-xs text-slate-500 font-medium">
+                                {Number(firm.contractor_rating).toFixed(1)}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
