@@ -1464,7 +1464,7 @@
     "url": "https://sdmyers.com",
     "phone": null,
     "email": null,
-    "description": "SDMyers is a field services company providing various inspection and preservation services to clients across the US, focusing on delivering high-quality work in a timely manner. They operate in the field services industry, offering a range of services to support their clients' needs.",
+    "description": "SDMyers is an industry leader specializing in transformer maintenance, holding the largest transformer oil testing lab globally, and providing field services, condition monitoring, and life-extension solutions for electric power systems.",
     "logo_url": null,
     "vendor_page_url": null,
     "geographic_coverage": null,
@@ -1514,7 +1514,6 @@
     "address_source": "Summit",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "description",
       "pay_min",
       "pay_max",
       "pay_type",
@@ -2725,7 +2724,7 @@
     "url": "https://www.d3g.com/",
     "phone": "(804) 358-2020",
     "email": null,
-    "description": "Dominion Due Diligence Group provides field services to support various industries, including inspection and property preservation. They help clients make informed decisions through data collection and reporting.",
+    "description": "Dominion Due Diligence Group (D3G) is a nationwide firm specializing in affordable housing due diligence, offering Capital Needs Assessments, environmental compliance, and energy sustainability consulting for the HUD-FHA-MAP mortgage insurance industry.",
     "logo_url": "https://cdn-ildnplo.nitrocdn.com/XDDqqRMCMgoOPEVctTYiXbLfTwjhYKgt/assets/images/optimized/rev-bcc17e0/www.d3g.com/wp-content/uploads/2025/04/Dominion-Due-Diligence-Logo-Gradient-rgb.png",
     "vendor_page_url": "https://recruiting.paylocity.com/Recruiting/Jobs/Details/3632558",
     "geographic_coverage": null,
@@ -2775,7 +2774,6 @@
     "address_source": "Virginia Geographic Information Network (VGIN)",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "description",
       "pay_min",
       "pay_max",
       "pay_type",

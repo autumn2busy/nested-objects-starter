@@ -152,8 +152,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Third try: no profile row exists — create one
+    if (!updated && userEmail) {
+      const displayName = user.name || user.Name ||
+        (user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] && user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname']
+          ? `${user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname']} ${user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname']}`
+          : null)
+
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_email: userEmail as string,
+          outseta_person_uid: userId,
+          avatar_url: cleanUrl,
+          display_name: displayName,
+        })
+
+      if (!insertError) {
+        updated = true
+        console.log('Created new profile row with avatar for:', userEmail)
+      } else {
+        console.error('Failed to create profile row:', insertError)
+      }
+    }
+
     if (!updated) {
-      console.warn('No profile row found for userId:', userId, 'email:', userEmail)
+      console.warn('No profile row found or created for userId:', userId, 'email:', userEmail)
     }
 
     return NextResponse.json({ url: publicUrl })
