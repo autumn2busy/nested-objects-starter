@@ -156,11 +156,11 @@ function TipStack({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Standard prose overrides for MDX ───────────────────────────
-function P({ children }: { children: React.ReactNode }) {
+function P({ children }: { children?: React.ReactNode }) {
   return <p className="mt-3 text-base leading-relaxed text-slate-700">{children}</p>
 }
 
-function H2({ id, children }: { id?: string; children: React.ReactNode }) {
+function H2({ id, children }: { id?: string; children?: React.ReactNode }) {
   return (
     <h2 id={id} className="mt-14 mb-4 scroll-mt-24 text-2xl font-bold text-slate-900 sm:text-3xl">
       {children}
@@ -168,7 +168,7 @@ function H2({ id, children }: { id?: string; children: React.ReactNode }) {
   )
 }
 
-function H3({ children }: { children: React.ReactNode }) {
+function H3({ children }: { children?: React.ReactNode }) {
   return <h3 className="mt-8 mb-2 text-lg font-semibold text-slate-900">{children}</h3>
 }
 
