@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { syncFullProfileDeepData } from '@/lib/active-campaign-deep-data';
 import { ProfileUpdateData } from '../webhooks/outseta/route';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
     // Dummy profile for testing
     const dummyProfile: ProfileUpdateData = {

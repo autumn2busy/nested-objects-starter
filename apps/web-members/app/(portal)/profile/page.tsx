@@ -239,7 +239,7 @@ function BackgroundCheckStatus({ status }: { status: string }) {
 // --- Main Component ---
 
 export default function ProfilePage() {
-  const { user, isLoading: authLoading, isAuthenticated, profileAvatarUrl } = useAuth()
+  const { user, isLoading: authLoading, isAuthenticated, profileAvatarUrl, planUid } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -532,7 +532,18 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Subscription</label>
-                  <p className="text-slate-900 mt-1 capitalize">{profile?.subscription_tier || 'Free'} Plan</p>
+                  <p className="text-slate-900 mt-1 capitalize">{(() => {
+                    const planNames: Record<string, string> = {
+                      'L9nbKV9Z': 'Starter',
+                      'zWZD0rQp': 'Directory Pass',
+                      'rQVqlLm6': 'Pro',
+                      'NmdnNO90': 'Elite',
+                      'rmk5Xk9g': 'Agency',
+                    }
+                    if (planUid && planNames[planUid]) return `${planNames[planUid]} Plan`
+                    if (profile?.subscription_tier) return `${profile.subscription_tier} Plan`
+                    return 'Free Plan'
+                  })()}</p>
                 </div>
               </div>
 
@@ -698,7 +709,7 @@ export default function ProfilePage() {
                   <GraduationCap className="w-5 h-5 text-brand-copper" />
                   Training Progress
                 </h3>
-                <Link href="/challenges" className="text-sm text-brand-copper hover:text-brand-copperDark">
+                <Link href="/training" className="text-sm text-brand-copper hover:text-brand-copperDark">
                   View courses →
                 </Link>
               </div>

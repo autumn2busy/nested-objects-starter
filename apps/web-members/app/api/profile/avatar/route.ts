@@ -117,6 +117,19 @@ export async function POST(req: NextRequest) {
 
     // Add cache buster to URL so UI updates immediately
     const publicUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`
+    // Store the clean URL (without cache buster) in the database
+    const cleanUrl = publicUrlData.publicUrl
+
+    // 7. Update the profiles table with the new avatar URL
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: cleanUrl })
+      .or(`id.eq.${userId},outseta_person_uid.eq.${userId}`)
+
+    if (updateError) {
+      console.error('Failed to update profile avatar_url:', updateError)
+      // Non-fatal — the image uploaded successfully, just didn't save to profile
+    }
 
     return NextResponse.json({ url: publicUrl })
   } catch (err) {
