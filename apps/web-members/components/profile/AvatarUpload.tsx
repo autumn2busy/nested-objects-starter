@@ -97,10 +97,14 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
 
             <button
                 type="button"
-                onClick={triggerUpload}
+                onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    fileInputRef.current?.click()
+                }}
                 disabled={isUploading}
                 className={`
-          relative flex items-center justify-center rounded-full 
+          relative flex items-center justify-center rounded-full cursor-pointer
           border border-brand-mist bg-brand-copper/10 text-brand-slate 
           overflow-hidden transition-all hover:ring-2 hover:ring-brand-copper/50
           ${sizeClasses[size]}
@@ -120,13 +124,16 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
                     <span className="font-bold text-brand-copper">{initials}</span>
                 )}
 
-                {/* Hover Overlay */}
+                {/* Hover Overlay - pointer-events-none so it doesn't steal clicks */}
                 {!isUploading && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                         <Camera className="text-white w-1/2 h-1/2" />
                     </div>
                 )}
             </button>
+            {size === 'lg' && !isUploading && (
+                <p className="text-xs text-slate-400 mt-2 text-center">Click to upload photo</p>
+            )}
         </div>
     )
 }
