@@ -2875,7 +2875,7 @@
     "specializations": "National provider of field inspection services for the insurancemortgageand commercial real estate/finance industries. Focuses on delivering accurate and timely underwriting supportrisk assessment datasite verificationsand property condition information through its extensive network of independent field contractors and proprietary technology platform (GIS Connect).",
     "social_links": "[\"https://www.linkedin.com/company/gis-field-services\"\"https://x.com/GISInspections\"\"https://www.facebook.com/GISfieldservices\"\"https://www.instagram.com/gisfieldservices\"]",
     "contractor_rating": 3,
-    "client_reviews": "Contractors praise GIS Field Services for its efficient platform, timely payments, and wide range of available inspection opportunities, but some note that pay rates can be on the lower end for certain services.",
+    "client_reviews": "Reviewers highlight flexible scheduling for independent contractors, but frequently criticize the very low pay, lack of expense reimbursement for vehicles, and poor communication from field managers.",
     "equipment_requirements": "Reliable transportation (often requiring travel within an assigned territory)”Smartphone or tablet (iOS or Android) with a high-quality camera (minimum 8MP often recommended) and GPS capabilities (for geo-tagging photos and using the GIS Connect mobile app)”Reliable internet access (for receiving assignments and uploading reportsoften from the field)”Computer or laptop for report reviewsubmissionand communication if not solely mobile-based”Measuring devices (e.g.tape measuremeasuring wheellaser measure as appropriate for specific inspection typesespecially for property diagrams or replacement cost details)”Ladder (may be required for some exterior inspectionsparticularly roof condition assessmentsdepending on client scope).”",
     "training_provided": "TRUE",
     "payment_frequency": "monthly or bi-weekly",
@@ -2915,15 +2915,15 @@
     "address_source": "City of Dallas",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:42.131Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.8,
-    "_indeed_reviews": 22
+    "_indeed_reviews": 22,
+    "_reviews_verified": true
   },
   {
     "id": "0763b772-6acf-4c4a-bb87-3f6e45cb78ad",
@@ -2942,7 +2942,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 3,
-    "client_reviews": "Specializes in technical chimney and venting services, offering dedicated field roles for specialists focused on residential safety and maintenance.",
+    "client_reviews": "Employee sentiment is highly polarized; some praise the great pay, hours, and growth opportunities, while many others describe a toxic, \"cult-like\" management style and poor work-life balance.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -2985,7 +2985,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:43.232Z",
@@ -2994,7 +2993,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Spotless Chimney Sweeping & Solutions on Indeed. Also Spotless Chimney (1.6/8). Using the more specific match.",
     "_indeed_rating": 2.6,
-    "_indeed_reviews": 5
+    "_indeed_reviews": 5,
+    "_reviews_verified": true
   },
   {
     "id": "07d986b9-cf1e-42dd-a64e-3be6dc5f2c82",
@@ -3013,7 +3013,7 @@
     "specializations": "Technology-driven provider of services and solutions for the mortgage lifecycle and real estate industries",
     "social_links": "[\"https://www.linkedin.com/company/altisource\"\"https://twitter.com/altisource\"\"https://www.facebook.com/altisource\"]",
     "contractor_rating": 4,
-    "client_reviews": "Considered a good starting point for freshers due to its flexible nature and learning opportunities, but some employees raise concerns about job security and a stressful workspace.",
+    "client_reviews": "Employees appreciate the collaborative environment and learning opportunities, but often cite concerns regarding job security, uneven workloads, and a lack of support from upper management.",
     "equipment_requirements": "Varies by service",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 15-45 days",
@@ -3054,15 +3054,15 @@
     "address_source": "Fulton (Fulton County)",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:44.308Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": 714
+    "_indeed_reviews": 714,
+    "_reviews_verified": true
   },
   {
     "id": "07ff0d6b-e092-42fa-840b-53926178f51f",
@@ -3081,7 +3081,7 @@
     "specializations": "National provider of field inspection and data collection services for the insurance industry",
     "social_links": "[\"https://www.linkedin.com/company/graniteriskmanagement\"]",
     "contractor_rating": 5,
-    "client_reviews": "Recognized for a strong focus on loss control and insurance field inspections, with contractors valuing the professional environment for property hazard assessments.",
+    "client_reviews": "Reviewers consistently praise the highly supportive management team, excellent communication, and flexible scheduling, noting travel reimbursement as the main area for improvement.",
     "equipment_requirements": "Reliable transportationSmartphone or tablet with high-quality camera and data planReliable internet accessMeasuring devicesLadder",
     "training_provided": "TRUE",
     "payment_frequency": "Typically bi-weekly or monthly",
@@ -3120,15 +3120,15 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:45.353Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.6,
-    "_indeed_reviews": 7
+    "_indeed_reviews": 7,
+    "_reviews_verified": true
   },
   {
     "id": "0821ad8d-a798-4fe6-b165-a22574044a3d",
@@ -3288,7 +3288,7 @@
     "specializations": "Insulation Installation, Building Materials Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/topbuild\"}",
     "contractor_rating": 4,
-    "client_reviews": "Valued for its competitive pay and benefits, along with opportunities for internal growth and hybrid work options in certain departments.",
+    "client_reviews": "While some departments highlight supportive management and career advancement opportunities, other reviews point to concerns regarding job security, poor upper management support, and a challenging corporate culture.",
     "equipment_requirements": "Construction tools, PPE",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -3331,7 +3331,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:49.053Z",
@@ -3339,7 +3338,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": 38
+    "_indeed_reviews": 38,
+    "_reviews_verified": true
   },
   {
     "id": "09629088-b3bd-48c7-b1ed-3cdef83c9dff",
