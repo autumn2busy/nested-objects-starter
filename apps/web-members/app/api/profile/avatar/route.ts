@@ -121,14 +121,39 @@ export async function POST(req: NextRequest) {
     const cleanUrl = publicUrlData.publicUrl
 
     // 7. Update the profiles table with the new avatar URL
-    const { error: updateError } = await supabase
+    // Try by outseta_person_uid first, then by email
+    const userEmail = user.email || user.Email || user['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || null
+
+    let updated = false
+
+    // First try: match by outseta_person_uid
+    const { data: uidResult, error: uidError } = await supabase
       .from('profiles')
       .update({ avatar_url: cleanUrl })
-      .or(`id.eq.${userId},outseta_person_uid.eq.${userId}`)
+      .eq('outseta_person_uid', userId)
+      .select('id')
 
-    if (updateError) {
-      console.error('Failed to update profile avatar_url:', updateError)
-      // Non-fatal — the image uploaded successfully, just didn't save to profile
+    if (!uidError && uidResult && uidResult.length > 0) {
+      updated = true
+      console.log('Avatar URL saved to profile via outseta_person_uid')
+    }
+
+    // Second try: match by user_email if first didn't work
+    if (!updated && userEmail) {
+      const { data: emailResult, error: emailError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: cleanUrl, outseta_person_uid: userId })
+        .eq('user_email', userEmail as string)
+        .select('id')
+
+      if (!emailError && emailResult && emailResult.length > 0) {
+        updated = true
+        console.log('Avatar URL saved to profile via user_email, also set outseta_person_uid')
+      }
+    }
+
+    if (!updated) {
+      console.warn('No profile row found for userId:', userId, 'email:', userEmail)
     }
 
     return NextResponse.json({ url: publicUrl })

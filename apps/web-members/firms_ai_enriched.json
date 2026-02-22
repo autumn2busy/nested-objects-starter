@@ -8618,7 +8618,7 @@
     "specializations": "Power Generation, Energy Retail, Infrastructure Operations",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/nrg-energy\"}",
     "contractor_rating": 4,
-    "client_reviews": "Employees highlight competitive pay and solid benefits along with a collaborative culture, although many express concerns regarding job security in the evolving energy market.",
+    "client_reviews": "Employees highlight excellent pay and benefits with opportunities for professional growth, though some note limited upward mobility and challenging work-life balance in certain roles.",
     "equipment_requirements": "Role dependent",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -8661,7 +8661,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:20.000Z",
@@ -8669,7 +8668,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.7,
-    "_indeed_reviews": 591
+    "_indeed_reviews": 591,
+    "_reviews_verified": true
   },
   {
     "id": "4375caa2-eea0-46fc-934f-4536eb970e39",
@@ -8753,7 +8753,7 @@
     "specializations": "Comprehensive mortgage lifecycle services",
     "social_links": "[\"https://www.linkedin.com/company/servicelink/\",\"https://www.facebook.com/svclnk\"]",
     "contractor_rating": 3,
-    "client_reviews": "Independent contractors enjoy the autonomous nature of the work, but often report low pay scales and a lack of clear communication from corporate support.",
+    "client_reviews": "While some appreciate the remote flexibility and laid-back work, many reviews cite low pay, frequent layoffs, poor job security, and a lack of support from upper management.",
     "equipment_requirements": "Varies significantly by role",
     "training_provided": "TRUE",
     "payment_frequency": "Varies by role",
@@ -8794,7 +8794,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:22.177Z",
@@ -8802,7 +8801,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 544
+    "_indeed_reviews": 544,
+    "_reviews_verified": true
   },
   {
     "id": "43f056a7-c4aa-411d-ae8f-e9eec914874e",
@@ -8888,7 +8888,7 @@
     "specializations": "Construction Inspection, Field Services Support",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/sage-consulting-group\"}",
     "contractor_rating": 5,
-    "client_reviews": "Contractors praise Sage Consulting Group for its organized workflow and timely payments, but note that inspection volume can be inconsistent.",
+    "client_reviews": "Reviews indicate a professional consulting environment with opportunities for growth, though some note the rigorous project demands can impact work-life balance.",
     "equipment_requirements": "Inspection tools, PPE",
     "training_provided": null,
     "payment_frequency": null,
@@ -8931,7 +8931,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:24.385Z",
@@ -8939,7 +8938,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.9,
-    "_indeed_reviews": 10
+    "_indeed_reviews": 10,
+    "_reviews_verified": true
   },
   {
     "id": "45045274-bae1-4b2b-815a-d5953be7cc46",
@@ -9304,7 +9304,7 @@
     "specializations": "Supply Chain, Contracting, Facilities & Logistics Support",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/defense-logistics-agency\"}",
     "contractor_rating": 4,
-    "client_reviews": "Contractors generally report timely payments and professional communication from the Defense Logistics Agency.",
+    "client_reviews": "Reviewers consistently praise the DLA for its great work-life balance, strong benefits, and high job security, though some feel management can be inconsistent or arbitrary with promotions.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": "Per contract terms",
@@ -9347,7 +9347,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:31.221Z",
@@ -9356,7 +9355,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Government agency, not a private firm.",
     "_indeed_rating": 4,
-    "_indeed_reviews": 232
+    "_indeed_reviews": 232,
+    "_reviews_verified": true
   },
   {
     "id": "499c5d90-7b6b-4a76-8c67-a9ad4f4abdec",
@@ -9375,7 +9375,7 @@
     "specializations": null,
     "social_links": "[\"https://www.facebook.com/pages/Inspection-Depot/137505726324944\"\"https://www.youtube.com/watch?v=bhursI6omHo\"]",
     "contractor_rating": 3,
-    "client_reviews": "Employees appreciate the broad exposure to the insurance industry and the supportive professional networking, though many report that actual earnings can vary based on report production speed.",
+    "client_reviews": "Feedback is heavily mixed; some enjoy the networking and flexible culture, but many complain about unreliable work volume, disorganized management, and low pay that rarely meets advertised rates.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -9420,15 +9420,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:32.377Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 15
+    "_indeed_reviews": 15,
+    "_reviews_verified": true
   },
   {
     "id": "4a4afcbc-00e9-4475-a126-ca8edb28e7e2",
@@ -25646,7 +25646,7 @@
     "specializations": "Leading online marketplace platform designed for sourcingmanagingand paying on-demand field service labor. Enables businesses to find and dispatch qualified freelance technicians for a vast array of technical field assignments across numerous industrieswhile providing technicians with access to a wide range of work opportunities.",
     "social_links": "[\"https://www.linkedin.com/company/field-nation\"\"https://x.com/fieldnation\"\"https://www.facebook.com/FieldNation\"\"https://www.instagram.com/fieldnation\"\"https://www.youtube.com/user/FieldNation\"]",
     "contractor_rating": 4,
-    "client_reviews": "Technicians appreciate the ease of finding work and the user-friendly platform, but high service fees and technical app glitches remain notable concerns.",
+    "client_reviews": "Independent contractors appreciate the flexibility to choose work and the daily pay options, but frequently report issues with poor support for technicians and occasional wage disputes or system errors.",
     "equipment_requirements": "Varies significantly by specific work order requirements. Generally includes: Relevant technical skills and demonstrable experience for the specific job type (e.g.IT hardware supportnetworking protocolslow-voltage cabling standardsPOS system repairspecific vendor hardware).” Technician must supply their own reliable transportation.” Technician must possess their own tools appropriate for the work being performed (e.g.comprehensive IT toolkitnetwork cable testerscrimperspunch-down toolsdrillladdersafety gear as needed).” Laptop computer for diagnosticsconfigurationand reporting.” Smartphone with the Field Nation mobile app installed (iOS or Android) for managing work orderscommunicationand submitting deliverables.” General Liability insurance is often required by Buyers posting work orders and is highly recommended for all technicians.”",
     "training_provided": "TRUE",
     "payment_frequency": "Payments are processed through the Field Nation platform. Typicallyfunds are released to the technician's Field Nation account after the work order is completedall deliverables are submitted (e.g.photoschecklistsclient sign-offs)and the work is approved by the Buyer. Technicians can then withdraw funds to their linked bank account or other payment services. Payouts are generally quickoften within a few days of Buyer approval (Net 0-10 days from approval is common for many transactions).",
@@ -25687,15 +25687,15 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:07.517Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.1,
-    "_indeed_reviews": 203
+    "_indeed_reviews": 203,
+    "_reviews_verified": true
   },
   {
     "id": "f1a2d925-6adf-4e5b-8a09-914ab1fc00a3",
@@ -26268,7 +26268,7 @@
     "specializations": "National field service company providing insurance inspectionpremium auditand risk management services.",
     "social_links": "[\"https://www.facebook.com/LowryInspections/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Contractors praise Lowry & Associates for their efficient communication, timely payment, and steady stream of available work assignments.",
+    "client_reviews": "While some team members enjoy the collaborative culture and time flexibility, others criticize the low pay, high turnover in operations, and instances of poor management behavior.",
     "equipment_requirements": "Reliable transportationlaptop or tablet with internet accesssmartphone/digital camerameasuring devices",
     "training_provided": "TRUE",
     "payment_frequency": "Net 30 days",
@@ -26310,8 +26310,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:17.795Z",
     "_indeed_rating": 3,
@@ -26319,7 +26318,8 @@
     "_indeed_note": "Company rebranded to ReSource Pro. Indeed overall 3.0/5, 10 reviews. Rating trending down: 5.0 (2022) → 4.0 (2023) → 3.0 (2025). Founded 2003, 51-200 employees, revenue $5M-$25M.",
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
-    "pay_verified": false
+    "pay_verified": false,
+    "_reviews_verified": true
   },
   {
     "id": "f7332c26-7d74-4dd3-a2b9-094c000fce7e",
@@ -26614,7 +26614,7 @@
     "specializations": "Property Marketplace, Pre-acquisition Inspections",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/roofstock\"}",
     "contractor_rating": 3,
-    "client_reviews": "Employees value the remote-first culture and supportive team environment, though some report concerns about inconsistent strategic direction after company acquisitions.",
+    "client_reviews": "Employees value the remote work flexibility and commend senior leadership, but frequently cite frustration with poor middle management, lack of career development, and concerns over recent layoffs.",
     "equipment_requirements": "Reliable transportationsmartphone with high-quality camerainternet accessmeasuring toolsladder (if required)",
     "training_provided": "TRUE",
     "payment_frequency": "Net 15-30 days",
@@ -26654,7 +26654,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:24.009Z",
@@ -26662,7 +26661,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.1,
-    "_indeed_reviews": 24
+    "_indeed_reviews": 24,
+    "_reviews_verified": true
   },
   {
     "id": "f8fdc7b5-d47d-4545-80c3-93f25b2d0edc",
@@ -27785,7 +27785,7 @@
     "specializations": "Property Inspections, REO, Preservation",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/safeguardproperties\"}",
     "contractor_rating": 3,
-    "client_reviews": "Field inspectors appreciate the flexibility and consistent pay, yet there are recurring reports of poor management support and limited advancement opportunities.",
+    "client_reviews": "Field inspectors enjoy the flexibility of setting their own schedules, but often describe middle management as disorganized and report that the low pay barely covers their expenses.",
     "equipment_requirements": "Camera, transportation, mobile device",
     "training_provided": "Yes",
     "payment_frequency": "Net 15-30 days",
@@ -27825,7 +27825,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:43.618Z",
@@ -27833,7 +27832,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 555
+    "_indeed_reviews": 555,
+    "_reviews_verified": true
   },
   {
     "id": "fb834409-ac4d-45df-97cd-90d052b901ff",
@@ -27922,7 +27922,7 @@
     "specializations": "National provider of specialized field services for the Property & Casualty insurance claims industryprimarily focusing on ladder assist for roof inspectionsdirect roof damage assessmentsand related property inspection tasks. Known for its large network of specialized technicians and its proprietary technology platform. Part of CRDNan Envista Forensics company.",
     "social_links": "[\"https://www.linkedin.com/company/hancockclaims\"\"https://x.com/HancockClaims\"\"https://www.facebook.com/HancockLadderAssist\"]",
     "contractor_rating": 3,
-    "client_reviews": "Insurance professionals value the supportive team environment and improved training during peak storm seasons, despite common challenges with unpredictable scheduling.",
+    "client_reviews": "Feedback is mixed; some praise the competitive pay and good benefits, while others report a poor work-life balance due to understaffing and criticize management for inconsistency and favoritism.",
     "equipment_requirements": "Reliable truck or van capable of safely transporting and deploying extension ladders (typically 28ft to 40ft ladders are requiredspecific requirements vary by market and assignment types)”Appropriate ladders (e.g.28ft32ft40ft extension ladders meeting safety standards)”Comprehensive fall protection and safety equipment (harnessropesroof anchorsstabilizersetc.meeting OSHA and Hancock standards)”Smartphone or tablet (iOS or Android) with the Hancock Hancock On The Go mobile application installed and reliable internet access”Measuring tools (tape measuredigital toolsshingle gaugepitch gauge)”Tool belt with basic hand tools for minor temporary repairs or securing tarps if part of service scope.” Excellent physical condition suitable for demanding ladder workroof traversaland working at heights in various weather conditions.”",
     "training_provided": "TRUE",
     "payment_frequency": "Typically weekly or bi-weekly payments made via direct deposit for all approved and completed assignments that have been submitted through their mobile application by the specified cutoff times.",
@@ -27963,15 +27963,15 @@
     "address_source": "Forsyth",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:43:45.796Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.1,
-    "_indeed_reviews": 126
+    "_indeed_reviews": 126,
+    "_reviews_verified": true
   },
   {
     "id": "fd823fb0-bbea-4418-9883-b1e4d0e5d2a3",
@@ -28336,7 +28336,7 @@
     "specializations": "Healthcare Route Services",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Couriers value the high degree of independence and flexible hours, though some mention that hourly pay for specific healthcare transport routes can be uncompetitive relative to other logistics roles.",
+    "client_reviews": "While drivers appreciate the independence of the work, many note that the pay is relatively low for full-time work and cite inconsistent communication or poor support from local management.",
     "equipment_requirements": "Reliable vehicle, clean driving record, HIPAA awareness, temperature-controlled containers",
     "training_provided": null,
     "payment_frequency": null,
@@ -28378,7 +28378,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:52.837Z",
@@ -28386,7 +28385,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.2,
-    "_indeed_reviews": 581
+    "_indeed_reviews": 581,
+    "_reviews_verified": true
   },
   {
     "id": "77aa23de-e681-468a-9cc1-51bcd80043ba",
@@ -28957,7 +28957,7 @@
     "specializations": "Retail & Restaurant QA",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Friendly coworkers provide a supportive environment for those gaining customer service experience, despite some issues with management responsiveness and high-volume call workloads.",
+    "client_reviews": "Mystery Shoppers value the extreme flexibility to choose assignments, but frequently mention that compensation is low and management communication can be lacking.",
     "equipment_requirements": "Smartphone, attention to detail, professional reporting skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -28999,7 +28999,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:02.308Z",
@@ -29007,7 +29006,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 106
+    "_indeed_reviews": 106,
+    "_reviews_verified": true
   },
   {
     "id": "8bc7c02e-2c60-4915-9173-ef90574c2b65",
@@ -29578,7 +29578,7 @@
     "specializations": "Food Safety & Compliance QA",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Noted for brilliant colleagues and comprehensive travel expense coverage for auditors, but many report a recent decline in work-life balance and uncompetitive pay scales.",
+    "client_reviews": "Employees highlight a strong sense of community and flexibility, but lab and audit staff often report feeling overworked due to understaffing, high-pressure targets, and disorganized leadership.",
     "equipment_requirements": "Vehicle, food safety knowledge, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -29620,7 +29620,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:11.935Z",
@@ -29628,7 +29627,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.8,
-    "_indeed_reviews": 162
+    "_indeed_reviews": 162,
+    "_reviews_verified": true
   },
   {
     "id": "52fa3025-1618-47c5-8758-06e21d1b6b2d",
@@ -29647,7 +29647,7 @@
     "specializations": "Data Labeling & Annotation",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Data annotators find the work on advanced LLM projects stimulating and impactful, although task availability can fluctuate and the onboarding process is sometimes described as disorganized.",
+    "client_reviews": "Reviewers appreciate the flexible, remote, side-hustle nature of the work, but often complain about inconsistent task availability, technical platform bugs, and low pay for the effort required.",
     "equipment_requirements": "Computer, internet, attention to detail, analytical thinking",
     "training_provided": null,
     "payment_frequency": null,
@@ -29690,7 +29690,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:12.916Z",
@@ -29699,7 +29698,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Remotasks on Indeed: 3.1/181. Scale AI separately: 2.5/101.",
     "_indeed_rating": 3.1,
-    "_indeed_reviews": 181
+    "_indeed_reviews": 181,
+    "_reviews_verified": true
   },
   {
     "id": "7a0985a7-070c-450b-aa93-22ff07e00893",
@@ -29857,7 +29857,7 @@
     "specializations": "Search & Social Evaluation",
     "social_links": null,
     "contractor_rating": 4,
-    "client_reviews": "Employees value the ability to work from home at their own pace with generally solid support, though some note that task-specific communication could be improved.",
+    "client_reviews": "Workers enjoy the flexibility of remote schedules and participating in AI projects, but frequently note that tasks can become highly repetitive, communication is sparse, and pay growth is limited.",
     "equipment_requirements": "Computer, internet, language proficiency, analytical skills",
     "training_provided": null,
     "payment_frequency": null,
@@ -29900,7 +29900,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:16.122Z",
@@ -29909,7 +29908,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "TELUS Digital on Indeed: 3.5/5 overall.",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": null
+    "_indeed_reviews": null,
+    "_reviews_verified": true
   },
   {
     "id": "26020873-4e2c-4230-9268-e431e51935f4",
@@ -30207,7 +30207,7 @@
     "specializations": "Field Verification",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Offers a highly flexible on-demand model for secret shopping and retail audits, but gig availability can be inconsistent for users outside of major metropolitan hubs.",
+    "client_reviews": "The app provides an easy way to earn extra cash through simple auditing tasks, but contractors caution that the work is highly sporadic and gig availability heavily depends on location.",
     "equipment_requirements": "Smartphone, vehicle, GPS, professional communication",
     "training_provided": null,
     "payment_frequency": null,
@@ -30249,7 +30249,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:21.156Z",
@@ -30257,7 +30256,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3,
-    "_indeed_reviews": 2
+    "_indeed_reviews": 2,
+    "_reviews_verified": true
   },
   {
     "id": "44a358ba-adcd-47bd-9e46-7f9a5937a50a",
@@ -30414,7 +30414,7 @@
     "specializations": "Merchandising & Compliance",
     "social_links": null,
     "contractor_rating": 4,
-    "client_reviews": "A flexible option for part-time work or students, though common drawbacks include low starting pay, lack of benefits, and unorganized management communication.",
+    "client_reviews": "Employees appreciate the flexible, independent nature of the part-time roles, but frequently point out low pay rates, limited benefits, and inadequate training from management.",
     "equipment_requirements": "Smartphone, vehicle, retail experience helpful but not required",
     "training_provided": null,
     "payment_frequency": null,
@@ -30456,7 +30456,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:24.333Z",
@@ -30464,7 +30463,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": 3341
+    "_indeed_reviews": 3341,
+    "_reviews_verified": true
   },
   {
     "id": "dc28d7f3-4f01-4fc6-96dd-d1ff96ca032c",
@@ -30483,7 +30483,7 @@
     "specializations": "Multi-Line Claims",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Praised for professional coworkers and strong training in specialized insurance claims, but frequently criticized for toxic management and a difficult work-life balance.",
+    "client_reviews": "While some value the remote flexibility and technical training provided, many others describe a highly stressful, micromanaged environment with excessive workloads and a toxic workplace culture.",
     "equipment_requirements": "Adjuster license (state-specific), vehicle, Xactimate, smartphone",
     "training_provided": null,
     "payment_frequency": null,
@@ -30525,7 +30525,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:25.335Z",
@@ -30533,7 +30532,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 704
+    "_indeed_reviews": 704,
+    "_reviews_verified": true
   },
   {
     "id": "8a40a983-b997-4852-b149-8cef50ac1df2",
@@ -30552,7 +30552,7 @@
     "specializations": "Package Logistics",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Drivers highly value the flexibility to choose their own work blocks and be their own boss, though many report that securing enough routes can be a competitive and time-consuming process.",
+    "client_reviews": "Drivers highly value the unmatched flexibility to choose their own shifts, but consistently warn about the hidden costs of vehicle wear and tear and the difficulty of securing consistent delivery blocks.",
     "equipment_requirements": "Vehicle, smartphone, 21+, valid license",
     "training_provided": null,
     "payment_frequency": null,
@@ -30594,7 +30594,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:26.262Z",
@@ -30602,7 +30601,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 4550
+    "_indeed_reviews": 4550,
+    "_reviews_verified": true
   },
   {
     "id": "46e53b44-cb59-4198-8fda-23f993714a42",
@@ -30690,7 +30690,7 @@
     "specializations": "En-Route Logistics",
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Delivery drivers appreciate the transparency of the app and the flexibility to pick up gigs on the go, despite common complaints regarding low pay relative to driving distance and vehicle wear.",
+    "client_reviews": "The platform offers extreme flexibility for gig workers, but couriers frequently complain about very low pay relative to the miles driven and a near-total lack of driver support.",
     "equipment_requirements": "Vehicle, smartphone, 18+",
     "training_provided": null,
     "payment_frequency": null,
@@ -30732,7 +30732,6 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:28.489Z",
@@ -30740,7 +30739,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 305
+    "_indeed_reviews": 305,
+    "_reviews_verified": true
   },
   {
     "id": "19c5fda2-4ad5-4aec-b939-688766979a00",
@@ -31243,7 +31243,7 @@
     "specializations": null,
     "social_links": null,
     "contractor_rating": 4,
-    "client_reviews": "Highly valued for extreme flexibility and remote work culture, but criticized for low project availability and inconsistent pay rates across different tasks.",
+    "client_reviews": "Remote workers appreciate the flexibility to set their own hours and the interesting AI-training tasks, but express common frustration over low pay rates, project instability, and poor communication from management.",
     "equipment_requirements": "Computer with internet, smartphone optional (unlocks additional projects)",
     "training_provided": "Yes (project-specific guidelines and qualification quizzes)",
     "payment_frequency": "Monthly via Payoneer",
@@ -31287,15 +31287,15 @@
     "verified_at": null,
     "rating_count": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T19:07:37.200Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": 1269
+    "_indeed_reviews": 1269,
+    "_reviews_verified": true
   },
   {
     "id": "2f99cc63-12f9-41e1-aa52-061a0f2c2ec4",
