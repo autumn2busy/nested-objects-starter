@@ -5153,7 +5153,7 @@
     "specializations": "Commercial Loss Control Inspections, Premium Inspection Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/h-s-loss-control-inspections\"}",
     "contractor_rating": 4,
-    "client_reviews": "Contractors praise H&S Loss Control Inspections for consistent workflow and fair compensation for completed inspections.",
+    "client_reviews": "Employees generally praise the helpful office staff and flexible work environment, though some independent contractors report inconsistent work volumes and opaque management practices regarding reports.",
     "equipment_requirements": "Inspection tools, camera, transportation",
     "training_provided": "Yes (Loss Control 360 platform training)",
     "payment_frequency": null,
@@ -5196,7 +5196,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:20.213Z",
@@ -5205,7 +5204,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "H&S Loss Control Inspections on Indeed: 3.5/5. Review count not specified.",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": null
+    "_indeed_reviews": null,
+    "_reviews_verified": true
   },
   {
     "id": "1a31c338-a863-441b-8c52-d084e0c32827",
@@ -5224,7 +5224,7 @@
     "specializations": "National provider of data collection and field inspection services for the insurance industry",
     "social_links": "[\"https://www.linkedin.com/company/jmi-reports-inc/\"\"https://x.com/JMIReports\"\"https://www.facebook.com/JMIReports/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Field investigators enjoy the freedom of independent scheduling and property variety, despite common concerns about inconsistent job volumes and occasional communication gaps with field managers.",
+    "client_reviews": "While reviewers appreciate the schedule flexibility, many contractors complain about low pay that fails to cover gas and travel expenses, alongside inconsistent work availability.",
     "equipment_requirements": "Reliable transportationsmartphone or tablet with camera and JMI appinternet accessmeasuring devicesladder (for some exterior inspections)",
     "training_provided": "TRUE",
     "payment_frequency": "If hourly: Bi-weekly",
@@ -5268,15 +5268,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:21.278Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 128
+    "_indeed_reviews": 128,
+    "_reviews_verified": true
   },
   {
     "id": "1a426fb3-b4ec-4659-9e1a-ba8b644487d1",
@@ -5571,7 +5571,7 @@
     "specializations": "Computer-Based Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/prometric\"}",
     "contractor_rating": 3,
-    "client_reviews": "Test administrators find the work straightforward with flexible scheduling, but many report that the pay remains at minimum wage without much room for growth.",
+    "client_reviews": "TCAs and proctors value the flexible hours and straightforward work, but frequently cite low wages, poor communication from management, and limited opportunities for career advancement.",
     "equipment_requirements": "Computer, webcam, secure internet",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -5614,7 +5614,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:27.305Z",
@@ -5622,7 +5621,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 889
+    "_indeed_reviews": 889,
+    "_reviews_verified": true
   },
   {
     "id": "207db4e4-6e5f-4049-88fd-deffcff4bea8",
@@ -5641,7 +5641,7 @@
     "specializations": "Online Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/kryterion\"}",
     "contractor_rating": 3,
-    "client_reviews": "Proctors find the global testing environment to be stimulating and professional, although some employees report occasional inconsistencies in technical support and quality assurance.",
+    "client_reviews": "Employee reviews are mixed; some praise the collaborative remote environment and flexible schedules, while others criticize a volatile management style, lack of job security, and feeling undervalued compared to corporate staff.",
     "equipment_requirements": "Computer, webcam, reliable internet",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -5684,7 +5684,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:28.471Z",
@@ -5692,7 +5691,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.6,
-    "_indeed_reviews": 42
+    "_indeed_reviews": 42,
+    "_reviews_verified": true
   },
   {
     "id": "20857254-a1f9-4430-b772-12b593ee2b28",
@@ -5711,7 +5711,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 4,
-    "client_reviews": "Contractors praise MB Field Services for their efficient assignment process and timely payments.",
+    "client_reviews": "Reviewers highlight a strong, family-oriented company culture with good work-life balance, but some note that the pay and benefits could be improved and advancement opportunities are limited.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -5754,7 +5754,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:43.192Z",
@@ -5762,7 +5761,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.7,
-    "_indeed_reviews": 6
+    "_indeed_reviews": 6,
+    "_reviews_verified": true
   },
   {
     "id": "208c1201-19d8-40b9-b25e-c8688802ced4",
@@ -5781,7 +5781,7 @@
     "specializations": "National Appraisal Management Company (AMC) providing a full suite of property valuation services to lenderscredit unionsand financial institutions by managing a panel of independent real estate appraisers.",
     "social_links": "[\"https://www.linkedin.com/company/dartappraisal/\"\"https://x.com/DartAppraisal\"\"https://www.facebook.com/dartappraisal/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Contractors praise Dart Appraisal for their efficient ordering system and timely payment processing, but note that pay rates can be on the lower end for certain service types.",
+    "client_reviews": "Employee reviews are mixed; some appreciate the autonomous management style and good benefits, while others describe management as 'topheavy' or overbearing, with pay frequently noted as being on the lower end.",
     "equipment_requirements": "State-issued Appraiser License (Licensed ResidentialCertified Residentialor Certified General) in good standingE&O insuranceAppraisal software (e.g.ACITOTAL)computerreliable internetdigital camerameasuring tools.",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 15-30 days from submission and acceptance of a compliant appraisal report. Direct deposit is standard. Known for relatively prompt payments.",
@@ -5823,15 +5823,15 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:30.621Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.6,
-    "_indeed_reviews": 27
+    "_indeed_reviews": 27,
+    "_reviews_verified": true
   },
   {
     "id": "20f8bdfb-7a23-4544-ab2c-3ee55b1a84f7",
@@ -5850,7 +5850,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 3,
-    "client_reviews": "Contractors praise Insurance Safety Consultants for their clear communication and timely payments, but note that the volume of available work can be inconsistent.",
+    "client_reviews": "Review sentiments are divided; some employees praise the helpful owners and organized environment, while others describe a money-driven culture with poor differentiation in pay between veterans and new hires.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -5895,15 +5895,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:31.928Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.2,
-    "_indeed_reviews": 6
+    "_indeed_reviews": 6,
+    "_reviews_verified": true
   },
   {
     "id": "2118bddf-9a9a-4a4c-b206-4c7ec1d1a728",
@@ -5992,7 +5992,7 @@
     "specializations": "Roof Repair, Roof Replacement, Weather Damage Inspection",
     "social_links": "[]",
     "contractor_rating": 4,
-    "client_reviews": "Customers highlight professionalism and helpfulness with insurance claims, while some employees mention a high-pressure sales culture and complex commission structures.",
+    "client_reviews": "Many employees highlight a fun, motivating culture with strong earnings potential, though some sales reps cite high turnover, inadequate initial training, and concerns about job security.",
     "equipment_requirements": null,
     "training_provided": "Yes (sales & field training listed on careers page)",
     "payment_frequency": null,
@@ -6034,15 +6034,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:34.131Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.9,
-    "_indeed_reviews": 485
+    "_indeed_reviews": 485,
+    "_reviews_verified": true
   },
   {
     "id": "22ec2d2a-0755-43a9-a3de-02a6d0dd6790",
@@ -6336,7 +6336,7 @@
     "specializations": "FEMA Housing Inspections, Disaster Assessments",
     "social_links": "[\"https://www.linkedin.com/company/vanguard-inspection-services-llc/\",\"https://www.facebook.com/VanguardHIS/\"]",
     "contractor_rating": 5,
-    "client_reviews": "A leading firm for disaster and insurance inspections, valued by contractors for its high volume of field opportunities and established industry presence.",
+    "client_reviews": "Inspectors generally find the disaster assistance work highly fulfilling with good pay and flexible schedules, but some note the deployment lengths are unpredictable and initial software training can be challenging.",
     "equipment_requirements": "Basic inspection tools and PPE",
     "training_provided": "Yes",
     "payment_frequency": "Net 30-45 days",
@@ -6376,7 +6376,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:39.922Z",
@@ -6384,7 +6383,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.5,
-    "_indeed_reviews": 14
+    "_indeed_reviews": 14,
+    "_reviews_verified": true
   },
   {
     "id": "269aaa79-4332-4187-8efe-b5ec44d1a237",
@@ -6473,7 +6473,7 @@
     "specializations": "National Appraisal Management Company (AMC) and valuation services provider.",
     "social_links": "[\"https://www.linkedin.com/company/stewart-valuation-intelligence/\"\"https://x.com/StewartTitleCo\"\"https://www.facebook.com/StewartTitleCo\"\"https://www.youtube.com/user/StewartTitleCo\"]",
     "contractor_rating": 2,
-    "client_reviews": "A major provider of residential property valuations, known for offering a high volume of broker price opinion (BPO) and appraisal opportunities for field professionals.",
+    "client_reviews": "While some appreciate the generous PTO and remote flexibility, many reviewers criticize a chaotic work environment, poor job security, lack of benefits like 401k matching, and high turnover under current management.",
     "equipment_requirements": "For Appraisers: State Appraiser License/CertificationE&O Insuranceappraisal software. For BPO Agents: Active Real Estate LicenseE&O insurance. All: Computerreliable internetdigital camerameasuring tools.",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 30-45 days",
@@ -6514,15 +6514,15 @@
     "address_source": "Office of Geographic Information (MassGIS), Commonwealth of Massachusetts, MassIT",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:42.172Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 1.9,
-    "_indeed_reviews": 16
+    "_indeed_reviews": 16,
+    "_reviews_verified": true
   },
   {
     "id": "28c776a9-7232-4c3f-8810-c7ed89b36496",
@@ -6885,7 +6885,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 4,
-    "client_reviews": "Known for its specialized environmental inspection services, offering flexible field roles for certified technicians and property specialists.",
+    "client_reviews": "Employee sentiment is mixed; some describe it as a rewarding and upbeat workplace with good safety engineering exposure, while others cite disorganized management and a lack of resources.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -6928,7 +6928,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:50.244Z",
@@ -6936,7 +6935,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.6,
-    "_indeed_reviews": 5
+    "_indeed_reviews": 5,
+    "_reviews_verified": true
   },
   {
     "id": "2cc59c10-3297-47fb-bbce-9aaebfbe0ba4",
@@ -7162,7 +7162,7 @@
     "specializations": "Specializes in acquiring land rights and providing related services for linear projects.",
     "social_links": "[\"https://www.facebook.com/lfsrow/\"]",
     "contractor_rating": 5,
-    "client_reviews": "Specializes in right-of-way and land acquisition services, offering specialized field roles valued for professional growth in property research and negotiation.",
+    "client_reviews": "Reviewers consistently rate the company very highly, praising its small, family-oriented culture, excellent work-life balance, and strong professionalism in the right-of-way industry.",
     "equipment_requirements": "Varies by role",
     "training_provided": null,
     "payment_frequency": "monthly or bi-weekly",
@@ -7203,15 +7203,15 @@
     "address_source": "Tarrant",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:54.483Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.7,
-    "_indeed_reviews": 6
+    "_indeed_reviews": 6,
+    "_reviews_verified": true
   },
   {
     "id": "309dcd7e-f49d-4a6c-9493-6cf9d1f6ed23",
@@ -7371,7 +7371,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 4,
-    "client_reviews": "Inspectors report high income potential and consistent weekly pay, particularly for those willing to travel, though contract workers must cover all their own expenses and equipment costs.",
+    "client_reviews": "Many inspectors appreciate the flexibility, high earning potential, and supportive management team, though some note the upfront costs and extensive travel can cause stress or impact family life.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -7414,7 +7414,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:30:58.245Z",
@@ -7422,7 +7421,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.2,
-    "_indeed_reviews": 52
+    "_indeed_reviews": 52,
+    "_reviews_verified": true
   },
   {
     "id": "33583e58-9595-4cbe-b348-3802a8903e48",
@@ -7580,7 +7580,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 5,
-    "client_reviews": "Contractors praise Field Force Inspections for their efficient communication, fair pay rates, and consistent workflow, making it a reliable partner for field service professionals.",
+    "client_reviews": "Reviewers generally describe a good company culture and positive environment for Loss Control Consultants.",
     "equipment_requirements": "Reliable transportation”Smartphone or tablet with a high-quality camera and internet access (compatible with The Inspection Depot's mobile app/platform)”Measuring tools (tape measuremeasuring wheellaser measure as appropriate)”Ladder (often necessary for roof inspections)”Computer with internet access for report finalization and submission if not fully mobile.” For claims work: proficiency with estimating software like Xactimate.”",
     "training_provided": "TRUE",
     "payment_frequency": null,
@@ -7622,8 +7622,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:02.299Z",
     "pay_verified": false,
@@ -7631,7 +7630,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Only 1 review (5.0).",
     "_indeed_rating": 5,
-    "_indeed_reviews": 1
+    "_indeed_reviews": 1,
+    "_reviews_verified": true
   },
   {
     "id": "38852e3a-47e6-46b3-833f-30fbe2810238",
@@ -7650,7 +7650,7 @@
     "specializations": null,
     "social_links": null,
     "contractor_rating": 3,
-    "client_reviews": "Offers a high degree of independence and mobile work flexibility with decent benefits for full-time staff, yet personal vehicle wear and tear remains a significant financial drawback.",
+    "client_reviews": "While reviewers appreciate the flexibility and autonomy to work from home, many express concerns over extensive driving, wear and tear on personal vehicles, and inconsistent reimbursement policies.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -7694,15 +7694,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:31:03.400Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.1,
-    "_indeed_reviews": 197
+    "_indeed_reviews": 197,
+    "_reviews_verified": true
   },
   {
     "id": "38976ef7-84b4-4fbc-ae9c-89a0f3ca3efa",
@@ -7859,7 +7859,7 @@
     "specializations": "Insurance Inspections, Loss Control Surveys, Risk Assessments",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/regional-reporting-inc\"}",
     "contractor_rating": 5,
-    "client_reviews": "Specializes in commercial insurance inspections and loss control surveys, offering flexible field roles for inspectors across varied regional territories.",
+    "client_reviews": "Reviewers highlight strong work-life balance and supportive office environments, though some feel the company has reduced inspector support and compensation over recent years.",
     "equipment_requirements": "Camera, measuring tools, transportation",
     "training_provided": "Yes",
     "payment_frequency": "bi-weekly or monthly",
@@ -7898,15 +7898,15 @@
     "address_source": "City of New York",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:06.548Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 4.8,
-    "_indeed_reviews": 5
+    "_indeed_reviews": 5,
+    "_reviews_verified": true
   },
   {
     "id": "3c519539-9525-4cca-b460-738e130aa07c",
@@ -7925,7 +7925,7 @@
     "specializations": "Forensic Engineering, Property Damage Assessment, Expert Witness Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/rimkus-consulting-group\"}",
     "contractor_rating": 4,
-    "client_reviews": "Professionals enjoy the challenging nature of the work and supportive direct supervisors, despite common reports of a high workload and selective flexibility with schedules.",
+    "client_reviews": "Employees often praise the interesting, fast-paced work and solid benefits, but frequently cite a stressful environment with high pressure for quick report turnaround and a 'top-heavy' management structure.",
     "equipment_requirements": "Inspection tools, PPE, transportation",
     "training_provided": "Yes",
     "payment_frequency": "As per contract termsoften upon completion of specific project milestones or on a monthly retainer/invoice basis.",
@@ -7968,7 +7968,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:07.842Z",
@@ -7976,7 +7975,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.6,
-    "_indeed_reviews": 59
+    "_indeed_reviews": 59,
+    "_reviews_verified": true
   },
   {
     "id": "3c5f56a9-e0f7-4f79-86d7-60a6a263b8d6",
@@ -8204,7 +8204,7 @@
     "specializations": "Property Inspections, Occupancy Verifications",
     "social_links": "[\"https://www.linkedin.com/company/western-field-services/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Provides comprehensive residential and commercial field services, offering specialized inspection and maintenance roles across the Western United States.",
+    "client_reviews": "While some team members appreciate the flexible schedules and decent pay, others describe poor management, an unpredictable on-call schedule, and a lack of overall company vision.",
     "equipment_requirements": "Smartphone, transportation",
     "training_provided": "TRUE",
     "payment_frequency": "Net 30 or Net 45",
@@ -8244,7 +8244,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:12.345Z",
@@ -8252,7 +8251,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.2,
-    "_indeed_reviews": 5
+    "_indeed_reviews": 5,
+    "_reviews_verified": true
   },
   {
     "id": "3ee2b201-fa8a-4084-bea1-7b8e685aa1e7",
@@ -8271,7 +8271,7 @@
     "specializations": "Provides home warranty service plans and on-demand home repair services.",
     "social_links": "[\"https://www.linkedin.com/company/cinch-home-services/\"\"https://www.facebook.com/CinchHomeServices/\"\"https://www.instagram.com/cinchhomeservices/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Employees benefit from flexible schedules and a supportive corporate 401k plan, but frequently cite a high-stress environment caused by repeating policy changes and slow internal software.",
+    "client_reviews": "Employee experiences vary; some enjoy the benefits and opportunities to learn, while many cite low pay, high-stress environments, and frequent management issues or lack of training.",
     "equipment_requirements": "Appropriate state/local trade licensesGeneral Liability insuranceWorkers' Compensation insuranceown service vehicletoolsdiagnostic equipmentparts inventory or accessSmartphone/tablet",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 30-45 days",
@@ -8313,15 +8313,15 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:13.696Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3,
-    "_indeed_reviews": 277
+    "_indeed_reviews": 277,
+    "_reviews_verified": true
   },
   {
     "id": "401b6120-224f-4ed2-a3bf-965ed8f3ed1a",
@@ -8549,7 +8549,7 @@
     "specializations": "Specializes in creating highly accurate as-built floor plans and providing comprehensive on-site survey data for commercial properties across various industries. Employs proprietary field data collection software (iDrafteur) and a skilled network of independent field surveyors for precise on-site data captureenabling clients to effectively manage spaceassetsand facilities.",
     "social_links": "[\"https://www.linkedin.com/company/id-plans\"\"https://x.com/IDPlans\"\"https://www.facebook.com/IDPlans\"\"https://www.instagram.com/idplansofficial\"\"https://www.youtube.com/user/IDPlansVideos\"]",
     "contractor_rating": 3,
-    "client_reviews": "Field data specialists enjoy the high degree of autonomy and the opportunity for national travel, though some report a lack of standard benefits and a difficult balance while on the road.",
+    "client_reviews": "Some employees value the flexibility to schedule their own work, but many reviews point out poor management support, vague compensation guidelines, and a lack of traditional benefits.",
     "equipment_requirements": "Reliable transportation (often involving extensive local and regional travel to various commercial property sites)”Windows-based tablet computer meeting specific hardware requirements (RAMprocessorOS – detailed by ID Plans for compatibility with their iDrafteur software)”Compatible laser measuring device (e.g.Leica Disto D-seriesBosch GLM series – ID Plans usually specifies compatible models)”Digital camera or high-quality smartphone camera (for supplementary photos not captured directly through iDrafteur)”Reliable internet access (for downloading project files and uploading completed survey data).” Strong spatial awarenessmeticulous attention to detailability to accurately measure complex spaces and sketch layoutsprofessional demeanor for site interactions.”",
     "training_provided": "TRUE",
     "payment_frequency": "Typically bi-weekly or monthly payments made via direct deposit for all approved and completed survey projects submitted through their platformusually after client review and acceptance of the deliverables. Payment terms are commonly Net 15 to Net 30 days from the date of approved invoice or project completion.",
@@ -8591,15 +8591,15 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:18.817Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 32
+    "_indeed_reviews": 32,
+    "_reviews_verified": true
   },
   {
     "id": "42e5ce14-c4aa-428f-b494-523fb3f0bacc",
@@ -9447,7 +9447,7 @@
     "specializations": "Claims TPA solutions, virtual estimating, risk analytics",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/xceedance\"}",
     "contractor_rating": 3,
-    "client_reviews": "Known for its focus on insurance technology and data-driven solutions, offering extensive learning and development opportunities for both beginners and experienced professionals.",
+    "client_reviews": "Employee reviews are highly polarizing; some praise the learning opportunities and fun culture in certain offices, while others criticize long hours, low pay, and poor management communication.",
     "equipment_requirements": "Reliable transportationtablet or smartphone with high-quality camera and data planmeasuring devicesladder (as needed)computer with internet access",
     "training_provided": "Yes",
     "payment_frequency": "Net-30 days",
@@ -9487,7 +9487,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:33.716Z",
@@ -9495,7 +9494,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 14
+    "_indeed_reviews": 14,
+    "_reviews_verified": true
   },
   {
     "id": "4ad5afdc-0213-4422-8b91-8adaa03246bc",
@@ -9514,7 +9514,7 @@
     "specializations": "Engages specialized contractors via GigNow for project-based needs requiring high-level expertise in specific professional domains.",
     "social_links": "[\"https://www.linkedin.com/company/ernstyoung/\"\"https://x.com/EYnews\"\"https://www.facebook.com/EY/\"]",
     "contractor_rating": 4,
-    "client_reviews": "Employees highlight immense learning and growth opportunities with exposure to multinational clients, though the demanding workload and poor work-life balance are frequent points of criticism.",
+    "client_reviews": "Reviews describe EY as an excellent place to build a career with strong learning opportunities and an inclusive culture, though many note the fast-paced public accounting environment often requires long hours and intense project demands.",
     "equipment_requirements": "Standard professional business equipment: Laptop/computer with reliable internet accesssmartphone. Specific software proficiency may be required depending on the role.",
     "training_provided": "FALSE",
     "payment_frequency": "Commonly Net 30 to Net 45 days after submission and acceptance of a compliant appraisal report. Direct deposit is standard.",
@@ -9557,8 +9557,7 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:35.009Z",
     "pay_verified": false,
@@ -9566,7 +9565,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Ernst & Young LLP (EY) - major consulting firm, not pure inspection.",
     "_indeed_rating": 3.9,
-    "_indeed_reviews": 10655
+    "_indeed_reviews": 10655,
+    "_reviews_verified": true
   },
   {
     "id": "4b2d8a5d-744d-4e24-8030-56a1fcb9eb40",
@@ -9585,7 +9585,7 @@
     "specializations": "Property valuation data, flood risk reporting, collaborative appraisal tools",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/xactus\"}",
     "contractor_rating": 2,
-    "client_reviews": "This mortgage verification firm is valued for its collaborative environment and remote work options, with many employees reporting strong professional relationships among colleagues.",
+    "client_reviews": "Overall sentiment is poor following a recent merger, with many employees reporting a chaotic work environment, below-average compensation, and leadership that feels disconnected from the staff.",
     "equipment_requirements": "Mobile property data capture device",
     "training_provided": "Yes",
     "payment_frequency": "Net 15 or Net 30",
@@ -9625,7 +9625,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:36.160Z",
@@ -9633,7 +9632,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 1.9,
-    "_indeed_reviews": 19
+    "_indeed_reviews": 19,
+    "_reviews_verified": true
   },
   {
     "id": "4d232f3e-4000-4b54-b70e-46167c1565c5",
@@ -9718,7 +9718,7 @@
     "specializations": "Occupancy Inspections, Property Condition Reports, Preservation",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/singlesourcepropertysolutions\"}",
     "contractor_rating": 3,
-    "client_reviews": "Property preservation vendors appreciate the competitive pay rates and the helpful environment, though some report that task volume can be inconsistent in certain coverage areas.",
+    "client_reviews": "While some find it a good entry-level environment with flexible scheduling, many reviews mention high turnover, low pay, and unprofessional or disorganized management.",
     "equipment_requirements": "Smartphone, camera, transportation",
     "training_provided": "Yes",
     "payment_frequency": "Net 30-45 days",
@@ -9761,7 +9761,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:32:38.315Z",
@@ -9769,7 +9768,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.8,
-    "_indeed_reviews": 37
+    "_indeed_reviews": 37,
+    "_reviews_verified": true
   },
   {
     "id": "4e124be5-4907-48fb-9af6-562d9b79142b",
@@ -9788,7 +9788,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 3,
-    "client_reviews": "Inspectors appreciate the remote work flexibility and scheduling freedom, though many report high production quotas and a decline in corporate support after recent acquisitions.",
+    "client_reviews": "Employees appreciate the flexible remote work for self-starters, but frequently cite a decline in company culture post-buyout, pointing to issues with stagnant pay, poor benefits, and limited advancement.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -9831,7 +9831,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T19:06:45.429Z",
@@ -9840,7 +9839,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Overland Solutions (EXL Company) on Indeed: 2.9/118 reviews.",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 118
+    "_indeed_reviews": 118,
+    "_reviews_verified": true
   },
   {
     "id": "4ff214b5-7d90-446d-b160-978fcc7615ab",
@@ -9859,7 +9859,7 @@
     "specializations": "Affordable Housing, Residential Services, Community Development",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/winncompanies\"}",
     "contractor_rating": 3,
-    "client_reviews": "Employees in resident services and military housing find the work rewarding and appreciate the supportive team atmosphere, though some note that administrative workloads can be significant.",
+    "client_reviews": "Employees generally praise the company’s sense of purpose, supportive team environment, and competitive benefits, though some reviewers cite room for improvement in management support and pay growth.",
     "equipment_requirements": null,
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -9902,7 +9902,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:33:40.292Z",
@@ -9910,7 +9909,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.3,
-    "_indeed_reviews": 602
+    "_indeed_reviews": 602,
+    "_reviews_verified": true
   },
   {
     "id": "50106893-13c3-49db-b3b3-23dbf9a258ea",
@@ -20058,7 +20058,7 @@
     "specializations": "Provides on-site field inspection services primarily for mortgage servicerslendersand insurance companiesfocusing on property condition and occupancy status.",
     "social_links": null,
     "contractor_rating": 4,
-    "client_reviews": "Focuses on mortgage property preservation and inspections, providing a steady volume of 1099 contractor work for residential property maintenance.",
+    "client_reviews": "Direct employee reviews are limited online, but industry context suggests typical field service roles involving regional inspection tasks with varying consistency in work volume.",
     "equipment_requirements": "Reliable transportation,smartphone with high-quality camera and GPS capabilities,internet access,computer/tablet for report submission,measuring device (tape measure/wheel as needed)",
     "training_provided": "TRUE",
     "payment_frequency": "Net 30 days",
@@ -20099,8 +20099,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:32.311Z",
     "_indeed_rating": 4,
@@ -20108,7 +20107,8 @@
     "_indeed_note": "Reliance Field services on Indeed: overall 4.0/5, 1 review. Unclaimed. Company size 11-50, HQ Miami.",
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
-    "pay_verified": false
+    "pay_verified": false,
+    "_reviews_verified": true
   },
   {
     "id": "bd767cfe-4147-4e95-b2c3-1f935d4e8153",
@@ -20268,7 +20268,7 @@
     "specializations": "On-Demand Inspections, Asset Verification, Photo & Report Capture",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/wegolook\"}",
     "contractor_rating": 3,
-    "client_reviews": "Lookers appreciate the weekly payments and the ability to set their own schedules, though low individual job pay and no mileage reimbursement are frequent complaints.",
+    "client_reviews": "Many \"Lookers\" value the extreme flexibility of setting their own schedule as independent contractors, but frequently express dissatisfaction with low assignment pay, lack of mileage reimbursement, and infrequent work.",
     "equipment_requirements": "Smartphone, mobile app access",
     "training_provided": "Yes",
     "payment_frequency": "Weekly",
@@ -20308,7 +20308,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:41:35.634Z",
@@ -20316,7 +20315,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.2,
-    "_indeed_reviews": 66
+    "_indeed_reviews": 66,
+    "_reviews_verified": true
   },
   {
     "id": "c0f32c88-3a49-4ef4-bd6b-375ffdcfe924",
@@ -22953,7 +22953,7 @@
     "specializations": "Title Insurance, Property & Casualty Insurance, Specialty Risk",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/old-republic-international\"}",
     "contractor_rating": 3,
-    "client_reviews": "Employees frequently praise the culture of respect and accommodating management, although some note that old-school internal systems can lead to redundant workflows.",
+    "client_reviews": "Reviewers highlight a friendly, stable work environment with good teamwork and learning opportunities, though some note that outdated systems and localized management issues can cause frustration.",
     "equipment_requirements": "Role dependent",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -22996,7 +22996,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:21.474Z",
@@ -23005,7 +23004,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Old Republic International on Indeed.",
     "_indeed_rating": 3.4,
-    "_indeed_reviews": 586
+    "_indeed_reviews": 586,
+    "_reviews_verified": true
   },
   {
     "id": "d8b4fdda-eb9f-4e5e-8ede-654660b27917",
@@ -23375,7 +23375,7 @@
     "specializations": "Provides comprehensive field services for mortgage servicerslendersgovernment-sponsored enterprises (GSEs)and asset managers.",
     "social_links": "[\"https://www.linkedin.com/company/cyprexx-services-llc/\"\"https://x.com/Cyprexx\"\"https://www.facebook.com/CyprexxServices/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Remote work options are a significant plus for employees, but some have noted challenges with inaccessible management and outdated training resources.",
+    "client_reviews": "Employee feedback is mixed; some highlight a supportive, family-like culture with excellent benefits, while others point out poor job security, disorganized management, and inconsistent pay for contractors.",
     "equipment_requirements": "Truck/vanextensive toolssmartphone/tablet with high-quality camerainternet accessgenerator",
     "training_provided": "TRUE",
     "payment_frequency": null,
@@ -23418,15 +23418,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:42:28.432Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 2.9,
-    "_indeed_reviews": 125
+    "_indeed_reviews": 125,
+    "_reviews_verified": true
   },
   {
     "id": "e11dcb08-4631-44c7-ac69-bc6b27ac59f6",

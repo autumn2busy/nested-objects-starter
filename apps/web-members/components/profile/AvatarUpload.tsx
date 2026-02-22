@@ -10,9 +10,9 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps) {
-    const { user, accessToken, profileAvatarUrl, updateProfileAvatarUrl } = useAuth()
+    const { user, isAuthenticated, profileAvatarUrl, updateProfileAvatarUrl } = useAuth()
     const [isUploading, setIsUploading] = useState(false)
-    const [statusMsg, setStatusMsg] = useState<string>('Ready')
+    const [statusMsg, setStatusMsg] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const sizeClasses = {
@@ -22,54 +22,38 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
     }
 
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log('[AvatarUpload] onChange fired')
-        setStatusMsg('File selected...')
-
         const file = e.target.files?.[0]
-        if (!file) {
-            console.log('[AvatarUpload] No file in event')
-            setStatusMsg('No file selected')
-            return
-        }
+        if (!file) return
 
         console.log('[AvatarUpload] File:', file.name, file.size, file.type)
-        setStatusMsg(`Uploading ${file.name}...`)
-
-        if (!accessToken) {
-            setStatusMsg('Error: Not logged in')
-            return
-        }
 
         if (file.size > 5 * 1024 * 1024) {
-            setStatusMsg('Error: File too large (max 5MB)')
+            setStatusMsg('File too large (max 5MB)')
             return
         }
 
         if (!file.type.startsWith('image/')) {
-            setStatusMsg('Error: Not an image file')
+            setStatusMsg('Only image files are allowed')
             return
         }
 
+        setStatusMsg('Uploading...')
         setIsUploading(true)
 
         try {
             const formData = new FormData()
             formData.append('file', file)
 
-            console.log('[AvatarUpload] POSTing to /api/profile/avatar')
-            setStatusMsg('Uploading to server...')
-
+            // Use cookie auth (httpOnly) — no Bearer token needed.
+            // The server route calls getCurrentUser() which reads the cookie.
             const res = await fetch('/api/profile/avatar', {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                },
-                body: formData
+                body: formData,
+                credentials: 'same-origin',
             })
 
-            console.log('[AvatarUpload] Response status:', res.status)
+            console.log('[AvatarUpload] Response:', res.status)
             const data = await res.json()
-            console.log('[AvatarUpload] Response data:', data)
 
             if (!res.ok) {
                 throw new Error(data.error || 'Upload failed')
@@ -77,19 +61,21 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
 
             if (data.url) {
                 updateProfileAvatarUrl(data.url)
-                setStatusMsg('Upload complete!')
+                setStatusMsg('Uploaded!')
+                // Clear success message after 3s
+                setTimeout(() => setStatusMsg(''), 3000)
             }
 
         } catch (error) {
             console.error('[AvatarUpload] Error:', error)
-            setStatusMsg(`Error: ${error instanceof Error ? error.message : 'Upload failed'}`)
+            setStatusMsg(error instanceof Error ? error.message : 'Upload failed')
         } finally {
             setIsUploading(false)
             if (fileInputRef.current) {
                 fileInputRef.current.value = ''
             }
         }
-    }, [accessToken, updateProfileAvatarUrl])
+    }, [updateProfileAvatarUrl])
 
     const initials = user?.name
         ? user.name.charAt(0).toUpperCase()
@@ -138,10 +124,12 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
                 )}
             </label>
 
-            {/* Debug status — remove after fixing */}
             {size === 'lg' && (
-                <p className={`text-xs mt-2 text-center ${statusMsg.startsWith('Error') ? 'text-red-500' : statusMsg === 'Upload complete!' ? 'text-green-600' : 'text-slate-400'}`}>
-                    {statusMsg}
+                <p className={`text-xs mt-2 text-center ${statusMsg === 'Uploaded!' ? 'text-green-600' :
+                        statusMsg && statusMsg !== 'Uploading...' ? 'text-red-500' :
+                            'text-slate-400'
+                    }`}>
+                    {statusMsg || 'Click to upload photo'}
                 </p>
             )}
         </div>
