@@ -3358,7 +3358,7 @@
     "specializations": "Global leader in field inspectionauditand inventory verification services",
     "social_links": "[\"https://www.linkedin.com/company/quiktrak/\"\"https://www.facebook.com/Quiktrak/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Valued for its independent contractor model and flexible scheduling, although many field inspectors cite low flat-rate pay and occasional technical issues with the mobile app.",
+    "client_reviews": "Independent contractors appreciate the flexibility to set their own schedules, but frequently report low pay for the time spent, lack of benefits, and poor communication from management.",
     "equipment_requirements": "Reliable transportationsmartphone or tablet with Quiktrak's mobile appinternet accessdigital camera",
     "training_provided": "TRUE",
     "payment_frequency": "Typically bi-weekly or monthly",
@@ -3399,15 +3399,15 @@
     "address_source": "Portland Metro (Oregon Metro RLIS Open Database End User License)",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:50.059Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3,
-    "_indeed_reviews": 90
+    "_indeed_reviews": 90,
+    "_reviews_verified": true
   },
   {
     "id": "09b7ad58-b376-4e62-b700-9a9e17db6575",
@@ -3497,7 +3497,7 @@
     "specializations": null,
     "social_links": "[\"https://www.linkedin.com/company/ivueit/\"\"https://twitter.com/ivueitapp\"\"https://www.facebook.com/Ivueit-Media-LLC-973301639355759/info/?tab=overview\"\"https://www.instagram.com/ivueit/?hl=en\"\"https://www.youtube.com/channel/UCnazRYP4jDpVAzQFlRx-tgA\"]",
     "contractor_rating": 3,
-    "client_reviews": "Users appreciate the legitimate and prompt payouts via PayPal for simple tasks, but many note that compensation is often too low to offset gas prices and travel time.",
+    "client_reviews": "Reviewers enjoy the flexibility to choose tasks and hours, but many express frustration over low pay (often around $7 per task) and lack of compensation for travel time or app glitches.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -3542,15 +3542,15 @@
       "pay_min",
       "pay_max",
       "pay_type",
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:52.699Z",
     "pay_verified": false,
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.2,
-    "_indeed_reviews": 49
+    "_indeed_reviews": 49,
+    "_reviews_verified": true
   },
   {
     "id": "0aa2f5e2-6c5e-4989-b5e2-d1cd66cf5f1a",
@@ -3569,7 +3569,7 @@
     "specializations": "Property Inspections, Valuations, REO & Default Services",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/trinity-real-estate-solutions\"}",
     "contractor_rating": 4,
-    "client_reviews": "Independent contractors appreciate the relaxed workplace culture and flexible hours, although some mention that job stability can fluctuate with broader real estate market trends.",
+    "client_reviews": "While some employees highlight a fun and relaxed work environment, others cite concerns regarding high turnover, poor benefits, micromanagement, and a lack of growth opportunities.",
     "equipment_requirements": "Smartphone, camera, transportation",
     "training_provided": "Yes",
     "payment_frequency": "Net 30-45 days",
@@ -3609,7 +3609,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:53.900Z",
@@ -3617,7 +3616,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.8,
-    "_indeed_reviews": 10
+    "_indeed_reviews": 10,
+    "_reviews_verified": true
   },
   {
     "id": "0aada0d7-823b-4e04-85b3-cfd6e033c2a0",
@@ -3706,7 +3706,7 @@
     "specializations": "Inspections, Preservation, Repair Management",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/mcs360\"}",
     "contractor_rating": 3,
-    "client_reviews": "Independent contractors appreciate the consistent volume of property preservation work and the autonomy afforded by their national service network.",
+    "client_reviews": "Employee sentiment is strongly divided; some describe a productive and fun environment, while many others report a toxic culture, poor training, stagnant pay, and unsupportive management.",
     "equipment_requirements": "Smartphone, camera, transportation",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -3749,7 +3749,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:56.197Z",
@@ -3758,7 +3757,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Mortgage Contracting Services (MCS) on Indeed: 2.6/5, 14 reviews.",
     "_indeed_rating": 2.6,
-    "_indeed_reviews": 14
+    "_indeed_reviews": 14,
+    "_reviews_verified": true
   },
   {
     "id": "0be462a4-68cc-4740-a2db-f38060e890cb",
@@ -4254,7 +4254,7 @@
     "specializations": "Appraisal Support, Property Inspections",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/valutrust-solutions\"}",
     "contractor_rating": 3,
-    "client_reviews": "A specialized valuation management firm offering professional roles for appraisal and title specialists within the parent Williston Financial Group network.",
+    "client_reviews": "Some reviewers describe a relaxed and innovative atmosphere, whereas others criticize the \"call center\" feel, toxic management, abusive client interactions, and lack of career advancement.",
     "equipment_requirements": "Mobile inspection tools",
     "training_provided": "Yes",
     "payment_frequency": "Net 30-45 days",
@@ -4294,7 +4294,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:05.441Z",
@@ -4302,7 +4301,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3,
-    "_indeed_reviews": 11
+    "_indeed_reviews": 11,
+    "_reviews_verified": true
   },
   {
     "id": "0f2cc0ad-9182-4490-9112-bd0f8f853455",
@@ -4321,7 +4321,7 @@
     "specializations": "Technology company providing a platform for construction loan management",
     "social_links": "[\"https://www.linkedin.com/company/land-gorilla/\"\"https://x.com/landgorilla\"\"https://www.facebook.com/LandGorilla/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Known for providing helpful directors and a supportive environment for inspectors, despite occasional challenges with project bidding and communication.",
+    "client_reviews": "While some inspectors appreciate the flexible scheduling, many reviews highlight a toxic environment with poor communication, delayed or unclear pay structures, and high turnover.",
     "equipment_requirements": "Reliable transportationsmartphone/tablet with camerainternet accessmeasuring toolshard hat/safety vest",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 15-30 days",
@@ -4362,8 +4362,7 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:06.453Z",
     "pay_verified": false,
@@ -4371,7 +4370,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Land Gorilla on Indeed: 2.5/5, 22 reviews. Capterra 4.8/5 for software product.",
     "_indeed_rating": 2.5,
-    "_indeed_reviews": 22
+    "_indeed_reviews": 22,
+    "_reviews_verified": true
   },
   {
     "id": "10e001bb-4674-45ec-a9b0-f4b6283c4429",
@@ -4597,7 +4597,7 @@
     "specializations": "Long-standing national provider of default management solutions for the mortgage industryincluding comprehensive property preservationfield inspectionand REO (Real Estate Owned) services for mortgage lendersservicersinvestorsand government agencies (like HUDVAFHA).",
     "social_links": "[\"https://www.linkedin.com/company/five-brothers-mortgage-services\"\"https://www.facebook.com/FiveBrothersDefaultManagementSolutions/\"]",
     "contractor_rating": 3,
-    "client_reviews": "Mortgage service professionals find the initial training to be helpful, but many report a high-pressure office culture and limited growth opportunities within the merged organization.",
+    "client_reviews": "As part of the broader MCS 360 organization, employee sentiment is mixed; some describe a productive environment, while others cite poor management support, stagnant pay, and lack of adequate training.",
     "equipment_requirements": "For Preservation Vendors: Truck/van or suitable vehicle for hauling toolsmaterialsand debris; a full range of tools and equipment for property maintenance and repair (lawn caresecuringcleaningwinterizationbasic carpentryplumbingetc.); smartphone or tablet with internet access and capability to run Five Brothers' mobile app (FiveOnline Mobile); generator often required. For Inspectors: Reliable vehiclesmartphone/tablet with camera and internet. All vendors: Computer with internet for portal access.”",
     "training_provided": "TRUE",
     "payment_frequency": "Typically Net 30 to Net 45 days from the date of approved work order completionsubmission of all compliant photo/video documentation and required forms via the FiveOnline platformand proper invoicing. Payment method is typically direct deposit.",
@@ -4637,8 +4637,7 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
-      "client_reviews"
+      "compensation_structure"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:10.517Z",
     "pay_verified": false,
@@ -4646,7 +4645,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Five Brothers on Indeed: 3.3/5, 24 reviews. Also Five Brothers Mortgage Services (2.2/5).",
     "_indeed_rating": 3.3,
-    "_indeed_reviews": 24
+    "_indeed_reviews": 24,
+    "_reviews_verified": true
   },
   {
     "id": "1569f629-f3a4-4208-9ed6-b04b825d128f",
@@ -4806,7 +4806,7 @@
     "specializations": null,
     "social_links": "[]",
     "contractor_rating": 4,
-    "client_reviews": "Contractors praise COLEMAN CONSULTING GROUP LLC for their timely payments and clear communication, but some report inconsistent work volumes.",
+    "client_reviews": "Reviewers suggest the pay is generally good and appreciate the team-oriented environment focused on helping families, though some mention the work itself can be tedious and cite instances of poor management.",
     "equipment_requirements": null,
     "training_provided": null,
     "payment_frequency": null,
@@ -4850,7 +4850,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:14.397Z",
@@ -4859,7 +4858,8 @@
     "_indeed_researched_at": "2026-02-21",
     "_indeed_note": "Coleman Consulting Group on Indeed: 4.0/5. Review count not specified.",
     "_indeed_rating": 4,
-    "_indeed_reviews": null
+    "_indeed_reviews": null,
+    "_reviews_verified": true
   },
   {
     "id": "15ec5897-06ca-4e3a-80c8-a445eda388c1",
@@ -5016,7 +5016,7 @@
     "specializations": "Computer-Based Testing, Remote Proctoring, Certification Exams",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/psi-services-llc\"}",
     "contractor_rating": 3,
-    "client_reviews": "Test administrators and proctors appreciate the manageable workload and flexible schedule, though many note that entry-level pay remains uncompetitive with limited advancement paths.",
+    "client_reviews": "Employees note it is a good fit for students needing flexible schedules, but frequently point out that the pay is near minimum wage with limited advancement and occasional issues with on-site management and training.",
     "equipment_requirements": "Computer, webcam, secure internet",
     "training_provided": "Yes",
     "payment_frequency": null,
@@ -5059,7 +5059,6 @@
       "pay_max",
       "pay_type",
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:17.904Z",
@@ -5067,7 +5066,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3,
-    "_indeed_reviews": 329
+    "_indeed_reviews": 329,
+    "_reviews_verified": true
   },
   {
     "id": "18b8cd0f-1563-49f2-8a36-624b4380c4bc",
@@ -5086,7 +5086,7 @@
     "specializations": "Property & Asset Auction",
     "social_links": "{\"linkedin\": \"https://www.linkedin.com/company/williams-and-williams-auction\"}",
     "contractor_rating": 4,
-    "client_reviews": "Employees value the unique work culture and the interesting experience of supporting live online auctions, often citing a healthy work-life balance.",
+    "client_reviews": "Reviewers generally praise the progressive culture and unique live studio environment, but some departments report high stress, long hours, and concerns regarding job security and layoffs.",
     "equipment_requirements": "For auction support/basic inspections: Reliable transportationdigital camera or smartphoneinternet access. For referring/partnering agents: Active real estate license.",
     "training_provided": "TRUE",
     "payment_frequency": "Net 30-45 days",
@@ -5126,7 +5126,6 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "compensation_structure",
-      "client_reviews",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:29:19.062Z",
@@ -5134,7 +5133,8 @@
     "_indeed_source": "verified",
     "_indeed_researched_at": "2026-02-21",
     "_indeed_rating": 3.5,
-    "_indeed_reviews": 2
+    "_indeed_reviews": 2,
+    "_reviews_verified": true
   },
   {
     "id": "190c87bd-35c2-4bd1-a2a4-a80f3d3f210b",
