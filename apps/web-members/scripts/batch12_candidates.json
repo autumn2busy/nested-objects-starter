@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "psi-services",
+    "name": "PSI Services",
+    "url": "https://www.psiexams.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Test administrators and proctors appreciate the manageable workload and flexible schedule, though many note that entry-level pay remains uncompetitive with limited advancement paths.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "dronebase-zeitview",
+    "name": "DroneBase (Zeitview)",
+    "url": "https://www.zeitview.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the variety of missions and reliable payment but note inconsistent volume and sometimes complex client requirements",
+    "pay_min": "75.0"
+  },
+  {
+    "slug": "topbuild",
+    "name": "TopBuild",
+    "url": "https://www.topbuild.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Valued for its competitive pay and benefits, along with opportunities for internal growth and hybrid work options in certain departments.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "resource-pro",
+    "name": "ReSource Pro",
+    "url": "https://www.resourcepro.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "ReSource Pro is a large and established firm with a steady stream of available work, but can be somewhat bureaucratic in its payment and communication processes.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "wc-field-service",
+    "name": "WC Field Service",
+    "url": "https://wcfieldservice.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a straightforward and efficient experience working with WC Field Service, with some noting room for improvement in payment processing times.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "precisionhawk",
+    "name": "PrecisionHawk",
+    "url": "https://www.precisionhawk.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise PrecisionHawk for its efficient project management and competitive pay rates, but some note variability in mission volume and scheduling.",
+    "pay_min": "100.0"
+  },
+  {
+    "slug": "spotless-chimney-sweeping-solutions",
+    "name": "Spotless Chimney Sweeping & Solutions",
+    "url": "https://spotlesschimney.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Specializes in technical chimney and venting services, offering dedicated field roles for specialists focused on residential safety and maintenance.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "signing-order",
+    "name": "Signing Order",
+    "url": "https://www.signingorder.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Signing Order for consistent volume and fair pay, but some report issues with communication and payment timing.",
+    "pay_min": "75.0"
+  },
+  {
+    "slug": "topbuild-home-services",
+    "name": "TopBuild Home Services",
+    "url": "https://www.topbuild.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report positive experiences with TopBuild Home Services, citing reliable payment and scheduling, but some express frustration with varying audit complexity and requirements.",
+    "pay_min": "18.0"
+  },
+  {
+    "slug": "bestmark",
+    "name": "BestMark",
+    "url": "https://www.bestmark.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "BestMark provides a steady stream of assignments with clear instructions, but pay can be on the lower side for some evaluations.",
+    "pay_min": "15.0"
+  }
+]
