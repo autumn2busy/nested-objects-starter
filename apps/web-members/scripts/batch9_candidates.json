@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "kryterion-inc",
+    "name": "Kryterion Inc",
+    "url": "https://www.kryterion.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Proctors find the global testing environment to be stimulating and professional, although some employees report occasional inconsistencies in technical support and quality assurance.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "medspeed",
+    "name": "MedSpeed",
+    "url": "https://www.medspeed.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Couriers value the high degree of independence and flexible hours, though some mention that hourly pay for specific healthcare transport routes can be uncompetitive relative to other logistics roles.",
+    "pay_min": "18.0"
+  },
+  {
+    "slug": "wavsys",
+    "name": "WAVSYS",
+    "url": "https://www.wavsys.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors appreciate the timely payment cycles and the efficient recruiting process, though some report that task-specific roles can feel repetitive over time.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "state-farm-mutual-automobile-insurance-company",
+    "name": "State Farm Mutual Automobile Insurance Company",
+    "url": "https://statefarm.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a positive experience working with State Farm, citing reliable payment and clear communication.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "greenworks-inspections-engineering",
+    "name": "GreenWorks Inspections & Engineering",
+    "url": "https://greenworksinspections.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Widely respected for providing extremely thorough structural engineering and property testing reports, backed by prompt cost transparency and solution-oriented service.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "network-mortgage-servicing",
+    "name": "Network Mortgage Servicing",
+    "url": "http://www.networkmortgageservicing.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report timely payment and clear communication, but occasionally experience delays in receiving work orders.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "gridsource-incorporated-llc",
+    "name": "GridSource Incorporated LLC",
+    "url": "https://www.gogridsource.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise GridSource for its organized workflow and timely payments, but note that the firm's pay rates can be on the lower side for certain services.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "upwork",
+    "name": "Upwork",
+    "url": "https://www.upwork.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Upwork's vast client base and variety of job opportunities, but criticize the platform's fees and competitive bidding process.",
+    "pay_min": "15"
+  },
+  {
+    "slug": "top-tier-public-adjusters",
+    "name": "Top Tier Public Adjusters",
+    "url": "https://toptierpublicadjusters.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Top Tier Public Adjusters for their prompt payment processing and clear communication regarding inspection schedules and requirements.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "national-mortgage-field-services",
+    "name": "National Mortgage Field Services",
+    "url": "https://mortgagefieldservices.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report timely payments and a straightforward workflow with National Mortgage Field Services.",
+    "pay_min": "25"
+  }
+]
