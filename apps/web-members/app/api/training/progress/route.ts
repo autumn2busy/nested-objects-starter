@@ -38,10 +38,11 @@ export async function GET(request: Request) {
         }
 
         // ELSE fetch ALL completed modules based on PASSED QUIZZES (Source of Truth)
+        // Try both profile_id (UUID) and user_id (Outseta string) for compatibility
         const { data: passedQuizzes } = await supabase
             .from('quiz_attempts')
             .select('module_id')
-            .eq('user_id', outsetaId)
+            .or(`profile_id.eq.${profile.id},user_id.eq.${outsetaId}`)
             .eq('passed', true)
 
         const completedModuleIds = Array.from(new Set(passedQuizzes?.map((q: any) => q.module_id) || []))

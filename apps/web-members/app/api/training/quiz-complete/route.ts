@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get or create profile
+        // 1. Get profile (we need profile.id as UUID for quiz_attempts.profile_id)
         let { data: profile } = await supabase
             .from('profiles')
             .select('id, user_id, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
@@ -57,29 +57,41 @@ export async function POST(request: Request) {
         }
 
         if (!profile) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+            console.error(`[QUIZ] Profile not found for outsetaId: ${outsetaId}, email: ${user.email}`)
+            return NextResponse.json({ error: 'Profile not found', outsetaId, email: user.email }, { status: 404 })
         }
 
-        // 2. Record quiz attempt
+        console.log(`[QUIZ] User ${outsetaId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
+
+        // 2. Count existing attempts for this profile+module to determine attempt_number
+        const { count: existingAttempts } = await supabase
+            .from('quiz_attempts')
+            .select('id', { count: 'exact', head: true })
+            .eq('profile_id', profile.id)
+            .eq('module_id', module_id)
+
+        const attemptNumber = (existingAttempts || 0) + 1
+
+        // 3. Insert quiz attempt (not upsert — keep all attempts for history)
         const { error: attemptError } = await supabase
             .from('quiz_attempts')
-            .upsert({
-                user_id: outsetaId,
-                module_id,
-                score,
-                passed,
-                total_questions: total_questions || 0,
-                completed_at: new Date().toISOString()
-            }, {
-                onConflict: 'user_id,module_id'
+            .insert({
+                profile_id: profile.id,        // UUID - matches table schema
+                user_id: outsetaId,             // Text - Outseta ID for cross-reference
+                module_id: module_id,           // UUID
+                attempt_number: attemptNumber,
+                score: score,                   // numeric
+                passed: passed,                 // boolean
+                answers: null,                  // jsonb - could store answers in future
+                completed_at: new Date().toISOString(),
             })
 
         if (attemptError) {
-            console.error('Quiz attempt upsert error:', attemptError)
-            // Don't fail — continue with progress update
+            console.error('[QUIZ] Insert error:', attemptError)
+            // Don't fail the whole request — still update profile
         }
 
-        // 3. Also update training_progress table
+        // 4. Also update training_progress table
         await supabase
             .from('training_progress')
             .upsert({
@@ -93,16 +105,24 @@ export async function POST(request: Request) {
                 updated_at: new Date().toISOString()
             })
 
-        // 4. If passed, count total passed modules and recalculate trust score
+        // 5. If passed, count total passed modules and recalculate trust score
         if (passed) {
-            // Count all passed quiz attempts for this user
+            // Count distinct modules with at least one passed attempt
             const { data: allPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
-                .eq('user_id', outsetaId)
+                .eq('profile_id', profile.id)
                 .eq('passed', true)
 
-            const modulesCompleted = allPassed?.length || 0
+            // Deduplicate by module_id (multiple attempts possible)
+            const passedModuleMap = new Map<string, number>()
+            allPassed?.forEach(a => {
+                const existing = passedModuleMap.get(a.module_id) || 0
+                passedModuleMap.set(a.module_id, Math.max(existing, a.score))
+            })
+
+            const modulesCompleted = passedModuleMap.size
+            const quizScores = Array.from(passedModuleMap.values())
 
             // Get total modules count
             const { count: totalModules } = await supabase
@@ -110,22 +130,21 @@ export async function POST(request: Request) {
                 .select('id', { count: 'exact', head: true })
                 .eq('is_active', true)
 
-            // 5. Calculate trust score
+            // 6. Calculate trust score
             const breakdown = calculateTrustScore({
                 modulesCompleted,
-                totalModules: totalModules || 6,
-                quizScores: allPassed?.map(a => a.score) || [],
+                totalModules: totalModules || 8,
+                quizScores,
                 backgroundCheckStatus: profile.background_check_status || 'not_started',
-                profileComplete: true, // TODO: check actual profile completeness
                 existingBreakdown: profile.trust_score_breakdown as Record<string, number> | null,
             })
 
-            // 6. Update profile
+            // 7. Update profile
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({
                     training_modules_completed: modulesCompleted,
-                    training_modules_total: totalModules || 6,
+                    training_modules_total: totalModules || 8,
                     trust_score: breakdown.total,
                     trust_tier: breakdown.tier,
                     trust_score_breakdown: breakdown.breakdown,
@@ -134,13 +153,14 @@ export async function POST(request: Request) {
                 .eq('id', profile.id)
 
             if (profileError) {
-                console.error('Profile update error:', profileError)
+                console.error('[QUIZ] Profile update error:', profileError)
             }
 
             return NextResponse.json({
                 success: true,
                 passed: true,
                 score,
+                attemptNumber,
                 modulesCompleted,
                 trustScore: breakdown.total,
                 trustTier: breakdown.tier,
@@ -153,11 +173,12 @@ export async function POST(request: Request) {
             success: true,
             passed: false,
             score,
+            attemptNumber,
             message: 'You need 80% to pass. Review the material and try again.'
         })
 
     } catch (error: any) {
-        console.error('Quiz complete error:', error)
+        console.error('[QUIZ] Unexpected error:', error)
         return NextResponse.json({
             error: 'Internal server error',
             details: error?.message
@@ -171,55 +192,47 @@ export async function POST(request: Request) {
  * Max 100 points distributed across categories:
  * 
  * Training (40 pts max)
- *   - 5 pts per module passed (up to 30 pts for 6 modules)
- *   - 10 pts bonus for average quiz score ≥ 90%
+ *   - 5 pts per module passed (up to 40 pts for 8 modules)
  * 
  * Background Check (25 pts max)
  *   - 25 pts if completed/verified
- *   - 5 pts if in_progress
+ *   - 5 pts if in_progress/pending_verification
  *   - 0 pts if not_started
  * 
- * Profile Completeness (15 pts max)
- *   - 15 pts for a complete profile
- *   - Partial credit based on fields filled
- * 
- * Platform Activity (20 pts max)
- *   - Reserved for future: inspections completed, response rate, etc.
- *   - For now, give 5 pts base for being an active member
+ * Profile/Identity/Tenure/Inspections/Activity
+ *   - Preserved from existing breakdown values
  */
 function calculateTrustScore(params: {
     modulesCompleted: number
     totalModules: number
     quizScores: number[]
     backgroundCheckStatus: string
-    profileComplete: boolean
     existingBreakdown: Record<string, number> | null
 }) {
-    const { modulesCompleted, quizScores, backgroundCheckStatus, profileComplete, existingBreakdown } = params
+    const { modulesCompleted, backgroundCheckStatus, existingBreakdown } = params
 
-    // Training score (max 40)
-    const modulePoints = Math.min(modulesCompleted * 5, 30)
-    const avgScore = quizScores.length > 0 ? quizScores.reduce((a, b) => a + b, 0) / quizScores.length : 0
-    const quizBonus = avgScore >= 90 ? 10 : avgScore >= 80 ? 5 : 0
-    const trainingScore = modulePoints + quizBonus
+    // Training score (max 40) — 5 pts per module
+    const trainingScore = Math.min(modulesCompleted * 5, 40)
 
     // Background check score (max 25)
-    let backgroundScore = 0
+    let backgroundScore = existingBreakdown?.background || 0
     if (backgroundCheckStatus === 'completed' || backgroundCheckStatus === 'verified') {
         backgroundScore = 25
-    } else if (backgroundCheckStatus === 'in_progress') {
+    } else if (backgroundCheckStatus === 'in_progress' || backgroundCheckStatus === 'pending_verification') {
         backgroundScore = 5
     }
 
-    // Profile completeness (max 15)
-    // For now, use existing value if available, or give base 8 pts
-    const profileScore = existingBreakdown?.profile || (profileComplete ? 8 : 3)
+    // Preserve all other existing breakdown values
+    const profileScore = existingBreakdown?.profile || existingBreakdown?.profile_completeness || 0
+    const identityScore = existingBreakdown?.identity || 0
+    const tenureScore = existingBreakdown?.tenure || 0
+    const inspectionsScore = existingBreakdown?.inspections || 0
+    const activityScore = existingBreakdown?.activity || 0
 
-    // Platform activity (max 20)
-    // Preserve existing activity score, or give base 5 pts for being a member
-    const activityScore = existingBreakdown?.activity || 5
-
-    const total = Math.min(trainingScore + backgroundScore + profileScore + activityScore, 100)
+    const total = Math.min(
+        trainingScore + backgroundScore + profileScore + identityScore + tenureScore + inspectionsScore + activityScore,
+        100
+    )
 
     // Determine tier
     let tier = 'bronze'
@@ -234,6 +247,9 @@ function calculateTrustScore(params: {
             training: trainingScore,
             background: backgroundScore,
             profile: profileScore,
+            identity: identityScore,
+            tenure: tenureScore,
+            inspections: inspectionsScore,
             activity: activityScore,
         }
     }
