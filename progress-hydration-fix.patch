@@ -1,0 +1,112 @@
+diff --git a/apps/web-members/app/challenges/[moduleId]/page.tsx b/apps/web-members/app/challenges/[moduleId]/page.tsx
+index 519ac3c..ae7978e 100644
+--- a/apps/web-members/app/challenges/[moduleId]/page.tsx
++++ b/apps/web-members/app/challenges/[moduleId]/page.tsx
+@@ -237,30 +237,88 @@ export default function ModuleOverviewPage() {
+         }
+     }, [activeView, activeLessonId])
+ 
+-    // Load/save progress
++    // Load/save progress — hydrate from Supabase (source of truth), then merge localStorage cache
+     useEffect(() => {
+         if (!module) return
++        if (!isAuthenticated || authLoading) {
++            // Not logged in — try localStorage only
++            try {
++                const saved = localStorage.getItem(`module_${module.id}_progress`)
++                if (saved) { const p = JSON.parse(saved); setCompletedLessons(new Set(p.completedLessons || [])); setQuizPassed(p.quizPassed || false) }
++            } catch { }
++            return
++        }
++
++        // Load localStorage immediately for fast UI
++        let localCompleted = new Set<string>()
++        let localQuizPassed = false
+         try {
+             const saved = localStorage.getItem(`module_${module.id}_progress`)
+-            if (saved) { const p = JSON.parse(saved); setCompletedLessons(new Set(p.completedLessons || [])); setQuizPassed(p.quizPassed || false) }
+-            const aud = localStorage.getItem('nested_objects_audience')
+-            if (aud) setSelectedAudience(aud as AudienceType)
++            if (saved) { const p = JSON.parse(saved); localCompleted = new Set(p.completedLessons || []); localQuizPassed = p.quizPassed || false }
+         } catch { }
+-    }, [module])
++        if (localCompleted.size > 0 || localQuizPassed) {
++            setCompletedLessons(localCompleted)
++            setQuizPassed(localQuizPassed)
++        }
++
++        // Then fetch from Supabase and merge (Supabase is source of truth)
++        async function hydrateFromServer() {
++            try {
++                // Fetch lesson progress
++                const progressRes = await fetch(`/api/training/progress?moduleId=${module!.id}`)
++                if (progressRes.ok) {
++                    const progressData = await progressRes.json()
++                    const serverLessons = new Set<string>(
++                        (progressData.progress || [])
++                            .filter((p: any) => p.resource_type === 'lesson' && p.status === 'completed')
++                            .map((p: any) => p.lesson_id)
++                    )
++                    // Merge: union of localStorage + Supabase
++                    const merged = new Set([...localCompleted, ...serverLessons])
++                    if (merged.size > localCompleted.size) {
++                        setCompletedLessons(merged)
++                    }
++                }
++
++                // Fetch quiz pass status from overall progress endpoint
++                const quizRes = await fetch('/api/training/progress')
++                if (quizRes.ok) {
++                    const quizData = await quizRes.json()
++                    const completedModuleIds: string[] = quizData.completedModuleIds || []
++                    if (completedModuleIds.includes(module!.id)) {
++                        setQuizPassed(true)
++                        localQuizPassed = true
++                    }
++                }
++
++                // Sync merged state back to localStorage
++                const finalCompleted = new Set([...localCompleted, ...Array.from(completedLessons)])
++                localStorage.setItem(`module_${module!.id}_progress`, JSON.stringify({
++                    completedLessons: Array.from(finalCompleted),
++                    quizPassed: localQuizPassed
++                }))
++            } catch (err) {
++                console.error('Failed to hydrate progress from server:', err)
++            }
++        }
++        hydrateFromServer()
++
++        const aud = localStorage.getItem('nested_objects_audience')
++        if (aud) setSelectedAudience(aud as AudienceType)
++    }, [module, isAuthenticated, authLoading])
+ 
+-    const saveProgress = (completed: Set<string>, passed: boolean) => {
++    const saveProgress = (completed: Set<string>, passed: boolean, newLessonId?: string) => {
+         if (!module) return
+         // Save to localStorage for instant UI feedback
+         localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({ completedLessons: Array.from(completed), quizPassed: passed }))
+-        // Also persist lesson completion to Supabase
+-        const lastLessonId = Array.from(completed).pop()
+-        if (lastLessonId) {
++        // Persist the newly completed lesson to Supabase
++        if (newLessonId) {
+             fetch('/api/training/progress', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                     module_id: module.id,
+-                    lesson_id: lastLessonId,
++                    lesson_id: newLessonId,
+                     resource_type: 'lesson',
+                     status: 'completed',
+                 })
+@@ -269,7 +327,7 @@ export default function ModuleOverviewPage() {
+     }
+ 
+     const markLessonComplete = (id: string) => {
+-        const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed)
++        const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed, id)
+     }
+ 
+     const handleQuizComplete = async (score: number, passed: boolean) => {
