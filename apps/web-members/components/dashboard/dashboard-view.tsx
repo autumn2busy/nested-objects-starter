@@ -188,7 +188,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         />
                                     </div>
                                 </div>
-                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
                                     Continue training →
                                 </Link>
                             </CardContent>

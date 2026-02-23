@@ -44,11 +44,14 @@ type ProfileData = {
   trust_tier: string
   trust_score_breakdown: {
     background_check?: number
+    background?: number
     training?: number
     profile_completeness?: number
+    profile?: number
     identity?: number
     tenure?: number
     inspections?: number
+    activity?: number
   } | null
   background_check_status: string
   background_check_verified_at: string | null
@@ -169,18 +172,20 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
   if (!breakdown) return null
 
   const items = [
-    { key: 'background_check', label: 'Background Check', max: 25, icon: Shield },
-    { key: 'training', label: 'Training', max: 20, icon: GraduationCap },
-    { key: 'profile_completeness', label: 'Profile', max: 20, icon: User },
-    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck },
-    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar },
-    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity },
+    { key: 'background', label: 'Background Check', max: 25, icon: Shield, altKey: 'background_check' },
+    { key: 'training', label: 'Training', max: 40, icon: GraduationCap, altKey: null },
+    { key: 'profile', label: 'Profile', max: 20, icon: User, altKey: 'profile_completeness' },
+    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck, altKey: null },
+    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar, altKey: null },
+    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity, altKey: null },
   ]
 
   return (
     <div className="space-y-3">
       {items.map(item => {
-        const value = breakdown[item.key as keyof typeof breakdown] || 0
+        const value = breakdown[item.key as keyof typeof breakdown] 
+          || (item.altKey ? breakdown[item.altKey as keyof typeof breakdown] : 0) 
+          || 0
         const pct = (value / item.max) * 100
         const Icon = item.icon
 

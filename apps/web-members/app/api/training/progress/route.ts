@@ -15,11 +15,12 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url)
         const moduleId = searchParams.get('moduleId')
 
-        // 1. Get Supabase User ID from Profile
+        // 1. Get Supabase User ID from Profile (check both outseta_person_uid and user_id)
         const { data: profile } = await supabase
             .from('profiles')
             .select('id')
-            .eq('user_id', outsetaId)
+            .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
+            .limit(1)
             .single()
 
         if (!profile) {

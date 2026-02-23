@@ -36,6 +36,7 @@ export async function GET() {
     const { data: profile } = await supabase
       .from('profiles')
       .select(`
+        id,
         trust_score,
         trust_tier,
         trust_score_breakdown,
@@ -86,8 +87,22 @@ export async function GET() {
       .eq('is_published', true)
 
     // Calculate training level based on modules completed
-    const modulesCompleted = profile?.training_modules_completed || 0
-    const modulesTotal = profile?.training_modules_total || 5
+    // Use profile field, but also do a live count from quiz_attempts as source of truth
+    let modulesCompleted = profile?.training_modules_completed || 0
+    
+    // Live count from quiz_attempts (more reliable than cached profile field)
+    const { data: passedQuizzes } = await supabase
+      .from('quiz_attempts')
+      .select('module_id')
+      .or(`profile_id.eq.${profile?.id || '00000000-0000-0000-0000-000000000000'},user_id.eq.${userId}`)
+      .eq('passed', true)
+    
+    if (passedQuizzes && passedQuizzes.length > 0) {
+      const uniqueModules = new Set(passedQuizzes.map(q => q.module_id))
+      modulesCompleted = Math.max(modulesCompleted, uniqueModules.size)
+    }
+
+    const modulesTotal = profile?.training_modules_total || 8
     const trainingLevel = modulesCompleted === 0 ? 0 
       : modulesCompleted >= modulesTotal ? 3 
       : modulesCompleted >= Math.floor(modulesTotal / 2) ? 2 

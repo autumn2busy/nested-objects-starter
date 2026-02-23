@@ -44,15 +44,15 @@ export default function ModuleQuizPage() {
         try {
             const passed = score >= 80
 
-            await fetch('/api/challenges/progress', {
+            // Use the correct quiz-complete API that also updates trust score
+            await fetch('/api/training/quiz-complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     module_id: moduleId,
-                    resource_type: 'quiz',
-                    status: 'completed',
-                    quiz_score: score,
-                    quiz_passed: passed
+                    score,
+                    passed,
+                    total_questions: questions.length
                 })
             })
 

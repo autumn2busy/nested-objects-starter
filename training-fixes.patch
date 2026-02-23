@@ -1,0 +1,141 @@
+diff --git a/apps/web-members/app/(portal)/profile/page.tsx b/apps/web-members/app/(portal)/profile/page.tsx
+index ea26709..3a9e9eb 100644
+--- a/apps/web-members/app/(portal)/profile/page.tsx
++++ b/apps/web-members/app/(portal)/profile/page.tsx
+@@ -44,11 +44,14 @@ type ProfileData = {
+   trust_tier: string
+   trust_score_breakdown: {
+     background_check?: number
++    background?: number
+     training?: number
+     profile_completeness?: number
++    profile?: number
+     identity?: number
+     tenure?: number
+     inspections?: number
++    activity?: number
+   } | null
+   background_check_status: string
+   background_check_verified_at: string | null
+@@ -169,18 +172,20 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
+   if (!breakdown) return null
+ 
+   const items = [
+-    { key: 'background_check', label: 'Background Check', max: 25, icon: Shield },
+-    { key: 'training', label: 'Training', max: 20, icon: GraduationCap },
+-    { key: 'profile_completeness', label: 'Profile', max: 20, icon: User },
+-    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck },
+-    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar },
+-    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity },
++    { key: 'background', label: 'Background Check', max: 25, icon: Shield, altKey: 'background_check' },
++    { key: 'training', label: 'Training', max: 40, icon: GraduationCap, altKey: null },
++    { key: 'profile', label: 'Profile', max: 20, icon: User, altKey: 'profile_completeness' },
++    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck, altKey: null },
++    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar, altKey: null },
++    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity, altKey: null },
+   ]
+ 
+   return (
+     <div className="space-y-3">
+       {items.map(item => {
+-        const value = breakdown[item.key as keyof typeof breakdown] || 0
++        const value = breakdown[item.key as keyof typeof breakdown] 
++          || (item.altKey ? breakdown[item.altKey as keyof typeof breakdown] : 0) 
++          || 0
+         const pct = (value / item.max) * 100
+         const Icon = item.icon
+ 
+diff --git a/apps/web-members/app/api/dashboard/stats/route.ts b/apps/web-members/app/api/dashboard/stats/route.ts
+index 241653f..311aa35 100644
+--- a/apps/web-members/app/api/dashboard/stats/route.ts
++++ b/apps/web-members/app/api/dashboard/stats/route.ts
+@@ -36,6 +36,7 @@ export async function GET() {
+     const { data: profile } = await supabase
+       .from('profiles')
+       .select(`
++        id,
+         trust_score,
+         trust_tier,
+         trust_score_breakdown,
+@@ -86,8 +87,22 @@ export async function GET() {
+       .eq('is_published', true)
+ 
+     // Calculate training level based on modules completed
+-    const modulesCompleted = profile?.training_modules_completed || 0
+-    const modulesTotal = profile?.training_modules_total || 5
++    // Use profile field, but also do a live count from quiz_attempts as source of truth
++    let modulesCompleted = profile?.training_modules_completed || 0
++    
++    // Live count from quiz_attempts (more reliable than cached profile field)
++    const { data: passedQuizzes } = await supabase
++      .from('quiz_attempts')
++      .select('module_id')
++      .or(`profile_id.eq.${profile?.id || '00000000-0000-0000-0000-000000000000'},user_id.eq.${userId}`)
++      .eq('passed', true)
++    
++    if (passedQuizzes && passedQuizzes.length > 0) {
++      const uniqueModules = new Set(passedQuizzes.map(q => q.module_id))
++      modulesCompleted = Math.max(modulesCompleted, uniqueModules.size)
++    }
++
++    const modulesTotal = profile?.training_modules_total || 8
+     const trainingLevel = modulesCompleted === 0 ? 0 
+       : modulesCompleted >= modulesTotal ? 3 
+       : modulesCompleted >= Math.floor(modulesTotal / 2) ? 2 
+diff --git a/apps/web-members/app/api/training/progress/route.ts b/apps/web-members/app/api/training/progress/route.ts
+index c5d9823..c67606a 100644
+--- a/apps/web-members/app/api/training/progress/route.ts
++++ b/apps/web-members/app/api/training/progress/route.ts
+@@ -15,11 +15,12 @@ export async function GET(request: Request) {
+         const { searchParams } = new URL(request.url)
+         const moduleId = searchParams.get('moduleId')
+ 
+-        // 1. Get Supabase User ID from Profile
++        // 1. Get Supabase User ID from Profile (check both outseta_person_uid and user_id)
+         const { data: profile } = await supabase
+             .from('profiles')
+             .select('id')
+-            .eq('user_id', outsetaId)
++            .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
++            .limit(1)
+             .single()
+ 
+         if (!profile) {
+diff --git a/apps/web-members/app/challenges/[moduleId]/quiz/page.tsx b/apps/web-members/app/challenges/[moduleId]/quiz/page.tsx
+index 7af0feb..d6c4f55 100644
+--- a/apps/web-members/app/challenges/[moduleId]/quiz/page.tsx
++++ b/apps/web-members/app/challenges/[moduleId]/quiz/page.tsx
+@@ -44,15 +44,15 @@ export default function ModuleQuizPage() {
+         try {
+             const passed = score >= 80
+ 
+-            await fetch('/api/challenges/progress', {
++            // Use the correct quiz-complete API that also updates trust score
++            await fetch('/api/training/quiz-complete', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                     module_id: moduleId,
+-                    resource_type: 'quiz',
+-                    status: 'completed',
+-                    quiz_score: score,
+-                    quiz_passed: passed
++                    score,
++                    passed,
++                    total_questions: questions.length
+                 })
+             })
+ 
+diff --git a/apps/web-members/components/dashboard/dashboard-view.tsx b/apps/web-members/components/dashboard/dashboard-view.tsx
+index ca52f67..b8a80ec 100644
+--- a/apps/web-members/components/dashboard/dashboard-view.tsx
++++ b/apps/web-members/components/dashboard/dashboard-view.tsx
+@@ -188,7 +188,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
+                                         />
+                                     </div>
+                                 </div>
+-                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
++                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                     Continue training →
+                                 </Link>
+                             </CardContent>
