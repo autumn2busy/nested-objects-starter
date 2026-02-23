@@ -52,6 +52,8 @@ type ProfileData = {
   } | null
   background_check_status: string
   background_check_verified_at: string | null
+  shield_id: string | null
+  shield_ic_rating: string | null
   training_modules_completed: number
   training_modules_total: number
   inspections_completed: number
@@ -220,7 +222,9 @@ function VerificationStatus({ verified, label }: { verified: boolean; label: str
 function BackgroundCheckStatus({ status }: { status: string }) {
   const statusConfig = {
     verified: { color: 'bg-green-100 text-green-800', icon: CheckCircle2, label: 'Verified' },
+    pending_verification: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Pending Verification' },
     pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Pending' },
+    rejected: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Resubmit Required' },
     failed: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Failed' },
     not_started: { color: 'bg-slate-100 text-slate-600', icon: AlertCircle, label: 'Not Started' },
   }
@@ -232,6 +236,168 @@ function BackgroundCheckStatus({ status }: { status: string }) {
     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${config.color}`}>
       <Icon className="w-4 h-4" />
       {config.label}
+    </div>
+  )
+}
+
+function BackgroundCheckFlow({
+  status,
+  shieldId,
+  verifiedAt,
+  onStatusUpdate
+}: {
+  status: string
+  shieldId?: string | null
+  verifiedAt?: string | null
+  onStatusUpdate: (newStatus: string) => void
+}) {
+  const [inputValue, setInputValue] = useState(shieldId || '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  const handleSubmit = async () => {
+    if (!inputValue.trim()) return
+    setIsSubmitting(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/background-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shield_id: inputValue.trim() })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setMessage({ type: 'success', text: data.message })
+        onStatusUpdate('pending_verification')
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to submit' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Verified state
+  if (status === 'verified') {
+    return (
+      <div className="mt-4 space-y-3">
+        {shieldId && (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-3">
+            <Shield className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-green-800">ShieldID: {shieldId}</p>
+              {verifiedAt && (
+                <p className="text-xs text-green-600">Verified on {new Date(verifiedAt).toLocaleDateString()}</p>
+              )}
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-slate-500">
+          +25 Trust Score points applied. Your verified status is visible to firms.
+        </p>
+      </div>
+    )
+  }
+
+  // Pending verification
+  if (status === 'pending_verification' || status === 'pending') {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p className="text-sm text-amber-800 font-medium">ShieldID submitted: {shieldId || inputValue}</p>
+          <p className="text-xs text-amber-700 mt-1">
+            Our team will verify your ABC# within 1-2 business days. You&apos;ll see your Trust Score update once verified.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Rejected — allow resubmission
+  if (status === 'rejected') {
+    return (
+      <div className="mt-4 space-y-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-800">Your ShieldID could not be verified. Please double-check and resubmit.</p>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
+            placeholder="e.g. TX750781032"
+            className="flex-1"
+          />
+          <Button onClick={handleSubmit} disabled={isSubmitting || !inputValue.trim()} size="sm">
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Resubmit'}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Not started — full CTA
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <p className="text-sm text-slate-700 font-medium mb-2">Why you need this:</p>
+        <ul className="text-xs text-slate-600 space-y-1">
+          <li className="flex items-start gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+            Required by all mortgage field service firms
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+            +25 Trust Score points when verified
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+            One check works across all firms (buy once, use everywhere)
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+            $90 for 2 years ($45/yr) — required industry standard
+          </li>
+        </ul>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-sm text-slate-700 font-medium">Step 1: Get your ShieldID</p>
+        <a
+          href="https://www.shieldhub.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 transition w-full justify-center"
+        >
+          Go to ShieldHub <ExternalLink className="w-4 h-4" />
+        </a>
+        <p className="text-xs text-slate-500">
+          Complete the background check on ShieldHub. Takes 5-7 business days.
+        </p>
+      </div>
+
+      <div className="space-y-3 pt-2 border-t border-slate-200">
+        <p className="text-sm text-slate-700 font-medium">Step 2: Enter your ShieldID / ABC#</p>
+        <div className="flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
+            placeholder="e.g. TX750781032"
+            className="flex-1"
+          />
+          <Button onClick={handleSubmit} disabled={isSubmitting || !inputValue.trim()} size="sm">
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
+          </Button>
+        </div>
+        {message && (
+          <p className={`text-xs ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            {message.text}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -478,22 +644,16 @@ export default function ProfilePage() {
 
               <BackgroundCheckStatus status={profile?.background_check_status || 'not_started'} />
 
-              {profile?.background_check_status !== 'verified' && (
-                <div className="mt-4">
-                  <p className="text-sm text-slate-600 mb-3">
-                    A verified background check adds 25 points to your trust score and unlocks premium job opportunities.
-                  </p>
-                  <Button variant="secondary" size="sm" className="w-full">
-                    Start Background Check
-                  </Button>
-                </div>
-              )}
-
-              {profile?.background_check_verified_at && (
-                <p className="text-xs text-slate-500 mt-3">
-                  Verified on {new Date(profile.background_check_verified_at).toLocaleDateString()}
-                </p>
-              )}
+              <BackgroundCheckFlow
+                status={profile?.background_check_status || 'not_started'}
+                shieldId={profile?.shield_id}
+                verifiedAt={profile?.background_check_verified_at}
+                onStatusUpdate={(newStatus) => {
+                  if (profile) {
+                    setProfile({ ...profile, background_check_status: newStatus })
+                  }
+                }}
+              />
             </Card>
           </div>
 

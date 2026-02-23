@@ -188,7 +188,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         />
                                     </div>
                                 </div>
-                                <Link href="/challenges" className="text-xs text-brand-copper hover:underline mt-2 block">
+                                <Link href="/training" className="text-xs text-brand-copper hover:underline mt-2 block">
                                     Continue training →
                                 </Link>
                             </CardContent>
@@ -213,7 +213,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         <span className="text-purple-600 font-medium">{stats.pipeline.interviewing} interviews</span>
                                     )}
                                 </div>
-                                <Link href="/jobs?tab=tracker" className="text-xs text-brand-copper hover:underline mt-1 block">
+                                <Link href="/jobs" className="text-xs text-brand-copper hover:underline mt-1 block">
                                     View pipeline →
                                 </Link>
                             </CardContent>
@@ -274,10 +274,15 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                             <CheckCircle className="h-5 w-5 text-green-500" />
                                             <span className="text-lg font-bold text-green-600">Verified</span>
                                         </>
-                                    ) : stats.backgroundCheckStatus === 'pending' ? (
+                                    ) : stats.backgroundCheckStatus === 'pending_verification' || stats.backgroundCheckStatus === 'pending' ? (
                                         <>
                                             <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
-                                            <span className="text-lg font-bold text-yellow-600">Pending</span>
+                                            <span className="text-lg font-bold text-yellow-600">Under Review</span>
+                                        </>
+                                    ) : stats.backgroundCheckStatus === 'rejected' ? (
+                                        <>
+                                            <AlertCircle className="h-5 w-5 text-red-500" />
+                                            <span className="text-lg font-bold text-red-500">Resubmit</span>
                                         </>
                                     ) : (
                                         <>
@@ -286,9 +291,13 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                         </>
                                     )}
                                 </div>
-                                {stats.backgroundCheckStatus !== 'verified' && (
+                                {stats.backgroundCheckStatus === 'verified' ? (
+                                    <p className="text-xs text-muted-foreground mt-1">+25 Trust Score points</p>
+                                ) : (
                                     <Link href="/profile" className="text-xs text-brand-copper hover:underline mt-1 block">
-                                        Start background check →
+                                        {stats.backgroundCheckStatus === 'rejected' ? 'Resubmit ShieldID →' :
+                                            stats.backgroundCheckStatus === 'pending_verification' ? 'Review pending →' :
+                                                'Start background check →'}
                                     </Link>
                                 )}
                             </CardContent>

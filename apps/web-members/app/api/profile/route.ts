@@ -71,6 +71,8 @@ export async function GET() {
         trust_score_breakdown,
         background_check_status,
         background_check_verified_at,
+        shield_id,
+        shield_ic_rating,
         training_modules_completed,
         training_modules_total,
         inspections_completed,
