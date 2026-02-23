@@ -369,14 +369,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with a flat rate per inspection",
+    "compensation_structure": "Salary",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 45,
+    "pay_min": 28,
     "pay_type": "per inspection",
     "rating": null,
     "services": "property inspections, loss control inspections, field adjustments, catastrophe response",
@@ -394,10 +394,7 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -439,14 +436,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with flat rates for standard inspections",
+    "compensation_structure": "Salary or Per Inspection",
     "created_at": "2025-11-12T20:35:12.89127+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 60,
-    "pay_min": 30,
+    "pay_max": 55,
+    "pay_min": 28,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Inspections",
@@ -465,10 +462,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
-      "pay_type",
-      "compensation_structure"
+      "pay_type"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:00.645Z",
     "pay_verified": false,
@@ -509,14 +503,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit flat rate",
+    "compensation_structure": "Hourly",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Exterior Home Services, Roofing, Siding"
     ],
-    "pay_max": 75,
-    "pay_min": 25,
+    "pay_max": 28,
+    "pay_min": 26,
     "pay_type": "per work order",
     "rating": null,
     "services": "Exterior Home Services, Roofing, Siding, Exterior Repairs",
@@ -534,10 +528,7 @@
     "address_source": "Loudoun",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:01.652Z",
@@ -579,14 +570,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with flat rate payments",
+    "compensation_structure": "Hourly or Per Inspection",
     "created_at": "2025-11-12T20:35:12.89127+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Mortgage Field Services, Property Inspections"
     ],
-    "pay_max": 60,
-    "pay_min": 30,
+    "pay_max": 67,
+    "pay_min": 27,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Field Services",
@@ -604,10 +595,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews"
     ],
@@ -648,14 +636,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with potential for volume-based bonuses",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
     "pay_max": 60,
-    "pay_min": 25,
+    "pay_min": 22,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Property inspections, preservation services, loss control inspections, notary signings",
@@ -674,10 +662,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:04.090Z",
@@ -719,14 +704,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with flat rates for standard inspections and hourly rates for more complex assessments",
+    "compensation_structure": "Salary or Commission",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 75,
-    "pay_min": 25,
+    "pay_max": 72,
+    "pay_min": 19,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Insurance inspections, property assessments, claims support, loss control inspections, catastrophe response",
@@ -745,10 +730,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -790,14 +772,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit payment structure with flat rate compensation",
+    "compensation_structure": "Per Inspection",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 100,
-    "pay_min": 40,
+    "pay_max": 48,
+    "pay_min": 15,
     "pay_type": "per inspection",
     "rating": null,
     "services": "construction progress inspections, construction cost analysis reports, level of completion analysis, annual portfolio reviews",
@@ -815,10 +797,7 @@
     "address_source": "Tarrant",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:06.592Z",
@@ -861,14 +840,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with flat rates for various services",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Mortgage Field Services, Property Inspections, Property Preservation"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 40,
+    "pay_min": 30,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Field ServicesMortgage Field Services",
@@ -886,10 +865,7 @@
     "address_source": "Peach",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews"
     ],
@@ -930,15 +906,15 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with payments made on a monthly basis",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Property Inspection",
       "Field Services"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 27,
+    "pay_min": 27,
     "pay_type": "per inspection",
     "rating": 4,
     "services": "Field ServicesInspections",
@@ -957,10 +933,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
-      "pay_type",
-      "compensation_structure"
+      "pay_type"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:09.105Z",
     "pay_verified": false,
@@ -1001,14 +974,14 @@
     "recruiter_contact": "Through subcontractor portal",
     "qualifications": "OSHA certificationsLocal contractor licensingE&O insuranceBackground checksBonding as per prequalification",
     "pay_range": null,
-    "compensation_structure": "1099, per-unit basis with potential for bonus incentives on large-scale projects",
+    "compensation_structure": "Per Inspection",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Construction Monitoring"
     ],
-    "pay_max": 100,
-    "pay_min": 35,
+    "pay_max": 50,
+    "pay_min": 25,
     "pay_type": "per inspection",
     "rating": 4,
     "services": "Construction Monitoring, Risk Management, Construction Consulting, General Contracting, Self-Perform Operations",
@@ -1026,10 +999,7 @@
     "address_source": "City of New York",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "client_reviews",
       "services"
     ],
@@ -1070,14 +1040,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with a flat rate per inspection",
+    "compensation_structure": "Per Inspection",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 60,
-    "pay_min": 30,
+    "pay_max": 25,
+    "pay_min": 15,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Interior and Exterior property inspections, photo documentation, securing of property, administrative reporting",
@@ -1095,10 +1065,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:11.536Z",
@@ -1140,7 +1107,7 @@
     "recruiter_contact": "ResourceManagement@alacritysolutions.com",
     "qualifications": "Property Adjuster License (appropriate state licenses) required for claims handling",
     "pay_range": null,
-    "compensation_structure": "Per inspection, with some project-based assignments for larger claims",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
@@ -1148,8 +1115,8 @@
       "Property Inspection",
       "Field Services"
     ],
-    "pay_max": "40",
-    "pay_min": "15",
+    "pay_max": 46,
+    "pay_min": 36,
     "pay_type": "/inspection",
     "rating": 3,
     "services": "Field ServicesInsurance InspectionProperty Preservation",
@@ -1166,9 +1133,7 @@
     "vendor_verified": true,
     "address_source": "Sonoma (County of Sonoma Sonoma County)",
     "address_confidence": null,
-    "_ai_enriched_fields": [
-      "compensation_structure"
-    ],
+    "_ai_enriched_fields": [],
     "_ai_enriched_at": "2026-02-21T18:26:12.707Z",
     "pay_verified": false,
     "_indeed_source": "verified",
@@ -1208,15 +1173,15 @@
     "recruiter_contact": "https://www.nationalis.com/inspector-application",
     "qualifications": "Background check is standard.",
     "pay_range": null,
-    "compensation_structure": "Per inspection, with fees paid on a 1099 basis",
+    "compensation_structure": "Per Inspection",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Property Inspection",
       "Field Services"
     ],
-    "pay_max": "25",
-    "pay_min": "10",
+    "pay_max": 40,
+    "pay_min": 15,
     "pay_type": "/inspection",
     "rating": 4,
     "services": "Field ServicesInspectionsInsurance Inspection",
@@ -1234,7 +1199,6 @@
     "address_source": "Fresno (Fresno County)",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:13.915Z",
@@ -1274,14 +1238,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit, flat rate",
+    "compensation_structure": "Per Inspection",
     "created_at": "2025-12-12T05:37:47.376203+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Mystery Shopping, Field Audits, Market Research"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 40,
+    "pay_min": 20,
     "pay_type": "per audit",
     "rating": null,
     "services": "Mystery Shopping, Field Audits, Market Research, Compliance Audits, CX Measurement",
@@ -1299,10 +1263,7 @@
     "address_source": "San Diego Geographic Information Source - JPA",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:14.980Z",
@@ -1344,14 +1305,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit, flat rate",
+    "compensation_structure": "Hourly",
     "created_at": null,
     "updated_at": "2026-02-02T00:03:12.073Z",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 26,
+    "pay_min": 15,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Mortgage Inspections, Property Inspections, Field Services, Property Preservation",
@@ -1369,10 +1330,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -1414,14 +1372,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit payment structure",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-02-02T00:03:12.081Z",
     "categories": [
       "Property Inspections"
     ],
-    "pay_max": 60,
-    "pay_min": 30,
+    "pay_max": 20,
+    "pay_min": 13,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Inspections",
@@ -1439,10 +1397,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews"
     ],
@@ -1483,14 +1438,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with flat rates for specific services",
+    "compensation_structure": "Hourly or Salary",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 60,
-    "pay_min": 25,
+    "pay_max": 43,
+    "pay_min": 20,
     "pay_type": "per inspection",
     "rating": null,
     "services": "property inspections, property preservation, loss control inspections, notary signings",
@@ -1508,10 +1463,7 @@
     "address_source": "Summit",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:19.073Z",
@@ -1553,14 +1505,14 @@
     "recruiter_contact": "[Unverified Recruiter Contact]",
     "qualifications": "Field data collection experience preferred",
     "pay_range": "$20-$40/inspection",
-    "compensation_structure": "per inspection, 1099 contract",
+    "compensation_structure": "Per Inspection or Hourly",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Property Data Collection, Inspections, PropTech"
     ],
-    "pay_max": "40",
-    "pay_min": "20",
+    "pay_max": 40,
+    "pay_min": 22,
     "pay_type": "/inspection",
     "rating": 3,
     "services": "On-Demand Property Inspections, Data Capture, Property Condition Reports, Photo and Video Capture",
@@ -1578,7 +1530,6 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
       "client_reviews",
       "services"
     ],
@@ -1621,14 +1572,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit fee structure with payments made on a monthly basis",
+    "compensation_structure": "Per Inspection",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 75,
-    "pay_min": 25,
+    "pay_max": 35,
+    "pay_min": 20,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Field inspections, collateral verification, asset reporting, property condition assessments",
@@ -1646,10 +1597,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -1691,7 +1639,7 @@
     "recruiter_contact": "recruiting@continentalrisk.com",
     "qualifications": "Background check required",
     "pay_range": null,
-    "compensation_structure": "Per inspection, with fees ranging from $30 to $60 per assignment, paid on a 1099 basis",
+    "compensation_structure": "Per Inspection",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
@@ -1699,8 +1647,8 @@
       "Claims Management",
       "Field Services"
     ],
-    "pay_max": "125",
-    "pay_min": "75",
+    "pay_max": 40,
+    "pay_min": 25,
     "pay_type": "/inspection",
     "rating": 3,
     "services": "InspectionsInsurance Inspection",
@@ -1718,7 +1666,6 @@
     "address_source": "Monmouth",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "compensation_structure",
       "client_reviews"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:22.392Z",
@@ -1758,15 +1705,15 @@
     "recruiter_contact": null,
     "qualifications": "Preservation Vendors: General Liability insuranceE&O insuranceAuto LiabilityWorkers' Compensation. Inspectors: Background check.",
     "pay_range": null,
-    "compensation_structure": "Crown Field Services LLC typically compensates contractors on a per-unit basis, with fees paid per inspection, preservation work order, or other service completed.",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Property Preservation",
       "Field Services"
     ],
-    "pay_max": "75",
-    "pay_min": "15",
+    "pay_max": 27,
+    "pay_min": 21,
     "pay_type": "/inspection",
     "rating": 3,
     "services": "Field ServicesInspectionsProperty Preservation",
@@ -1784,8 +1731,7 @@
     "address_source": "City of New York",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "description",
-      "compensation_structure"
+      "description"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:23.601Z",
     "pay_verified": false,
@@ -1826,14 +1772,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with a flat rate paid to contractors for each completed inspection",
+    "compensation_structure": "Per Inspection",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 70,
-    "pay_min": 40,
+    "pay_max": 59,
+    "pay_min": 16,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Inspections",
@@ -1851,10 +1797,7 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
-      "pay_type",
-      "compensation_structure"
+      "pay_type"
     ],
     "_ai_enriched_at": "2026-02-21T18:26:24.706Z",
     "pay_verified": false,
@@ -1896,14 +1839,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with potential for bonus on high-volume contracts",
+    "compensation_structure": "Hourly",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-02-02T00:03:12.081Z",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 100,
-    "pay_min": 35,
+    "pay_max": 250,
+    "pay_min": 250,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Insurance claims inspections, loss control inspections, public adjuster services, property damage assessments",
@@ -1921,10 +1864,7 @@
     "address_source": "City of Fort Lauderdale",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -1966,14 +1906,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with flat rates for standard inspections",
+    "compensation_structure": "Salary",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 150000,
+    "pay_min": 98000,
     "pay_type": "per inspection",
     "rating": null,
     "services": "property inspections, loss control inspections, property preservation services, field inspections",
@@ -1992,10 +1932,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:26.693Z",
@@ -2038,14 +1975,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit payment structure with potential for volume-based bonuses",
+    "compensation_structure": "Hourly",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 75,
-    "pay_min": 35,
+    "pay_max": 67,
+    "pay_min": 31,
     "pay_type": "per inspection",
     "rating": null,
     "services": "ISPM 15 inspections, heat treatment inspections, fumigation inspections, wood processing company audits",
@@ -2063,10 +2000,7 @@
     "address_source": "Morris",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -2108,14 +2042,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation structure with flat rates for loss control and premium audit services",
+    "compensation_structure": "Salary",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 100,
-    "pay_min": 35,
+    "pay_max": 37,
+    "pay_min": 33,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Loss Control, Premium Audit, Field Services",
@@ -2133,10 +2067,7 @@
     "address_source": "Larimer (Larimer County)",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:28.897Z",
@@ -2179,14 +2110,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with a flat rate paid for each completed inspection or work order",
+    "compensation_structure": "Salary or Hourly",
     "created_at": "2025-12-11T20:47:00.522071+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Field Services"
     ],
-    "pay_max": 50,
-    "pay_min": 25,
+    "pay_max": 48,
+    "pay_min": 24,
     "pay_type": "per inspection",
     "rating": null,
     "services": "property inspections, property preservation, field services, inspections, preservation work orders",
@@ -2205,10 +2136,7 @@
     "address_confidence": null,
     "_ai_enriched_fields": [
       "description",
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:30.266Z",
@@ -2251,14 +2179,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit payment structure with potential for bonus incentives",
+    "compensation_structure": "Salary",
     "created_at": "2025-11-10T19:19:18.896292+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Claims Services, Insurance Adjusting"
     ],
-    "pay_max": 75,
-    "pay_min": 25,
+    "pay_max": 35,
+    "pay_min": 32,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Insurance Claims Adjusting, Claims Support, Property Damage Inspections, Liability Assessments",
@@ -2276,10 +2204,7 @@
     "address_source": "TIGER/Line® from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "services"
     ],
     "_ai_enriched_at": "2026-02-21T18:27:31.486Z",
@@ -2321,14 +2246,14 @@
     "recruiter_contact": null,
     "qualifications": null,
     "pay_range": null,
-    "compensation_structure": "1099, per-unit, flat rate compensation for each completed work order",
+    "compensation_structure": "Per Inspection",
     "created_at": null,
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Property Preservation"
     ],
-    "pay_max": 50,
-    "pay_min": 15,
+    "pay_max": 35,
+    "pay_min": 35,
     "pay_type": "per work order",
     "rating": null,
     "services": "Property Preservation, Inspections, Repairs, Maintenance, Debris Removal",
@@ -2346,10 +2271,7 @@
     "address_source": "Prince William",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"
@@ -2391,14 +2313,14 @@
     "recruiter_contact": null,
     "qualifications": "Insurance inspection experience preferred",
     "pay_range": null,
-    "compensation_structure": "1099, per-unit compensation with flat rates for standard inspections",
+    "compensation_structure": "Hourly",
     "created_at": "2025-12-12T05:37:47.376203+00:00",
     "updated_at": "2026-01-11T22:24:09.984173+00:00",
     "categories": [
       "Insurance Inspections, Loss Control, Risk Assessment"
     ],
-    "pay_max": 75,
-    "pay_min": 35,
+    "pay_max": 26,
+    "pay_min": 21,
     "pay_type": "per inspection",
     "rating": null,
     "services": "Insurance Inspections, Loss Control Surveys, Property Risk Assessments, Underwriting Inspections",
@@ -2416,10 +2338,7 @@
     "address_source": "TIGER/Line® dataset from the US Census Bureau",
     "address_confidence": null,
     "_ai_enriched_fields": [
-      "pay_min",
-      "pay_max",
       "pay_type",
-      "compensation_structure",
       "contractor_rating",
       "client_reviews",
       "services"

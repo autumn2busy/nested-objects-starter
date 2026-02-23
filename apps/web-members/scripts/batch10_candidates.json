@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "kryterion-inc",
+    "name": "Kryterion Inc",
+    "url": "https://www.kryterion.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Proctors find the global testing environment to be stimulating and professional, although some employees report occasional inconsistencies in technical support and quality assurance.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "lab-express",
+    "name": "Lab Express",
+    "url": "https://www.labexpress.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report positive experiences with Lab Express, citing reliable daily pay and flexible routing options.",
+    "pay_min": "100.0"
+  },
+  {
+    "slug": "gigwalk",
+    "name": "Gigwalk",
+    "url": "https://www.gigwalk.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Offers a highly flexible on-demand model for secret shopping and retail audits, but gig availability can be inconsistent for users outside of major metropolitan hubs.",
+    "pay_min": "5.0"
+  },
+  {
+    "slug": "american-expediting",
+    "name": "American Expediting",
+    "url": "https://americanexpediting.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise American Expediting for its reliable payment structure and varied route opportunities across the US and Canada.",
+    "pay_min": "300.0"
+  },
+  {
+    "slug": "rapid-medical",
+    "name": "Rapid Medical",
+    "url": "https://www.rapidmedical.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Rapid Medical for reliable routes and flexible scheduling, but note that pay could be higher for the level of expertise required",
+    "pay_min": "20.0"
+  },
+  {
+    "slug": "trendsource",
+    "name": "TrendSource",
+    "url": "https://www.trendsource.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Praised for a supportive and non-judgmental environment for supplemental income earners, though some contractors report slow payment cycles and unorganized management communication.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "second-to-none",
+    "name": "Second To None",
+    "url": "https://www.secondtonone.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Second To None for their clear guidelines and prompt payment, but some find the evaluation criteria to be overly stringent at times.",
+    "pay_min": "15.0"
+  },
+  {
+    "slug": "usinspect",
+    "name": "USInspect",
+    "url": "https://us-inspect.breezy.hr/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a smooth hiring process and flexible scheduling opportunities with USInspect.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "reotranscom-equatorcom",
+    "name": "Reotrans.com / equator.com",
+    "url": "https://equator.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report positive experiences with Reotrans.com / equator.com, citing timely payments and a wide range of available work orders.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "intellishop",
+    "name": "IntelliShop",
+    "url": "https://www.intelli-shop.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "IntelliShop pays consistently and has a user-friendly platform, but the evaluation work can be sporadic at times",
+    "pay_min": "15.0"
+  }
+]
