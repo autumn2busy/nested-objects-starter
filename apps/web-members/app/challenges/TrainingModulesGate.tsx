@@ -1,7 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, ChevronRight, Lock, CheckCircle2 } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, CheckCircle2, Shield } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 
 type TrainingModule = {
@@ -24,18 +25,70 @@ type TrainingModulesGateProps = {
 
 export default function TrainingModulesGate({ modules }: TrainingModulesGateProps) {
   const { isAuthenticated, isLoading, hasAccess, planUid, login, signup } = useAuth()
+  const [passedModuleIds, setPassedModuleIds] = useState<Set<string>>(new Set())
+  const [progressLoading, setProgressLoading] = useState(true)
 
   const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
+
+  // Fetch which modules the user has passed quizzes for
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) {
+      setProgressLoading(false)
+      return
+    }
+
+    async function fetchProgress() {
+      try {
+        const res = await fetch('/api/training/progress')
+        if (res.ok) {
+          const data = await res.json()
+          setPassedModuleIds(new Set(data.completedModuleIds || []))
+        }
+      } catch (err) {
+        console.error('Failed to fetch training progress:', err)
+      } finally {
+        setProgressLoading(false)
+      }
+    }
+
+    fetchProgress()
+  }, [isAuthenticated, isLoading])
 
   // Not loading, not authenticated → show full gate overlay
   const showFullGate = !isLoading && !isAuthenticated
 
-  // Authenticated but no training access (Free/Starter plan) → show partial (Module 1 open, rest locked)
+  // Authenticated but no training access (Free/Starter plan) → show partial (Module 1 open, rest locked by plan)
   const showPartialLock = !isLoading && isAuthenticated && !hasTrainingAccess
+
+  // Sort modules by module_number for sequential logic
+  const sortedModules = [...(modules || [])].sort((a, b) => a.module_number - b.module_number)
+
+  // Determine if a module is unlocked based on sequential quiz completion
+  const isModuleUnlocked = (module: TrainingModule, index: number): boolean => {
+    // Module 1 is always unlocked (if plan allows)
+    if (index === 0) return true
+
+    // Plan-gated: if no training access, only module 1 is available
+    if (showPartialLock) return false
+
+    // Sequential lock: previous module must have a passed quiz
+    const previousModule = sortedModules[index - 1]
+    if (!previousModule) return true
+
+    return passedModuleIds.has(previousModule.id)
+  }
+
+  // Determine module status for display
+  const getModuleStatus = (module: TrainingModule, index: number): 'completed' | 'available' | 'locked-plan' | 'locked-progress' => {
+    if (passedModuleIds.has(module.id)) return 'completed'
+    if (showPartialLock && index > 0) return 'locked-plan'
+    if (!isModuleUnlocked(module, index)) return 'locked-progress'
+    return 'available'
+  }
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12">
-      {isLoading ? (
+      {(isLoading || progressLoading) ? (
         <div className="flex items-center justify-center py-20">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-copper border-t-transparent" />
         </div>
@@ -46,9 +99,10 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
             className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 ${showFullGate ? 'pointer-events-none select-none blur-sm opacity-60' : ''
               }`}
           >
-            {modules?.map((module) => {
-              // Module 1 is always accessible. For partial lock, modules 2+ are locked.
-              const isLocked = showPartialLock && module.module_number > 1
+            {sortedModules?.map((module, index) => {
+              const status = getModuleStatus(module, index)
+              const isLocked = status === 'locked-plan' || status === 'locked-progress'
+              const isCompleted = status === 'completed'
 
               return (
                 <div key={module.id} className="relative group">
@@ -61,14 +115,23 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                           <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                             <Lock className="w-6 h-6 text-slate-400" />
                           </div>
-                          <p className="text-sm font-semibold text-slate-700">Upgrade to unlock</p>
-                          <p className="text-xs text-slate-500 mt-1">Module {module.module_number}</p>
-                          <Link
-                            href="/membership-pricing"
-                            className="mt-3 inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-copperDark"
-                          >
-                            View plans
-                          </Link>
+                          {status === 'locked-plan' ? (
+                            <>
+                              <p className="text-sm font-semibold text-slate-700">Upgrade to unlock</p>
+                              <p className="text-xs text-slate-500 mt-1">Module {module.module_number}</p>
+                              <Link
+                                href="/membership-pricing"
+                                className="mt-3 inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-copperDark"
+                              >
+                                View plans
+                              </Link>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-semibold text-slate-700">Complete Module {module.module_number - 1} first</p>
+                              <p className="text-xs text-slate-500 mt-1">Pass the quiz with 80% or higher</p>
+                            </>
+                          )}
                         </div>
 
                         {/* Background card content (blurred behind overlay) */}
@@ -87,21 +150,23 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                   ) : (
                     // Unlocked module card — clickable
                     <Link href={`/challenges/${module.id}`} className="block h-full">
-                      <div className="bg-white border text-card-foreground shadow-sm rounded-2xl p-6 h-full transition-all hover:border-brand-copper hover:shadow-lg hover:-translate-y-1 relative overflow-hidden">
-                        {module.is_new && (
+                      <div className={`bg-white border text-card-foreground shadow-sm rounded-2xl p-6 h-full transition-all hover:border-brand-copper hover:shadow-lg hover:-translate-y-1 relative overflow-hidden ${isCompleted ? 'border-emerald-200' : ''}`}>
+                        {/* Status badge */}
+                        {isCompleted ? (
+                          <span className="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> PASSED
+                          </span>
+                        ) : module.is_new ? (
                           <span className="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
                             NEW
                           </span>
-                        )}
-
-                        {/* Show checkmark badge for Module 1 when partially locked */}
-                        {showPartialLock && module.module_number === 1 && (
+                        ) : showPartialLock && module.module_number === 1 ? (
                           <span className="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> FREE
                           </span>
-                        )}
+                        ) : null}
 
-                        <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center mb-6 text-3xl shadow-inner group-hover:bg-brand-copper/10 transition-colors">
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 text-3xl shadow-inner group-hover:bg-brand-copper/10 transition-colors ${isCompleted ? 'bg-emerald-50' : 'bg-slate-100'}`}>
                           {module.icon || '\u{1F4D8}'}
                         </div>
 
@@ -117,7 +182,7 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                         </p>
 
                         <div className="flex items-center text-brand-copper font-bold text-sm mt-auto">
-                          Start Module <ChevronRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                          {isCompleted ? 'Review Module' : 'Start Module'} <ChevronRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
                         </div>
                       </div>
                     </Link>

@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
@@ -38,14 +37,14 @@ export async function GET(request: Request) {
             return NextResponse.json({ progress: progress || [], completedModuleIds: [] })
         }
 
-        // ELSE fetch ALL completed modules (Source of Truth)
-        const { data: completed } = await supabase
-            .from('training_progress')
+        // ELSE fetch ALL completed modules based on PASSED QUIZZES (Source of Truth)
+        const { data: passedQuizzes } = await supabase
+            .from('quiz_attempts')
             .select('module_id')
-            .eq('user_id', outsetaId) // Use Outseta string ID lookup
-            .eq('status', 'completed')
+            .eq('user_id', outsetaId)
+            .eq('passed', true)
 
-        const completedModuleIds = Array.from(new Set(completed?.map((c: any) => c.module_id) || []))
+        const completedModuleIds = Array.from(new Set(passedQuizzes?.map((q: any) => q.module_id) || []))
 
         return NextResponse.json({ completedModuleIds })
 

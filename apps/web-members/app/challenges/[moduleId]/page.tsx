@@ -250,14 +250,53 @@ export default function ModuleOverviewPage() {
 
     const saveProgress = (completed: Set<string>, passed: boolean) => {
         if (!module) return
+        // Save to localStorage for instant UI feedback
         localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({ completedLessons: Array.from(completed), quizPassed: passed }))
+        // Also persist lesson completion to Supabase
+        const lastLessonId = Array.from(completed).pop()
+        if (lastLessonId) {
+            fetch('/api/training/progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    module_id: module.id,
+                    lesson_id: lastLessonId,
+                    resource_type: 'lesson',
+                    status: 'completed',
+                })
+            }).catch(err => console.error('Failed to save lesson progress:', err))
+        }
     }
 
     const markLessonComplete = (id: string) => {
         const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed)
     }
 
-    const handleQuizComplete = (score: number, passed: boolean) => { if (passed) { setQuizPassed(true); saveProgress(completedLessons, true) } }
+    const handleQuizComplete = async (score: number, passed: boolean) => {
+        // Always save to localStorage for instant UI
+        if (passed) { setQuizPassed(true) }
+        saveProgress(completedLessons, passed)
+
+        // Persist quiz result to Supabase and recalculate trust score
+        try {
+            const res = await fetch('/api/training/quiz-complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    module_id: module?.id,
+                    score,
+                    passed,
+                    total_questions: quizQuestions.length,
+                })
+            })
+            const data = await res.json()
+            if (data.success && data.passed) {
+                console.log(`✅ Quiz passed! Trust score: ${data.trustScore} (${data.trustTier})`)
+            }
+        } catch (err) {
+            console.error('Failed to save quiz result:', err)
+        }
+    }
     const handleAudienceSelect = (a: AudienceType) => { setSelectedAudience(a); if (a) localStorage.setItem('nested_objects_audience', a); else localStorage.removeItem('nested_objects_audience') }
 
     // Calculations
