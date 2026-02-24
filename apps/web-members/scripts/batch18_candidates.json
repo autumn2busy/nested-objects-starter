@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "scr-group-services",
+    "name": "SCR Group Services",
+    "url": "https://www.scrgroupservices.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise SCR Group Services for their organized workflow and prompt payment processing.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "breckenridge-cabin-company",
+    "name": "Breckenridge Cabin Company",
+    "url": "https://breckcabinco.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Breckenridge Cabin Company for its flexible scheduling and fair pay rates, but some mention inconsistent workflow and communication issues.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "retaildata-sas-retail",
+    "name": "RetailData (SAS Retail)",
+    "url": "https://www.retaildataservices.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise RetailData for consistent and flexible scheduling, but criticize the low hourly pay rate.",
+    "pay_min": "12.0"
+  },
+  {
+    "slug": "pivot-workforce",
+    "name": "Pivot Workforce",
+    "url": "https://www.pivotworkforce.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Pivot Workforce for their reliable payment schedule and variety of field labor opportunities.",
+    "pay_min": "20"
+  },
+  {
+    "slug": "bureau-veritas-building-assessments-project-management",
+    "name": "Bureau Veritas – Building Assessments & Project Management",
+    "url": "https://www.bvna.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the firm's consistent workflow and clear communication, but note that pay can be on the lower side for more complex inspections.",
+    "pay_min": "50"
+  },
+  {
+    "slug": "congruex",
+    "name": "Congruex",
+    "url": "https://www.congruex.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Congruex for its organized project management and timely payment processing, but some report variability in inspection volume and scheduling.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "crossmark",
+    "name": "CROSSMARK",
+    "url": "https://www.crossmark.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "A flexible option for part-time work or students, though common drawbacks include low starting pay, lack of benefits, and unorganized management communication.",
+    "pay_min": "13.0"
+  },
+  {
+    "slug": "brookfield-global-relocation-services",
+    "name": "Brookfield Global Relocation Services",
+    "url": "https://www.brookfieldgrs.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Brookfield Global Relocation Services is a well-organized company to work with, offering a steady stream of inspection assignments and timely payments",
+    "pay_min": "30"
+  },
+  {
+    "slug": "maiden-associates-architecsengineers-planners",
+    "name": "Maiden & Associates Architecs/Engineers/ Planners",
+    "url": "http://www.maidenarchitects.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report fair pay and flexible scheduling with Maiden & Associates.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "crawford-company",
+    "name": "Crawford & Company",
+    "url": "https://www.crawco.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Praised for professional coworkers and strong training in specialized insurance claims, but frequently criticized for toxic management and a difficult work-life balance.",
+    "pay_min": "500.0"
+  }
+]
