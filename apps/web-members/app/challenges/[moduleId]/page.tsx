@@ -307,22 +307,31 @@ export default function ModuleOverviewPage() {
         if (aud) setSelectedAudience(aud as AudienceType)
     }, [module, isAuthenticated, authLoading])
 
-    const saveProgress = (completed: Set<string>, passed: boolean, newLessonId?: string) => {
+    const saveProgress = async (completed: Set<string>, passed: boolean, newLessonId?: string) => {
         if (!module) return
         // Save to localStorage for instant UI feedback
         localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({ completedLessons: Array.from(completed), quizPassed: passed }))
         // Persist the newly completed lesson to Supabase
         if (newLessonId) {
-            fetch('/api/training/progress', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    module_id: module.id,
-                    lesson_id: newLessonId,
-                    resource_type: 'lesson',
-                    status: 'completed',
+            try {
+                const res = await fetch('/api/training/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        module_id: module.id,
+                        lesson_id: newLessonId,
+                        resource_type: 'lesson',
+                        status: 'completed',
+                    })
                 })
-            }).catch(err => console.error('Failed to save lesson progress:', err))
+                if (!res.ok) {
+                    const errData = await res.json()
+                    console.error('SERVER ERROR saving progress:', errData)
+                    alert(`Training Server Error: ${errData.error || res.statusText}\nDetails: ${errData.details || 'Check console'}`)
+                }
+            } catch (err) {
+                console.error('Failed to save lesson progress:', err)
+            }
         }
     }
 
@@ -347,6 +356,14 @@ export default function ModuleOverviewPage() {
                     total_questions: quizQuestions.length,
                 })
             })
+
+            if (!res.ok) {
+                const errData = await res.json()
+                console.error('SERVER ERROR saving quiz:', errData)
+                alert(`Assessment Server Error: ${errData.error || res.statusText}\nDetails: ${errData.details || 'Check console'}`)
+                return;
+            }
+
             const data = await res.json()
             if (data.success && data.passed) {
                 console.log(`✅ Quiz passed! Trust score: ${data.trustScore} (${data.trustTier})`)

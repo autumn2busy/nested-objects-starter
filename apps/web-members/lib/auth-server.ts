@@ -64,13 +64,23 @@ const JWKS = createRemoteJWKSet(new URL(JWKS_URL))
  */
 export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
+    if (!token) return null
+
+    // Clean token of potential malformation (quotes, Bearer prefix, whitespace)
+    let cleanToken = token.trim().replace(/^["']|["']$/g, '')
+    if (cleanToken.startsWith('Bearer ')) {
+      cleanToken = cleanToken.substring(7)
+    }
+
+    console.log(`[AUTH] Verifying token (len: ${cleanToken.length}): ${cleanToken.substring(0, 15)}...`)
+
+    const { payload } = await jwtVerify(cleanToken, JWKS, {
       issuer: 'https://nested-objects.outseta.com'
     })
 
     return payload as unknown as OutsetaJWTPayload
-  } catch (error) {
-    console.error('Error verifying Outseta token:', error)
+  } catch (error: any) {
+    console.error('[AUTH] Error verifying Outseta token:', error?.code, error?.message)
     return null
   }
 }
