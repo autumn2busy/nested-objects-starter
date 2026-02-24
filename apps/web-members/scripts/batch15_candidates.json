@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "local-vacation-rentals",
+    "name": "Local Vacation Rentals",
+    "url": "RUN ON LOCAL Companies hiring contractors",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a smooth experience working with Local Vacation Rentals, citing clear communication and prompt payment.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "vmysmartpros",
+    "name": "vmysmartpros",
+    "url": "https://www.mysmartpros.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the platform for its ease of use and variety of job opportunities, but some report inconsistent pay and limited support.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "nmfs-national-mortgage-field-services",
+    "name": "NMFS (National Mortgage Field Services)",
+    "url": "https://nmfs.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise NMFS for their efficient system and timely payments, but criticize the low pay for some services.",
+    "pay_min": "20"
+  },
+  {
+    "slug": "telus-digital-ai",
+    "name": "TELUS Digital AI",
+    "url": "https://www.telusinternational.com/solutions/ai-data-solutions",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Employees value the ability to work from home at their own pace with generally solid support, though some note that task-specific communication could be improved.",
+    "pay_min": "14.0"
+  },
+  {
+    "slug": "southern-elite-field-services-llc",
+    "name": "Southern Elite Field Services LLC",
+    "url": "http://soelitefs.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Southern Elite Field Services for their efficient communication and fair pay rates.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "sure-point-inspections",
+    "name": "Sure Point Inspections",
+    "url": "https://surepointinspection.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report prompt payment and flexible scheduling with Sure Point Inspections.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "nrg-energy",
+    "name": "NRG Energy",
+    "url": "https://www.nrg.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Employees highlight competitive pay and solid benefits along with a collaborative culture, although many express concerns regarding job security in the evolving energy market.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "sdmyers",
+    "name": "SDMyers",
+    "url": "https://sdmyers.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report positive experiences working with SDMyers, citing timely payments and clear communication as major strengths.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "ka-engineering",
+    "name": "K&A Engineering",
+    "url": "https://kapower.us",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Employees describe a supportive and collaborative culture with ample opportunities for professional growth and remote work flexibility, despite some reports of slow management response.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "shore-field-inspections",
+    "name": "Shore Field Inspections",
+    "url": "shorepropertyinspections.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Shore Field Inspections for their organized workflow and prompt payment terms.",
+    "pay_min": "30"
+  }
+]
