@@ -2,6 +2,61 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 
+// Shared robust profile lookup/creation function
+async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
+    // 1. Try lookup by outseta_person_uid or user_id
+    let { data: profile } = await supabase
+        .from('profiles')
+        .select('id, user_id, outseta_person_uid')
+        .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
+        .limit(1)
+        .single()
+
+    // 2. Try by email if not found
+    if (!profile && user.email) {
+        const { data: emailProfile } = await supabase
+            .from('profiles')
+            .select('id, user_id, outseta_person_uid')
+            .eq('email', user.email)
+            .single()
+
+        if (emailProfile) {
+            // Self-heal: update missing Outseta IDs
+            const updatePayload: any = {}
+            if (!emailProfile.outseta_person_uid) updatePayload.outseta_person_uid = outsetaId
+            if (!emailProfile.user_id) updatePayload.user_id = outsetaId
+
+            if (Object.keys(updatePayload).length > 0) {
+                await supabase.from('profiles').update(updatePayload).eq('id', emailProfile.id)
+            }
+            profile = emailProfile
+        }
+    }
+
+    // 3. Create if still not found
+    if (!profile) {
+        const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+                user_id: outsetaId,
+                outseta_person_uid: outsetaId,
+                email: user.email,
+                full_name: user.name || 'Unknown User',
+                updated_at: new Date().toISOString()
+            })
+            .select('id, user_id, outseta_person_uid')
+            .single()
+
+        if (createError || !newProfile) {
+            console.error('[PROGRESS] Failed to create profile:', createError)
+            return null
+        }
+        profile = newProfile
+    }
+
+    return profile
+}
+
 export async function GET(request: Request) {
     try {
         const user = await getCurrentUser()
@@ -15,13 +70,8 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url)
         const moduleId = searchParams.get('moduleId')
 
-        // 1. Get Supabase User ID from Profile (check both outseta_person_uid and user_id)
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
-            .limit(1)
-            .single()
+        // Fetch or create profile on GET to ensure it's ready for any future saves
+        const profile = await getOrCreateProfile(supabase, outsetaId, user)
 
         if (!profile) {
             return NextResponse.json({ completedModuleIds: [], progress: [] })
@@ -39,7 +89,6 @@ export async function GET(request: Request) {
         }
 
         // ELSE fetch ALL completed modules based on PASSED QUIZZES (Source of Truth)
-        // Try both profile_id (UUID) and user_id (Outseta string) for compatibility
         const { data: passedQuizzes } = await supabase
             .from('quiz_attempts')
             .select('module_id')
@@ -51,7 +100,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ completedModuleIds })
 
     } catch (error) {
-        console.error('Error in training/progress:', error)
+        console.error('Error in training/progress GET:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
@@ -70,73 +119,22 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get Profile ID (Robust Logic)
-        // First, try lookup by Outseta ID (user_id)
-        // Typings: we explicitly declare profile as `any` or `{ id: string, user_id?: string }` to avoid TS strictness issues with mismatched shapes during flow
-        let { data: profile } = await supabase
-            .from('profiles')
-            .select('id, user_id')
-            .eq('user_id', outsetaId)
-            .single()
-
-        // If not found by ID, try lookup by Email (to avoid duplicate key usage)
-        if (!profile && user.email) {
-            console.log(`Profile not found by ID ${outsetaId}. Checking email ${user.email}...`)
-            const { data: emailProfile } = await supabase
-                .from('profiles')
-                .select('id, user_id')
-                .eq('email', user.email)
-                .single()
-
-            if (emailProfile) {
-                console.log(`Found profile by email ${user.email}. Updating user_id to ${outsetaId}...`)
-                // Self-heal: Update the missing user_id
-                const { error: updateError } = await supabase
-                    .from('profiles')
-                    .update({ user_id: outsetaId })
-                    .eq('id', emailProfile.id)
-
-                if (!updateError) {
-                    profile = emailProfile
-                } else {
-                    console.error('Failed to update profile user_id:', updateError)
-                }
-            }
-        }
+        // 1. Get or Create Profile ID 
+        const profile = await getOrCreateProfile(supabase, outsetaId, user)
 
         if (!profile) {
-            console.log(`Profile not found for outsetaId: ${outsetaId} and no matching email. Attempting to create...`)
-
-            // Attempt to create profile (Auto-provisioning)
-            const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert({
-                    user_id: outsetaId,
-                    email: user.email,
-                    full_name: user.name || 'Unknown User',
-                    updated_at: new Date().toISOString()
-                })
-                .select('id, user_id') // Added user_id to selection to match type
-                .single()
-
-            if (createError || !newProfile) {
-                console.error('Failed to create profile:', createError)
-                return NextResponse.json({
-                    error: 'Profile not found and creation failed',
-                    details: createError?.message,
-                    outsetaId
-                }, { status: 500 })
-            }
-
-            // Explicit cast if needed, but selecting user_id should fix it
-            profile = newProfile
+            return NextResponse.json({
+                error: 'Profile not found and creation failed',
+                outsetaId
+            }, { status: 500 })
         }
 
         // 2. Upsert Progress
-        const { error } = await supabase
+        const { error: progressError } = await supabase
             .from('training_progress')
             .upsert({
-                user_id: outsetaId, // Using string Outseta ID
+                user_id: outsetaId, // String Outseta ID
+                profile_id: profile.id, // Explicitly link UUID
                 module_id,
                 lesson_id,
                 resource_type,
@@ -146,25 +144,32 @@ export async function POST(request: Request) {
                 updated_at: new Date().toISOString()
             })
 
-        if (error) throw error
+        if (progressError) {
+            console.error('[PROGRESS] Error inserting into training_progress:', progressError)
+            throw progressError
+        }
 
         // 3. Sync to quiz_attempts (Legacy/Dashboard support) if quiz passed
         if (quiz_passed || (status === 'completed' && resource_type === 'quiz')) {
-            await supabase
+            const { error: qaError } = await supabase
                 .from('quiz_attempts')
                 .upsert({
-                    user_id: outsetaId, // Using string Outseta ID
+                    profile_id: profile.id, // Ensure UUID is used
+                    user_id: outsetaId,     // String Outseta ID
                     module_id,
                     passed: true,
                     score: quiz_score || 100,
                     completed_at: new Date().toISOString()
                 })
+            if (qaError) {
+                console.error('[PROGRESS] Error inserting into quiz_attempts:', qaError)
+            }
         }
 
         return NextResponse.json({ success: true })
 
     } catch (error: any) {
-        console.error('Error updating progress:', error)
+        console.error('Error updating progress POST:', error)
         return NextResponse.json({
             error: 'Internal Server Error',
             details: error?.message,
