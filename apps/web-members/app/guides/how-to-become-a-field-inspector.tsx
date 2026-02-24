@@ -127,7 +127,7 @@ function CTABanner() {
                     Browse Hiring Firms <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                    href="/training"
+                    href="/challenges"
                     className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                     Start Training <GraduationCap className="h-4 w-4" />
@@ -364,7 +364,7 @@ export default function HowToBecomeFieldInspectorPage() {
                         </p>
                         <div className="mt-4">
                             <Link
-                                href="/training"
+                                href="/challenges"
                                 className="inline-flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand/90"
                             >
                                 Explore Training Tracks <GraduationCap className="h-4 w-4" />

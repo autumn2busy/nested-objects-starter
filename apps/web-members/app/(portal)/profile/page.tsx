@@ -874,7 +874,7 @@ export default function ProfilePage() {
                   <GraduationCap className="w-5 h-5 text-brand-copper" />
                   Training Progress
                 </h3>
-                <Link href="/training" className="text-sm text-brand-copper hover:text-brand-copperDark">
+                <Link href="/challenges" className="text-sm text-brand-copper hover:text-brand-copperDark">
                   View courses →
                 </Link>
               </div>
