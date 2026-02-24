@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "defense-logistics-agency",
+    "name": "Defense Logistics Agency",
+    "url": "https://www.dla.mil/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report timely payments and professional communication from the Defense Logistics Agency.",
+    "pay_min": "35"
+  },
+  {
+    "slug": "premier-claims",
+    "name": "Premier Claims",
+    "url": "https://premier-claims.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Employees appreciate the supportive company culture and growth opportunities in property advocacy, although some find the workload to be high during peak claim periods.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "invisible-technologies",
+    "name": "Invisible Technologies",
+    "url": "https://www.invisible.co",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Invisible Technologies for flexible remote work opportunities and competitive hourly rates, but some express frustration with inconsistent workflow and limited project variety.",
+    "pay_min": "15.0"
+  },
+  {
+    "slug": "atlantic-pacific-build-group",
+    "name": "Atlantic & Pacific Build Group",
+    "url": "https://atlanticpacificbuildgroup.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Atlantic & Pacific Build Group for their organized workflow and timely payments, but note that inspection volume can be inconsistent.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "red-rock-companies",
+    "name": "Red Rock Companies",
+    "url": "https://www.redrockcompanies.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Red Rock Companies for their reliable payment terms and varied project opportunities.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "first-american-residential-value-view",
+    "name": "First American Residential Value View",
+    "url": "https://www.firstam.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report timely payments and clear communication from First American Residential Value View, but note that inspection volume can be inconsistent.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "m-m-mortgage-servicesinc-acquired-by-mcs360",
+    "name": "M & M Mortgage ServicesInc. acquired by mcs360",
+    "url": "https://mcs360.com/join-our-team/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a smooth and efficient experience working with M & M Mortgage Services, with clear communication and prompt payment.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "reotrans-via-equator",
+    "name": "Reotrans (via Equator)",
+    "url": "https://www.equator.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Reotrans for its streamlined workflow and reliable payment processing, but some report issues with communication and work order volume.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "lscg-life-safety-consulting-group",
+    "name": "LSCG (Life Safety Consulting Group)",
+    "url": "https://www.lscg.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise LSCG for its clear communication and timely payments, but some report inconsistent volumes of available work.",
+    "pay_min": "50"
+  },
+  {
+    "slug": "cbre",
+    "name": "CBRE",
+    "url": "https://www.cbre.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise CBRE for its consistent workflow and organized project management, but sometimes criticize the firm's lower per-unit pay rates.",
+    "pay_min": "30"
+  }
+]
