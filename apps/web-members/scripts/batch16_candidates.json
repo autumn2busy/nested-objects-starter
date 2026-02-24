@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "local-vacation-rentals",
+    "name": "Local Vacation Rentals",
+    "url": "RUN ON LOCAL Companies hiring contractors",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report a smooth experience working with Local Vacation Rentals, citing clear communication and prompt payment.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "vmysmartpros",
+    "name": "vmysmartpros",
+    "url": "https://www.mysmartpros.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the platform for its ease of use and variety of job opportunities, but some report inconsistent pay and limited support.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "nmfs-national-mortgage-field-services",
+    "name": "NMFS (National Mortgage Field Services)",
+    "url": "https://nmfs.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise NMFS for their efficient system and timely payments, but criticize the low pay for some services.",
+    "pay_min": "20"
+  },
+  {
+    "slug": "southern-elite-field-services-llc",
+    "name": "Southern Elite Field Services LLC",
+    "url": "http://soelitefs.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Southern Elite Field Services for their efficient communication and fair pay rates.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "sure-point-inspections",
+    "name": "Sure Point Inspections",
+    "url": "https://surepointinspection.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report prompt payment and flexible scheduling with Sure Point Inspections.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "shore-field-inspections",
+    "name": "Shore Field Inspections",
+    "url": "shorepropertyinspections.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Shore Field Inspections for their organized workflow and prompt payment terms.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "rtr-services-inc",
+    "name": "RTR Services Inc.",
+    "url": "https://www.rtrservices.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise RTR Services for consistent workflow and fair pay rates, but note occasional delays in payment processing.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "terracon",
+    "name": "Terracon",
+    "url": "https://www.terracon.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Terracon for its professional staff and consistent workflow, but note that pay rates can be lower than some smaller firms.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "turner-construction-company",
+    "name": "Turner Construction Company",
+    "url": "https://www.turnerconstruction.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Turner Construction Company for its professionalism and organized project management, but note that pay can be on the lower end for certain services.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "lxt",
+    "name": "LXT",
+    "url": "https://www.lxt.ai",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise LXT for its flexible remote work opportunities and competitive hourly pay, but some report inconsistent workflow and limited career advancement possibilities.",
+    "pay_min": "12.0"
+  }
+]
