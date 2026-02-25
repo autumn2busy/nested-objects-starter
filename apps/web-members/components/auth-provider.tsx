@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
@@ -28,7 +27,6 @@ type AuthContextValue = {
   login: () => void
   signup: () => void
   logout: () => void
-  refreshAuth: () => Promise<void>
   refreshProfileDisplayName: () => Promise<void>
   updateProfileDisplayName: (name: string | null) => void
   updateProfileAvatarUrl: (url: string | null) => void
@@ -51,45 +49,41 @@ const deriveDisplayName = (payload: JwtPayload | null): string | null => {
 }
 
 // Plan ordering. Starter < Directory pass < Pro < Elite < Agency
-// Plan ranking: index determines feature access level.
-// Founders (pWrBRnWn) is a hidden legacy plan at the same level as Starter.
-// We include both so the Gate component resolves access correctly for either UID.
-const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'pWrBRnWn', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
+const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
 type PlanUid = (typeof PLAN_ORDER)[number]
 
-// Minimum plan required for each feature.
-// With Starter dropped from the public pricing page, the effective public tiers are:
-//   Free (L9nbKV9Z) → Pro (rQVqlLm6) → Elite (NmdnNO90) → Agency (rmk5Xk9g)
-// Founders (pWrBRnWn) and Starter (zWZD0rQp) remain valid for legacy/imported members.
+const DIRECTORY_ONLY_PLAN_UID = 'zWZD0rQp'
+
+// Minimum plan required for each feature
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
-  // Core app — Free+
-  directory_access: 'L9nbKV9Z',
-  job_board: 'L9nbKV9Z',
+  // Core app
+  directory_access: 'L9nbKV9Z',   // Starter+
+  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
 
-  // Training — Starter/Founders+ (legacy paid)
-  basic_training: 'zWZD0rQp',
+  // Training
+  basic_training: 'zWZD0rQp',     // Directory+ (Was Starter+)
   advanced_training: 'NmdnNO90',  // Elite+
-  training_safety: 'L9nbKV9Z',    // Free+ (safety guides)
+  training_safety: 'L9nbKV9Z',    // Starter+ (Safety guides)
 
-  // Tools — varies
+  // Tools
   ai_concierge: 'rQVqlLm6',       // Pro+
   firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'L9nbKV9Z',       // Free+
-  job_tracker: 'L9nbKV9Z',        // Free+
+  job_tracking: 'L9nbKV9Z',       // Starter+
+  job_tracker: 'L9nbKV9Z',        // Starter+
   job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Free+
-  ai_resume: 'zWZD0rQp',          // Starter/Founders+ (limited)
-  readiness_guides: 'L9nbKV9Z',   // Free+
-  tools_templates: 'rQVqlLm6',    // Pro+
+  weather_tool: 'L9nbKV9Z',       // Starter+
+  ai_resume: 'zWZD0rQp',          // Starter+
+  readiness_guides: 'L9nbKV9Z',   // Starter+ (Checklists)
+  tools_templates: 'rQVqlLm6',    // Pro+ (AI prompts, etc)
 
   // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees
+  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
   partner_portal: 'rmk5Xk9g',          // Agency only
-  elite_autoassign: 'NmdnNO90',        // Elite+
+  elite_autoassign: 'NmdnNO90',        // Elite vetted pool
 
-  // API / vendor feeds
-  autoassign_api: 'NmdnNO90',          // Elite+
-  agency_directory: 'rmk5Xk9g',        // Agency only
+  // API style auto assign for vendor feeds like WeGoLook
+  autoassign_api: 'NmdnNO90',          // Elite (supply side)
+  agency_directory: 'rmk5Xk9g',        // Agency facing view
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -101,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const hasInitialized = useRef(false)
 
   const persistProfileDisplayName = useCallback((name: string | null) => {
     const safeName = name?.trim() || null
@@ -148,119 +141,94 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  /* ── Core auth loader ─────────────────────────────────
-   * This is extracted so it can be called:
-   *  1. On initial mount
-   *  2. After callback sets the cookie
-   *  3. After Outseta widget login
-   *  4. Exposed as refreshAuth() for any component that needs it
-   * ──────────────────────────────────────────────────── */
-  const loadUser = useCallback(async (opts?: { retry?: boolean }) => {
-    try {
-      const res = await fetch('/api/auth/session')
+  // Load auth state from server session
+  useEffect(() => {
+    let cancelled = false
 
-      if (res.ok) {
-        const data = await res.json()
+    const loadUser = async () => {
+      try {
+        const res = await fetch('/api/auth/session')
 
-        if (data.user) {
-          setUser(data.user)
-          setPlanUid(data.user['outseta:planUid'] ?? null)
-          setAccessToken(null) // httpOnly cookie manages the token
-          setIsAuthenticated(true)
+        if (cancelled) return
 
-          // Derive display name if missing
-          try {
-            const cachedName = window.localStorage.getItem('profileDisplayName')
-            if (!cachedName) {
+        if (res.ok) {
+          const data = await res.json()
+
+          if (data.user) {
+            setUser(data.user)
+            setPlanUid(data.user['outseta:planUid'] ?? null)
+            setIsAuthenticated(true)
+
+            // Derive display name if missing
+            try {
+              const cachedName = window.localStorage.getItem('profileDisplayName')
+              if (!cachedName) {
+                persistProfileDisplayName(deriveDisplayName(data.user))
+              }
+            } catch {
               persistProfileDisplayName(deriveDisplayName(data.user))
             }
-          } catch {
-            persistProfileDisplayName(deriveDisplayName(data.user))
+          } else {
+            // 401/403 or just null user
+            setUser(null)
+            setPlanUid(null)
+            setIsAuthenticated(false)
           }
-          return true
+        } else {
+          setUser(null)
+          setPlanUid(null)
+          setIsAuthenticated(false)
         }
-      }
-
-      // If we're retrying (e.g. right after login redirect), give the cookie
-      // a moment to settle and try once more before giving up
-      if (opts?.retry) {
-        await new Promise((r) => setTimeout(r, 600))
-        const retryRes = await fetch('/api/auth/session')
-        if (retryRes.ok) {
-          const retryData = await retryRes.json()
-          if (retryData.user) {
-            setUser(retryData.user)
-            setPlanUid(retryData.user['outseta:planUid'] ?? null)
-            setAccessToken(null)
-            setIsAuthenticated(true)
-            persistProfileDisplayName(deriveDisplayName(retryData.user))
-            return true
-          }
+      } catch (error) {
+        console.error('Error loading session', error)
+        if (!cancelled) {
+          setUser(null)
+          setPlanUid(null)
+          setIsAuthenticated(false)
         }
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
+    }
 
-      // No valid session
-      setUser(null)
-      setPlanUid(null)
-      setIsAuthenticated(false)
-      return false
-    } catch (error) {
-      console.error('Error loading session', error)
-      setUser(null)
-      setPlanUid(null)
-      setIsAuthenticated(false)
-      return false
+    loadUser()
+
+    return () => {
+      cancelled = true
     }
   }, [persistProfileDisplayName])
 
-  // Initial auth load on mount
-  useEffect(() => {
-    if (hasInitialized.current) return
-    hasInitialized.current = true
-
-    const init = async () => {
-      // Check if we just came from a login redirect (callback page sets this)
-      const justLoggedIn = typeof window !== 'undefined' &&
-        (window.location.search.includes('access_token') ||
-          sessionStorage.getItem('outseta_just_logged_in') === '1')
-
-      await loadUser({ retry: justLoggedIn })
-
-      // Clean up the signal
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('outseta_just_logged_in')
-      }
-
-      setIsLoading(false)
-    }
-
-    init()
-  }, [loadUser])
-
-  // Handle access_token in URL (Outseta redirect flow on non-callback pages)
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!pathname || pathname.startsWith('/auth/callback')) return
 
     const url = new URL(window.location.href)
-    const token = url.searchParams.get('access_token')
+    const accessToken = url.searchParams.get('access_token')
 
-    if (!token) return
+    if (!accessToken) return
 
     const syncSession = async () => {
       try {
         const response = await fetch('/api/auth/session', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: token }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ accessToken }),
         })
 
-        if (response.ok) {
-          if (window.Outseta?.setAccessToken) {
-            window.Outseta.setAccessToken(token)
+        if (response.ok && window.Outseta?.setAccessToken) {
+          window.Outseta.setAccessToken(accessToken)
+          // Immediately reload user state to reflect the new session
+          const res = await fetch('/api/auth/session')
+          if (res.ok) {
+            const data = await res.json()
+            if (data.user) {
+              setUser(data.user)
+              setPlanUid(data.user['outseta:planUid'] ?? null)
+              setIsAuthenticated(true)
+            }
           }
-          // Reload user state now that cookie is set
-          await loadUser({ retry: true })
         }
       } catch (error) {
         console.error('Error syncing session token', error)
@@ -273,73 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     void syncSession()
-  }, [pathname, loadUser])
-
-  /* ── Outseta widget event listener ────────────────────
-   * When a user logs in via the Outseta popup (not the callback page),
-   * Outseta fires a custom event. We listen for it and sync the session.
-   * This eliminates the "have to refresh" problem for popup-based logins.
-   * ──────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const handleOutsetaAuth = async () => {
-      // Small delay — Outseta needs a tick to update its internal state
-      await new Promise((r) => setTimeout(r, 300))
-
-      const token = window.Outseta?.getAccessToken?.()
-      if (!token) return
-
-      try {
-        const res = await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken: token }),
-        })
-        if (res.ok) {
-          await loadUser({ retry: true })
-        }
-      } catch (err) {
-        console.error('Error syncing Outseta widget login', err)
-      }
-    }
-
-    // Outseta fires 'o-authenticated' when login/signup completes in the widget
-    window.addEventListener('o-authenticated', handleOutsetaAuth)
-
-    // Also handle the case where Outseta already has a token on page load
-    // (e.g. returning user with tokenStorage: 'local') but our httpOnly cookie is missing
-    const checkExistingOutsetaToken = async () => {
-      // Wait for Outseta to initialize
-      await new Promise((r) => setTimeout(r, 1500))
-
-      if (!isAuthenticated && window.Outseta?.getAccessToken) {
-        const existingToken = window.Outseta.getAccessToken()
-        if (existingToken) {
-          console.log('[Auth] Found existing Outseta token, syncing session...')
-          try {
-            const res = await fetch('/api/auth/session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ accessToken: existingToken }),
-            })
-            if (res.ok) {
-              await loadUser({ retry: true })
-            }
-          } catch (err) {
-            console.error('Error syncing existing Outseta token', err)
-          }
-        }
-      }
-    }
-
-    checkExistingOutsetaToken()
-
-    return () => {
-      window.removeEventListener('o-authenticated', handleOutsetaAuth)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadUser])
+  }, [pathname])
 
   const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
@@ -367,7 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (!res.ok) {
-        // Fall back to derived name if Supabase doesn't have one yet
+        // Fall back to derived name if Supabase doesn’t have one yet
         persistProfileDisplayName(deriveDisplayName(user))
         return
       }
@@ -402,6 +304,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
+
+    // Removed Directory-only restriction as Starter plan now includes more features
+    // if (planUid === DIRECTORY_ONLY_PLAN_UID) {
+    //   return feature === 'directory_access'
+    // }
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     // Default to "deny" for unknown features so new feature flags are opt-in secure
@@ -458,17 +365,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (Outseta?.setAccessToken) {
           Outseta.setAccessToken(null)
         }
-        // Clear cached profile data
-        localStorage.removeItem('profileDisplayName')
-        localStorage.removeItem('profileAvatarUrl')
       }
 
       setUser(null)
       setPlanUid(null)
       setAccessToken(null)
       setIsAuthenticated(false)
-      setProfileDisplayName(null)
-      setProfileAvatarUrl(null)
     } catch (error) {
       console.error('Error during logout', error)
     }
@@ -488,7 +390,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
-    refreshAuth: () => loadUser({ retry: true }).then(() => { }),
     refreshProfileDisplayName: fetchProfileDisplayName,
     updateProfileDisplayName: (name: string | null) =>
       persistProfileDisplayName(name || null),
