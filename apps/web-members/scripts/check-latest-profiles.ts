@@ -19,9 +19,10 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 async function run() {
     const { data, error } = await supabase
         .from('profiles')
-        .select('email, ac_contact_id, ac_customer_id, plan_name, subscription_tier, created_at, outseta_updated_at, outseta_account_id, outseta_person_uid, plan_uid, subscription_status')
+        .select('email, ac_contact_id, ac_customer_id, plan_name, subscription_tier, created_at, outseta_updated_at, outseta_account_id, outseta_person_uid, plan_uid, subscription_status, outseta_data, subscription_start_date, subscription_end_date')
+        .eq('email', 'autumn.s.williams+acsynctest@gmail.com')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(1);
 
     if (error) {
         console.error('Error:', error);

@@ -118,7 +118,7 @@ export async function GET() {
           trust_score_breakdown: null,
           background_check_status: 'not_started',
           training_modules_completed: 0,
-          training_modules_total: 5,
+          training_modules_total: 8,
           inspections_completed: 0,
           email_verified: true,
           phone_verified: false,

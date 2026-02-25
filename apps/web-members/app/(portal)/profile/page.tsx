@@ -183,8 +183,8 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
   return (
     <div className="space-y-3">
       {items.map(item => {
-        const value = breakdown[item.key as keyof typeof breakdown] 
-          || (item.altKey ? breakdown[item.altKey as keyof typeof breakdown] : 0) 
+        const value = breakdown[item.key as keyof typeof breakdown]
+          || (item.altKey ? breakdown[item.altKey as keyof typeof breakdown] : 0)
           || 0
         const pct = (value / item.max) * 100
         const Icon = item.icon
@@ -823,8 +823,8 @@ export default function ProfilePage() {
                         type="button"
                         onClick={() => toggleServiceArea(service)}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${formData.service_areas.includes(service)
-                            ? 'bg-brand-copper text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? 'bg-brand-copper text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                       >
                         {service}
@@ -883,14 +883,14 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">Modules completed</span>
                   <span className="font-semibold text-slate-900">
-                    {profile?.training_modules_completed || 0} / {profile?.training_modules_total || 5}
+                    {profile?.training_modules_completed || 0} / {profile?.training_modules_total || 8}
                   </span>
                 </div>
                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-brand-copper to-brand-teal transition-all"
                     style={{
-                      width: `${((profile?.training_modules_completed || 0) / (profile?.training_modules_total || 5)) * 100}%`
+                      width: `${((profile?.training_modules_completed || 0) / (profile?.training_modules_total || 8)) * 100}%`
                     }}
                   />
                 </div>
