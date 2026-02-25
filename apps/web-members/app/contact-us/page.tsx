@@ -66,10 +66,10 @@ export default function ContactPage() {
             <div className="rounded-3xl border border-brand-copper/20 bg-brand-mist p-6">
               <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Plan-aware support</p>
               <p className="mt-2 text-sm text-slate-700">
-                Starter members can use the form below for general questions. Pro receives faster routing in the queue, while Elite and Agency unlock concierge handling with tailored next steps based on your region.
+                Free members can use the form below for general questions. Pro receives faster routing in the queue, while Elite and Agency unlock concierge handling with tailored next steps based on your region.
               </p>
               <div className="mt-4 grid gap-2 text-xs text-brand-dark sm:grid-cols-3">
-                <span className="rounded-full bg-white px-3 py-1 font-semibold">Starter &middot; 1-2 business days</span>
+                <span className="rounded-full bg-white px-3 py-1 font-semibold">Free &middot; 1-2 business days</span>
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Pro &middot; priority queue</span>
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Elite/Agency &middot; concierge routing</span>
               </div>

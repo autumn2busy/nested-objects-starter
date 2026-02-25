@@ -234,7 +234,7 @@ function FilterBar({
 
             {isFree ? (
                 <FieldHelperText className="mt-3 text-amber-800">
-                    {!isAuthenticated ? 'Log in' : 'Upgrade to Starter or higher'} to unlock all filters and search the full directory.{' '}
+                    {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock all filters and search the full directory.{' '}
                     <Link href="/membership-pricing" className="font-semibold text-amber-900 underline">
                         View plans
                     </Link>
@@ -588,7 +588,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                     <p className="mt-1 text-xs">
                         {isGuest
                             ? 'Log in to view hiring firms. Full directory access is available on paid tiers.'
-                            : 'You are viewing a small sample of firms that match your filter. Upgrade to Starter or higher to unlock the full directory and deeper intel.'}
+                            : 'You are viewing a small sample of firms that match your filter. Upgrade to Pro or higher to unlock the full directory and deeper intel.'}
                     </p>
                     <div className="flex flex-wrap gap-3">
                         {!isAuthenticated ? (

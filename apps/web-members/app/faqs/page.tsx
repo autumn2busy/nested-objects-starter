@@ -105,7 +105,7 @@ export default function FAQsPage() {
               <div className="mt-4 space-y-2 text-sm text-brand-mist">
                 <p className="font-semibold text-brand-copper">Response expectations</p>
                 <ul className="space-y-1">
-                  <li>Starter: 1-2 business days</li>
+                  <li>Free: 1-2 business days</li>
                   <li>Pro: Priority queue</li>
                   <li>Elite/Agency: Concierge handling with next best actions</li>
                 </ul>

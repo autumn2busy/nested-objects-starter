@@ -57,10 +57,12 @@ export const membershipPlans: MembershipPlan[] = [
     period: 'month',
     headline: 'Full hub access. Full AI tools.',
     description:
-      'This is the working pro toolkit. You get the full directory, the full training library, and full access to AI tools that save time every week.',
+      'The working pro toolkit. Full directory, full training library, and full access to AI tools that save you time every week.',
     highlight: true,
     features: [
-      'Everything in Starter',
+      'Full firm directory access — all listings, all states',
+      'Full training library and course access',
+      'Resources, readiness guides, and starter kits',
       'Full AI Concierge access',
       'Full AI Resume Builder access',
       'Job tracking tools',

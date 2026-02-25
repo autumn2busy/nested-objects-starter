@@ -225,7 +225,7 @@ export default function GigWorkerRolePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-copper">Membership</p>
               <h2 className="text-2xl font-bold sm:text-3xl">Join the gig worker hub for calm routes</h2>
               <p className="text-base text-slate-200">
-                Start with Starter to browse firms and safety notes, then upgrade inside the hub for route planning and concierge
+                Start with Free to browse firms and safety notes, then upgrade inside the hub for route planning and concierge
                 scripts while you are on the road.
               </p>
               <div className="flex flex-wrap gap-3">

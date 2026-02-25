@@ -137,7 +137,7 @@ export default function HomePage() {
                 href="/membership-pricing"
                 className="inline-flex items-center justify-center rounded-full border border-brand-copper/30 bg-brand-mist px-4 py-2 text-xs font-semibold text-brand-dark hover:bg-white"
               >
-                Compare Starter vs Pro →
+                Compare Free vs Pro →
               </Link>
             </div>
 
@@ -149,7 +149,7 @@ export default function HomePage() {
                   resumes uploaded. you control who sees your info.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                  Included with Starter
+                  Included with Free
                 </p>
                 <Link
                   href="/hiring-firms"
@@ -372,7 +372,7 @@ export default function HomePage() {
                   Just getting started.
                 </h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  Use the free Starter plan to explore firms, learn the language, and decide which
+                  Use the Free plan to explore firms, learn the language, and decide which
                   lanes make sense for your life, car, and schedule.
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-slate-700">
@@ -384,7 +384,7 @@ export default function HomePage() {
                   href="/membership-pricing"
                   className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
-                  Start on Starter (free) →
+                  Start Free →
                 </Link>
               </div>
 
@@ -440,7 +440,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="mt-3 text-xs text-slate-400">
-              Starter is free. upgrade to Pro or higher only when the hub proves its value on your
+              Free plan available. Upgrade to Pro or higher only when the hub proves its value on your
               routes.
             </p>
           </div>

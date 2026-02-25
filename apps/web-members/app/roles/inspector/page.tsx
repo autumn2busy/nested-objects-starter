@@ -231,7 +231,7 @@ export default function InspectorRolePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-copper">Ready to get started?</p>
               <h2 className="text-2xl font-bold sm:text-3xl">Join the inspector hub and keep routes calm</h2>
               <p className="text-base text-slate-200">
-                Start with a Starter plan to explore the directory, then upgrade inside the hub when you are ready for pro intel
+                Start with the Free plan to explore the directory, then upgrade inside the hub when you are ready for pro intel
                 and routing support.
               </p>
               <div className="flex flex-wrap gap-3">

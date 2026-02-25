@@ -11,7 +11,7 @@ interface FirmGatedContentProps {
  * Glassdoor-style: public visitors see firm name/description/categories,
  * but must sign up to access pay data, requirements, reputation, and contact info.
  *
- * Uses `directory_access` feature which maps to Starter+ plans.
+ * Uses `directory_access` feature which maps to paid plans (Pro+, Founders, and legacy Starter).
  */
 export function FirmGatedContent({ children }: FirmGatedContentProps) {
     return (
