@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "seek-now",
+    "name": "Seek Now",
+    "url": "https://seeknow.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Inspectors report high income potential and consistent weekly pay, particularly for those willing to travel, though contract workers must cover all their own expenses and equipment costs.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "frrsc-llc",
+    "name": "F.R.R.S.C LLC",
+    "url": "https://frontrangeroofingsc.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report fair pay and flexible scheduling, but note variability in job availability and communication with management.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "roadie",
+    "name": "Roadie",
+    "url": "https://www.roadie.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Delivery drivers appreciate the transparency of the app and the flexibility to pick up gigs on the go, despite common complaints regarding low pay relative to driving distance and vehicle wear.",
+    "pay_min": "10.0"
+  },
+  {
+    "slug": "first-allegiance",
+    "name": "First Allegiance",
+    "url": "https://www.firstallegiance.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the firm's efficient technology platform and reliable payment processing, but note that the volume of work can be inconsistent at times.",
+    "pay_min": "20"
+  },
+  {
+    "slug": "osp-inspectors-inc",
+    "name": "OSP Inspectors Inc.",
+    "url": "https://ospinspectorsinc.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise OSP Inspectors Inc. for their clear communication and timely payment processing.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "ecs-ltd-engineering-consulting-services",
+    "name": "ECS Ltd (Engineering Consulting Services)",
+    "url": "https://www.ecslimited.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "ECS Ltd has a reputation for providing clear inspection guidelines and timely payments to contractors.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "twining",
+    "name": "Twining",
+    "url": "https://www.twininginc.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Twining for their organized and efficient workflow, but note that pay can be on the lower end for more complex inspections.",
+    "pay_min": "50"
+  },
+  {
+    "slug": "wsp-usa-inspection-services",
+    "name": "WSP USA Inspection Services",
+    "url": "https://www.wspinspectionservices.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise WSP USA Inspection Services for reliable payment and responsive communication, but note varying inspection volumes and occasional delays in assignment notifications.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "amazon-flex",
+    "name": "Amazon Flex",
+    "url": "https://flex.amazon.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Drivers highly value the flexibility to choose their own work blocks and be their own boss, though many report that securing enough routes can be a competitive and time-consuming process.",
+    "pay_min": "18.0"
+  },
+  {
+    "slug": "fgi-services",
+    "name": "FGI Services",
+    "url": "https://fgiservices.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report positive experiences with FGI Services, citing reliable payment and flexible scheduling.",
+    "pay_min": "25"
+  }
+]
