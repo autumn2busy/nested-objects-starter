@@ -51,41 +51,45 @@ const deriveDisplayName = (payload: JwtPayload | null): string | null => {
 }
 
 // Plan ordering. Starter < Directory pass < Pro < Elite < Agency
-const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
+// Plan ranking: index determines feature access level.
+// Founders (pWrBRnWn) is a hidden legacy plan at the same level as Starter.
+// We include both so the Gate component resolves access correctly for either UID.
+const PLAN_ORDER = ['L9nbKV9Z', 'zWZD0rQp', 'pWrBRnWn', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g'] as const
 type PlanUid = (typeof PLAN_ORDER)[number]
 
-const DIRECTORY_ONLY_PLAN_UID = 'zWZD0rQp'
-
-// Minimum plan required for each feature
+// Minimum plan required for each feature.
+// With Starter dropped from the public pricing page, the effective public tiers are:
+//   Free (L9nbKV9Z) → Pro (rQVqlLm6) → Elite (NmdnNO90) → Agency (rmk5Xk9g)
+// Founders (pWrBRnWn) and Starter (zWZD0rQp) remain valid for legacy/imported members.
 const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
-  // Core app
-  directory_access: 'L9nbKV9Z',   // Starter+
-  job_board: 'L9nbKV9Z',          // Starter+, with limits by plan later
+  // Core app — Free+
+  directory_access: 'L9nbKV9Z',
+  job_board: 'L9nbKV9Z',
 
-  // Training
-  basic_training: 'zWZD0rQp',     // Directory+ (Was Starter+)
+  // Training — Starter/Founders+ (legacy paid)
+  basic_training: 'zWZD0rQp',
   advanced_training: 'NmdnNO90',  // Elite+
-  training_safety: 'L9nbKV9Z',    // Starter+ (Safety guides)
+  training_safety: 'L9nbKV9Z',    // Free+ (safety guides)
 
-  // Tools
+  // Tools — varies
   ai_concierge: 'rQVqlLm6',       // Pro+
   firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'L9nbKV9Z',       // Starter+
-  job_tracker: 'L9nbKV9Z',        // Starter+
+  job_tracking: 'L9nbKV9Z',       // Free+
+  job_tracker: 'L9nbKV9Z',        // Free+
   job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Starter+
-  ai_resume: 'zWZD0rQp',          // Starter+
-  readiness_guides: 'L9nbKV9Z',   // Starter+ (Checklists)
-  tools_templates: 'rQVqlLm6',    // Pro+ (AI prompts, etc)
+  weather_tool: 'L9nbKV9Z',       // Free+
+  ai_resume: 'zWZD0rQp',          // Starter/Founders+ (limited)
+  readiness_guides: 'L9nbKV9Z',   // Free+
+  tools_templates: 'rQVqlLm6',    // Pro+
 
   // Monetization / partners
-  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees, sponsors pay
+  sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees
   partner_portal: 'rmk5Xk9g',          // Agency only
-  elite_autoassign: 'NmdnNO90',        // Elite vetted pool
+  elite_autoassign: 'NmdnNO90',        // Elite+
 
-  // API style auto assign for vendor feeds like WeGoLook
-  autoassign_api: 'NmdnNO90',          // Elite (supply side)
-  agency_directory: 'rmk5Xk9g',        // Agency facing view
+  // API / vendor feeds
+  autoassign_api: 'NmdnNO90',          // Elite+
+  agency_directory: 'rmk5Xk9g',        // Agency only
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

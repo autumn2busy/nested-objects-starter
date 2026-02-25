@@ -85,7 +85,7 @@ export interface ProfileUpdateData {
   full_name: string | null;
   display_name: string | null;
   phone: string | null;
-  subscription_tier: 'free' | 'pro' | 'elite' | 'agency';
+  subscription_tier: 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency';
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
   subscription_start_date: string | null;
   subscription_end_date: string | null;
@@ -143,6 +143,8 @@ function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'
   if (normalized.includes('agency')) return 'agency';
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
+  if (normalized.includes('founder')) return 'founders';
+  if (normalized.includes('starter') || normalized.includes('directory')) return 'starter';
   return 'free';
 }
 

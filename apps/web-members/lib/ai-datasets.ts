@@ -39,6 +39,7 @@ export const membershipPlans: MembershipPlan[] = [
     description:
       'Built for inspectors who want the directory and the core training, with limited AI help for quick answers and resume support.',
     highlight: false,
+    hidden: true, // Legacy plan — no longer shown on pricing page
     features: [
       'Full directory access',
       'Full training portal access',
@@ -110,15 +111,19 @@ export const membershipPlans: MembershipPlan[] = [
     planUid: PLAN_UIDS.FOUNDERS,
     price: '$37',
     period: 'year',
-    headline: 'Legacy Access',
-    description: 'Grandfathered plan for early members.',
+    headline: 'Founding Member — Locked In for Life',
+    description: 'Early adopter plan honoring the original $37/year pricing. Includes everything promised at signup.',
     highlight: false,
     hidden: true,
     features: [
-      'Full directory access',
+      'Full directory access (200+ verified firms)',
       'Full training portal access',
-      'Limited AI Concierge usage',
-      'Limited AI Resume Builder usage',
+      'AI Resume Builder access',
+      'Live job board access',
+      'Resources, templates, and guides',
+      'Priority support',
+      'Founding Member badge',
+      '$37/year pricing locked for life',
     ],
   },
 ]
