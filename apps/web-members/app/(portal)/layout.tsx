@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "@/components/Sidebar";
+import { ContentProtection } from "@/components/ContentProtection";
 
 export default function PortalLayout({
     children,
@@ -9,6 +10,7 @@ export default function PortalLayout({
 }) {
     return (
         <div className="flex min-h-screen">
+            <ContentProtection />
             <div className="hidden md:block w-64 flex-shrink-0">
                 <Sidebar />
             </div>

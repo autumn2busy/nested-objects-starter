@@ -451,7 +451,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     ].filter(Boolean).length
 
     return (
-        <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 no-select no-drag">
             <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">

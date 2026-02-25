@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
+import { TestimonialsSection } from '@/components/TestimonialsSection'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -410,6 +411,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── Member testimonials ──────────────────────────── */}
+        <TestimonialsSection variant="full" />
 
         {/* Final CTA banner */}
         <section className="bg-brand-dark">

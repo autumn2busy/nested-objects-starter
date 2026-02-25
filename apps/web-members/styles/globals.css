@@ -64,3 +64,42 @@ a {
     transform: rotateY(180deg);
   }
 }
+
+/* ================================================
+   Directory content protection
+   Prevents printing, screenshots via print, and
+   makes casual copy-paste harder on protected pages.
+   ================================================ */
+
+/* Hide directory content when printing */
+@media print {
+  /* Hide the entire page content when printing */
+  body {
+    visibility: hidden !important;
+  }
+  body::after {
+    visibility: visible;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    content: "Printing is disabled. Directory content is for members only.";
+    font-size: 24px;
+    color: #64748b;
+    text-align: center;
+  }
+}
+
+/* Disable text selection on protected content */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Disable drag on protected content */
+.no-drag {
+  -webkit-user-drag: none;
+  user-drag: none;
+}

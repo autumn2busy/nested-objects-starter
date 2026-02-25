@@ -4,8 +4,8 @@ import { PLAN_UIDS } from './auth-server'
 // Quota limits per month
 export const AI_QUOTAS = {
     STARTER: {
-        CONCIERGE: 25,
-        RESUME: 3,
+        CONCIERGE: 50,
+        RESUME: 10,
     },
 } as const
 

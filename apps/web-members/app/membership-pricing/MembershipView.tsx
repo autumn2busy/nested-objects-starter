@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
+import { TestimonialsSection } from '@/components/TestimonialsSection'
 
 function MembershipContent() {
     const { isAuthenticated, planUid } = useAuth()
@@ -304,6 +305,9 @@ function MembershipContent() {
                     Founders plan is available for legacy members during migration.
                 </p>
             </section>
+
+            {/* ── Social proof ────────────────────────────────── */}
+            <TestimonialsSection variant="full" />
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
                 <Suspense>

@@ -141,6 +141,8 @@ export async function POST(request: Request) {
                 quiz_score,
                 quiz_passed,
                 updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'user_id, module_id, lesson_id, resource_type' // Need explicitly granular key
             })
 
         if (progressError) {
