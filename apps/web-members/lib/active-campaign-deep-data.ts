@@ -179,19 +179,57 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 }
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
-    // 1. Plan tier tag
+    // 1. Determine correct tags
     const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
-    const tierTag = `plan-${tagTier}`;
-    await addTagToContact(contactId, tierTag, logs);
+    const expectedTierTag = `plan-${tagTier}`;
+    const expectedStatusTag = profile.subscription_status ? `status-${profile.subscription_status}` : null;
 
-    // 2. Generic tags
+    // 2. Fetch existing contact tags to remove conflicts
+    try {
+        const getUrl = `${AC_API_URL}/api/3/contacts/${contactId}/contactTags?include=tag`;
+        const res = await fetch(getUrl, {
+            headers: { 'Api-Token': AC_API_KEY! }
+        });
+        const data = await res.json();
+        if (data.contactTags && data.tags) {
+            // Create map of tag ID to tag name
+            const tagsMap = new Map<string, string>();
+            for (const t of data.tags) {
+                tagsMap.set(t.id, t.tag);
+            }
+
+            // Loop associations
+            for (const ct of data.contactTags) {
+                const tagName = tagsMap.get(ct.tag);
+                if (!tagName) continue;
+
+                const nameLower = tagName.toLowerCase();
+
+                // If it's a plan tag but not the expected one, remove it
+                if (nameLower.startsWith('plan-') && nameLower !== expectedTierTag.toLowerCase()) {
+                    await removeTagFromContact(ct.id, tagName, logs);
+                }
+
+                // If it's a status tag but not the expected one, remove it
+                if (nameLower.startsWith('status-') && expectedStatusTag && nameLower !== expectedStatusTag.toLowerCase()) {
+                    await removeTagFromContact(ct.id, tagName, logs);
+                }
+            }
+        }
+    } catch (e) {
+        logs.push(`[Tag Cleanup] Error fetching existing tags: ${e}`);
+    }
+
+    // 3. Add expected tags
+    await addTagToContact(contactId, expectedTierTag, logs);
+
+    if (expectedStatusTag) {
+        await addTagToContact(contactId, expectedStatusTag, logs);
+    }
+
+    // 4. Generic tags
     await addTagToContact(contactId, 'antigravity-subscription', logs);
     await addTagToContact(contactId, 'launch-2026-03-01', logs);
-
-    // 3. Status tag
-    if (profile.subscription_status) {
-        await addTagToContact(contactId, `status-${profile.subscription_status}`, logs);
-    }
 
     // 4. Source tag (if available from Outseta referer)
     // Outseta passes IPAddress and Referer in Person payload
@@ -265,13 +303,31 @@ async function addTagToContact(contactId: string, tagName: string, logs: string[
             const errData = await assocRes.json().catch(() => ({}));
             // 422 often means tag already applied — not an error
             if (assocRes.status === 422) {
-                logs.push(`[Tag] '${tagName}' already on contact`);
+                // Not logging already-applied.
             } else {
                 logs.push(`[Tag] Failed to add '${tagName}': ${assocRes.status} ${JSON.stringify(errData)}`);
             }
         }
     } catch (e) {
         logs.push(`[Tag] Error adding '${tagName}': ${e}`);
+    }
+}
+
+async function removeTagFromContact(contactTagId: string, tagName: string, logs: string[]) {
+    try {
+        const url = `${AC_API_URL}/api/3/contactTags/${contactTagId}`;
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Api-Token': AC_API_KEY! }
+        });
+
+        if (res.ok) {
+            logs.push(`[Tag] Removed conflicting tag '${tagName}' (Assoc ID: ${contactTagId})`);
+        } else {
+            logs.push(`[Tag] Failed to remove '${tagName}': Status ${res.status}`);
+        }
+    } catch (e) {
+        logs.push(`[Tag] Error removing '${tagName}': ${e}`);
     }
 }
 
@@ -384,6 +440,17 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
 
     const planName = profile.plan_name || 'Membership';
 
+    // Fallbacks to avoid GraphQL crashing over null required dates
+    const safeStartDate = profile.subscription_start_date || new Date().toISOString();
+
+    let safeEndDate = profile.subscription_end_date;
+    if (!safeEndDate) {
+        // Assume 1 month if Outseta was completely missing RenewalDate
+        const d = new Date(safeStartDate);
+        d.setMonth(d.getMonth() + 1);
+        safeEndDate = d.toISOString();
+    }
+
     const variables = {
         recurringPayments: [{
             legacyConnectionId: parseInt(AC_CONNECTION_ID!, 10),
@@ -398,8 +465,8 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
             billingIntervalCount: profile.billing_renewal_term || 1,
             paymentAmount: amount,
             currency: 'USD',
-            startDate: profile.subscription_start_date,
-            nextPaymentDate: profile.subscription_end_date,
+            startDate: safeStartDate,
+            nextPaymentDate: safeEndDate,
             lineItemNames: [planName],
             lineItemStorePrimaryIds: [profile.plan_uid],
         }]
