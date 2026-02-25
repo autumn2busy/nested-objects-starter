@@ -42,16 +42,6 @@ const RATING_OPTIONS = [
     { value: '2', label: '2+ Stars' },
 ] as const
 
-const SOURCE_OPTIONS = [
-    { value: 'ALL', label: 'All Settings' },
-    { value: 'Field Operations', label: 'Field Operations' },
-    { value: 'Remote/Desk', label: 'Remote / Desk' },
-    { value: 'Field + Desk', label: 'Field + Desk' },
-    { value: 'Field + Drone', label: 'Field + Drone' },
-    { value: 'On-Site + Remote', label: 'On-Site + Remote' },
-    { value: 'Drive-by only', label: 'Drive-by only' },
-] as const
-
 // ─── Types ──────────────────────────────────────────────────────
 
 export type Firm = {
@@ -78,11 +68,6 @@ export type Firm = {
     address: string | null
     latitude: number | null
     longitude: number | null
-    source: string | null
-    compensation_structure: string | null
-    client_reviews: string | null
-    description: string | null
-    services: string | null
 }
 
 // ─── Filter Bar ─────────────────────────────────────────────────
@@ -92,14 +77,12 @@ type FilterBarProps = {
     search: string
     ratingFilter: string
     industryFilter: string
-    sourceFilter: string
     isFree: boolean
     isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
     onRatingChange: (value: string) => void
     onIndustryChange: (value: string) => void
-    onSourceChange: (value: string) => void
 }
 
 function FilterBar({
@@ -107,14 +90,12 @@ function FilterBar({
     search,
     ratingFilter,
     industryFilter,
-    sourceFilter,
     isFree,
     isAuthenticated,
     onSearchChange,
     onStateChange,
     onRatingChange,
     onIndustryChange,
-    onSourceChange,
 }: FilterBarProps) {
     return (
         <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
@@ -166,8 +147,8 @@ function FilterBar({
                 </div>
             </div>
 
-            {/* Row 2: Rating + Industry + Source */}
-            <div className="mt-4 grid gap-4 md:grid-cols-3 md:items-end">
+            {/* Row 2: Rating + Industry */}
+            <div className="mt-4 grid gap-4 md:grid-cols-2 md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="rating-filter">MINIMUM RATING</FieldLabel>
                     {isFree ? (
@@ -202,27 +183,6 @@ function FilterBar({
                             onChange={(e) => onIndustryChange(e.target.value)}
                         >
                             {INDUSTRY_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </Select>
-                    )}
-                </div>
-
-                <div className="space-y-1">
-                    <FieldLabel htmlFor="source-filter">WORK SETTING</FieldLabel>
-                    {isFree ? (
-                        <Select disabled value="ALL">
-                            <option value="ALL">All Settings (Upgrade to filter)</option>
-                        </Select>
-                    ) : (
-                        <Select
-                            id="source-filter"
-                            value={sourceFilter}
-                            onChange={(e) => onSourceChange(e.target.value)}
-                        >
-                            {SOURCE_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </option>
@@ -270,8 +230,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
             : firm.pay_type || 'Shared with members inside the hub'
 
     const serviceRegion = firm.geographic_coverage || 'Service region not specified'
-    const compensationDetails = firm.compensation_structure || payText
-    const workSetting = firm.source || 'Work setting not specified'
 
     const contactMethod = (() => {
         if (firm.email) return `Email · ${firm.email}`
@@ -327,16 +285,6 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                 </div>
             </div>
 
-            <div className="mt-4 text-xs text-slate-700 line-clamp-3 leading-relaxed">
-                {firm.description || 'No description provided.'}
-            </div>
-
-            {firm.services && (
-                <div className="mt-2 text-xs font-medium text-slate-600">
-                    <span className="text-slate-400">Services:</span> {firm.services}
-                </div>
-            )}
-
             <div className="mt-4 grid grid-cols-2 gap-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
                 <div className="text-left">
                     <p className="text-slate-900">Service region</p>
@@ -346,27 +294,20 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                 </div>
 
                 <div className="text-right">
-                    <p className="text-slate-900">Work Setting</p>
-                    <p className="mt-0.5 text-xs normal-case text-slate-700 break-words">
-                        {workSetting}
-                    </p>
-                </div>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-                <p className="text-slate-900">Rating</p>
-                <div className="flex items-center justify-end">
-                    <StarRating
-                        rating={Number(firm.contractor_rating) || 0}
-                        count={firm.rating_count ?? undefined}
-                        showCount={!!firm.rating_count}
-                        className={firm.contractor_rating ? "" : "opacity-60 grayscale"}
-                    />
-                    {firm.contractor_rating && !firm.rating_count && (
-                        <span className="ml-1.5 text-xs text-slate-500 font-medium">
-                            {Number(firm.contractor_rating).toFixed(1)}
-                        </span>
-                    )}
+                    <p className="text-slate-900">Rating</p>
+                    <div className="mt-0.5 flex items-center justify-end">
+                        <StarRating
+                            rating={Number(firm.contractor_rating) || 0}
+                            count={firm.rating_count ?? undefined}
+                            showCount={!!firm.rating_count}
+                            className={firm.contractor_rating ? "" : "opacity-60 grayscale"}
+                        />
+                        {firm.contractor_rating && !firm.rating_count && (
+                            <span className="ml-1.5 text-xs text-slate-500 font-medium">
+                                {Number(firm.contractor_rating).toFixed(1)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -376,24 +317,14 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                         Compensation
                     </p>
                     <p className="break-words text-sm font-semibold text-emerald-800">{payText}</p>
-                    {firm.compensation_structure && (
-                        <p className="mt-1 text-xs font-normal normal-case text-slate-600 leading-snug line-clamp-2">
-                            {firm.compensation_structure}
-                        </p>
-                    )}
                 </div>
-                <div className="space-y-1 sm:text-right">
+                <div className="space-y-1">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
                         Primary contact
                     </p>
                     <p className="break-words text-sm font-semibold text-slate-900">
                         {contactMethod}
                     </p>
-                    {firm.client_reviews && (
-                        <div className="mt-2 text-xs font-normal normal-case italic text-slate-600 border-l-2 border-slate-200 pl-2 text-left line-clamp-2">
-                            &quot;{firm.client_reviews}&quot;
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -403,7 +334,7 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
             >
                 VIEW PROFILE
             </Link>
-        </article >
+        </article>
     )
 }
 
@@ -422,7 +353,6 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const [search, setSearch] = useState<string>('')
     const [ratingFilter, setRatingFilter] = useState<string>('ALL')
     const [industryFilter, setIndustryFilter] = useState<string>('ALL')
-    const [sourceFilter, setSourceFilter] = useState<string>('ALL')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -432,15 +362,13 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const urlSearch = searchParams?.get('search') ?? ''
     const urlRating = searchParams?.get('rating') ?? 'ALL'
     const urlIndustry = searchParams?.get('industry') ?? 'ALL'
-    const urlSource = searchParams?.get('source') ?? 'ALL'
 
     useEffect(() => {
         setStateFilter(urlStateFilter)
         setSearch(urlSearch)
         setRatingFilter(urlRating)
         setIndustryFilter(urlIndustry)
-        setSourceFilter(urlSource)
-    }, [urlSearch, urlStateFilter, urlRating, urlIndustry, urlSource])
+    }, [urlSearch, urlStateFilter, urlRating, urlIndustry])
 
     const isGuest = !isAuthenticated
     const isFree = planUid === 'L9nbKV9Z'
@@ -450,11 +378,11 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     useEffect(() => {
         if (!isLoading && isRestricted && (
             urlStateFilter !== 'ALL' || urlSearch.trim() !== '' ||
-            urlRating !== 'ALL' || urlIndustry !== 'ALL' || urlSource !== 'ALL'
+            urlRating !== 'ALL' || urlIndustry !== 'ALL'
         )) {
             router.replace('/hiring-firms')
         }
-    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, urlSource, router])
+    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, router])
 
     const isProOrHigher = !!planUid && !isRestricted
 
@@ -472,14 +400,12 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         const nextSearch = overrides.search ?? search
         const nextRating = overrides.rating ?? ratingFilter
         const nextIndustry = overrides.industry ?? industryFilter
-        const nextSource = overrides.source ?? sourceFilter
         const nextPage = overrides.page ?? '1'
 
         if (nextState && nextState !== 'ALL') params.set('state', nextState)
         if (nextSearch.trim()) params.set('search', nextSearch.trim())
         if (nextRating && nextRating !== 'ALL') params.set('rating', nextRating)
         if (nextIndustry && nextIndustry !== 'ALL') params.set('industry', nextIndustry)
-        if (nextSource && nextSource !== 'ALL') params.set('source', nextSource)
         params.set('page', nextPage)
         params.set('limit', String(limit))
 
@@ -490,7 +416,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const paginationHref = useMemo(() => {
         return (nextPage: number) => buildUrl({ page: String(nextPage) })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [limit, search, stateFilter, ratingFilter, industryFilter, sourceFilter, searchParams])
+    }, [limit, search, stateFilter, ratingFilter, industryFilter, searchParams])
 
     const handleStateChange = (value: string) => {
         setStateFilter(value)
@@ -512,11 +438,6 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         router.push(buildUrl({ industry: value }))
     }
 
-    const handleSourceChange = (value: string) => {
-        setSourceFilter(value)
-        router.push(buildUrl({ source: value }))
-    }
-
     const handlePageChange = (nextPage: number) => {
         router.push(paginationHref(nextPage))
     }
@@ -527,7 +448,6 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         search.trim() !== '',
         ratingFilter !== 'ALL',
         industryFilter !== 'ALL',
-        sourceFilter !== 'ALL',
     ].filter(Boolean).length
 
     return (
@@ -556,14 +476,12 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 search={search}
                 ratingFilter={ratingFilter}
                 industryFilter={industryFilter}
-                sourceFilter={sourceFilter}
                 isFree={isRestricted}
                 isAuthenticated={isAuthenticated}
                 onSearchChange={handleSearchChange}
                 onStateChange={handleStateChange}
                 onRatingChange={handleRatingChange}
                 onIndustryChange={handleIndustryChange}
-                onSourceChange={handleSourceChange}
             />
 
             {/* Active filters summary */}

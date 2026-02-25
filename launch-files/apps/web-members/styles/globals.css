@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --space-gutter: 1.25rem;
+  --space-card: 1.5rem;
+  --space-section: 3.5rem;
+
+  color: #343a40;
+  background-color: #f6f6f6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 20%, #ffffff 0, #ffffff 25%, #fafafa 45%, #f6f6f6 80%);
+    @apply bg-surface-subtle font-sans text-text-primary;
+    font-feature-settings: 'lnum' 1, 'tnum' 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: -0.01em;
+    @apply text-text-primary;
+  }
+
+  p {
+    @apply text-text-secondary;
+  }
+
+  ::selection {
+    background: rgba(42, 113, 102, 0.2);
+    color: #1f312f;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+/* ================================================
+   Directory content protection
+   Prevents printing, screenshots via print, and
+   makes casual copy-paste harder on protected pages.
+   ================================================ */
+
+/* Hide directory content when printing */
+@media print {
+  /* Hide the entire page content when printing */
+  body {
+    visibility: hidden !important;
+  }
+  body::after {
+    visibility: visible;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    content: "Printing is disabled. Directory content is for members only.";
+    font-size: 24px;
+    color: #64748b;
+    text-align: center;
+  }
+}
+
+/* Disable text selection on protected content */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Disable drag on protected content */
+.no-drag {
+  -webkit-user-drag: none;
+  user-drag: none;
+}

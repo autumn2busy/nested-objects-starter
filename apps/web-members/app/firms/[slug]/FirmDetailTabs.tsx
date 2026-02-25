@@ -87,6 +87,9 @@ export function FirmDetailTabs({
                         {firm.industry_focus && (
                             <InfoRow icon={Briefcase} label="Industry focus" value={firm.industry_focus} />
                         )}
+                        {firm.source && (
+                            <InfoRow icon={Building2} label="Work Setting" value={firm.source} />
+                        )}
                         {firm.company_type && (
                             <InfoRow icon={Building2} label="Company type" value={firm.company_type} />
                         )}

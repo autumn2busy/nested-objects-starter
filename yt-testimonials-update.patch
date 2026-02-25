@@ -1,0 +1,109 @@
+diff --git a/apps/web-members/lib/testimonials.ts b/apps/web-members/lib/testimonials.ts
+index 0d06a90..ccb0912 100644
+--- a/apps/web-members/lib/testimonials.ts
++++ b/apps/web-members/lib/testimonials.ts
+@@ -137,6 +137,104 @@ export const TESTIMONIALS: Testimonial[] = [
+     date: '2025-10-16',
+     featured: true,
+   },
++
++  // ── YouTube comments ───────────────────────────────────────────
++  {
++    id: 'yt-stm820',
++    name: '@Stm820',
++    quote:
++      'After watching the videos and reviewing your website I see that your platform is truly a level up. A new member to the community and will purchase the directory.',
++    role: 'New Member',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-09-24',
++    featured: true,
++  },
++  {
++    id: 'yt-stm820-thankyou',
++    name: '@Stm820',
++    quote:
++      'THANK YOU for all what you\'ve done and continue to do for this industry cause we know it\'s definitely NEEDED!',
++    role: 'Member',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-10-24',
++    featured: true,
++  },
++  {
++    id: 'yt-krich4251',
++    name: '@krich4251',
++    quote:
++      'New sub here. Love your content! I am a notary, and have been doing business and home inspections for about four years. This video nudged me to dust off my old Asteroom account and get busier.',
++    role: 'Notary & Inspector',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-09-24',
++    featured: true,
++  },
++  {
++    id: 'yt-ngripp2172',
++    name: '@ngripp2172',
++    quote:
++      'Very informative and correct. Your time and effort is HIGHLY respected.',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-07-24',
++    featured: false,
++  },
++  {
++    id: 'yt-ngripp2172-program',
++    name: '@ngripp2172',
++    quote:
++      'Digital is connected to everything now and going forward. Your program is exceptional.',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-07-24',
++    featured: true,
++  },
++  {
++    id: 'yt-dvdeeee',
++    name: '@DVDeeee',
++    quote:
++      'Purchasing my equipment this week and so excited to see where it takes me this year!',
++    role: 'New Inspector',
++    rating: 5,
++    source: 'youtube',
++    date: '2026-01-24',
++    featured: false,
++  },
++  {
++    id: 'yt-growcook',
++    name: '@GrowCookWithPnine',
++    quote:
++      'I have just started and so far I like it. I like your idea of branching out when Asteroom is slow.',
++    role: 'New Inspector',
++    location: 'Cincinnati, OH',
++    rating: 5,
++    source: 'youtube',
++    date: '2026-02-24',
++    featured: false,
++  },
++  {
++    id: 'yt-sajid',
++    name: '@sajidabbassi444',
++    quote:
++      'Thank you for sharing the information. It\'s really helpful. Good luck on your venture.',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-08-24',
++    featured: false,
++  },
++  {
++    id: 'yt-marieisventing',
++    name: '@MarieIsVenting',
++    quote:
++      'Thank you, this was very informative. I\'m in the process of getting on board with Asteroom.',
++    rating: 5,
++    source: 'youtube',
++    date: '2025-08-24',
++    featured: false,
++  },
+ ]
+ 
+ /** Get featured testimonials for homepage / pricing hero */

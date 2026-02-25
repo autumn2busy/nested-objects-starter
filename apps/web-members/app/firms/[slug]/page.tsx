@@ -61,6 +61,7 @@ export type FirmRow = {
   industry_recognition: string | null
   client_reviews: string | null
   founded: string | null
+  source: string | null
   social_links: string | null
   recruiter_contact: string | null
   latitude: number | null
@@ -104,8 +105,9 @@ async function getSimilarFirms(firm: FirmRow): Promise<FirmRow[]> {
 
 /* ── Metadata ──────────────────────────────────────────── */
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const firm = await getFirmBySlug(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const firm = await getFirmBySlug(slug)
   if (!firm) return {}
   const pay = formatPay(firm)
   const desc = firm.description
@@ -123,8 +125,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 /* ── Page ──────────────────────────────────────────────── */
 
-export default async function FirmDetailPage({ params }: { params: { slug: string } }) {
-  const firm = await getFirmBySlug(params.slug)
+export default async function FirmDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const firm = await getFirmBySlug(slug)
   if (!firm) notFound()
 
   const pay = formatPay(firm)

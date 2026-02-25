@@ -69,6 +69,12 @@ function buildIndustryOrFilter(industry: string) {
   return `industry_focus.ilike.*${q}*`
 }
 
+function buildSourceOrFilter(source: string) {
+  if (!source || source === 'ALL') return null
+  const q = sanitizeFilterValue(source)
+  return `source.ilike.*${q}*`
+}
+
 async function getFirms(
   page: number,
   limit: number,
@@ -76,6 +82,7 @@ async function getFirms(
   search: string,
   ratingMin: string,
   industry: string,
+  source: string,
 ): Promise<FirmResponse> {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return { firms: [], totalCount: 0 }
 
@@ -108,6 +115,11 @@ async function getFirms(
         'address',
         'latitude',
         'longitude',
+        'source',
+        'compensation_structure',
+        'client_reviews',
+        'description',
+        'services',
       ].join(','),
     )
     params.set('is_published', 'eq.true')
@@ -127,11 +139,13 @@ async function getFirms(
     const searchFilter = buildSearchOrFilter(search)
     const stateFilterValue = buildStateOrFilter(stateFilter)
     const industryFilter = buildIndustryOrFilter(industry)
+    const sourceFilter = buildSourceOrFilter(source)
 
     const andFilters: string[] = []
     if (stateFilterValue) andFilters.push(`or(${stateFilterValue})`)
     if (searchFilter) andFilters.push(`or(${searchFilter})`)
     if (industryFilter) andFilters.push(industryFilter)
+    if (sourceFilter) andFilters.push(sourceFilter)
 
     if (andFilters.length > 0) {
       params.set('and', `(${andFilters.join(',')})`)
@@ -166,24 +180,27 @@ async function getFirms(
 }
 
 type DirectoryPageProps = {
-  searchParams?: {
+  searchParams: Promise<{
     page?: string
     limit?: string
     state?: string
     search?: string
     rating?: string
     industry?: string
-  }
+    source?: string
+  }>
 }
 
 export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
-  const page = parsePositiveInt(searchParams?.page, DEFAULT_PAGE)
-  const limit = Math.min(parsePositiveInt(searchParams?.limit, DEFAULT_LIMIT), MAX_LIMIT)
-  const stateFilter = searchParams?.state ?? 'ALL'
-  const search = searchParams?.search ?? ''
-  const ratingMin = searchParams?.rating ?? 'ALL'
-  const industry = searchParams?.industry ?? 'ALL'
-  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry)
+  const params = await searchParams
+  const page = parsePositiveInt(params?.page, DEFAULT_PAGE)
+  const limit = Math.min(parsePositiveInt(params?.limit, DEFAULT_LIMIT), MAX_LIMIT)
+  const stateFilter = params?.state ?? 'ALL'
+  const search = params?.search ?? ''
+  const ratingMin = params?.rating ?? 'ALL'
+  const industry = params?.industry ?? 'ALL'
+  const source = params?.source ?? 'ALL'
+  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry, source)
 
   return (
     <DirectoryView
