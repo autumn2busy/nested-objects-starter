@@ -137,7 +137,8 @@ function mapAccountStageToStatus(stage?: number): ProfileUpdateData['subscriptio
   }
 }
 
-function mapPlanToTier(planName?: string): ProfileUpdateData['subscription_tier'] {
+function mapPlanToTier(planName?: string, planUid?: string): ProfileUpdateData['subscription_tier'] {
+  if (planUid === 'pWrBRnWn') return 'founders';
   if (!planName) return 'free';
   const normalized = planName.toLowerCase();
   if (normalized.includes('agency')) return 'agency';
@@ -182,7 +183,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       full_name: person.FullName || null,
       display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
       phone: person.PhoneMobile || person.PhoneWork || null,
-      subscription_tier: mapPlanToTier(plan?.Name),
+      subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
       subscription_status: mapAccountStageToStatus(account?.AccountStage),
       subscription_start_date: subscription?.StartDate || null,
       subscription_end_date: subscription?.EndDate || null,
@@ -226,7 +227,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
     full_name: person.FullName || null,
     display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
     phone: person.PhoneMobile || person.PhoneWork || null,
-    subscription_tier: mapPlanToTier(plan?.Name),
+    subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
     subscription_status: mapAccountStageToStatus(account.AccountStage),
     subscription_start_date: subscription?.StartDate || null,
     subscription_end_date: subscription?.EndDate || null,

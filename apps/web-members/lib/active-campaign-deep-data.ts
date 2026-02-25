@@ -180,11 +180,14 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
     // 1. Plan tier tag
-    const tierTag = `plan-${profile.subscription_tier}`;
+    let tier = profile.subscription_tier;
+    if (tier === 'founders') tier = 'founder';
+    const tierTag = `plan-${tier}`;
     await addTagToContact(contactId, tierTag, logs);
 
-    // 2. Generic membership tag
+    // 2. Generic tags
     await addTagToContact(contactId, 'antigravity-subscription', logs);
+    await addTagToContact(contactId, 'launch-2026-03-01', logs);
 
     // 3. Status tag
     if (profile.subscription_status) {
@@ -284,6 +287,7 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
         case 'pro': price = 4900; break;
         case 'elite': price = 9900; break;
         case 'agency': price = 29900; break;
+        case 'founders': price = 3700; break;
         default: price = 0;
     }
 
@@ -376,6 +380,7 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
         case 'pro': amount = 49; break;
         case 'elite': amount = 99; break;
         case 'agency': amount = 299; break;
+        case 'founders': amount = 37; break;
     }
 
     const planName = profile.plan_name || 'Membership';
