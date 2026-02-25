@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         const { count: existingAttempts } = await supabase
             .from('quiz_attempts')
             .select('id', { count: 'exact', head: true })
-            .eq('profile_id', profile.id)
+            .eq('user_id', outsetaId)
             .eq('module_id', module_id)
 
         const attemptNumber = (existingAttempts || 0) + 1
@@ -111,7 +111,6 @@ export async function POST(request: Request) {
         const { error: attemptError } = await supabase
             .from('quiz_attempts')
             .insert({
-                profile_id: profile.id,        // UUID - matches table schema
                 user_id: outsetaId,             // Text - Outseta ID for cross-reference
                 module_id: module_id,           // UUID
                 attempt_number: attemptNumber,
@@ -146,7 +145,7 @@ export async function POST(request: Request) {
             const { data: allPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
-                .eq('profile_id', profile.id)
+                .eq('user_id', outsetaId)
                 .eq('passed', true)
 
             // Deduplicate by module_id (multiple attempts possible)

@@ -92,7 +92,7 @@ export async function GET(request: Request) {
         const { data: passedQuizzes } = await supabase
             .from('quiz_attempts')
             .select('module_id')
-            .or(`profile_id.eq.${profile.id},user_id.eq.${outsetaId}`)
+            .eq('user_id', outsetaId)
             .eq('passed', true)
 
         const completedModuleIds = Array.from(new Set(passedQuizzes?.map((q: any) => q.module_id) || []))
@@ -134,7 +134,6 @@ export async function POST(request: Request) {
             .from('training_progress')
             .upsert({
                 user_id: outsetaId, // String Outseta ID
-                profile_id: profile.id, // Explicitly link UUID
                 module_id,
                 lesson_id,
                 resource_type,
@@ -154,7 +153,6 @@ export async function POST(request: Request) {
             const { error: qaError } = await supabase
                 .from('quiz_attempts')
                 .upsert({
-                    profile_id: profile.id, // Ensure UUID is used
                     user_id: outsetaId,     // String Outseta ID
                     module_id,
                     passed: true,
