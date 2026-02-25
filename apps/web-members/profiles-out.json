@@ -1,0 +1,67 @@
+[
+  {
+    "email": "autumn.s.williams+elite2@gmail.com",
+    "ac_contact_id": "11548",
+    "ac_customer_id": "2089",
+    "plan_name": null,
+    "subscription_tier": "free",
+    "created_at": "2026-02-25T04:11:32.503533+00:00",
+    "outseta_updated_at": "2026-02-25T04:11:30+00:00",
+    "outseta_account_id": "rQVG0E19",
+    "outseta_person_uid": "me77l059",
+    "plan_uid": null,
+    "subscription_status": "active"
+  },
+  {
+    "email": "autumn.s.williams+founders@gmail.com",
+    "ac_contact_id": "11545",
+    "ac_customer_id": "2086",
+    "plan_name": null,
+    "subscription_tier": "free",
+    "created_at": "2026-02-25T02:18:55.626703+00:00",
+    "outseta_updated_at": "2026-02-25T02:34:11+00:00",
+    "outseta_account_id": "OW4P1eoW",
+    "outseta_person_uid": "9bxxl4pm",
+    "plan_uid": null,
+    "subscription_status": "active"
+  },
+  {
+    "email": "autumn.s.williams+form@gmail.com",
+    "ac_contact_id": "99",
+    "ac_customer_id": "2081",
+    "plan_name": "Pro",
+    "subscription_tier": "pro",
+    "created_at": "2026-02-08T01:58:45.509157+00:00",
+    "outseta_updated_at": "2026-02-08T02:05:41+00:00",
+    "outseta_account_id": "496eky0Q",
+    "outseta_person_uid": "9P6d6qrm",
+    "plan_uid": "rQVqlLm6",
+    "subscription_status": "canceled"
+  },
+  {
+    "email": "autumn.s.williams+elite@gmail.com",
+    "ac_contact_id": null,
+    "ac_customer_id": null,
+    "plan_name": null,
+    "subscription_tier": "free",
+    "created_at": "2026-02-08T01:54:10.496978+00:00",
+    "outseta_updated_at": "2026-02-08T01:54:10+00:00",
+    "outseta_account_id": "BWz4XEwQ",
+    "outseta_person_uid": "QY8J8lMm",
+    "plan_uid": null,
+    "subscription_status": "active"
+  },
+  {
+    "email": "autumn.s.williams+pro@gmail.com",
+    "ac_contact_id": "11516",
+    "ac_customer_id": "2079",
+    "plan_name": "Pro",
+    "subscription_tier": "pro",
+    "created_at": "2026-02-08T01:53:03.957026+00:00",
+    "outseta_updated_at": "2026-02-15T01:18:46+00:00",
+    "outseta_account_id": "xmeR5xpQ",
+    "outseta_person_uid": "QGereJeW",
+    "plan_uid": "rQVqlLm6",
+    "subscription_status": "canceled"
+  }
+]

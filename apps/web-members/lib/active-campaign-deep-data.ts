@@ -180,9 +180,8 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
     // 1. Plan tier tag
-    let tier = profile.subscription_tier;
-    if (tier === 'founders') tier = 'founder';
-    const tierTag = `plan-${tier}`;
+    const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
+    const tierTag = `plan-${tagTier}`;
     await addTagToContact(contactId, tierTag, logs);
 
     // 2. Generic tags
