@@ -24,11 +24,17 @@ async function getMembers(): Promise<Member[]> {
                 'avatar_url',
                 'verified_at',
                 'rating',
-                'rating_count'
-                // 'service_area', // Removed to be safe, will address filtering if column missing
-                // 'bio'
+                'rating_count',
+                'service_areas',
+                'primary_services',
+                'training_modules_completed',
+                'training_modules_total',
+                'shield_id',
+                'role',
+                'city',
+                'state'
             ].join(',') +
-            '&order=created_at.desc'
+            '&is_published=eq.true&order=created_at.desc'
 
         const res = await fetch(url, {
             headers: {
@@ -47,8 +53,11 @@ async function getMembers(): Promise<Member[]> {
         // For V1, we will return what we have.
         return members.map((m: any) => ({
             ...m,
-            // Fallback for missing service area if not in DB yet
-            service_area: m.service_area || null
+            // Fallback for primary display area
+            service_area: m.city && m.state ? `${m.city}, ${m.state}` : (m.service_areas?.[0] || null),
+            // Default training
+            training_modules_completed: m.training_modules_completed || 0,
+            training_modules_total: m.training_modules_total || 8
         }))
 
     } catch (err) {

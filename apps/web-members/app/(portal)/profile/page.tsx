@@ -11,6 +11,7 @@ import {
 
 import { useAuth } from '@/components/auth-provider'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
@@ -66,6 +67,7 @@ type ProfileData = {
   email_verified: boolean
   verified_at: string | null
   created_at: string
+  is_published: boolean
   subscription_tier: string | null
   subscription_status: string | null
   rating: number | null
@@ -427,6 +429,7 @@ export default function ProfilePage() {
     experience_level: '',
     service_areas: [] as string[],
     max_travel_distance: '',
+    is_published: false,
   })
 
   // Fetch profile
@@ -459,6 +462,7 @@ export default function ProfilePage() {
             experience_level: data.profile.experience_level || '',
             service_areas: data.profile.service_areas || [],
             max_travel_distance: data.profile.max_travel_distance?.toString() || '',
+            is_published: data.profile.is_published || false,
           })
         }
       } catch (err) {
@@ -491,6 +495,7 @@ export default function ProfilePage() {
           experience_level: formData.experience_level || null,
           service_areas: formData.service_areas.length > 0 ? formData.service_areas : null,
           max_travel_distance: formData.max_travel_distance ? parseInt(formData.max_travel_distance) : null,
+          is_published: formData.is_published,
         }),
       })
 
@@ -664,6 +669,31 @@ export default function ProfilePage() {
 
           {/* Right Column - Editable Fields */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Profile Visibility */}
+            <Card className="p-6 border-slate-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                    <User className="w-5 h-5 text-brand-copper" />
+                    Profile Visibility
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Turn this on to publish your profile. When published, hiring firms can discover you in the directory and view your qualifications.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm font-medium ${formData.is_published ? 'text-green-600' : 'text-slate-500'}`}>
+                    {formData.is_published ? 'Published' : 'Hidden'}
+                  </span>
+                  <Switch
+                    checked={formData.is_published}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
+                  />
+                </div>
+              </div>
+            </Card>
+
             {/* Account Info (Read-only, Outseta managed) */}
             <Card className="p-6 border-slate-200">
               <div className="flex items-center justify-between mb-4">

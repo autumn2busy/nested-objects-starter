@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Search } from 'lucide-react'
+import { BadgeCheck, MapPin, Search, GraduationCap, ShieldCheck, Briefcase } from 'lucide-react'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -22,6 +22,11 @@ export type Member = {
     rating_count?: number | null
     bio?: string | null
     role?: string | null
+    service_areas?: string[] | null
+    primary_services?: string | null
+    training_modules_completed?: number
+    training_modules_total?: number
+    shield_id?: string | null
 }
 
 const US_STATES = [
@@ -206,7 +211,7 @@ function MemberCard({ member }: MemberCardProps) {
                 <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-1.5 text-slate-600">
-                            <MapPin className="w-3.5 h-3.5" />
+                            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                             <span className="truncate max-w-[140px]">
                                 {member.service_area || 'Nationwide'}
                             </span>
@@ -216,6 +221,28 @@ function MemberCard({ member }: MemberCardProps) {
                         ) : (
                             <span className="text-xs text-slate-400 italic">New</span>
                         )}
+                    </div>
+
+                    {/* New B2B Metrics */}
+                    <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
+                        {member.primary_services && (
+                            <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                                <Briefcase className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                <span className="line-clamp-1">{member.primary_services}</span>
+                            </div>
+                        )}
+                        <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 text-slate-600">
+                                <GraduationCap className="w-3.5 h-3.5" />
+                                <span>Training: {member.training_modules_completed || 0}/{member.training_modules_total || 8}</span>
+                            </div>
+                            {member.shield_id && (
+                                <div className="flex items-center gap-1 text-green-700 font-medium bg-green-50 px-1.5 py-0.5 rounded">
+                                    <ShieldCheck className="w-3 h-3" />
+                                    <span>Background Checked</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </article>

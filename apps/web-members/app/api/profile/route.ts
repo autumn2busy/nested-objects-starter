@@ -82,6 +82,7 @@ export async function GET() {
         email_verified,
         verified_at,
         created_at,
+        is_published,
         subscription_tier,
         subscription_status,
         rating,
@@ -113,6 +114,7 @@ export async function GET() {
           email: userEmail,
           phone: null,
           avatar_url: null,
+          is_published: false,
           trust_score: 0,
           trust_tier: 'bronze',
           trust_score_breakdown: null,
@@ -166,6 +168,7 @@ export async function PATCH(req: NextRequest) {
       'preferred_job_types',
       'max_travel_distance',
       'avatar_url',
+      'is_published',
     ]
 
     const updates: Record<string, any> = {}

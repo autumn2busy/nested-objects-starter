@@ -43,7 +43,7 @@ async function getMemberTrustData(memberId: string) {
     // We assume memberId matches the profile 'id' or 'user_id'
     const { data, error } = await getSupabase()
         .from('profiles')
-        .select('verified_at, rating, rating_count')
+        .select('verified_at, rating, rating_count, is_published')
         .eq('id', memberId)
         .maybeSingle()
 
@@ -75,7 +75,9 @@ export default async function MemberProfilePage({
         getMemberTrustData(params.memberId)
     ])
 
-    if (!resume || !resume.profile) {
+    // If profile has elected not to publish via their dashboard Settings 
+    // or if no profile data exists, abort the route.
+    if (!resume || !resume.profile || trustData?.is_published === false) {
         return (
             <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="text-center space-y-4 max-w-md">
@@ -83,7 +85,7 @@ export default async function MemberProfilePage({
                     <p className="text-slate-600">
                         This member has not published their profile yet or the ID is incorrect.
                     </p>
-                    <Link href="/hiring-firms" className="inline-block text-blue-600 hover:underline">
+                    <Link href="/members" className="inline-block text-blue-600 hover:underline">
                         Return to Directory
                     </Link>
                 </div>
