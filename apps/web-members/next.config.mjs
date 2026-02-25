@@ -38,6 +38,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/profile/:id',
+        destination: '/members/:id',
+        permanent: true,
+      },
+      {
+        source: '/post/:slug',
+        destination: '/hiring-firms', // fallback if they had a blog
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig

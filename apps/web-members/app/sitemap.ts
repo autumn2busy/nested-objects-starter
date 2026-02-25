@@ -29,7 +29,7 @@ async function fetchDynamicSlugs() {
     const supabase = createServiceRoleClient()
     const [firmsResult, membersResult] = await Promise.all([
       supabase.from('firms').select('slug').eq('is_published', true),
-      supabase.from('profiles').select('id'),
+      supabase.from('profiles').select('id').eq('is_published', true),
     ])
 
     if (firmsResult.error) {
