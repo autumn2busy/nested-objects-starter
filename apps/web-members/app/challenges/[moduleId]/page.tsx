@@ -558,7 +558,7 @@ export default function ModuleOverviewPage() {
                                 {section.content && <p className="text-slate-600 mt-1">{section.content}</p>}
                             </div>
                             <div className="p-6">
-                                {(section.type === 'comparison-table' || section.type === 'info-table') && section.data && (
+                                {(section.type === 'comparison-table' || section.type === 'info-table' || section.type === 'workflow-steps' || section.type === 'examples') && section.data && (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
@@ -575,14 +575,37 @@ export default function ModuleOverviewPage() {
                                 {section.type === 'steps' && section.steps?.map((step: any, i: number) => (
                                     <div key={i} className="flex gap-4 mb-4">
                                         <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold flex-shrink-0">{step.number || i + 1}</div>
-                                        <div><h4 className="font-semibold">{step.title}</h4><p className="text-slate-600 mt-1">{step.content}</p>{step.timeEstimate && <p className="text-xs text-slate-400 mt-1">⏱ {step.timeEstimate}</p>}</div>
+                                        <div>{typeof step === 'string'
+                                            ? <p className="text-slate-700 font-medium">{step}</p>
+                                            : <><h4 className="font-semibold">{step.title}</h4><p className="text-slate-600 mt-1">{step.content}</p>{step.timeEstimate && <p className="text-xs text-slate-400 mt-1">⏱ {step.timeEstimate}</p>}</>
+                                        }</div>
                                     </div>
                                 ))}
                                 {section.type === 'tips' && <div className="grid md:grid-cols-2 gap-4">{section.tips?.map((tip: any, i: number) => <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-4"><h4 className="font-semibold text-amber-800 flex items-center gap-2"><Lightbulb className="w-4 h-4" />{tip.title}</h4><p className="text-amber-700 text-sm mt-1">{tip.content}</p></div>)}</div>}
+                                {section.type === 'checklist' && section.items && (
+                                    <div className="space-y-2">
+                                        {section.items.map((item: any, i: number) => (
+                                            <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                                                <div className="w-6 h-6 rounded border-2 border-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                    <Check className="w-4 h-4 text-slate-400" />
+                                                </div>
+                                                <p className="text-slate-700">{typeof item === 'string' ? item : item.text || item.content || item.title}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {section.type === 'timeline' && section.data && (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
+                                            <tbody>{section.data.rows?.map((row: string[], i: number) => <tr key={i} className={`border-b last:border-0 ${i === (section.data.rows.length - 1) ? 'bg-red-50' : ''}`}>{row.map((cell, j) => <td key={j} className={`px-4 py-3 ${j === 0 ? 'font-bold' : ''} ${i === (section.data.rows.length - 1) ? 'text-red-700' : ''}`}>{cell}</td>)}</tr>)}</tbody>
+                                        </table>
+                                    </div>
+                                )}
                                 {section.type === 'danger-list' && section.items?.map((item: any, i: number) => (
                                     <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
-                                        <h4 className="font-bold text-red-800 flex items-center gap-2"><AlertOctagon className="w-4 h-4" />{item.item}</h4>
-                                        {item.detail && <p className="text-red-700 text-sm mt-1">{item.detail}</p>}
+                                        <h4 className="font-bold text-red-800 flex items-center gap-2"><AlertOctagon className="w-4 h-4" />{item.item || item.title}</h4>
+                                        {(item.detail || item.content) && <p className="text-red-700 text-sm mt-1">{item.detail || item.content}</p>}
                                         {item.bad && <p className="text-sm mt-2"><span className="text-red-600 font-medium">✗ Wrong:</span> {item.bad}</p>}
                                         {item.good && <p className="text-sm"><span className="text-emerald-600 font-medium">✓ Right:</span> {item.good}</p>}
                                     </div>
