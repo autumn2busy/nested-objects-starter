@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "mti-inspection-services",
+    "name": "MTI Inspection Services",
+    "url": "http://www.mti-inspections.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise MTI for consistent workflow and clear communication, but note that inspection requirements can be rigorous at times.",
+    "pay_min": "35"
+  },
+  {
+    "slug": "national-sfs",
+    "name": "National SFS",
+    "url": "https://www.nationsfs.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise National SFS for their efficient communication and fair pay rates, but note that the volume of work can be inconsistent at times.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "equator",
+    "name": "Equator",
+    "url": "https://www.equator.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report reliable payment and a user-friendly platform, but occasionally experience delays in receiving work orders.",
+    "pay_min": "20"
+  },
+  {
+    "slug": "casago",
+    "name": "Casago",
+    "url": "https://casago.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Casago is a solid company to work with, offering consistent inspection work and relatively fair pay for the industry",
+    "pay_min": "25"
+  },
+  {
+    "slug": "wetherill-engineering",
+    "name": "Wetherill Engineering",
+    "url": "https://wetherilleng.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Wetherill Engineering for its professional and responsive staff, but note that payment terms can be somewhat slow.",
+    "pay_min": "50"
+  },
+  {
+    "slug": "va-field-services",
+    "name": "VA Field Services",
+    "url": "https://vafieldservice.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise VA Field Services for their efficient communication and fair payment terms, but some report inconsistent volumes of available work",
+    "pay_min": "30"
+  },
+  {
+    "slug": "observa",
+    "name": "Observa",
+    "url": "https://www.observanow.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Observa pays on time and has a user-friendly platform, but the pay per assignment can be low for the work required.",
+    "pay_min": "5.0"
+  },
+  {
+    "slug": "nextday-inspect",
+    "name": "NextDay Inspect®",
+    "url": "https://www.nextdayinspect.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise NextDay Inspect for their efficient platform and consistent workflow, but some report issues with payment processing.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "uspack-logistics",
+    "name": "USPack Logistics",
+    "url": "https://gouspack.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise USPack Logistics for their organized routing system and reliable payment structure, but some report inconsistent daily route volumes.",
+    "pay_min": "150.0"
+  },
+  {
+    "slug": "priority-dispatch",
+    "name": "Priority Dispatch",
+    "url": "https://www.prioritydispatch.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Priority Dispatch for its consistent routing opportunities and fair pay, but some express frustration with occasional communication breakdowns.",
+    "pay_min": "18.0"
+  }
+]
