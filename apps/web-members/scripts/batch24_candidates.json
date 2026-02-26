@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "computer-evidence-specialistsllc",
+    "name": "Computer Evidence SpecialistsLLC",
+    "url": "http://cesnb.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the firm for its clear communication and prompt payment, but note that the inspection volumes can be inconsistent at times.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "the-birdsey-group",
+    "name": "The Birdsey Group",
+    "url": "https://birdseyconstruction.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise The Birdsey Group for its organized and efficient project management, but note that pay can be on the lower side for complex inspections.",
+    "pay_min": "40"
+  },
+  {
+    "slug": "scale-ai-remotasks",
+    "name": "Scale AI (Remotasks)",
+    "url": "https://www.remotasks.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Data annotators find the work on advanced LLM projects stimulating and impactful, although task availability can fluctuate and the onboarding process is sometimes described as disorganized.",
+    "pay_min": "10.0"
+  },
+  {
+    "slug": "proteck",
+    "name": "ProTeck",
+    "url": "https://proteckservices.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise ProTeck for their efficient communication and fair pay rates, but some report inconsistent volumes and occasional delays in payment processing.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "wilmot-field-servicesllc",
+    "name": "Wilmot Field ServicesLLC",
+    "url": "https://wilmotfieldservices.weebly.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Wilmot Field Services for consistent work volume and timely payments, but note room for improvement in communication and job assignment processes.",
+    "pay_min": "15"
+  },
+  {
+    "slug": "technipower",
+    "name": "TechniPower",
+    "url": "https://www.technipower.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "TechniPower offers a steady stream of technical and engineering projects with fair pay and manageable expectations.",
+    "pay_min": "30"
+  },
+  {
+    "slug": "tpg-alliance-llc",
+    "name": "TPG Alliance LLC",
+    "url": "https://tpgalliance.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors generally report fair compensation and a straightforward onboarding process with TPG Alliance LLC.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "sgs",
+    "name": "SGS",
+    "url": "https://www.sgs.com/",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise SGS for their efficient communication and timely payments, but some have reported inconsistent work volumes.",
+    "pay_min": "25"
+  },
+  {
+    "slug": "mercor",
+    "name": "Mercor",
+    "url": "https://www.mercor.com",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise Mercor for offering competitive hourly rates and flexible, remote work opportunities that leverage their specialized skills and expertise.",
+    "pay_min": "45"
+  },
+  {
+    "slug": "dataannotationtech",
+    "name": "DataAnnotation.tech",
+    "url": "https://dataannotation.tech",
+    "phone": null,
+    "email": null,
+    "client_reviews": "Contractors praise the flexible scheduling and opportunities for professional growth, but some report inconsistent workflow and limited communication with project managers.",
+    "pay_min": "20.0"
+  }
+]
