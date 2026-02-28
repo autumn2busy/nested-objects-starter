@@ -14,7 +14,7 @@ type FeedSource = {
 }
 
 const RSS_FEEDS: FeedSource[] = [
-    // ── Mortgage & Real Estate (original) ──────────────────────────
+    // ── Mortgage & Real Estate ───────────────────────────────────
     {
         url: 'https://www.housingwire.com/feed/',
         name: 'HousingWire',
@@ -35,6 +35,11 @@ const RSS_FEEDS: FeedSource[] = [
         name: 'The Mortgage Reports',
         categories: ['mortgage'],
     },
+    {
+        url: 'https://www.scotsmanguide.com/feed/',
+        name: 'Scotsman Guide',
+        categories: ['mortgage', 'real-estate'],
+    },
 
     // ── Notary / Signing Agent ─────────────────────────────────────
     {
@@ -47,11 +52,7 @@ const RSS_FEEDS: FeedSource[] = [
         name: 'Loan Signing System',
         categories: ['notary', 'mortgage'],
     },
-    {
-        url: 'https://notary2pro.com/feed/',
-        name: 'Notary2Pro',
-        categories: ['notary'],
-    },
+    // notary2pro.com — removed: returns malformed XML that breaks parser
 
     // ── Drone / UAV Inspections ────────────────────────────────────
     {
@@ -66,6 +67,7 @@ const RSS_FEEDS: FeedSource[] = [
     },
 
     // ── HUD / Government Housing ───────────────────────────────────
+    // Note: HUD and FEMA feeds require a User-Agent header (see parser config)
     {
         url: 'https://www.huduser.gov/rss/pub.xml',
         name: 'HUD Research',
@@ -80,15 +82,17 @@ const RSS_FEEDS: FeedSource[] = [
     },
 
     // ── Gig Economy / Field Services ───────────────────────────────
+    // thegigeconomist.com — removed: domain is dead (DNS ENOTFOUND)
+    // yourbestdelivery.com — removed: returns 503 consistently
     {
-        url: 'https://thegigeconomist.com/feed/',
-        name: 'The Gig Economist',
+        url: 'https://www.sidehustlenation.com/feed/',
+        name: 'Side Hustle Nation',
         categories: ['gig-economy'],
     },
     {
-        url: 'https://www.yourbestdelivery.com/feed/',
-        name: 'Your Best Delivery',
-        categories: ['gig-economy', 'medical-courier'],
+        url: 'https://www.propertywire.com/feed/',
+        name: 'PropertyWire',
+        categories: ['real-estate', 'inspections'],
     },
 ]
 
@@ -131,8 +135,11 @@ export async function GET(request: Request) {
                 ['enclosure', 'enclosure'],
             ],
         },
-        // 10 second timeout per feed to avoid hanging on slow gov sites
-        timeout: 10000,
+        timeout: 12000, // 12 seconds for slow gov feeds
+        headers: {
+            'User-Agent': 'NestedObjects/1.0 (https://members.nestedobjects.com; RSS aggregator)',
+            'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        },
     })
 
     try {
