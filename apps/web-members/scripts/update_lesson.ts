@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 const env = dotenv.parse(fs.readFileSync('.env.local'));
 const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-function fillChecklist(obj: any, updated = { flag: false }) {
+function fillChecklist(obj: any, updated = { flag: false }): any {
     if (!obj || typeof obj !== 'object') return obj;
 
     if (Array.isArray(obj)) {

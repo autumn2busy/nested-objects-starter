@@ -11,7 +11,7 @@ const WIX_CSV_PATH = 'C:/Users/Mother/Projects/nested-objects-starter/contacts (
 // NOTE: Outseta API uses Basic Auth with Key:Secret base64 encoded.
 const OUTSETA_DOMAIN = process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nestedobjects.outseta.com';
 const OUTSETA_URL = `https://${OUTSETA_DOMAIN}/api/v1`;
-const OUTSETA_API_KEY = process.env.OUTSETA_API_KEY;
+const OUTSETA_API_KEY = process.env.OUTSETA_API_KEY || process.env.NEXT_PUBLIC_OUTSETA_PUBLIC_KEY;
 const OUTSETA_API_SECRET = process.env.OUTSETA_API_SECRET;
 
 if (!OUTSETA_API_KEY || !OUTSETA_API_SECRET) {
@@ -19,8 +19,8 @@ if (!OUTSETA_API_KEY || !OUTSETA_API_SECRET) {
     process.exit(1);
 }
 
-// Create the Basic Auth token
-const OUTSETA_AUTH = Buffer.from(`${OUTSETA_API_KEY}:${OUTSETA_API_SECRET}`).toString('base64');
+// Create the Auth token (Outseta uses 'Outseta key:secret', NOT base64 encoded Basic)
+const OUTSETA_AUTH = `${OUTSETA_API_KEY}:${OUTSETA_API_SECRET}`;
 
 // Plan and Discount configurations
 const PLAN_UID = 'pWrBRnWn'; // Founder Plan
@@ -161,7 +161,7 @@ async function processMigration() {
                         const response = await fetch(`${OUTSETA_URL}/crm/accounts`, {
                             method: 'POST',
                             headers: {
-                                'Authorization': `Basic ${OUTSETA_AUTH}`,
+                                'Authorization': `Outseta ${OUTSETA_AUTH}`,
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify(payload)
