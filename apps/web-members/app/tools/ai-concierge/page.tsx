@@ -2,6 +2,7 @@
 
 import ChatWidget from "@/components/ChatWidget";
 import { Gate } from "@/components/Gate";
+import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { ToolAccessMessage } from "@/app/tools/_components/ToolAccessMessage";
 
@@ -17,6 +18,9 @@ export default function AIConciergePage() {
         <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
             <div className="space-y-6">
                 <div>
+                    <Link href="/tools" className="text-sm text-slate-500 hover:text-slate-900 mb-4 inline-block">
+                        ← Back to Tools
+                    </Link>
                     <h1 className="text-3xl font-bold tracking-tight">AI Concierge</h1>
                     <p className="text-muted-foreground">
                         Your field services expert. Ask about firms, requirements, and workflows.

@@ -25,6 +25,15 @@ function resolveUserEmail(outsetaUser: any) {
   )
 }
 
+function resolveUserPhone(outsetaUser: any) {
+  return (
+    outsetaUser?.Phone ||
+    outsetaUser?.MobilePhone ||
+    outsetaUser?.phone ||
+    null
+  )
+}
+
 // GET - Fetch current user's profile
 export async function GET() {
   try {
@@ -89,9 +98,13 @@ export async function GET() {
         rating_count
       `)
 
-    // Query by outseta_person_uid or user_id
+    // Query by outseta_person_uid, user_id, or email
     if (userId) {
       query = query.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+    } else if (userEmail) {
+      query = query.eq('user_email', userEmail)
+    } else {
+      return NextResponse.json({ error: 'No user ID or email to query' }, { status: 400 })
     }
 
     const { data, error } = await query.limit(1).single()
@@ -112,7 +125,7 @@ export async function GET() {
           first_name: outsetaUser?.first_name || outsetaUser?.FirstName || null,
           last_name: outsetaUser?.last_name || outsetaUser?.LastName || null,
           email: userEmail,
-          phone: null,
+          phone: resolveUserPhone(outsetaUser),
           avatar_url: null,
           is_published: false,
           trust_score: 0,
@@ -191,8 +204,14 @@ export async function PATCH(req: NextRequest) {
     let existingQuery = supabase.from('profiles').select('id')
     if (userId) {
       existingQuery = existingQuery.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+    } else if (userEmail) {
+      existingQuery = existingQuery.eq('user_email', userEmail)
+    } else {
+      return NextResponse.json({ error: 'No user ID or email to save against' }, { status: 400 })
     }
-    const { data: existing } = await existingQuery.limit(1).single()
+
+    // single() could throw if 0 rows, which is perfectly normal when creating a new profile.
+    const { data: existing, error: existingError } = await existingQuery.limit(1).maybeSingle()
 
     let result
     if (existing) {
@@ -220,6 +239,7 @@ export async function PATCH(req: NextRequest) {
         full_name: outsetaUser?.name || outsetaUser?.FullName || null,
         first_name: outsetaUser?.first_name || outsetaUser?.FirstName || null,
         last_name: outsetaUser?.last_name || outsetaUser?.LastName || null,
+        phone: resolveUserPhone(outsetaUser),
         email_verified: true,
         created_at: new Date().toISOString(),
       }

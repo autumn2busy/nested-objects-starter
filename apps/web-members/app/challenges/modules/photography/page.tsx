@@ -8,7 +8,7 @@ export default function PhotographyModulePage() {
         <main style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
             <header className="mb-8">
                 <Link
-                    href="/inspector-resource-center/challenges-safety"
+                    href="/challenges"
                     className="text-sm text-gray-500 hover:text-gray-900 mb-4 inline-block"
                 >
                     ← Back to Training & Safety

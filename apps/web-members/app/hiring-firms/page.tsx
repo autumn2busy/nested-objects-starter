@@ -83,6 +83,8 @@ async function getFirms(
   ratingMin: string,
   industry: string,
   source: string,
+  payMin: string,
+  sortBy: string,
 ): Promise<FirmResponse> {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return { firms: [], totalCount: 0 }
 
@@ -123,7 +125,19 @@ async function getFirms(
       ].join(','),
     )
     params.set('is_published', 'eq.true')
-    params.set('order', 'contractor_rating.desc.nullslast,name.asc')
+
+    if (sortBy === 'name_asc') {
+      params.set('order', 'name.asc')
+    } else if (sortBy === 'name_desc') {
+      params.set('order', 'name.desc.nullslast')
+    } else if (sortBy === 'pay_desc') {
+      params.set('order', 'pay_max.desc.nullslast,name.asc')
+    } else if (sortBy === 'pay_asc') {
+      params.set('order', 'pay_max.asc.nullsfirst,name.asc')
+    } else {
+      params.set('order', 'contractor_rating.desc.nullslast,name.asc')
+    }
+
     params.set('limit', String(limit))
     params.set('offset', String(offset))
 
@@ -146,6 +160,13 @@ async function getFirms(
     if (searchFilter) andFilters.push(`or(${searchFilter})`)
     if (industryFilter) andFilters.push(industryFilter)
     if (sourceFilter) andFilters.push(sourceFilter)
+
+    if (payMin && payMin !== 'ALL') {
+      const minVal = parseFloat(payMin)
+      if (!isNaN(minVal) && minVal > 0) {
+        andFilters.push(`or(pay_max.gte.${minVal},pay_min.gte.${minVal})`)
+      }
+    }
 
     if (andFilters.length > 0) {
       params.set('and', `(${andFilters.join(',')})`)
@@ -188,6 +209,8 @@ type DirectoryPageProps = {
     rating?: string
     industry?: string
     source?: string
+    pay?: string
+    sort?: string
   }>
 }
 
@@ -200,7 +223,9 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const ratingMin = params?.rating ?? 'ALL'
   const industry = params?.industry ?? 'ALL'
   const source = params?.source ?? 'ALL'
-  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry, source)
+  const pay = params?.pay ?? 'ALL'
+  const sort = params?.sort ?? 'rating_desc'
+  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort)
 
   return (
     <DirectoryView

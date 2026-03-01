@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/components/auth-provider'
+import { US_STATES } from '@/app/hiring-firms/constants'
 
 // --- Types ---
 
@@ -368,8 +369,8 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
                             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">State</label>
                             <Select value={state} onChange={e => setState(e.target.value)} className="w-full">
                                 <option value="">All States</option>
-                                {filtersData.states.map(s => (
-                                    <option key={s} value={s}>{s}</option>
+                                {US_STATES.filter(s => s.code !== 'ALL' && s.code !== '').map(s => (
+                                    <option key={s.code} value={s.code}>{s.label}</option>
                                 ))}
                             </Select>
                         </div>

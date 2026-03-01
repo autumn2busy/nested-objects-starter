@@ -52,6 +52,21 @@ const SOURCE_OPTIONS = [
     { value: 'Drive-by only', label: 'Drive-by only' },
 ] as const
 
+const PAY_OPTIONS = [
+    { value: 'ALL', label: 'Any Pay' },
+    { value: '30', label: '$30+ / inspection' },
+    { value: '50', label: '$50+ / inspection' },
+    { value: '75', label: '$75+ / inspection' },
+    { value: '100', label: '$100+ / inspection' },
+] as const
+
+const SORT_OPTIONS = [
+    { value: 'rating_desc', label: 'Highest Rated' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' },
+    { value: 'pay_desc', label: 'Highest Pay' },
+] as const
+
 // ─── Types ──────────────────────────────────────────────────────
 
 export type Firm = {
@@ -93,6 +108,8 @@ type FilterBarProps = {
     ratingFilter: string
     industryFilter: string
     sourceFilter: string
+    payFilter: string
+    sortFilter: string
     isFree: boolean
     isAuthenticated: boolean
     onStateChange: (value: string) => void
@@ -100,6 +117,8 @@ type FilterBarProps = {
     onRatingChange: (value: string) => void
     onIndustryChange: (value: string) => void
     onSourceChange: (value: string) => void
+    onPayChange: (value: string) => void
+    onSortChange: (value: string) => void
 }
 
 function FilterBar({
@@ -108,6 +127,8 @@ function FilterBar({
     ratingFilter,
     industryFilter,
     sourceFilter,
+    payFilter,
+    sortFilter,
     isFree,
     isAuthenticated,
     onSearchChange,
@@ -115,6 +136,8 @@ function FilterBar({
     onRatingChange,
     onIndustryChange,
     onSourceChange,
+    onPayChange,
+    onSortChange,
 }: FilterBarProps) {
     return (
         <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
@@ -166,13 +189,13 @@ function FilterBar({
                 </div>
             </div>
 
-            {/* Row 2: Rating + Industry + Source */}
-            <div className="mt-4 grid gap-4 md:grid-cols-3 md:items-end">
+            {/* Row 2: Rating + Industry + Source + Pay + Sort */}
+            <div className="mt-4 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5 md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="rating-filter">MINIMUM RATING</FieldLabel>
                     {isFree ? (
                         <Select disabled value="ALL">
-                            <option value="ALL">All Ratings (Upgrade to filter)</option>
+                            <option value="ALL">All Ratings (Upgrade)</option>
                         </Select>
                     ) : (
                         <Select
@@ -190,10 +213,31 @@ function FilterBar({
                 </div>
 
                 <div className="space-y-1">
+                    <FieldLabel htmlFor="pay-filter">PAY RANGE</FieldLabel>
+                    {isFree ? (
+                        <Select disabled value="ALL">
+                            <option value="ALL">All Pay (Upgrade)</option>
+                        </Select>
+                    ) : (
+                        <Select
+                            id="pay-filter"
+                            value={payFilter}
+                            onChange={(e) => onPayChange(e.target.value)}
+                        >
+                            {PAY_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </Select>
+                    )}
+                </div>
+
+                <div className="space-y-1">
                     <FieldLabel htmlFor="industry-filter">INDUSTRY FOCUS</FieldLabel>
                     {isFree ? (
                         <Select disabled value="ALL">
-                            <option value="ALL">All Industries (Upgrade to filter)</option>
+                            <option value="ALL">All Industries (Upgrade)</option>
                         </Select>
                     ) : (
                         <Select
@@ -214,7 +258,7 @@ function FilterBar({
                     <FieldLabel htmlFor="source-filter">WORK SETTING</FieldLabel>
                     {isFree ? (
                         <Select disabled value="ALL">
-                            <option value="ALL">All Settings (Upgrade to filter)</option>
+                            <option value="ALL">All Settings (Upgrade)</option>
                         </Select>
                     ) : (
                         <Select
@@ -229,6 +273,21 @@ function FilterBar({
                             ))}
                         </Select>
                     )}
+                </div>
+
+                <div className="col-span-2 md:col-span-1 space-y-1">
+                    <FieldLabel htmlFor="sort-filter">SORT BY</FieldLabel>
+                    <Select
+                        id="sort-filter"
+                        value={sortFilter}
+                        onChange={(e) => onSortChange(e.target.value)}
+                    >
+                        {SORT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </Select>
                 </div>
             </div>
 
@@ -423,6 +482,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const [ratingFilter, setRatingFilter] = useState<string>('ALL')
     const [industryFilter, setIndustryFilter] = useState<string>('ALL')
     const [sourceFilter, setSourceFilter] = useState<string>('ALL')
+    const [payFilter, setPayFilter] = useState<string>('ALL')
+    const [sortFilter, setSortFilter] = useState<string>('rating_desc')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -433,6 +494,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const urlRating = searchParams?.get('rating') ?? 'ALL'
     const urlIndustry = searchParams?.get('industry') ?? 'ALL'
     const urlSource = searchParams?.get('source') ?? 'ALL'
+    const urlPay = searchParams?.get('pay') ?? 'ALL'
+    const urlSort = searchParams?.get('sort') ?? 'rating_desc'
 
     useEffect(() => {
         setStateFilter(urlStateFilter)
@@ -440,7 +503,9 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         setRatingFilter(urlRating)
         setIndustryFilter(urlIndustry)
         setSourceFilter(urlSource)
-    }, [urlSearch, urlStateFilter, urlRating, urlIndustry, urlSource])
+        setPayFilter(urlPay)
+        setSortFilter(urlSort)
+    }, [urlSearch, urlStateFilter, urlRating, urlIndustry, urlSource, urlPay, urlSort])
 
     const isGuest = !isAuthenticated
     const isFree = planUid === 'L9nbKV9Z'
@@ -450,11 +515,12 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     useEffect(() => {
         if (!isLoading && isRestricted && (
             urlStateFilter !== 'ALL' || urlSearch.trim() !== '' ||
-            urlRating !== 'ALL' || urlIndustry !== 'ALL' || urlSource !== 'ALL'
+            urlRating !== 'ALL' || urlIndustry !== 'ALL' || urlSource !== 'ALL' ||
+            urlPay !== 'ALL'
         )) {
             router.replace('/hiring-firms')
         }
-    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, urlSource, router])
+    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, urlSource, urlPay, router])
 
     const isProOrHigher = !!planUid && !isRestricted
 
@@ -473,6 +539,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         const nextRating = overrides.rating ?? ratingFilter
         const nextIndustry = overrides.industry ?? industryFilter
         const nextSource = overrides.source ?? sourceFilter
+        const nextPay = overrides.pay ?? payFilter
+        const nextSort = overrides.sort ?? sortFilter
         const nextPage = overrides.page ?? '1'
 
         if (nextState && nextState !== 'ALL') params.set('state', nextState)
@@ -480,6 +548,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         if (nextRating && nextRating !== 'ALL') params.set('rating', nextRating)
         if (nextIndustry && nextIndustry !== 'ALL') params.set('industry', nextIndustry)
         if (nextSource && nextSource !== 'ALL') params.set('source', nextSource)
+        if (nextPay && nextPay !== 'ALL') params.set('pay', nextPay)
+        if (nextSort && nextSort !== 'rating_desc') params.set('sort', nextSort)
         params.set('page', nextPage)
         params.set('limit', String(limit))
 
@@ -490,7 +560,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const paginationHref = useMemo(() => {
         return (nextPage: number) => buildUrl({ page: String(nextPage) })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [limit, search, stateFilter, ratingFilter, industryFilter, sourceFilter, searchParams])
+    }, [limit, search, stateFilter, ratingFilter, industryFilter, sourceFilter, payFilter, sortFilter, searchParams])
 
     const handleStateChange = (value: string) => {
         setStateFilter(value)
@@ -517,6 +587,16 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         router.push(buildUrl({ source: value }))
     }
 
+    const handlePayChange = (value: string) => {
+        setPayFilter(value)
+        router.push(buildUrl({ pay: value }))
+    }
+
+    const handleSortChange = (value: string) => {
+        setSortFilter(value)
+        router.push(buildUrl({ sort: value }))
+    }
+
     const handlePageChange = (nextPage: number) => {
         router.push(paginationHref(nextPage))
     }
@@ -528,6 +608,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         ratingFilter !== 'ALL',
         industryFilter !== 'ALL',
         sourceFilter !== 'ALL',
+        payFilter !== 'ALL',
     ].filter(Boolean).length
 
     return (
@@ -557,6 +638,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 ratingFilter={ratingFilter}
                 industryFilter={industryFilter}
                 sourceFilter={sourceFilter}
+                payFilter={payFilter}
+                sortFilter={sortFilter}
                 isFree={isRestricted}
                 isAuthenticated={isAuthenticated}
                 onSearchChange={handleSearchChange}
@@ -564,6 +647,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                 onRatingChange={handleRatingChange}
                 onIndustryChange={handleIndustryChange}
                 onSourceChange={handleSourceChange}
+                onPayChange={handlePayChange}
+                onSortChange={handleSortChange}
             />
 
             {/* Active filters summary */}

@@ -643,6 +643,15 @@ export default function ProfilePage() {
                 <VerificationStatus verified={!!profile?.avatar_url || !!profileAvatarUrl} label="Profile photo" />
                 <VerificationStatus verified={profile?.identity_verified || false} label="Identity verified" />
               </div>
+
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Increase your Trust Score by verifying your phone and email.
+                  <button onClick={openOutsetaProfile} className="text-brand-copper hover:underline font-semibold ml-1">
+                    Manage in Account Settings
+                  </button>
+                </p>
+              </div>
             </Card>
 
             {/* Background Check */}

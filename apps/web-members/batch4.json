@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "rtr-services-inc",
+    "name": "RTR Services Inc.",
+    "url": "https://www.rtrservices.com/",
+    "vendor_page_url": null,
+    "phone": "(800) 238-3294",
+    "email": "info@rtrservices.com"
+  },
+  {
+    "slug": "vision-realty-management",
+    "name": "Vision Realty & Management",
+    "url": "https://visionwestgeorgia.com",
+    "vendor_page_url": null,
+    "phone": "(770) 836-1178",
+    "email": "info@visionwestgeorgia.com"
+  },
+  {
+    "slug": "premier-claims",
+    "name": "Premier Claims",
+    "url": "https://premier-claims.com",
+    "vendor_page_url": null,
+    "phone": "(877) 219-0049",
+    "email": "info@premier-claims.com"
+  },
+  {
+    "slug": "coleman-consulting-group-llc",
+    "name": "COLEMAN CONSULTING GROUP LLC",
+    "url": "https://www.coleman-consulting.com/",
+    "vendor_page_url": null,
+    "phone": "(415) 453-8500",
+    "email": "info@coleman-consulting.com"
+  },
+  {
+    "slug": "atlantic-pacific-build-group",
+    "name": "Atlantic & Pacific Build Group",
+    "url": "https://atlanticpacificbuildgroup.com/",
+    "vendor_page_url": null,
+    "phone": "(925) 939-5500",
+    "email": "info@pacificinterwest.com"
+  },
+  {
+    "slug": "sport-management-group-inc",
+    "name": "Sport Management Group Inc.",
+    "url": "http://www.smg-usa.com",
+    "vendor_page_url": null,
+    "phone": "(336) 272-2071",
+    "email": "sportgroupusa@gmail.com"
+  },
+  {
+    "slug": "package-research-laboratory-llc",
+    "name": "Package Research Laboratory LLC",
+    "url": "http://www.package-testing.com",
+    "vendor_page_url": null,
+    "phone": "(973) 627-4405",
+    "email": null
+  },
+  {
+    "slug": "overland-surveys",
+    "name": "Overland Surveys",
+    "url": "http://overlandsurveyorshouston.com",
+    "vendor_page_url": null,
+    "phone": "(281) 940-8869",
+    "email": null
+  },
+  {
+    "slug": "metropolitan-solutions",
+    "name": "Metropolitan Solutions",
+    "url": "http://www.metrosolutionsusa.com",
+    "vendor_page_url": null,
+    "phone": "(877) 844-0021",
+    "email": null
+  },
+  {
+    "slug": "seek-now",
+    "name": "Seek Now",
+    "url": "https://seeknow.com",
+    "vendor_page_url": null,
+    "phone": "(866) 801-1258",
+    "email": null
+  }
+]

@@ -231,9 +231,38 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, logs: str
     await addTagToContact(contactId, 'antigravity-subscription', logs);
     await addTagToContact(contactId, 'launch-2026-03-01', logs);
 
-    // 4. Source tag (if available from Outseta referer)
-    // Outseta passes IPAddress and Referer in Person payload
+    // 5. Persona Tag (Passed from Outseta CustomFields)
     const rawData = profile.outseta_data as any;
+
+    // In Person-centric payloads, it's at root. In Account-centric, it's inside PersonAccount
+    let customFields = null;
+    if (rawData?.CustomFields) {
+        customFields = rawData.CustomFields;
+    } else if (rawData?.PersonAccount && rawData.PersonAccount.length > 0) {
+        // Try to find the primary person
+        const primaryPa = rawData.PersonAccount.find((pa: any) => pa.IsPrimary) || rawData.PersonAccount[0];
+        if (primaryPa?.Person?.CustomFields) {
+            customFields = primaryPa.Person.CustomFields;
+        }
+    }
+
+    if (customFields?.Persona) {
+        // Assume the script already passed it strictly as persona-something
+        // Just in case, we format it:
+        const rawPersona = customFields.Persona.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+
+        // If it already starts with persona-, use it, else prepend it
+        const personaTag = rawPersona.startsWith('persona-') ? rawPersona : `persona-${rawPersona}`;
+        await addTagToContact(contactId, personaTag, logs);
+    }
+
+    // Check if this is a migration from Wix (passed as a custom field or similar)
+    if (customFields?.Migration_Source === 'wix') {
+        await addTagToContact(contactId, 'migrate', logs);
+    }
+
+    // 6. Source tag (if available from Outseta referer)
+    // Outseta passes IPAddress and Referer in Person payload
     const referer = rawData?.Referer || rawData?.referer;
     if (referer && typeof referer === 'string') {
         try {

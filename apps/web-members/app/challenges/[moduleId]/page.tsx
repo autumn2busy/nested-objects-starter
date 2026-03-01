@@ -265,7 +265,7 @@ export default function ModuleOverviewPage() {
         async function hydrateFromServer() {
             try {
                 // Fetch lesson progress
-                const progressRes = await fetch(`/api/training/progress?moduleId=${module!.id}`)
+                const progressRes = await fetch(`/api/training/progress?moduleId=${module!.id}`, { cache: 'no-store' })
                 if (progressRes.ok) {
                     const progressData = await progressRes.json()
                     const serverLessons = new Set<string>(
@@ -281,7 +281,7 @@ export default function ModuleOverviewPage() {
                 }
 
                 // Fetch quiz pass status from overall progress endpoint
-                const quizRes = await fetch('/api/training/progress')
+                const quizRes = await fetch('/api/training/progress', { cache: 'no-store' })
                 if (quizRes.ok) {
                     const quizData = await quizRes.json()
                     const completedModuleIds: string[] = quizData.completedModuleIds || []
@@ -649,7 +649,7 @@ export default function ModuleOverviewPage() {
 
                 <div className="bg-white border border-slate-200 rounded-xl p-6 flex items-center justify-between">
                     <button onClick={() => currentIndex > 0 && setActiveLessonId(lessons[currentIndex - 1].id)} disabled={currentIndex === 0} className="px-4 py-2 text-slate-600 hover:text-slate-900 disabled:opacity-50 flex items-center gap-2"><ChevronLeft className="w-4 h-4" />Previous</button>
-                    <button onClick={() => { markLessonComplete(currentLesson.id); currentIndex < lessons.length - 1 ? setActiveLessonId(lessons[currentIndex + 1].id) : setActiveView('overview') }} className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-2">{isComplete ? 'Continue' : 'Mark Complete'}<ArrowRight className="w-4 h-4" /></button>
+                    <button onClick={() => { markLessonComplete(currentLesson.id); currentIndex < lessons.length - 1 ? setActiveLessonId(lessons[currentIndex + 1].id) : setActiveView('quiz') }} className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-2">{isComplete ? 'Continue' : 'Mark Complete'}<ArrowRight className="w-4 h-4" /></button>
                 </div>
             </div >
         )

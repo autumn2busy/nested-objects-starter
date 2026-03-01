@@ -70,12 +70,11 @@ export default function LessonPage() {
             })
         })
 
-        // Auto-advance logic
         const nextLesson = moduleData.lessons?.[currentIndex + 1]
         if (nextLesson) {
             router.push(`/challenges/basic/${moduleId}/lesson/${nextLesson.id}`)
         } else {
-            router.push(`/challenges/basic/${moduleId}`)
+            router.push(`/challenges/basic/${moduleId}/quiz`)
         }
     }
 

@@ -39,7 +39,7 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
 
     async function fetchProgress() {
       try {
-        const res = await fetch('/api/training/progress')
+        const res = await fetch('/api/training/progress', { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
           setPassedModuleIds(new Set(data.completedModuleIds || []))
@@ -75,12 +75,13 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
     const previousModule = sortedModules[index - 1]
     if (!previousModule) return true
 
-    return passedModuleIds.has(previousModule.id)
+    const hasPassed = Array.from(passedModuleIds).includes(previousModule.id)
+    return hasPassed
   }
 
   // Determine module status for display
   const getModuleStatus = (module: TrainingModule, index: number): 'completed' | 'available' | 'locked-plan' | 'locked-progress' => {
-    if (passedModuleIds.has(module.id)) return 'completed'
+    if (Array.from(passedModuleIds).includes(module.id)) return 'completed'
     if (showPartialLock && index > 0) return 'locked-plan'
     if (!isModuleUnlocked(module, index)) return 'locked-progress'
     return 'available'

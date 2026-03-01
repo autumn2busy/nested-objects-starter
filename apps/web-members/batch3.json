@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "wc-field-service",
+    "name": "WC Field Service",
+    "url": "https://wcfieldservice.com",
+    "vendor_page_url": "N/A",
+    "phone": "(818) 762-8539",
+    "email": null
+  },
+  {
+    "slug": "national-creditors-connection-inc",
+    "name": "National Creditors Connection Inc.",
+    "url": "http://www.nationalcreditors.com",
+    "vendor_page_url": "N/A",
+    "phone": "(800) 300-0743",
+    "email": null
+  },
+  {
+    "slug": "top-tier-public-adjusters",
+    "name": "Top Tier Public Adjusters",
+    "url": "https://toptierpa.com/",
+    "vendor_page_url": "N/A",
+    "phone": "(877) 944-7372",
+    "email": "info@toptierpublicadjusters.com"
+  },
+  {
+    "slug": "amerispec-chicago-xperience-home-inspections",
+    "name": "AmeriSpec Chicago - Xperience Home Inspections",
+    "url": "https://www.amerispec.com",
+    "vendor_page_url": "N/A",
+    "phone": "(708) 495-4372",
+    "email": null
+  },
+  {
+    "slug": "east-coast-property-servicesllc",
+    "name": "East Coast Property ServicesLLC",
+    "url": "https://ecps-llc.com",
+    "vendor_page_url": "N/A",
+    "phone": "(207) 922-3117",
+    "email": null
+  },
+  {
+    "slug": "sure-point-inspections",
+    "name": "Sure Point Inspections",
+    "url": "https://surepointinspection.com",
+    "vendor_page_url": null,
+    "phone": "N/A",
+    "email": "N/A"
+  },
+  {
+    "slug": "sdmyers",
+    "name": "SDMyers",
+    "url": "https://sdmyers.com",
+    "vendor_page_url": null,
+    "phone": "(330) 630-7000",
+    "email": "info@sdmyers.com"
+  },
+  {
+    "slug": "shiner-exteriors",
+    "name": "Shiner Exteriors",
+    "url": "https://shinerexteriors.com",
+    "vendor_page_url": null,
+    "phone": "(703) 560-7663",
+    "email": "srinfo@shinerexteriors.com"
+  },
+  {
+    "slug": "ka-engineering",
+    "name": "K&A Engineering",
+    "url": "https://kapower.us",
+    "vendor_page_url": null,
+    "phone": "(914) 607-7115",
+    "email": "info@kapower.us"
+  },
+  {
+    "slug": "rtr-services-inc",
+    "name": "RTR Services Inc.",
+    "url": "https://www.rtrservices.com/",
+    "vendor_page_url": null,
+    "phone": "(800) 238-3294",
+    "email": "info@rtrservices.com"
+  }
+]

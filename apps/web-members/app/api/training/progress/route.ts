@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 
+export const dynamic = 'force-dynamic'
+
 // Shared robust profile lookup/creation function
 async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
     // 1. Try lookup by outseta_person_uid or user_id

@@ -88,7 +88,7 @@ export default function ReadinessGuidesPage() {
                             <li>Device battery check and charger availability</li>
                         </ul>
                         <div className="mt-4">
-                            <button className="text-sm font-semibold text-brand-copper hover:underline">Download Checklist (PDF) →</button>
+                            <a href="#" download="Loadout-Checklist.pdf" className="text-sm font-semibold text-brand-copper hover:underline">Download Checklist (PDF) →</a>
                         </div>
                     </div>
 

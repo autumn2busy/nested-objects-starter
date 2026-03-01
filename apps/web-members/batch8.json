@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "equicheckllc",
+    "name": "EquicheckLLC",
+    "url": "http://www.equicheck.com",
+    "vendor_page_url": null,
+    "phone": "(631) 320-9137",
+    "email": null
+  },
+  {
+    "slug": "sgs",
+    "name": "SGS",
+    "url": "https://www.sgs.com/",
+    "vendor_page_url": null,
+    "phone": "(201) 508-3000",
+    "email": null
+  },
+  {
+    "slug": "pinnacle-mystery-shopper",
+    "name": "Pinnacle Mystery Shopper",
+    "url": "https://pinnaclefinancialstrategies.com",
+    "vendor_page_url": null,
+    "phone": "(800) 741-7758",
+    "email": "info@pinnstrat.com"
+  },
+  {
+    "slug": "evaluationsolutions",
+    "name": "eValuationSolutions",
+    "url": "https://evaluationsolutions.com",
+    "vendor_page_url": null,
+    "phone": "(817) 581-2900",
+    "email": null
+  },
+  {
+    "slug": "proproperty-inspection-services",
+    "name": "ProProperty Inspection & Services",
+    "url": "https://propropertyinspection.com",
+    "vendor_page_url": null,
+    "phone": "(619) 493-9557",
+    "email": null
+  },
+  {
+    "slug": "majestic-service-company",
+    "name": "Majestic Service Company",
+    "url": "http://www.majesticservicecompany.com",
+    "vendor_page_url": null,
+    "phone": "(516) 887-1443",
+    "email": null
+  }
+]
