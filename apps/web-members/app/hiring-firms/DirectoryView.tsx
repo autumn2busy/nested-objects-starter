@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck, Bookmark, BookmarkCheck } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -473,8 +472,8 @@ function FirmCard({ firm, isHovered, onHover, onBlur, isTracked, onTrack, isAuth
                         onClick={(e) => { e.stopPropagation(); onTrack(firm) }}
                         disabled={isTracked}
                         className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold tracking-[0.12em] border transition-colors ${isTracked
-                                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 cursor-default'
-                                : 'border-slate-300 bg-white text-slate-700 hover:bg-brand-copper hover:text-white hover:border-brand-copper'
+                            ? 'border-emerald-300 bg-emerald-50 text-emerald-700 cursor-default'
+                            : 'border-slate-300 bg-white text-slate-700 hover:bg-brand-copper hover:text-white hover:border-brand-copper'
                             }`}
                         title={isTracked ? 'Already in your Company Tracker' : 'Save to Company Tracker'}
                     >
@@ -498,7 +497,6 @@ interface DirectoryViewProps {
 
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
     const { isAuthenticated, planUid, isLoading, user } = useAuth()
-    const supabase = createClient()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [ratingFilter, setRatingFilter] = useState<string>('ALL')
@@ -512,39 +510,45 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const searchParams = useSearchParams()
     const firms = initialFirms
 
-    // Fetch tracked firms from company_tracker on mount
+    // Fetch tracked firms via server API (bypasses RLS)
     useEffect(() => {
-        if (!user?.sub) return
-        supabase
-            .from('company_tracker')
-            .select('company_name')
-            .then(({ data }) => {
-                if (data) {
-                    setTrackedFirmNames(new Set(data.map(d => d.company_name.toLowerCase())))
+        if (!isAuthenticated) return
+        fetch('/api/company-tracker', { cache: 'no-store' })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data?.companies) {
+                    setTrackedFirmNames(new Set(data.companies.map((d: any) => d.company_name.toLowerCase())))
                 }
             })
-    }, [user?.sub]) // eslint-disable-line react-hooks/exhaustive-deps
+            .catch(err => console.error('Error fetching tracked firms:', err))
+    }, [isAuthenticated])
 
     const handleTrackFirm = async (firm: Firm) => {
-        if (!user?.sub) return
+        if (!isAuthenticated) return
         const normalizedName = firm.name.toLowerCase()
         if (trackedFirmNames.has(normalizedName)) return
 
-        const { error } = await supabase
-            .from('company_tracker')
-            .insert([{
-                user_id: user.sub,
-                company_name: firm.name,
-                website: firm.url || firm.vendor_page_url || null,
-                research_status: 'not_started',
-                notes: firm.description ? firm.description.slice(0, 200) : null,
-            }])
+        try {
+            const res = await fetch('/api/company-tracker', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company_name: firm.name,
+                    website: firm.url || firm.vendor_page_url || null,
+                    notes: firm.description ? firm.description.slice(0, 200) : null,
+                }),
+            })
 
-        if (error) {
-            console.error('Error tracking firm:', error)
-            return
+            if (!res.ok) {
+                const errData = await res.json()
+                console.error('Error tracking firm:', errData)
+                return
+            }
+
+            setTrackedFirmNames(prev => new Set(prev).add(normalizedName))
+        } catch (err) {
+            console.error('Error tracking firm:', err)
         }
-        setTrackedFirmNames(prev => new Set(prev).add(normalizedName))
     }
 
     const urlStateFilter = searchParams?.get('state') ?? 'ALL'

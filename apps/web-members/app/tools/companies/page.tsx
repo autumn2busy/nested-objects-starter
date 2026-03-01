@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Globe, Trash2, Building2, MoreHorizontal, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/utils/supabase/client'
 import { useAuth } from '@/components/auth-provider'
 
 
@@ -30,7 +29,6 @@ const STATUS_COLORS = {
 
 export default function CompaniesPage() {
     const { user } = useAuth()
-    const supabase = createClient()
     const [companies, setCompanies] = useState<Company[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -44,13 +42,10 @@ export default function CompaniesPage() {
 
     const fetchCompanies = async () => {
         try {
-            const { data, error } = await supabase
-                .from('company_tracker')
-                .select('*')
-                .order('created_at', { ascending: false })
-
-            if (error) throw error
-            setCompanies(data as Company[])
+            const res = await fetch('/api/company-tracker', { cache: 'no-store' })
+            if (!res.ok) throw new Error('Failed to fetch')
+            const data = await res.json()
+            setCompanies(data.companies as Company[])
         } catch (error) {
             console.error('Error fetching companies:', error)
         } finally {
@@ -62,23 +57,22 @@ export default function CompaniesPage() {
         if (!newCompany.company_name || !user) return
 
         try {
-            // Assuming user.sub is the user_id that matches the text column in DB
-            const payload = {
-                user_id: user.sub,
-                company_name: newCompany.company_name,
-                website: newCompany.website,
-                research_status: newCompany.research_status,
-                notes: newCompany.notes
+            const res = await fetch('/api/company-tracker', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company_name: newCompany.company_name,
+                    website: newCompany.website,
+                    notes: newCompany.notes,
+                }),
+            })
+
+            if (!res.ok) throw new Error('Failed to save')
+            const data = await res.json()
+
+            if (data.company) {
+                setCompanies([data.company as Company, ...companies])
             }
-
-            const { data, error } = await supabase
-                .from('company_tracker')
-                .insert([payload])
-                .select()
-
-            if (error) throw error
-
-            setCompanies([data[0] as Company, ...companies])
             setNewCompany({ research_status: 'not_started' })
             setIsModalOpen(false)
         } catch (error) {
@@ -90,8 +84,12 @@ export default function CompaniesPage() {
     const deleteCompany = async (id: string) => {
         if (!confirm('Are you sure you want to delete this company?')) return
         try {
-            const { error } = await supabase.from('company_tracker').delete().eq('id', id)
-            if (error) throw error
+            const res = await fetch('/api/company-tracker', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            })
+            if (!res.ok) throw new Error('Failed to delete')
             setCompanies(companies.filter(c => c.id !== id))
         } catch (error) {
             console.error('Error deleting company:', error)
@@ -100,8 +98,12 @@ export default function CompaniesPage() {
 
     const updateStatus = async (id: string, status: string) => {
         try {
-            const { error } = await supabase.from('company_tracker').update({ research_status: status }).eq('id', id)
-            if (error) throw error
+            const res = await fetch('/api/company-tracker', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, research_status: status }),
+            })
+            if (!res.ok) throw new Error('Failed to update')
             setCompanies(companies.map(c => c.id === id ? { ...c, research_status: status as any } : c))
         } catch (error) {
             console.error('Error updating status:', error)
