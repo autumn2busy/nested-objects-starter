@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck } from 'lucide-react'
+import { BadgeCheck, Bookmark, BookmarkCheck } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -314,9 +315,12 @@ type FirmCardProps = {
     isHovered: boolean
     onHover: () => void
     onBlur: () => void
+    isTracked: boolean
+    onTrack: (firm: Firm) => void
+    isAuthenticated: boolean
 }
 
-function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
+function FirmCard({ firm, isHovered, onHover, onBlur, isTracked, onTrack, isAuthenticated }: FirmCardProps) {
     const payText =
         firm.pay_min != null || firm.pay_max != null
             ? [
@@ -456,12 +460,29 @@ function FirmCard({ firm, isHovered, onHover, onBlur }: FirmCardProps) {
                 </div>
             </div>
 
-            <Link
-                href={`/firms/${firm.slug ?? firm.id}`}
-                className="mt-4 border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white text-center block"
-            >
-                VIEW PROFILE
-            </Link>
+            <div className="mt-4 flex gap-2">
+                <Link
+                    href={`/firms/${firm.slug ?? firm.id}`}
+                    className="flex-1 border border-slate-900 bg-slate-900 px-4 py-2 text-[11px] font-semibold tracking-[0.16em] text-white text-center block"
+                >
+                    VIEW PROFILE
+                </Link>
+                {isAuthenticated && (
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onTrack(firm) }}
+                        disabled={isTracked}
+                        className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold tracking-[0.12em] border transition-colors ${isTracked
+                                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 cursor-default'
+                                : 'border-slate-300 bg-white text-slate-700 hover:bg-brand-copper hover:text-white hover:border-brand-copper'
+                            }`}
+                        title={isTracked ? 'Already in your Company Tracker' : 'Save to Company Tracker'}
+                    >
+                        {isTracked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+                        {isTracked ? 'TRACKED' : 'TRACK'}
+                    </button>
+                )}
+            </div>
         </article >
     )
 }
@@ -476,7 +497,8 @@ interface DirectoryViewProps {
 }
 
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
-    const { isAuthenticated, planUid, isLoading } = useAuth()
+    const { isAuthenticated, planUid, isLoading, user } = useAuth()
+    const supabase = createClient()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [ratingFilter, setRatingFilter] = useState<string>('ALL')
@@ -485,9 +507,45 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const [payFilter, setPayFilter] = useState<string>('ALL')
     const [sortFilter, setSortFilter] = useState<string>('rating_desc')
     const [hoveredFirmId, setHoveredFirmId] = useState<string | null>(null)
+    const [trackedFirmNames, setTrackedFirmNames] = useState<Set<string>>(new Set())
     const router = useRouter()
     const searchParams = useSearchParams()
     const firms = initialFirms
+
+    // Fetch tracked firms from company_tracker on mount
+    useEffect(() => {
+        if (!user?.sub) return
+        supabase
+            .from('company_tracker')
+            .select('company_name')
+            .then(({ data }) => {
+                if (data) {
+                    setTrackedFirmNames(new Set(data.map(d => d.company_name.toLowerCase())))
+                }
+            })
+    }, [user?.sub]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleTrackFirm = async (firm: Firm) => {
+        if (!user?.sub) return
+        const normalizedName = firm.name.toLowerCase()
+        if (trackedFirmNames.has(normalizedName)) return
+
+        const { error } = await supabase
+            .from('company_tracker')
+            .insert([{
+                user_id: user.sub,
+                company_name: firm.name,
+                website: firm.url || firm.vendor_page_url || null,
+                research_status: 'not_started',
+                notes: firm.description ? firm.description.slice(0, 200) : null,
+            }])
+
+        if (error) {
+            console.error('Error tracking firm:', error)
+            return
+        }
+        setTrackedFirmNames(prev => new Set(prev).add(normalizedName))
+    }
 
     const urlStateFilter = searchParams?.get('state') ?? 'ALL'
     const urlSearch = searchParams?.get('search') ?? ''
@@ -720,6 +778,9 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                             onBlur={() =>
                                 setHoveredFirmId((current) => (current === firm.id ? null : current))
                             }
+                            isTracked={trackedFirmNames.has(firm.name.toLowerCase())}
+                            onTrack={handleTrackFirm}
+                            isAuthenticated={isAuthenticated}
                         />
                     ))}
                 </div>
