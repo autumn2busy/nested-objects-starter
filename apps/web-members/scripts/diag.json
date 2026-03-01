@@ -1,0 +1,119 @@
+{
+  "user": {
+    "user_id": "QGereJeW",
+    "email": "autumn.s.williams+pro@gmail.com",
+    "full_name": "Pro Williams",
+    "training_modules_completed": 4
+  },
+  "modules": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-000000000001",
+      "title": "Orientation & Quick Start",
+      "module_number": 1
+    },
+    {
+      "id": "4950e8f9-2d78-4153-b9ff-e802830aa64d",
+      "title": "Understanding the Work Order",
+      "module_number": 2
+    },
+    {
+      "id": "32206714-99ce-41cd-a20e-37daae67b494",
+      "title": "First Occupancy & Loss Draft Inspections",
+      "module_number": 3
+    },
+    {
+      "id": "3166a8ff-4fc9-404d-9e03-2f4c44bfcaaa",
+      "title": "Technical Photography Mastery",
+      "module_number": 4
+    },
+    {
+      "id": "78736c5e-66ab-4919-9ca1-fdae022b2525",
+      "title": "The Business of Inspections",
+      "module_number": 5
+    },
+    {
+      "id": "9f87f4a5-7da1-49a6-8b97-59df3aef46c9",
+      "title": "Advanced Routing & Efficiency",
+      "module_number": 6
+    },
+    {
+      "id": "383d9b23-a981-430d-9db1-a9d4b69cb0b3",
+      "title": "Professional Communication",
+      "module_number": 7
+    },
+    {
+      "id": "b9b82e45-fe90-4448-897d-15a3679a091c",
+      "title": "Scaling & Career Growth",
+      "module_number": 8
+    }
+  ],
+  "quiz_attempts": [
+    {
+      "module_id": "a1b2c3d4-e5f6-7890-abcd-000000000001",
+      "score": 93,
+      "passed": true,
+      "attempt_number": 1,
+      "completed_at": "2026-02-25T23:37:00.845+00:00"
+    },
+    {
+      "module_id": "4950e8f9-2d78-4153-b9ff-e802830aa64d",
+      "score": 87,
+      "passed": true,
+      "attempt_number": 1,
+      "completed_at": "2026-02-25T23:51:06.946+00:00"
+    },
+    {
+      "module_id": "32206714-99ce-41cd-a20e-37daae67b494",
+      "score": 100,
+      "passed": true,
+      "attempt_number": 1,
+      "completed_at": "2026-02-28T19:19:28.573+00:00"
+    },
+    {
+      "module_id": "3166a8ff-4fc9-404d-9e03-2f4c44bfcaaa",
+      "score": 100,
+      "passed": true,
+      "attempt_number": 1,
+      "completed_at": "2026-03-01T18:08:45.155+00:00"
+    }
+  ],
+  "quiz_attempts_error": null,
+  "training_progress_quizzes": [
+    {
+      "module_id": "a1b2c3d4-e5f6-7890-abcd-000000000001",
+      "quiz_score": 93,
+      "quiz_passed": true,
+      "status": "completed",
+      "updated_at": "2026-02-25T23:37:00.954+00:00"
+    },
+    {
+      "module_id": "4950e8f9-2d78-4153-b9ff-e802830aa64d",
+      "quiz_score": 87,
+      "quiz_passed": true,
+      "status": "completed",
+      "updated_at": "2026-02-25T23:51:07.031+00:00"
+    },
+    {
+      "module_id": "32206714-99ce-41cd-a20e-37daae67b494",
+      "quiz_score": 100,
+      "quiz_passed": true,
+      "status": "completed",
+      "updated_at": "2026-02-28T19:19:28.682+00:00"
+    },
+    {
+      "module_id": "3166a8ff-4fc9-404d-9e03-2f4c44bfcaaa",
+      "quiz_score": 100,
+      "quiz_passed": true,
+      "status": "completed",
+      "updated_at": "2026-03-01T18:08:45.245+00:00"
+    }
+  ],
+  "completedModuleIds": [
+    "a1b2c3d4-e5f6-7890-abcd-000000000001",
+    "4950e8f9-2d78-4153-b9ff-e802830aa64d",
+    "32206714-99ce-41cd-a20e-37daae67b494",
+    "3166a8ff-4fc9-404d-9e03-2f4c44bfcaaa"
+  ],
+  "module4_id": "3166a8ff-4fc9-404d-9e03-2f4c44bfcaaa",
+  "module4_in_completed": true
+}

@@ -138,8 +138,7 @@ async function getFirms(
       params.set('order', 'contractor_rating.desc.nullslast,name.asc')
     }
 
-    params.set('limit', String(limit))
-    params.set('offset', String(offset))
+    // limit and offset are set below, conditionally based on pay filter
 
     // Rating filter — applied directly as a PostgREST param
     if (ratingMin && ratingMin !== 'ALL') {
@@ -161,11 +160,16 @@ async function getFirms(
     if (industryFilter) andFilters.push(industryFilter)
     if (sourceFilter) andFilters.push(sourceFilter)
 
-    if (payMin && payMin !== 'ALL') {
-      const minVal = parseFloat(payMin)
-      if (!isNaN(minVal) && minVal > 0) {
-        andFilters.push(`or(pay_max.gte.${minVal},pay_min.gte.${minVal})`)
-      }
+    // NOTE: pay_min/pay_max are stored as TEXT in the database, so PostgREST
+    // does lexicographic comparison (e.g. "25" > "100"). We must filter
+    // client-side after parsing pay values as numbers.
+    const payMinFilter = (payMin && payMin !== 'ALL') ? parseFloat(payMin) : null
+
+    // When pay filter is active, fetch ALL firms (skip pagination) so we can
+    // filter numerically across the full dataset, then paginate in JS.
+    if (!payMinFilter) {
+      params.set('limit', String(limit))
+      params.set('offset', String(offset))
     }
 
     if (andFilters.length > 0) {
@@ -188,7 +192,22 @@ async function getFirms(
     const countFromHeader = contentRange
       ? Number.parseInt(contentRange.split('/')[1] ?? '', 10)
       : Number.NaN
-    const firms = (await res.json()) as Firm[]
+    let firms = (await res.json()) as Firm[]
+
+    // Apply pay range filter client-side (numeric comparison)
+    if (payMinFilter && !isNaN(payMinFilter) && payMinFilter > 0) {
+      firms = firms.filter(f => {
+        const fMax = f.pay_max != null ? parseFloat(String(f.pay_max)) : null
+        const fMin = f.pay_min != null ? parseFloat(String(f.pay_min)) : null
+        // A firm matches if its max pay OR min pay reaches the threshold
+        return (fMax != null && !isNaN(fMax) && fMax >= payMinFilter) ||
+          (fMin != null && !isNaN(fMin) && fMin >= payMinFilter)
+      })
+      // Paginate filtered results in JS
+      const totalFiltered = firms.length
+      firms = firms.slice(offset, offset + limit)
+      return { firms, totalCount: totalFiltered }
+    }
 
     return {
       firms,

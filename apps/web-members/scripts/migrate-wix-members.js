@@ -60,49 +60,59 @@ function isPayingMember(row) {
 
 /**
  * Build the payload for the Outseta Account Creation endpoint.
- * Note: Check Outseta docs to ensure the CustomField mapping for ActiveCampaign Field 69 is configured in Outseta to sync.
  */
 function buildOutsetaPayload(row) {
     const rawPosition = row['Position'].trim();
     const mappedPersona = PERSONA_MAPPING[rawPosition] || rawPosition;
 
-    // We attempt to construct a full name if missing, or handle split names
-    const firstName = row['First Name'] || '';
-    const lastName = row['Last Name'] || '';
     const email = row['Email 1'] || row['Email 2'];
 
-    // Fallback if no first/last name but we have an email
-    let name = row['Full Name'];
-    if (!name) {
-        name = `${firstName} ${lastName}`.trim();
-        if (!name && email) name = email.split('@')[0];
+    // The CSV has a BOM character on the first column header ('First Name').
+    // We need to find the actual key by checking for keys that end with 'First Name'.
+    const firstNameKey = Object.keys(row).find(k => k.endsWith('First Name'));
+    let firstName = firstNameKey ? row[firstNameKey] : '';
+    let lastName = row['Last Name'] || '';
+
+    // If first/last name are empty, parse from Full Name
+    if ((!firstName || !lastName) && row['Full Name']) {
+        const parts = row['Full Name'].trim().split(/\s+/);
+        if (!firstName && parts.length > 0) firstName = parts[0];
+        if (!lastName && parts.length > 1) lastName = parts.slice(1).join(' ');
     }
 
+    // Account name
+    let name = row['Full Name'] || `${firstName} ${lastName}`.trim();
+    if (!name && email) name = email.split('@')[0];
+
     return {
-        Account: {
-            Name: name,
-            AccountStage: 3, // Assuming 3 = Subscriber/Customer in your Outseta setup
-        },
-        Person: {
-            Email: email,
-            FirstName: firstName,
-            LastName: lastName,
-            // In Outseta, this must match the System Name of the Custom Property you just created.
-            CustomFields: {
-                Persona: mappedPersona
-            }
-        },
-        Subscriptions: [
+        Name: name,
+        AccountStage: 3, // Subscriber/Customer
+        PersonAccount: [
             {
-                Plan: {
-                    Uid: PLAN_UID
+                Person: {
+                    Email: email,
+                    FirstName: firstName,
+                    LastName: lastName,
+                    // Outseta custom fields use the system name as the key
+                    Persona: mappedPersona
                 },
-                Discount: {
-                    Uid: DISCOUNT_UID
-                }
+                IsPrimary: true
             }
         ],
-        SendWelcomeEmail: true // Ensures they get the email to set their password
+        CurrentSubscription: {
+            Plan: {
+                Uid: PLAN_UID
+            },
+            BillingRenewalTerm: 1, // Monthly
+            DiscountCouponSubscriptions: [
+                {
+                    Discount: {
+                        Uid: DISCOUNT_UID
+                    }
+                }
+            ]
+        },
+        SendWelcomeEmail: true
     };
 }
 
@@ -153,12 +163,16 @@ async function processMigration() {
                 for (let i = 0; i < membersToProcess.length; i++) {
                     const member = membersToProcess[i];
                     const payload = buildOutsetaPayload(member);
-                    const email = payload.Person.Email;
+                    const email = payload.PersonAccount[0].Person.Email;
 
                     console.log(`[${i + 1}/${membersToProcess.length}] Creating Account for: ${email}`);
+                    console.log(`   Payload:`, JSON.stringify(payload, null, 2));
 
                     try {
-                        const response = await fetch(`${OUTSETA_URL}/crm/accounts`, {
+                        const apiUrl = `${OUTSETA_URL}/crm/accounts`;
+                        console.log(`   POST -> ${apiUrl}`);
+
+                        const response = await fetch(apiUrl, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Outseta ${OUTSETA_AUTH}`,
@@ -167,12 +181,15 @@ async function processMigration() {
                             body: JSON.stringify(payload)
                         });
 
+                        const responseText = await response.text();
+
                         if (!response.ok) {
-                            const errorData = await response.text();
-                            throw new Error(`HTTP ${response.status}: ${errorData}`);
+                            console.error(`   Response Status: ${response.status}`);
+                            console.error(`   Response Body: ${responseText}`);
+                            throw new Error(`HTTP ${response.status}`);
                         }
 
-                        console.log(`   ✅ Success!`);
+                        console.log(`   ✅ Success! Response: ${responseText.substring(0, 200)}`);
                         successCount++;
                     } catch (error) {
                         console.error(`   ❌ Failed: ${error.message}`);

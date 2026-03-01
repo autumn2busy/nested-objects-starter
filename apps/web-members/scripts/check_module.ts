@@ -5,29 +5,43 @@ import * as dotenv from 'dotenv';
 const env = dotenv.parse(fs.readFileSync('.env.local'));
 const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-async function checkStatus() {
-    console.log('--- Fetching all users ---');
-    const { data: profiles } = await supabase.from('profiles').select('user_id, email, full_name, training_modules_completed').limit(10);
+async function check() {
+    // Check Allegheny specifically
+    const { data: allegheny } = await supabase
+        .from('firms')
+        .select('id, name, pay_min, pay_max, pay_type, pay_range')
+        .ilike('name', '%allegheny%');
 
-    if (profiles && profiles.length > 0) {
-        const user = profiles[0]; // Take the first one or we can search for the beta tester
-        console.log(`Checking for user: ${user.email} (${user.user_id})`);
+    const results: any = { allegheny };
 
-        const { data: attempts } = await supabase.from('quiz_attempts').select('*').eq('user_id', user.user_id);
-        console.log('\nQuiz Attempts:');
-        console.log(attempts);
+    // Also check: how many firms have NULL pay values?
+    const { count: nullPayMin } = await supabase
+        .from('firms')
+        .select('id', { count: 'exact', head: true })
+        .is('pay_min', null);
 
-        const { data: progress } = await supabase.from('training_progress').select('*').eq('user_id', user.user_id);
-        console.log('\nTraining Progress:');
-        console.log(progress);
+    const { count: nullPayMax } = await supabase
+        .from('firms')
+        .select('id', { count: 'exact', head: true })
+        .is('pay_max', null);
 
-        const { data: modules } = await supabase.from('training_modules').select('id, title, module_number').order('module_number');
-        console.log('\nModules:');
-        console.log(modules);
+    const { count: totalFirms } = await supabase
+        .from('firms')
+        .select('id', { count: 'exact', head: true });
 
-    } else {
-        console.log('No profiles found to check.');
-    }
+    results.nullPayMin = nullPayMin;
+    results.nullPayMax = nullPayMax;
+    results.totalFirms = totalFirms;
+
+    // Check what the $100+ filter actually returns count-wise via direct query
+    const { count: payFilterCount } = await supabase
+        .from('firms')
+        .select('id', { count: 'exact', head: true })
+        .or('pay_max.gte.100,pay_min.gte.100');
+
+    results.payFilter100Count = payFilterCount;
+
+    fs.writeFileSync('/tmp/pay_diag.json', JSON.stringify(results, null, 2), 'utf8');
 }
 
-checkStatus();
+check();

@@ -1,0 +1,16 @@
+{
+  "allegheny": [
+    {
+      "id": "7a4c35ff-4dce-484d-b606-6a3dd29b084d",
+      "name": "Allegheny Inspections",
+      "pay_min": "25",
+      "pay_max": "60",
+      "pay_type": "/inspection",
+      "pay_range": null
+    }
+  ],
+  "nullPayMin": 0,
+  "nullPayMax": 1,
+  "totalFirms": 428,
+  "payFilter100Count": 428
+}
