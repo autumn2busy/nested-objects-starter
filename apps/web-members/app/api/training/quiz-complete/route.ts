@@ -1,64 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import {
+    getLookupUserIds,
+    logNoRowsTelemetry,
+    resolveTrainingIdentity,
+    runTrainingUserIdMigrationOncePerRuntime,
+} from '@/lib/training-identity'
 
 export const dynamic = 'force-dynamic'
 
-// Shared robust profile lookup/creation function
-async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
-    // 1. Try lookup by outseta_person_uid or user_id
-    let { data: profile } = await supabase
-        .from('profiles')
-        .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-        .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
-        .limit(1)
-        .single()
-
-    // 2. Try by email if not found
-    if (!profile && user.email) {
-        const { data: emailProfile } = await supabase
-            .from('profiles')
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .eq('email', user.email)
-            .single()
-
-        if (emailProfile) {
-            // Self-heal: update missing Outseta IDs
-            const updatePayload: any = {}
-            if (!emailProfile.outseta_person_uid) updatePayload.outseta_person_uid = outsetaId
-            if (!emailProfile.user_id) updatePayload.user_id = outsetaId
-
-            if (Object.keys(updatePayload).length > 0) {
-                await supabase.from('profiles').update(updatePayload).eq('id', emailProfile.id)
-            }
-            profile = emailProfile
-        }
-    }
-
-    // 3. Create if still not found
-    if (!profile) {
-        const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-                user_id: outsetaId,
-                outseta_person_uid: outsetaId,
-                email: user.email,
-                full_name: user.name || 'Unknown User',
-                updated_at: new Date().toISOString()
-            })
-            // Must select the extra fields so quiz-complete doesn't fail on recalculation
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .single()
-
-        if (createError || !newProfile) {
-            console.error('[QUIZ] Failed to create profile:', createError)
-            return null
-        }
-        profile = newProfile
-    }
-
-    return profile
-}
+const PROFILE_SELECT =
+    'id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status'
 
 /**
  * POST /api/training/quiz-complete
@@ -88,30 +41,51 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get or create profile for UUID linking
-        const profile = await getOrCreateProfile(supabase, outsetaId, user)
+        const identity = await resolveTrainingIdentity({
+            supabase,
+            outsetaId,
+            user,
+            profileSelect: PROFILE_SELECT,
+        })
 
-        if (!profile) {
+        if (!identity) {
             console.error(`[QUIZ] Profile not found or could not be created for outsetaId: ${outsetaId}, email: ${user.email}`)
             return NextResponse.json({ error: 'Profile not found and creation failed', outsetaId, email: user.email }, { status: 404 })
         }
 
-        console.log(`[QUIZ] User ${outsetaId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
+        await runTrainingUserIdMigrationOncePerRuntime(supabase, identity)
+
+        const profile = identity.profile
+        const lookupIds = getLookupUserIds(identity)
+
+        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
 
         // 2. Count existing attempts for this profile+module to determine attempt_number
-        const { count: existingAttempts } = await supabase
+        const { count: canonicalAttempts } = await supabase
             .from('quiz_attempts')
             .select('id', { count: 'exact', head: true })
-            .eq('user_id', outsetaId)
+            .eq('user_id', identity.canonicalUserId)
             .eq('module_id', module_id)
 
-        const attemptNumber = (existingAttempts || 0) + 1
+        let existingAttempts = canonicalAttempts || 0
+
+        if (existingAttempts === 0) {
+            const { count: fallbackAttempts } = await supabase
+                .from('quiz_attempts')
+                .select('id', { count: 'exact', head: true })
+                .in('user_id', lookupIds)
+                .eq('module_id', module_id)
+
+            existingAttempts = fallbackAttempts || 0
+        }
+
+        const attemptNumber = existingAttempts + 1
 
         // 3. Insert quiz attempt (not upsert — keep all attempts for history)
         const { error: attemptError } = await supabase
             .from('quiz_attempts')
             .insert({
-                user_id: outsetaId,             // Text - Outseta ID for cross-reference
+                user_id: identity.canonicalUserId,             // Text - Outseta ID for cross-reference
                 module_id: module_id,           // UUID
                 attempt_number: attemptNumber,
                 score: score,                   // numeric
@@ -129,7 +103,7 @@ export async function POST(request: Request) {
         await supabase
             .from('training_progress')
             .upsert({
-                user_id: outsetaId,
+                user_id: identity.canonicalUserId,
                 module_id,
                 lesson_id: 'quiz',
                 resource_type: 'quiz',
@@ -142,11 +116,27 @@ export async function POST(request: Request) {
         // 5. If passed, count total passed modules and recalculate trust score
         if (passed) {
             // Count distinct modules with at least one passed attempt
-            const { data: allPassed } = await supabase
+            const { data: canonicalPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
-                .eq('user_id', outsetaId)
+                .eq('user_id', identity.canonicalUserId)
                 .eq('passed', true)
+
+            let allPassed = canonicalPassed || []
+
+            if (allPassed.length === 0) {
+                const { data: fallbackPassed } = await supabase
+                    .from('quiz_attempts')
+                    .select('module_id, score')
+                    .in('user_id', lookupIds)
+                    .eq('passed', true)
+
+                allPassed = fallbackPassed || []
+
+                if (allPassed.length === 0) {
+                    logNoRowsTelemetry('QUIZ_COMPLETE:PASSED_MODULES', identity, { moduleId: module_id })
+                }
+            }
 
             // Deduplicate by module_id (multiple attempts possible)
             const passedModuleMap = new Map<string, number>()
