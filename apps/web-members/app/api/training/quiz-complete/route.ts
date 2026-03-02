@@ -1,64 +1,18 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { persistQuizCompletion } from './quiz-complete-service'
+import {
+    getLookupUserIds,
+    logNoRowsTelemetry,
+    resolveTrainingIdentity,
+    runTrainingUserIdMigrationOncePerRuntime,
+} from '@/lib/training-identity'
 
 export const dynamic = 'force-dynamic'
 
-// Shared robust profile lookup/creation function
-async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
-    // 1. Try lookup by outseta_person_uid or user_id
-    let { data: profile } = await supabase
-        .from('profiles')
-        .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-        .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
-        .limit(1)
-        .single()
-
-    // 2. Try by email if not found
-    if (!profile && user.email) {
-        const { data: emailProfile } = await supabase
-            .from('profiles')
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .eq('email', user.email)
-            .single()
-
-        if (emailProfile) {
-            // Self-heal: update missing Outseta IDs
-            const updatePayload: any = {}
-            if (!emailProfile.outseta_person_uid) updatePayload.outseta_person_uid = outsetaId
-            if (!emailProfile.user_id) updatePayload.user_id = outsetaId
-
-            if (Object.keys(updatePayload).length > 0) {
-                await supabase.from('profiles').update(updatePayload).eq('id', emailProfile.id)
-            }
-            profile = emailProfile
-        }
-    }
-
-    // 3. Create if still not found
-    if (!profile) {
-        const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-                user_id: outsetaId,
-                outseta_person_uid: outsetaId,
-                email: user.email,
-                full_name: user.name || 'Unknown User',
-                updated_at: new Date().toISOString()
-            })
-            // Must select the extra fields so quiz-complete doesn't fail on recalculation
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .single()
-
-        if (createError || !newProfile) {
-            console.error('[QUIZ] Failed to create profile:', createError)
-            return null
-        }
-        profile = newProfile
-    }
-
-    return profile
-}
+const PROFILE_SELECT =
+    'id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status'
 
 /**
  * POST /api/training/quiz-complete
@@ -88,75 +42,62 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get or create profile for UUID linking
-        const profile = await getOrCreateProfile(supabase, outsetaId, user)
+        const identity = await resolveTrainingIdentity({
+            supabase,
+            outsetaId,
+            user,
+            profileSelect: PROFILE_SELECT,
+        })
 
-        if (!profile) {
+        if (!identity) {
             console.error(`[QUIZ] Profile not found or could not be created for outsetaId: ${outsetaId}, email: ${user.email}`)
             return NextResponse.json({ error: 'Profile not found and creation failed', outsetaId, email: user.email }, { status: 404 })
         }
 
-        console.log(`[QUIZ] User ${outsetaId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
+        await runTrainingUserIdMigrationOncePerRuntime(supabase, identity)
 
-        // 2. Count existing attempts for this profile+module to determine attempt_number
-        const { count: existingAttempts } = await supabase
-            .from('quiz_attempts')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', outsetaId)
-            .eq('module_id', module_id)
+        const profile = identity.profile
+        const lookupIds = getLookupUserIds(identity)
 
-        const attemptNumber = (existingAttempts || 0) + 1
+        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
 
-        // 3. Insert quiz attempt (not upsert — keep all attempts for history)
-        const { error: attemptError } = await supabase
-            .from('quiz_attempts')
-            .insert({
-                user_id: outsetaId,             // Text - Outseta ID for cross-reference
-                module_id: module_id,           // UUID
-                attempt_number: attemptNumber,
-                score: score,                   // numeric
-                passed: passed,                 // boolean
-                answers: null,                  // jsonb - could store answers in future
-                completed_at: new Date().toISOString(),
-            })
+        const persistenceResult = await persistQuizCompletion({
+            supabase,
+            outsetaId,
+            moduleId: module_id,
+            score,
+            passed,
+        })
 
-        if (attemptError) {
-            console.error('[QUIZ] Insert error:', attemptError)
-            // Don't fail the whole request — still update profile
+        if (!persistenceResult.ok) {
+            return NextResponse.json({
+                success: false,
+                error: persistenceResult.error.message,
+                code: persistenceResult.error.code,
+                retryable: persistenceResult.error.retryable,
+            }, { status: persistenceResult.status })
         }
 
-        // 4. Also update training_progress table
-        await supabase
-            .from('training_progress')
-            .upsert({
-                user_id: outsetaId,
-                module_id,
-                lesson_id: 'quiz',
-                resource_type: 'quiz',
-                status: passed ? 'completed' : 'failed',
-                quiz_score: score,
-                quiz_passed: passed,
-                updated_at: new Date().toISOString()
-            })
+        const { attemptNumber } = persistenceResult
 
         // 5. If passed, count total passed modules and recalculate trust score
         if (passed) {
-            // Count distinct modules with at least one passed attempt
+            const modulesCompleted = persistenceResult.modulesCompleted || 0
+            const completedModuleIds = persistenceResult.completedModuleIds || []
+
+            // Re-query scores to preserve trust score behavior
             const { data: allPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
-                .eq('user_id', outsetaId)
+                .eq('user_id', identity.canonicalUserId)
                 .eq('passed', true)
 
-            // Deduplicate by module_id (multiple attempts possible)
-            const passedModuleMap = new Map<string, number>()
-            allPassed?.forEach(a => {
-                const existing = passedModuleMap.get(a.module_id) || 0
-                passedModuleMap.set(a.module_id, Math.max(existing, a.score))
+            const passedScoresByModule = new Map<string, number>()
+            ;(allPassed || []).forEach((a: { module_id: string; score: number }) => {
+                const existing = passedScoresByModule.get(a.module_id) || 0
+                passedScoresByModule.set(a.module_id, Math.max(existing, a.score))
             })
-
-            const modulesCompleted = passedModuleMap.size
-            const quizScores = Array.from(passedModuleMap.values())
+            const quizScores = Array.from(passedScoresByModule.values())
 
             // Get total modules count
             const { count: totalModules } = await supabase
@@ -196,6 +137,7 @@ export async function POST(request: Request) {
                 score,
                 attemptNumber,
                 modulesCompleted,
+                completedModuleIds,
                 trustScore: breakdown.total,
                 trustTier: breakdown.tier,
                 trustScoreBreakdown: breakdown.breakdown,
