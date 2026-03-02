@@ -145,6 +145,7 @@ function mapPlanToTier(planName?: string, planUid?: string): ProfileUpdateData['
   if (normalized.includes('elite')) return 'elite';
   if (normalized.includes('pro')) return 'pro';
   if (normalized.includes('founder')) return 'founders';
+  if (normalized.includes('founders')) return 'founders';
   if (normalized.includes('starter') || normalized.includes('directory')) return 'starter';
   return 'free';
 }

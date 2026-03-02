@@ -33,7 +33,7 @@ const PLAN_UID = 'pWrBRnWn'; // Founder Plan
 const DISCOUNT_UID = 'ZmNpN292'; // "founder" discount
 
 // IMPORTANT: Set to false to run the full batch!
-const SINGLE_TEST_MODE = true;
+const SINGLE_TEST_MODE = false;
 
 /**
  * PERSONA TAG MAPPING
@@ -66,41 +66,42 @@ function isPayingMember(row) {
 function buildOutsetaPayload(row) {
     const email = row['Email 1'] || row['Email 2'];
 
-    // The CSV has a BOM character on 'First Name' header
+    // The CSV has a BOM character on the first column header ('First Name').
     const firstNameKey = Object.keys(row).find(k => k.endsWith('First Name'));
-    let firstName = firstNameKey ? row[firstNameKey] : '';
-    let lastName = row['Last Name'] || '';
+    let firstName = (firstNameKey ? row[firstNameKey] : '').trim();
+    let lastName = (row['Last Name'] || '').trim();
 
-    // Parse from Full Name if missing
+    // If first/last name are empty, parse from Full Name
     if ((!firstName || !lastName) && row['Full Name']) {
         const parts = row['Full Name'].trim().split(/\s+/);
         if (!firstName && parts.length > 0) firstName = parts[0];
         if (!lastName && parts.length > 1) lastName = parts.slice(1).join(' ');
     }
 
-    let name = row['Full Name'] || `${firstName} ${lastName}`.trim();
+    // Account name
+    let name = row['Full Name'] ? row['Full Name'].trim() : `${firstName} ${lastName}`.trim();
     if (!name && email) name = email.split('@')[0];
 
     return {
         Name: name,
-        AccountStage: 3,
+        AccountStage: 3, // Subscriber/Customer
         PersonAccount: [
             {
+                IsPrimary: true,
                 Person: {
                     Email: email,
                     FirstName: firstName,
                     LastName: lastName
-                },
-                IsPrimary: true
+                }
             }
         ],
-        CurrentSubscription: {
-            Plan: { Uid: PLAN_UID },
-            BillingRenewalTerm: 1,
-            DiscountCouponSubscriptions: [
-                { Discount: { Uid: DISCOUNT_UID } }
-            ]
-        },
+        Subscriptions: [
+            {
+                Plan: { Uid: PLAN_UID },
+                BillingRenewalTerm: 1, // Monthly
+                DiscountCode: 'founder' // This 100% off coupon makes the first month $0, then it goes to $37
+            }
+        ],
         SendWelcomeEmail: true
     };
 }

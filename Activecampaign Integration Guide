@@ -1,0 +1,59 @@
+# ActiveCampaign Deep Data & Recurring Payments Integration Guide
+
+This guide explains the architecture and data flow for syncing subscription data from Outseta to ActiveCampaign (AC).
+
+## Architecture Overview
+
+The integration follows an **event-driven orchestration** pattern. When a member is created or updated in Outseta, a webhook triggers a series of sequential syncs to ActiveCampaign to ensure the contact, their e-commerce representation, and their subscription status are perfectly aligned.
+
+### The Sync Flow (Sequence of Operations)
+
+The sync must happen in a specific order because each subsequent step depends on the IDs or objects created in the previous ones.
+
+```mermaid
+graph TD
+    A[Outseta Webhook] --> B[Supabase Profile Update]
+    B --> C[syncFullProfileDeepData]
+    C --> D[1. Sync Contact]
+    D --> E[2. Sync EcomCustomer]
+    E --> F[3. Sync Tags]
+    F --> G[4. Sync EcomOrder]
+    G --> H[5. Sync Recurring Payment]
+    H --> I[Sync Complete]
+```
+
+1.  **Sync Contact (REST v3)**: Ensures the user exists as a Contact in AC. This is the primary key for all marketing.
+2.  **Add to List (REST v3)**: Immediately subscribes the contact to the main list (e.g., ID 12) to enable automation entry.
+3.  **Sync Ecommerce Customer (REST v3)**: Links the Contact to our specific "Deep Data" Connection. This turns a regular Contact into a "Customer" capable of having orders and subscriptions.
+4.  **Sync Tags (REST v3)**: 
+    *   Adds `plan-{tier}` and `status-{status}` tags.
+    *   **Cleanup Logic**: Automatically removes *previous* plan or status tags to prevent "tag bloat" (e.g., removing `plan-starter` when adding `plan-pro`).
+5.  **Sync Ecommerce Order (REST v3)**: Creates a "Purchase" event in AC. ActiveCampaign requires an `originOrderId` to associate a Recurring Payment. We use a composite ID: `account_uid-plan_uid`.
+6.  **Sync Recurring Payment (GraphQL v3)**: The final step that enables subscription-based automation triggers (Trial Ending, Payment Failed, etc.).
+
+## Data Mapping & Technical Rationale
+
+### Why GraphQL for Recurring Payments?
+While most of the integration uses the REST API, we specifically use the **ActiveCampaign GraphQL API (`/api/3/ecom/graphql`)** for Recurring Payments.
+*   **Robustness**: The `bulkUpsertRecurringPayments` mutation provides better type safety and descriptive validation errors.
+*   **Status Management**: It uses a specific enum (`normalizedStatus`: `ACTIVE`, `CANCELLED`, `PAYMENT_FAILED`) which maps directly to AC's internal automation triggers.
+*   **Schema Control**: This endpoint was found to be the most reliable for custom "Deep Data" integrations where standard REST endpoints often return 404 for non-native apps.
+
+### Key Identifiers Used
+*   **Connection ID**: Identifies this specific app instance (Nested Objects).
+*   **External ID (Customer)**: Maps to Outseta's `Person.Uid`.
+*   **Store Recurring Payment ID**: Maps to Outseta's `Account.Uid`, ensuring that even if a person changes their email, their subscription history remains tied to their account.
+*   **Origin Order ID**: Links the subscription to a specific purchase event.
+
+### Data Synchronized
+| Entity | Key Fields | Purpose |
+| :--- | :--- | :--- |
+| **Contact** | Email, First/Last Name, Phone | Marketing Communication |
+| **Customer** | Connection ID, External ID | Deep Data Foundation |
+| **Order** | Order Number, Products (Plan Name), Price | Sales Tracking |
+| **Recurring Payment** | Status, Amount, Billing Interval, Next Payment Date | Subscription Automations |
+
+## Error Handling & Idempotency
+*   **Idempotency**: The Outseta webhook checks `outseta_updated_at` timestamps. If an older webhook arrives out of order, it is skipped.
+*   **Logging**: Every step of the `syncFullProfileDeepData` function returns a `logs` array, which is saved or logged for debugging deep data issues.
+*   **Validation**: The script includes strict email format checks to prevent GraphQL "Invalid Email" errors that can halt the sync queue.

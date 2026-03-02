@@ -1,30 +1,20 @@
-require('dotenv').config({ path: '.env.local' });
-const fs = require('fs');
+import { createClient } from '@supabase/supabase-js';
+import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 
-const OUTSETA_DOMAIN = process.env.NEXT_PUBLIC_OUTSETA_DOMAIN || 'nested-objects.outseta.com';
-const OUTSETA_URL = `https://${OUTSETA_DOMAIN}/api/v1`;
-const OUTSETA_API_KEY = process.env.OUTSETA_API_KEY || process.env.NEXT_PUBLIC_OUTSETA_PUBLIC_KEY;
-const OUTSETA_API_SECRET = process.env.OUTSETA_API_SECRET;
-const OUTSETA_AUTH = `${OUTSETA_API_KEY}:${OUTSETA_API_SECRET}`;
+const env = dotenv.parse(fs.readFileSync('.env.local'));
+const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-const PERSON_UID = 'W4JJE1VQ';
+async function checkUserProfile() {
+    const userId = 'QGereJeW';
 
-async function checkPerson() {
-    console.log('Fetching person...');
-    const res = await fetch(`${OUTSETA_URL}/crm/people/${PERSON_UID}`, {
-        headers: { 'Authorization': `Outseta ${OUTSETA_AUTH}` }
-    });
-    const data = JSON.parse(await res.text());
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan_uid, plan_name, training_modules_completed, training_modules_total')
+        .eq('user_id', userId)
+        .single();
 
-    fs.writeFileSync('person_check.json', JSON.stringify({
-        FirstName: data.FirstName,
-        LastName: data.LastName,
-        Email: data.Email,
-        Persona: data.Persona,
-        AllKeys: Object.keys(data)
-    }, null, 2));
-
-    console.log('Saved to person_check.json');
+    console.log(`Profile for ${userId}:`, profile);
 }
 
-checkPerson();
+checkUserProfile();

@@ -66,22 +66,36 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
   // Determine if a module is unlocked based on sequential quiz completion
   const isModuleUnlocked = (module: TrainingModule, index: number): boolean => {
     // Module 1 is always unlocked (if plan allows)
-    if (index === 0) return true
+    if (index === 0 || module.module_number === 1) return true
 
     // Plan-gated: if no training access, only module 1 is available
     if (showPartialLock) return false
 
     // Sequential lock: previous module must have a passed quiz
-    const previousModule = sortedModules[index - 1]
-    if (!previousModule) return true
+    // We look for any module with (current.module_number - 1) that is passed
+    const previousModuleNum = module.module_number - 1
+    const previousModule = sortedModules.find(m => m.module_number === previousModuleNum)
 
-    const hasPassed = Array.from(passedModuleIds).includes(previousModule.id)
-    return hasPassed
+    if (!previousModule) {
+      // If we can't find a module with (N-1), default to index-1 fallback
+      const idxPrev = sortedModules[index - 1]
+      return idxPrev ? passedModuleIds.has(idxPrev.id) : true
+    }
+
+    const hasPassedPrevious = passedModuleIds.has(previousModule.id)
+
+    // Diagnostic log for Module 6 or others that stay locked
+    if (module.module_number >= 5 && !hasPassedPrevious && !passedModuleIds.has(module.id)) {
+      console.log(`[TRAINING] Module ${module.module_number} lock check: previous module ${previousModuleNum} (${previousModule.id}) passed? ${hasPassedPrevious}. Current module ${module.id} in passed list? ${passedModuleIds.has(module.id)}`)
+    }
+
+    return hasPassedPrevious
   }
 
   // Determine module status for display
   const getModuleStatus = (module: TrainingModule, index: number): 'completed' | 'available' | 'locked-plan' | 'locked-progress' => {
-    if (Array.from(passedModuleIds).includes(module.id)) return 'completed'
+    const isPassed = passedModuleIds.has(module.id)
+    if (isPassed) return 'completed'
     if (showPartialLock && index > 0) return 'locked-plan'
     if (!isModuleUnlocked(module, index)) return 'locked-progress'
     return 'available'
