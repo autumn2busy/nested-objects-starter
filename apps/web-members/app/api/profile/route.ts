@@ -1,73 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import {
+  PROFILE_CRITICAL_COLUMNS,
+  PROFILE_GUARANTEED_COLUMNS,
+  buildDegradedProfile,
+  buildFallbackProfileSchemaInfo,
+  buildProfileQueryColumns,
+  type ProfileSchemaInfo,
+} from './schema'
 
 export const dynamic = 'force-dynamic'
 
 const PROFILE_LOG_PREFIX = '[PROFILE_API_SUPABASE_ERROR]'
 const PROFILE_SCHEMA_GUARD_PREFIX = '[PROFILE_API_SCHEMA_GUARD]'
-
-const PROFILE_GUARANTEED_COLUMNS = [
-  'id',
-  'outseta_person_uid',
-  'user_email',
-  'full_name',
-  'display_name',
-  'first_name',
-  'last_name',
-  'email',
-  'phone',
-  'subscription_tier',
-  'subscription_status',
-  'created_at',
-] as const
-
-const PROFILE_OPTIONAL_COLUMNS = [
-  'user_id',
-  'avatar_url',
-  'headline',
-  'bio',
-  'city',
-  'state',
-  'service_areas',
-  'primary_services',
-  'experience_level',
-  'tools_used',
-  'preferred_job_types',
-  'max_travel_distance',
-  'trust_score',
-  'trust_tier',
-  'trust_score_breakdown',
-  'background_check_status',
-  'background_check_verified_at',
-  'shield_id',
-  'shield_ic_rating',
-  'training_modules_completed',
-  'training_modules_total',
-  'inspections_completed',
-  'certifications',
-  'identity_verified',
-  'phone_verified',
-  'email_verified',
-  'verified_at',
-  'is_published',
-  'rating',
-  'rating_count',
-] as const
-
-const PROFILE_CRITICAL_COLUMNS = [
-  'is_published',
-  'training_modules_completed',
-  'training_modules_total',
-  'trust_score',
-  'trust_tier',
-  'trust_score_breakdown',
-] as const
-
-type ProfileSchemaInfo = {
-  availableColumns: Set<string>
-  missingCriticalColumns: string[]
-}
 
 let cachedProfileSchemaInfo: Promise<ProfileSchemaInfo> | null = null
 
@@ -114,46 +60,6 @@ function isSchemaError(error: any) {
   )
 }
 
-function buildDegradedProfile(outsetaUser: any, userEmail: string | null, data: any = {}) {
-  return {
-    id: data.id ?? null,
-    user_email: data.user_email ?? userEmail,
-    full_name: data.full_name ?? outsetaUser?.name ?? outsetaUser?.FullName ?? null,
-    display_name: data.display_name ?? outsetaUser?.first_name ?? outsetaUser?.FirstName ?? null,
-    first_name: data.first_name ?? outsetaUser?.first_name ?? outsetaUser?.FirstName ?? null,
-    last_name: data.last_name ?? outsetaUser?.last_name ?? outsetaUser?.LastName ?? null,
-    email: data.email ?? userEmail,
-    phone: data.phone ?? resolveUserPhone(outsetaUser),
-    avatar_url: data.avatar_url ?? null,
-    is_published: data.is_published ?? false,
-    trust_score: data.trust_score ?? 0,
-    trust_tier: data.trust_tier ?? 'bronze',
-    trust_score_breakdown: data.trust_score_breakdown ?? null,
-    background_check_status: data.background_check_status ?? 'not_started',
-    training_modules_completed: data.training_modules_completed ?? 0,
-    training_modules_total: data.training_modules_total ?? 8,
-    inspections_completed: data.inspections_completed ?? 0,
-    email_verified: data.email_verified ?? true,
-    phone_verified: data.phone_verified ?? false,
-    identity_verified: data.identity_verified ?? false,
-    created_at: data.created_at ?? new Date().toISOString(),
-    headline: data.headline ?? null,
-    bio: data.bio ?? null,
-    city: data.city ?? null,
-    state: data.state ?? null,
-    service_areas: data.service_areas ?? null,
-    primary_services: data.primary_services ?? null,
-    experience_level: data.experience_level ?? null,
-    tools_used: data.tools_used ?? null,
-    preferred_job_types: data.preferred_job_types ?? null,
-    max_travel_distance: data.max_travel_distance ?? null,
-    subscription_tier: data.subscription_tier ?? 'free',
-    subscription_status: data.subscription_status ?? 'active',
-    rating: data.rating ?? null,
-    rating_count: data.rating_count ?? null,
-  }
-}
-
 async function getProfileSchemaInfo(supabase: ReturnType<typeof createServiceRoleClient>) {
   if (!cachedProfileSchemaInfo) {
     cachedProfileSchemaInfo = (async () => {
@@ -165,10 +71,7 @@ async function getProfileSchemaInfo(supabase: ReturnType<typeof createServiceRol
 
       if (error) {
         logSupabaseError('schema_probe_failed', error)
-        return {
-          availableColumns: new Set([...PROFILE_GUARANTEED_COLUMNS]),
-          missingCriticalColumns: [...PROFILE_CRITICAL_COLUMNS],
-        }
+        return buildFallbackProfileSchemaInfo()
       }
 
       const availableColumns = new Set((data ?? []).map((row: any) => row.column_name))
@@ -206,10 +109,7 @@ export async function GET() {
 
     const supabase = createServiceRoleClient()
     const schemaInfo = await getProfileSchemaInfo(supabase)
-    const queryColumns = [
-      ...PROFILE_GUARANTEED_COLUMNS,
-      ...PROFILE_OPTIONAL_COLUMNS.filter((column) => schemaInfo.availableColumns.has(column)),
-    ]
+    const queryColumns = buildProfileQueryColumns(schemaInfo.availableColumns)
 
     // Try to find profile by user_id first, then by email
     let query = supabase.from('profiles').select(queryColumns.join(', '))
@@ -231,17 +131,17 @@ export async function GET() {
       logSupabaseError('profile_fetch_failed', error, { userId, userEmail })
 
       if (isSchemaError(error)) {
-        return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail) })
+        return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser)) })
       }
 
       return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
     }
 
     if (!data) {
-      return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail) })
+      return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser)) })
     }
 
-    return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, data) })
+    return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser), data) })
   } catch (err) {
     console.error('[PROFILE_GET_ERROR]', err)
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 })
