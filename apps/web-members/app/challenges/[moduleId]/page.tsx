@@ -558,7 +558,7 @@ export default function ModuleOverviewPage() {
                                 {section.content && <p className="text-slate-600 mt-1">{section.content}</p>}
                             </div>
                             <div className="p-6">
-                                {(section.type === 'comparison-table' || section.type === 'info-table' || section.type === 'workflow-steps' || section.type === 'examples') && section.data && (
+                                {(section.type === 'comparison-table' || section.type === 'info-table' || section.type === 'workflow-steps' || section.type === 'examples' || section.type === 'specs-table') && section.data && (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
