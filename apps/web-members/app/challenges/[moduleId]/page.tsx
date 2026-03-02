@@ -558,7 +558,7 @@ export default function ModuleOverviewPage() {
                                 {section.content && <p className="text-slate-600 mt-1">{section.content}</p>}
                             </div>
                             <div className="p-6">
-                                {(section.type === 'comparison-table' || section.type === 'info-table' || section.type === 'workflow-steps' || section.type === 'examples') && section.data && (
+                                {(section.type === 'comparison-table' || section.type === 'info-table' || section.type === 'workflow-steps' || section.type === 'examples' || section.type === 'specs-table') && section.data && (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead><tr className="bg-slate-50">{section.data.headers?.map((h: string, i: number) => <th key={i} className="px-4 py-3 text-left font-semibold border-b">{h}</th>)}</tr></thead>
@@ -584,14 +584,22 @@ export default function ModuleOverviewPage() {
                                 {section.type === 'tips' && <div className="grid md:grid-cols-2 gap-4">{section.tips?.map((tip: any, i: number) => <div key={i} className="bg-amber-50 border border-amber-200 rounded-lg p-4"><h4 className="font-semibold text-amber-800 flex items-center gap-2"><Lightbulb className="w-4 h-4" />{tip.title}</h4><p className="text-amber-700 text-sm mt-1">{tip.content}</p></div>)}</div>}
                                 {section.type === 'checklist' && section.items && (
                                     <div className="space-y-2">
-                                        {section.items.map((item: any, i: number) => (
-                                            <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                                                <div className="w-6 h-6 rounded border-2 border-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                    <Check className="w-4 h-4 text-slate-400" />
+                                        {section.items.map((item: any, i: number) => {
+                                            const label = typeof item === 'string' ? item : item.text || item.content || item.title || item.item;
+                                            const detail = typeof item === 'string' ? null : item.detail;
+
+                                            return (
+                                                <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                                                    <div className="w-6 h-6 rounded border-2 border-slate-300 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <Check className="w-4 h-4 text-slate-400" />
+                                                    </div>
+                                                    <div>
+                                                        {label && <p className="text-slate-700 font-medium">{label}</p>}
+                                                        {detail && <p className="text-slate-600 text-sm mt-1">{detail}</p>}
+                                                    </div>
                                                 </div>
-                                                <p className="text-slate-700">{typeof item === 'string' ? item : item.text || item.content || item.title}</p>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 )}
                                 {section.type === 'timeline' && section.data && (
