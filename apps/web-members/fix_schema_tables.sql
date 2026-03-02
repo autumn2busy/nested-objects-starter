@@ -76,8 +76,10 @@ create table if not exists public.quiz_attempts (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users(id) not null,
   module_id text not null,
+  attempt_number integer not null default 1,
   passed boolean default false,
   score integer,
+  answers jsonb,
   completed_at timestamptz default now()
 );
 

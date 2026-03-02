@@ -1,63 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import {
+    getLookupUserIds,
+    logRowsetTelemetry,
+    resolveTrainingIdentity,
+    runTrainingUserIdMigrationPerRuntime,
+} from '@/lib/training-identity'
 
 export const dynamic = 'force-dynamic'
-
-// Shared robust profile lookup/creation function
-async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
-    // 1. Try lookup by outseta_person_uid or user_id
-    let { data: profile } = await supabase
-        .from('profiles')
-        .select('id, user_id, outseta_person_uid')
-        .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
-        .limit(1)
-        .single()
-
-    // 2. Try by email if not found
-    if (!profile && user.email) {
-        const { data: emailProfile } = await supabase
-            .from('profiles')
-            .select('id, user_id, outseta_person_uid')
-            .eq('email', user.email)
-            .single()
-
-        if (emailProfile) {
-            // Self-heal: update missing Outseta IDs
-            const updatePayload: any = {}
-            if (!emailProfile.outseta_person_uid) updatePayload.outseta_person_uid = outsetaId
-            if (!emailProfile.user_id) updatePayload.user_id = outsetaId
-
-            if (Object.keys(updatePayload).length > 0) {
-                await supabase.from('profiles').update(updatePayload).eq('id', emailProfile.id)
-            }
-            profile = emailProfile
-        }
-    }
-
-    // 3. Create if still not found
-    if (!profile) {
-        const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-                user_id: outsetaId,
-                outseta_person_uid: outsetaId,
-                email: user.email,
-                full_name: user.name || 'Unknown User',
-                updated_at: new Date().toISOString()
-            })
-            .select('id, user_id, outseta_person_uid')
-            .single()
-
-        if (createError || !newProfile) {
-            console.error('[PROGRESS] Failed to create profile:', createError)
-            return null
-        }
-        profile = newProfile
-    }
-
-    return profile
-}
 
 export async function GET(request: Request) {
     try {
@@ -72,20 +23,26 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url)
         const moduleId = searchParams.get('moduleId')
 
-        // Fetch or create profile on GET to ensure it's ready for any future saves
-        const profile = await getOrCreateProfile(supabase, outsetaId, user)
+        const identity = await resolveTrainingIdentity({ supabase, outsetaId, user })
 
-        if (!profile) {
+        if (!identity) {
             return NextResponse.json({ completedModuleIds: [], progress: [] })
         }
+
+        await runTrainingUserIdMigrationPerRuntime(supabase, identity)
+        const lookupIds = getLookupUserIds(identity)
 
         // IF moduleId is provided, fetch granular progress for that module
         if (moduleId) {
             const { data: progress } = await supabase
                 .from('training_progress')
                 .select('lesson_id, resource_type, status')
-                .eq('user_id', outsetaId) // Use Outseta string ID lookup
+                .in('user_id', lookupIds)
                 .eq('module_id', moduleId)
+
+            if (!progress?.length) {
+                logRowsetTelemetry('PROGRESS:GET_MODULE', identity, { moduleId })
+            }
 
             return NextResponse.json({ progress: progress || [], completedModuleIds: [] })
         }
@@ -94,8 +51,12 @@ export async function GET(request: Request) {
         const { data: passedQuizzes } = await supabase
             .from('quiz_attempts')
             .select('module_id')
-            .eq('user_id', outsetaId)
+            .in('user_id', lookupIds)
             .eq('passed', true)
+
+        if (!passedQuizzes?.length) {
+            logRowsetTelemetry('PROGRESS:GET_COMPLETED_MODULES', identity)
+        }
 
         const completedModuleIds = Array.from(new Set(passedQuizzes?.map((q: any) => q.module_id) || []))
 
@@ -121,21 +82,22 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get or Create Profile ID 
-        const profile = await getOrCreateProfile(supabase, outsetaId, user)
+        const identity = await resolveTrainingIdentity({ supabase, outsetaId, user })
 
-        if (!profile) {
+        if (!identity) {
             return NextResponse.json({
                 error: 'Profile not found and creation failed',
                 outsetaId
             }, { status: 500 })
         }
 
+        await runTrainingUserIdMigrationPerRuntime(supabase, identity)
+
         // 2. Upsert Progress
         const { error: progressError } = await supabase
             .from('training_progress')
             .upsert({
-                user_id: outsetaId, // String Outseta ID
+                user_id: identity.canonicalUserId,
                 module_id,
                 lesson_id,
                 resource_type,
@@ -157,7 +119,7 @@ export async function POST(request: Request) {
             const { error: qaError } = await supabase
                 .from('quiz_attempts')
                 .upsert({
-                    user_id: outsetaId,     // String Outseta ID
+                    user_id: identity.canonicalUserId,
                     module_id,
                     passed: true,
                     score: quiz_score || 100,
