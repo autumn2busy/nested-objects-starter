@@ -10,15 +10,15 @@ async function checkCasing() {
     const { data: attempts } = await supabase.from('quiz_attempts').select('module_id').limit(100);
 
     console.log('--- Training Modules IDs ---');
-    modules.forEach(m => console.log(`${m.id} (${m.title})`));
+    modules?.forEach(m => console.log(`${m.id} (${m.title})`));
 
     console.log('\n--- Quiz Attempts IDs ---');
-    attempts.forEach(a => console.log(a.module_id));
+    attempts?.forEach(a => console.log(a.module_id));
 
     // Check if any have uppercase letters
     const hasUpper = (str) => /[A-Z]/.test(str);
 
-    const upperModules = modules.filter(m => hasUpper(m.id));
+    const upperModules = modules?.filter(m => hasUpper(m.id));
     const upperAttempts = attempts.filter(a => hasUpper(a.module_id));
 
     if (upperModules.length > 0) console.log('\n!!! UPPERCASE FOUND IN MODULES:', upperModules);
