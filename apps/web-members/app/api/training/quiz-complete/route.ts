@@ -2,64 +2,17 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 import { persistQuizCompletion } from './quiz-complete-service'
+import {
+    getLookupUserIds,
+    logNoRowsTelemetry,
+    resolveTrainingIdentity,
+    runTrainingUserIdMigrationOncePerRuntime,
+} from '@/lib/training-identity'
 
 export const dynamic = 'force-dynamic'
 
-// Shared robust profile lookup/creation function
-async function getOrCreateProfile(supabase: any, outsetaId: string, user: any) {
-    // 1. Try lookup by outseta_person_uid or user_id
-    let { data: profile } = await supabase
-        .from('profiles')
-        .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-        .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
-        .limit(1)
-        .single()
-
-    // 2. Try by email if not found
-    if (!profile && user.email) {
-        const { data: emailProfile } = await supabase
-            .from('profiles')
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .eq('email', user.email)
-            .single()
-
-        if (emailProfile) {
-            // Self-heal: update missing Outseta IDs
-            const updatePayload: any = {}
-            if (!emailProfile.outseta_person_uid) updatePayload.outseta_person_uid = outsetaId
-            if (!emailProfile.user_id) updatePayload.user_id = outsetaId
-
-            if (Object.keys(updatePayload).length > 0) {
-                await supabase.from('profiles').update(updatePayload).eq('id', emailProfile.id)
-            }
-            profile = emailProfile
-        }
-    }
-
-    // 3. Create if still not found
-    if (!profile) {
-        const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-                user_id: outsetaId,
-                outseta_person_uid: outsetaId,
-                email: user.email,
-                full_name: user.name || 'Unknown User',
-                updated_at: new Date().toISOString()
-            })
-            // Must select the extra fields so quiz-complete doesn't fail on recalculation
-            .select('id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status')
-            .single()
-
-        if (createError || !newProfile) {
-            console.error('[QUIZ] Failed to create profile:', createError)
-            return null
-        }
-        profile = newProfile
-    }
-
-    return profile
-}
+const PROFILE_SELECT =
+    'id, user_id, outseta_person_uid, trust_score, trust_score_breakdown, training_modules_completed, background_check_status'
 
 /**
  * POST /api/training/quiz-complete
@@ -89,15 +42,24 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        // 1. Get or create profile for UUID linking
-        const profile = await getOrCreateProfile(supabase, outsetaId, user)
+        const identity = await resolveTrainingIdentity({
+            supabase,
+            outsetaId,
+            user,
+            profileSelect: PROFILE_SELECT,
+        })
 
-        if (!profile) {
+        if (!identity) {
             console.error(`[QUIZ] Profile not found or could not be created for outsetaId: ${outsetaId}, email: ${user.email}`)
             return NextResponse.json({ error: 'Profile not found and creation failed', outsetaId, email: user.email }, { status: 404 })
         }
 
-        console.log(`[QUIZ] User ${outsetaId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
+        await runTrainingUserIdMigrationOncePerRuntime(supabase, identity)
+
+        const profile = identity.profile
+        const lookupIds = getLookupUserIds(identity)
+
+        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
 
         const persistenceResult = await persistQuizCompletion({
             supabase,
@@ -127,7 +89,7 @@ export async function POST(request: Request) {
             const { data: allPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
-                .eq('user_id', outsetaId)
+                .eq('user_id', identity.canonicalUserId)
                 .eq('passed', true)
 
             const passedScoresByModule = new Map<string, number>()
