@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import {
+  PROFILE_CRITICAL_COLUMNS,
+  PROFILE_GUARANTEED_COLUMNS,
+  buildDegradedProfile,
+  buildFallbackProfileSchemaInfo,
+  buildProfileQueryColumns,
+  type ProfileSchemaInfo,
+} from './schema'
 
 export const dynamic = 'force-dynamic'
+
+const PROFILE_LOG_PREFIX = '[PROFILE_API_SUPABASE_ERROR]'
+const PROFILE_SCHEMA_GUARD_PREFIX = '[PROFILE_API_SCHEMA_GUARD]'
+
+let cachedProfileSchemaInfo: Promise<ProfileSchemaInfo> | null = null
 
 // Helper to get user identifier
 function resolveUserId(outsetaUser: any) {
@@ -18,20 +31,64 @@ function resolveUserId(outsetaUser: any) {
 }
 
 function resolveUserEmail(outsetaUser: any) {
-  return (
-    outsetaUser?.email ||
-    outsetaUser?.Email ||
-    null
-  )
+  return outsetaUser?.email || outsetaUser?.Email || null
 }
 
 function resolveUserPhone(outsetaUser: any) {
+  return outsetaUser?.Phone || outsetaUser?.MobilePhone || outsetaUser?.phone || null
+}
+
+function logSupabaseError(event: string, error: any, context: Record<string, unknown> = {}) {
+  console.error(PROFILE_LOG_PREFIX, {
+    event,
+    code: error?.code ?? null,
+    message: error?.message ?? null,
+    details: error?.details ?? null,
+    hint: error?.hint ?? null,
+    ...context,
+  })
+}
+
+function isSchemaError(error: any) {
+  const text = `${error?.message || ''} ${error?.details || ''}`.toLowerCase()
   return (
-    outsetaUser?.Phone ||
-    outsetaUser?.MobilePhone ||
-    outsetaUser?.phone ||
-    null
+    error?.code === '42703' ||
+    error?.code === '42P01' ||
+    error?.code === 'PGRST204' ||
+    text.includes('column') ||
+    text.includes('relation')
   )
+}
+
+async function getProfileSchemaInfo(supabase: ReturnType<typeof createServiceRoleClient>) {
+  if (!cachedProfileSchemaInfo) {
+    cachedProfileSchemaInfo = (async () => {
+      const { data, error } = await supabase
+        .from('information_schema.columns')
+        .select('column_name')
+        .eq('table_schema', 'public')
+        .eq('table_name', 'profiles')
+
+      if (error) {
+        logSupabaseError('schema_probe_failed', error)
+        return buildFallbackProfileSchemaInfo()
+      }
+
+      const availableColumns = new Set((data ?? []).map((row: any) => row.column_name))
+      const missingCriticalColumns = PROFILE_CRITICAL_COLUMNS.filter((column) => !availableColumns.has(column))
+
+      if (missingCriticalColumns.length > 0) {
+        console.error(PROFILE_SCHEMA_GUARD_PREFIX, {
+          message: 'Missing critical profile columns for /profile payload defaults',
+          missingCriticalColumns,
+        })
+      }
+
+      return { availableColumns, missingCriticalColumns }
+    })()
+  }
+
+  return cachedProfileSchemaInfo
 }
 
 // GET - Fetch current user's profile
@@ -51,56 +108,17 @@ export async function GET() {
     }
 
     const supabase = createServiceRoleClient()
+    const schemaInfo = await getProfileSchemaInfo(supabase)
+    const queryColumns = buildProfileQueryColumns(schemaInfo.availableColumns)
 
     // Try to find profile by user_id first, then by email
-    let query = supabase
-      .from('profiles')
-      .select(`
-        id,
-        user_email,
-        full_name,
-        display_name,
-        first_name,
-        last_name,
-        email,
-        phone,
-        avatar_url,
-        headline,
-        bio,
-        city,
-        state,
-        service_areas,
-        primary_services,
-        experience_level,
-        tools_used,
-        preferred_job_types,
-        max_travel_distance,
-        trust_score,
-        trust_tier,
-        trust_score_breakdown,
-        background_check_status,
-        background_check_verified_at,
-        shield_id,
-        shield_ic_rating,
-        training_modules_completed,
-        training_modules_total,
-        inspections_completed,
-        certifications,
-        identity_verified,
-        phone_verified,
-        email_verified,
-        verified_at,
-        created_at,
-        is_published,
-        subscription_tier,
-        subscription_status,
-        rating,
-        rating_count
-      `)
+    let query = supabase.from('profiles').select(queryColumns.join(', '))
 
     // Query by outseta_person_uid, user_id, or email
     if (userId) {
-      query = query.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+      query = schemaInfo.availableColumns.has('user_id')
+        ? query.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+        : query.eq('outseta_person_uid', userId)
     } else if (userEmail) {
       query = query.eq('user_email', userEmail)
     } else {
@@ -109,41 +127,21 @@ export async function GET() {
 
     const { data, error } = await query.limit(1).single()
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('[PROFILE_FETCH_ERROR]', error)
+    if (error && error.code !== 'PGRST116') {
+      logSupabaseError('profile_fetch_failed', error, { userId, userEmail })
+
+      if (isSchemaError(error)) {
+        return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser)) })
+      }
+
       return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
     }
 
-    // If no profile found, return basic info from Outseta
     if (!data) {
-      return NextResponse.json({
-        profile: {
-          id: null,
-          user_email: userEmail,
-          full_name: outsetaUser?.name || outsetaUser?.FullName || null,
-          display_name: outsetaUser?.first_name || outsetaUser?.FirstName || null,
-          first_name: outsetaUser?.first_name || outsetaUser?.FirstName || null,
-          last_name: outsetaUser?.last_name || outsetaUser?.LastName || null,
-          email: userEmail,
-          phone: resolveUserPhone(outsetaUser),
-          avatar_url: null,
-          is_published: false,
-          trust_score: 0,
-          trust_tier: 'bronze',
-          trust_score_breakdown: null,
-          background_check_status: 'not_started',
-          training_modules_completed: 0,
-          training_modules_total: 8,
-          inspections_completed: 0,
-          email_verified: true,
-          phone_verified: false,
-          identity_verified: false,
-          created_at: new Date().toISOString(),
-        }
-      })
+      return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser)) })
     }
 
-    return NextResponse.json({ profile: data })
+    return NextResponse.json({ profile: buildDegradedProfile(outsetaUser, userEmail, resolveUserPhone(outsetaUser), data) })
   } catch (err) {
     console.error('[PROFILE_GET_ERROR]', err)
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 })
@@ -167,6 +165,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}))
+    const supabase = createServiceRoleClient()
+    const schemaInfo = await getProfileSchemaInfo(supabase)
 
     // Only allow updating vendor-specific fields (not Outseta-managed fields)
     const allowedFields = [
@@ -187,6 +187,12 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, any> = {}
     for (const field of allowedFields) {
       if (field in body) {
+        if (field === 'is_published' && !schemaInfo.availableColumns.has('is_published')) {
+          console.error(PROFILE_SCHEMA_GUARD_PREFIX, {
+            message: 'Ignoring is_published update because column is unavailable',
+          })
+          continue
+        }
         updates[field] = body[field]
       }
     }
@@ -198,24 +204,22 @@ export async function PATCH(req: NextRequest) {
     // Add updated_at
     updates.updated_at = new Date().toISOString()
 
-    const supabase = createServiceRoleClient()
-
     // Find existing profile
     let existingQuery = supabase.from('profiles').select('id')
     if (userId) {
-      existingQuery = existingQuery.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+      existingQuery = schemaInfo.availableColumns.has('user_id')
+        ? existingQuery.or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
+        : existingQuery.eq('outseta_person_uid', userId)
     } else if (userEmail) {
       existingQuery = existingQuery.eq('user_email', userEmail)
     } else {
       return NextResponse.json({ error: 'No user ID or email to save against' }, { status: 400 })
     }
 
-    // single() could throw if 0 rows, which is perfectly normal when creating a new profile.
-    const { data: existing, error: existingError } = await existingQuery.limit(1).maybeSingle()
+    const { data: existing } = await existingQuery.limit(1).maybeSingle()
 
     let result
     if (existing) {
-      // Update existing
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
@@ -224,17 +228,16 @@ export async function PATCH(req: NextRequest) {
         .single()
 
       if (error) {
-        console.error('[PROFILE_UPDATE_ERROR]', error)
+        logSupabaseError('profile_update_failed', error, { userId, userEmail })
         return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
       }
       result = data
     } else {
-      // Create new profile
       const newProfile = {
         ...updates,
         user_email: userEmail,
         outseta_person_uid: userId,
-        user_id: userId,
+        ...(schemaInfo.availableColumns.has('user_id') ? { user_id: userId } : {}),
         email: userEmail,
         full_name: outsetaUser?.name || outsetaUser?.FullName || null,
         first_name: outsetaUser?.first_name || outsetaUser?.FirstName || null,
@@ -251,7 +254,7 @@ export async function PATCH(req: NextRequest) {
         .single()
 
       if (error) {
-        console.error('[PROFILE_INSERT_ERROR]', error)
+        logSupabaseError('profile_insert_failed', error, { userId, userEmail })
         return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
       }
       result = data
