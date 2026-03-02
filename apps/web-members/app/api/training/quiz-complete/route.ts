@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { persistQuizCompletion } from './quiz-complete-service'
 import {
     getLookupUserIds,
     logNoRowsTelemetry,
@@ -60,93 +61,43 @@ export async function POST(request: Request) {
 
         console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
 
-        // 2. Count existing attempts for this profile+module to determine attempt_number
-        const { count: canonicalAttempts } = await supabase
-            .from('quiz_attempts')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', identity.canonicalUserId)
-            .eq('module_id', module_id)
+        const persistenceResult = await persistQuizCompletion({
+            supabase,
+            outsetaId,
+            moduleId: module_id,
+            score,
+            passed,
+        })
 
-        let existingAttempts = canonicalAttempts || 0
-
-        if (existingAttempts === 0) {
-            const { count: fallbackAttempts } = await supabase
-                .from('quiz_attempts')
-                .select('id', { count: 'exact', head: true })
-                .in('user_id', lookupIds)
-                .eq('module_id', module_id)
-
-            existingAttempts = fallbackAttempts || 0
+        if (!persistenceResult.ok) {
+            return NextResponse.json({
+                success: false,
+                error: persistenceResult.error.message,
+                code: persistenceResult.error.code,
+                retryable: persistenceResult.error.retryable,
+            }, { status: persistenceResult.status })
         }
 
-        const attemptNumber = existingAttempts + 1
-
-        // 3. Insert quiz attempt (not upsert — keep all attempts for history)
-        const { error: attemptError } = await supabase
-            .from('quiz_attempts')
-            .insert({
-                user_id: identity.canonicalUserId,             // Text - Outseta ID for cross-reference
-                module_id: module_id,           // UUID
-                attempt_number: attemptNumber,
-                score: score,                   // numeric
-                passed: passed,                 // boolean
-                answers: null,                  // jsonb - could store answers in future
-                completed_at: new Date().toISOString(),
-            })
-
-        if (attemptError) {
-            console.error('[QUIZ] Insert error:', attemptError)
-            // Don't fail the whole request — still update profile
-        }
-
-        // 4. Also update training_progress table
-        await supabase
-            .from('training_progress')
-            .upsert({
-                user_id: identity.canonicalUserId,
-                module_id,
-                lesson_id: 'quiz',
-                resource_type: 'quiz',
-                status: passed ? 'completed' : 'failed',
-                quiz_score: score,
-                quiz_passed: passed,
-                updated_at: new Date().toISOString()
-            })
+        const { attemptNumber } = persistenceResult
 
         // 5. If passed, count total passed modules and recalculate trust score
         if (passed) {
-            // Count distinct modules with at least one passed attempt
-            const { data: canonicalPassed } = await supabase
+            const modulesCompleted = persistenceResult.modulesCompleted || 0
+            const completedModuleIds = persistenceResult.completedModuleIds || []
+
+            // Re-query scores to preserve trust score behavior
+            const { data: allPassed } = await supabase
                 .from('quiz_attempts')
                 .select('module_id, score')
                 .eq('user_id', identity.canonicalUserId)
                 .eq('passed', true)
 
-            let allPassed = canonicalPassed || []
-
-            if (allPassed.length === 0) {
-                const { data: fallbackPassed } = await supabase
-                    .from('quiz_attempts')
-                    .select('module_id, score')
-                    .in('user_id', lookupIds)
-                    .eq('passed', true)
-
-                allPassed = fallbackPassed || []
-
-                if (allPassed.length === 0) {
-                    logNoRowsTelemetry('QUIZ_COMPLETE:PASSED_MODULES', identity, { moduleId: module_id })
-                }
-            }
-
-            // Deduplicate by module_id (multiple attempts possible)
-            const passedModuleMap = new Map<string, number>()
-            allPassed?.forEach(a => {
-                const existing = passedModuleMap.get(a.module_id) || 0
-                passedModuleMap.set(a.module_id, Math.max(existing, a.score))
+            const passedScoresByModule = new Map<string, number>()
+            ;(allPassed || []).forEach((a: { module_id: string; score: number }) => {
+                const existing = passedScoresByModule.get(a.module_id) || 0
+                passedScoresByModule.set(a.module_id, Math.max(existing, a.score))
             })
-
-            const modulesCompleted = passedModuleMap.size
-            const quizScores = Array.from(passedModuleMap.values())
+            const quizScores = Array.from(passedScoresByModule.values())
 
             // Get total modules count
             const { count: totalModules } = await supabase
@@ -186,6 +137,7 @@ export async function POST(request: Request) {
                 score,
                 attemptNumber,
                 modulesCompleted,
+                completedModuleIds,
                 trustScore: breakdown.total,
                 trustTier: breakdown.tier,
                 trustScoreBreakdown: breakdown.breakdown,
