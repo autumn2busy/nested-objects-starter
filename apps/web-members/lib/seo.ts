@@ -41,8 +41,10 @@ export function getOrganizationSchema() {
             contactType: 'customer service',
         },
         sameAs: [
-            `${SITE_URL}/about-us`,
-            `${SITE_URL}/contact-us`,
+            'https://www.linkedin.com/company/nested-objects',
+            'https://www.facebook.com/profile.php?id=61573970294153',
+            'https://www.instagram.com/nestedobjects',
+            'https://www.youtube.com/user/@nestedobjects',
         ],
     }
 }
