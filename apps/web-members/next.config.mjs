@@ -50,6 +50,11 @@ const nextConfig = {
         destination: '/hiring-firms', // fallback if they had a blog
         permanent: true,
       },
+      {
+  source: '/sneak-peek',
+  destination: '/',
+  permanent: true,
+},
     ]
   },
 }
