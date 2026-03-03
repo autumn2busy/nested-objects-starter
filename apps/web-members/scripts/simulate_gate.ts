@@ -28,7 +28,7 @@ async function simulateGateLogic() {
     // 3. Run TrainingModulesGate logic
     const sortedModules = [...(modules || [])].sort((a, b) => a.module_number - b.module_number);
 
-    const isModuleUnlocked = (module, index) => {
+    const isModuleUnlocked = (module: { id: string, module_number: number, title: string }, index: number) => {
         if (index === 0 || module.module_number === 1) return true;
 
         // Plan logic (Simplified: assume Pro has basic_training)

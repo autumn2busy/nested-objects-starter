@@ -197,6 +197,38 @@ export function getLocalBusinessSchema(business: {
 }
 
 /**
+ * Occupation Schema Builder (for role/career pages)
+ * Helps Google understand individual job roles and display rich results
+ */
+export function getOccupationSchema(occupation: {
+    name: string
+    description: string
+    medianSalary?: string
+    occupationLocation?: string
+    estimatedSalaryUnit?: string
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'Occupation',
+        name: occupation.name,
+        description: occupation.description,
+        occupationLocation: {
+            '@type': 'Country',
+            name: occupation.occupationLocation || 'US',
+        },
+        ...(occupation.medianSalary && {
+            estimatedSalary: {
+                '@type': 'MonetaryAmountDistribution',
+                name: 'base',
+                currency: 'USD',
+                median: occupation.medianSalary,
+                unitText: occupation.estimatedSalaryUnit || 'YEAR',
+            },
+        }),
+    }
+}
+
+/**
  * Generate canonical URL for a given path
  */
 export function getCanonicalUrl(path: string): string {

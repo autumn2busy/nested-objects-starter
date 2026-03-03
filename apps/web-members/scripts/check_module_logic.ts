@@ -22,12 +22,12 @@ async function checkModules() {
     });
 
     // Check for duplicates
-    const counts = {};
+    const counts: Record<number, number> = {};
     modules.forEach(m => {
         counts[m.module_number] = (counts[m.module_number] || 0) + 1;
     });
 
-    const duplicates = Object.keys(counts).filter(num => counts[num] > 1);
+    const duplicates = Object.keys(counts).filter(num => counts[Number(num)] > 1);
     if (duplicates.length > 0) {
         console.log('\n!!! DUPLICATE MODULE NUMBERS FOUND:', duplicates);
     } else {

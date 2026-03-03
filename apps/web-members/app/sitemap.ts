@@ -75,18 +75,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
+  // Static tool slugs — public tool pages
+  const STATIC_TOOL_SLUGS = [
+    'income-calculator',
+    'ai-resume',
+    'ai-concierge',
+    'weather',
+    'routing',
+    'job-tracker',
+    'job-tracking',
+    'clients',
+    'companies',
+  ]
+
+  const toolEntries = STATIC_TOOL_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/tools/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
   return [
+    // --- Core pages ---
     {
       url: `${SITE_URL}/`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 1,
-    },
-    {
-      url: `${SITE_URL}/inspector-dashboard`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.9,
     },
     {
       url: `${SITE_URL}/hiring-firms`,
@@ -101,19 +116,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${SITE_URL}/privacy`,
+      url: `${SITE_URL}/tools`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/jobs`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/guides`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/challenges`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+
+    // --- Informational / trust pages ---
+    {
+      url: `${SITE_URL}/about-us`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/terms-conditions`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/refund-policy`,
+      url: `${SITE_URL}/contact-us`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.6,
@@ -124,8 +159,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    {
+      url: `${SITE_URL}/inspector-resource-center`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+
+    // --- Legal pages ---
+    {
+      url: `${SITE_URL}/privacy`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${SITE_URL}/terms-conditions`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+    {
+      url: `${SITE_URL}/refund-policy`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.4,
+    },
+
+    // --- Dynamic entries ---
     ...firmEntries,
     ...memberEntries,
     ...roleEntries,
+    ...toolEntries,
   ]
 }

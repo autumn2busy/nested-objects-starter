@@ -27,11 +27,12 @@ const contentContainerClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    default: `Field Inspector Directory & Independent Vendor Hub | ${SITE_NAME}`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
+    'Field Inspector Directory',
     'Mortgage Field Inspection services',
     'Independent Field Inspector near me',
     'Insurance Loss Control Inspection',
@@ -42,17 +43,18 @@ export const metadata: Metadata = {
     'Drive-by appraisal services',
     'Home valuation for mortgage lenders',
     'Gig work for realtors',
+    'Field inspection jobs',
   ],
   openGraph: {
     type: 'website',
     url: SITE_URL,
-    title: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    title: `Field Inspector Directory & Independent Vendor Hub | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} | Field Inspection, Notary & Appraisal Hub`,
+    title: `Field Inspector Directory & Independent Vendor Hub | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
   },
 }

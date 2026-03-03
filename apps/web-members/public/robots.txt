@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block private/authenticated areas
+Disallow: /dashboard/
+Disallow: /inspector-dashboard/
+Disallow: /api/
+Disallow: /partners/
+
+# Sitemap
+Sitemap: https://members.nestedobjects.com/sitemap.xml

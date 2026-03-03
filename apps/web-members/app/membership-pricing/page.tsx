@@ -9,12 +9,13 @@ export const metadata: Metadata = generatePageMetadata({
   path: '/membership-pricing',
 })
 
-// Generate structured data for plans
-const productSchemas = membershipPlans.map((plan) =>
+// Generate structured data for visible plans only (exclude hidden/legacy)
+const visiblePlans = membershipPlans.filter((plan) => !plan.hidden)
+const productSchemas = visiblePlans.map((plan) =>
   getProductSchema({
     name: `Nested Objects ${plan.name} Plan`,
     description: plan.description,
-    price: plan.price.replace('$', '').replace('/mo', ''),
+    price: plan.price.replace('$', '').replace('/mo', '').replace('/yr', ''),
     priceCurrency: 'USD',
   })
 )
@@ -22,10 +23,14 @@ const productSchemas = membershipPlans.map((plan) =>
 export default function MembershipPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchemas) }}
-      />
+      {/* One JSON-LD block per product for maximum Google Rich Results compatibility */}
+      {productSchemas.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       <MembershipView />
     </>
   )
