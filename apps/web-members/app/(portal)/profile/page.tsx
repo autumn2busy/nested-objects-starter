@@ -74,6 +74,13 @@ type ProfileData = {
   rating_count: number | null
 }
 
+type DashboardTrustSnapshot = {
+  trustScore: number
+  trustTier: string
+  trustScoreBreakdown: ProfileData['trust_score_breakdown']
+  backgroundCheckStatus: string
+}
+
 const US_STATES = [
   { code: '', label: 'Select state' },
   { code: 'AL', label: 'Alabama' },
@@ -418,6 +425,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [dashboardTrustSnapshot, setDashboardTrustSnapshot] = useState<DashboardTrustSnapshot | null>(null)
 
   // Editable form state
   const [formData, setFormData] = useState({
@@ -474,6 +482,30 @@ export default function ProfilePage() {
     }
 
     fetchProfile()
+  }, [isAuthenticated, user])
+
+  // Fetch trust data from dashboard stats to keep score/tier consistent across portal surfaces.
+  useEffect(() => {
+    if (!isAuthenticated || !user) return
+
+    const fetchDashboardTrust = async () => {
+      try {
+        const res = await fetch('/api/dashboard/stats')
+        if (!res.ok) return
+
+        const data = await res.json()
+        setDashboardTrustSnapshot({
+          trustScore: data.trustScore ?? 0,
+          trustTier: data.trustTier ?? 'bronze',
+          trustScoreBreakdown: data.trustScoreBreakdown ?? null,
+          backgroundCheckStatus: data.backgroundCheckStatus ?? 'not_started',
+        })
+      } catch {
+        // Silent fallback: the profile payload still contains trust defaults.
+      }
+    }
+
+    fetchDashboardTrust()
   }, [isAuthenticated, user])
 
   // Save profile
@@ -541,6 +573,10 @@ export default function ProfilePage() {
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : ''
+  const trustScore = dashboardTrustSnapshot?.trustScore ?? profile?.trust_score ?? 0
+  const trustTier = dashboardTrustSnapshot?.trustTier ?? profile?.trust_tier ?? 'bronze'
+  const trustScoreBreakdown = dashboardTrustSnapshot?.trustScoreBreakdown ?? profile?.trust_score_breakdown ?? null
+  const backgroundCheckStatus = dashboardTrustSnapshot?.backgroundCheckStatus ?? profile?.background_check_status ?? 'not_started'
 
   if (authLoading || isLoading) {
     return (
@@ -613,8 +649,8 @@ export default function ProfilePage() {
                 {profile && (
                   <div className="mt-4">
                     <TrustScoreBadge
-                      score={profile.trust_score || 0}
-                      tier={profile.trust_tier || 'bronze'}
+                      score={trustScore}
+                      tier={trustTier}
                     />
                   </div>
                 )}
@@ -628,10 +664,10 @@ export default function ProfilePage() {
                 Trust Score Breakdown
               </h3>
 
-              {profile?.trust_score_breakdown ? (
+              {trustScoreBreakdown ? (
                 <TrustScoreBreakdown
-                  breakdown={profile.trust_score_breakdown}
-                  total={profile.trust_score || 0}
+                  breakdown={trustScoreBreakdown}
+                  total={trustScore}
                 />
               ) : (
                 <p className="text-sm text-slate-500">Complete your profile to build your trust score.</p>
@@ -661,16 +697,17 @@ export default function ProfilePage() {
                 Background Check
               </h3>
 
-              <BackgroundCheckStatus status={profile?.background_check_status || 'not_started'} />
+              <BackgroundCheckStatus status={backgroundCheckStatus} />
 
               <BackgroundCheckFlow
-                status={profile?.background_check_status || 'not_started'}
+                status={backgroundCheckStatus}
                 shieldId={profile?.shield_id}
                 verifiedAt={profile?.background_check_verified_at}
                 onStatusUpdate={(newStatus) => {
                   if (profile) {
                     setProfile({ ...profile, background_check_status: newStatus })
                   }
+                  setDashboardTrustSnapshot((prev) => prev ? { ...prev, backgroundCheckStatus: newStatus } : prev)
                 }}
               />
             </Card>
