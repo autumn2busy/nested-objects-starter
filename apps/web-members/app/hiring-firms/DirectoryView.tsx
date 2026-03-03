@@ -5,6 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck, Bookmark, BookmarkCheck } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
+import { SITE_URL } from '@/lib/seo'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -675,6 +677,12 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 no-select no-drag">
+            <Breadcrumbs
+                items={[
+                    { name: 'Home', url: SITE_URL },
+                    { name: 'Firms Directory', url: `${SITE_URL}/hiring-firms` },
+                ]}
+            />
             <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">

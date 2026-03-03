@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { generatePageMetadata, SITE_NAME } from '@/lib/seo'
+import { generatePageMetadata, SITE_NAME, SITE_URL } from '@/lib/seo'
 import type { Metadata } from 'next'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import SmartSidebar from './SmartSidebar'
 
 export const metadata: Metadata = generatePageMetadata({
@@ -52,6 +53,12 @@ export default function ResourcesIndexPage() {
     <main className="min-h-screen bg-brand-sand text-brand-dark">
       <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <Breadcrumbs
+            items={[
+              { name: 'Home', url: SITE_URL },
+              { name: 'Resource Center', url: `${SITE_URL}/inspector-resource-center` },
+            ]}
+          />
           <div className="max-w-4xl space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">Resources</p>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">

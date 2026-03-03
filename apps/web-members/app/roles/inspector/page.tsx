@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { SITE_URL, getOccupationSchema } from '@/lib/seo'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 
 const comparisonPoints = [
   {
@@ -88,9 +90,26 @@ export const metadata: Metadata = {
 }
 
 export default function InspectorRolePage() {
+  const occupationSchema = getOccupationSchema({
+    name: 'Home and Property Inspector',
+    description: 'Home and property inspectors balancing documentation, safety, and client comms.',
+    medianSalary: '60000',
+  })
+
   return (
     <main className="bg-white text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(occupationSchema) }}
+      />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
+        <Breadcrumbs
+          items={[
+            { name: 'Home', url: SITE_URL },
+            { name: 'Roles', url: `${SITE_URL}/roles` },
+            { name: 'Inspectors', url: `${SITE_URL}/roles/inspector` },
+          ]}
+        />
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-copper">Inspectors</p>

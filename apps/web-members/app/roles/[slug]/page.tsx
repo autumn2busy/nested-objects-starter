@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { SITE_URL, getOccupationSchema } from '@/lib/seo'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 
 const roleContent = {
   notaries: {
@@ -97,13 +99,30 @@ export default function RoleDetailPage({
 
   const role: RoleDefinition = roleContent[params.slug]
 
+  const occupationSchema = getOccupationSchema({
+    name: role.title,
+    description: role.valueProp,
+    medianSalary: '45000', // Conservative estimate for gig/notary work
+  })
+
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(occupationSchema) }}
+      />
       <article aria-labelledby="role-heading">
         <header className="border-b border-brand-mist bg-gradient-to-br from-brand-dark via-brand-slate to-brand-black text-white">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:px-8 lg:py-20">
-            <div className="space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-teal">Nested Objects roles</p>
+            <div className="space-y-6 lg:col-span-1">
+              <Breadcrumbs
+                items={[
+                  { name: 'Home', url: SITE_URL },
+                  { name: 'Roles', url: `${SITE_URL}/roles` },
+                  { name: role.title, url: `${SITE_URL}/roles/${params.slug}` },
+                ]}
+              />
+              <p className="-mt-2 text-xs font-semibold uppercase tracking-[0.28em] text-brand-teal">Nested Objects roles</p>
               <div className="space-y-3">
                 <h1 id="role-heading" className="text-3xl font-bold leading-tight sm:text-4xl">
                   {role.title}
