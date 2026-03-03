@@ -1,6 +1,6 @@
 export async function persistQuizCompletion({
     supabase,
-    outsetaId,
+    userId,
     moduleId,
     score,
     passed,
@@ -8,7 +8,7 @@ export async function persistQuizCompletion({
     const { count: existingAttempts } = await supabase
         .from('quiz_attempts')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', outsetaId)
+        .eq('user_id', userId)
         .eq('module_id', moduleId)
 
     const attemptNumber = (existingAttempts || 0) + 1
@@ -16,7 +16,7 @@ export async function persistQuizCompletion({
     const { error: attemptError } = await supabase
         .from('quiz_attempts')
         .insert({
-            user_id: outsetaId,
+            user_id: userId,
             module_id: moduleId,
             attempt_number: attemptNumber,
             score,
@@ -40,7 +40,7 @@ export async function persistQuizCompletion({
     await supabase
         .from('training_progress')
         .upsert({
-            user_id: outsetaId,
+            user_id: userId,
             module_id: moduleId,
             lesson_id: 'quiz',
             resource_type: 'quiz',
@@ -57,7 +57,7 @@ export async function persistQuizCompletion({
     const { data: allPassed } = await supabase
         .from('quiz_attempts')
         .select('module_id, score')
-        .eq('user_id', outsetaId)
+        .eq('user_id', userId)
         .eq('passed', true)
 
     const passedModuleMap = new Map()

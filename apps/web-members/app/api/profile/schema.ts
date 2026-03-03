@@ -11,6 +11,12 @@ export const PROFILE_GUARANTEED_COLUMNS = [
     'subscription_tier',
     'subscription_status',
     'created_at',
+    'trust_score',
+    'trust_tier',
+    'trust_score_breakdown',
+    'training_modules_completed',
+    'training_modules_total',
+    'background_check_status',
 ] as const
 
 export const PROFILE_OPTIONAL_COLUMNS = [
@@ -26,15 +32,9 @@ export const PROFILE_OPTIONAL_COLUMNS = [
     'tools_used',
     'preferred_job_types',
     'max_travel_distance',
-    'trust_score',
-    'trust_tier',
-    'trust_score_breakdown',
-    'background_check_status',
     'background_check_verified_at',
     'shield_id',
     'shield_ic_rating',
-    'training_modules_completed',
-    'training_modules_total',
     'inspections_completed',
     'certifications',
     'identity_verified',

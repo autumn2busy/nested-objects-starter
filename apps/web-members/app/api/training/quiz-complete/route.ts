@@ -59,12 +59,28 @@ export async function POST(request: Request) {
         const profile = identity.profile
         const lookupIds = getLookupUserIds(identity)
 
-        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${module_id}: score=${score}, passed=${passed}`)
+        // Resolve module_id (slug or number) to UUID if necessary
+        let finalModuleId = module_id
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(module_id)) {
+            const { data: mod } = await supabase
+                .from('training_modules')
+                .select('id')
+                .or(`slug.eq.${module_id},module_number.eq.${parseInt(module_id) || 0}`)
+                .single()
+
+            if (mod) {
+                finalModuleId = mod.id
+            } else {
+                console.warn(`[QUIZ] Could not resolve module_id "${module_id}" to a UUID. Attempting persistence anyway.`)
+            }
+        }
+
+        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${finalModuleId} (input: ${module_id}): score=${score}, passed=${passed}`)
 
         const persistenceResult = await persistQuizCompletion({
             supabase,
-            outsetaId,
-            moduleId: module_id,
+            userId: identity.canonicalUserId,
+            moduleId: finalModuleId,
             score,
             passed,
         })
@@ -93,10 +109,10 @@ export async function POST(request: Request) {
                 .eq('passed', true)
 
             const passedScoresByModule = new Map<string, number>()
-            ;(allPassed || []).forEach((a: { module_id: string; score: number }) => {
-                const existing = passedScoresByModule.get(a.module_id) || 0
-                passedScoresByModule.set(a.module_id, Math.max(existing, a.score))
-            })
+                ; (allPassed || []).forEach((a: { module_id: string; score: number }) => {
+                    const existing = passedScoresByModule.get(a.module_id) || 0
+                    passedScoresByModule.set(a.module_id, Math.max(existing, a.score))
+                })
             const quizScores = Array.from(passedScoresByModule.values())
 
             // Get total modules count
