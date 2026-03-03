@@ -16,10 +16,10 @@ async function checkCasing() {
     attempts?.forEach(a => console.log(a.module_id));
 
     // Check if any have uppercase letters
-    const hasUpper = (str) => /[A-Z]/.test(str);
+    const hasUpper = (str: string) => /[A-Z]/.test(str);
 
-    const upperModules = modules?.filter(m => hasUpper(m.id));
-    const upperAttempts = attempts.filter(a => hasUpper(a.module_id));
+    const upperModules = modules?.filter(m => hasUpper(m.id)) ?? [];
+    const upperAttempts = attempts?.filter(a => hasUpper(a.module_id)) ?? [];
 
     if (upperModules.length > 0) console.log('\n!!! UPPERCASE FOUND IN MODULES:', upperModules);
     if (upperAttempts.length > 0) console.log('\n!!! UPPERCASE FOUND IN ATTEMPTS:', upperAttempts);
