@@ -1,6 +1,6 @@
 export type PersistQuizCompletionParams = {
   supabase: any
-  outsetaId: string
+  userId: string
   moduleId: string
   score: number
   passed: boolean
@@ -8,20 +8,20 @@ export type PersistQuizCompletionParams = {
 
 export type PersistQuizCompletionResult =
   | {
-      ok: true
-      attemptNumber: number
-      modulesCompleted?: number
-      completedModuleIds?: string[]
-    }
+    ok: true
+    attemptNumber: number
+    modulesCompleted?: number
+    completedModuleIds?: string[]
+  }
   | {
-      ok: false
-      status: number
-      error: {
-        code: string
-        message: string
-        retryable: boolean
-      }
+    ok: false
+    status: number
+    error: {
+      code: string
+      message: string
+      retryable: boolean
     }
+  }
 
 export function persistQuizCompletion(
   params: PersistQuizCompletionParams,
