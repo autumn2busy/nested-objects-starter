@@ -25,15 +25,18 @@ export async function persistQuizCompletion({
             completed_at: new Date().toISOString(),
         })
 
-    if (attemptError && passed) {
-        return {
-            ok: false,
-            status: 500,
-            error: {
-                code: 'QUIZ_PERSISTENCE_FAILED',
-                message: 'Unable to save your passing quiz result. Please retry.',
-                retryable: true,
-            },
+    if (attemptError) {
+        console.error('[QUIZ] Insert quiz_attempts failed:', JSON.stringify(attemptError), { userId, moduleId, score, passed, attemptNumber })
+        if (passed) {
+            return {
+                ok: false,
+                status: 500,
+                error: {
+                    code: 'QUIZ_PERSISTENCE_FAILED',
+                    message: 'Unable to save your passing quiz result. Please retry.',
+                    retryable: true,
+                },
+            }
         }
     }
 
