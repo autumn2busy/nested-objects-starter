@@ -10,8 +10,11 @@ const footerSections = [
     title: 'Product',
     links: [
       { href: '/membership-pricing', label: 'Membership plans' },
-      { href: '/hiring-firms', label: 'Firm directory' },
+      { href: '/hiring-firms', label: 'Field inspector directory' },
+      { href: '/jobs', label: 'Inspector jobs board' },
+      { href: '/challenges', label: 'Training & certification' },
       { href: '/tools', label: 'AI tools' },
+      { href: '/roles/inspector', label: 'Inspector roles' },
     ],
   },
   {

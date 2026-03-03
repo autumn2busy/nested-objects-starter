@@ -16,11 +16,11 @@ type SiteHeaderProps = {
 
 const navLinks = [
   { href: '/inspector-dashboard', label: 'Dashboard' },
-  { href: '/hiring-firms', label: 'Directory' },
+  { href: '/hiring-firms', label: 'Firm Directory' },
   { href: '/jobs', label: 'Jobs' },
   { href: '/challenges', label: 'Training' },
-  { href: '/tools', label: 'Resources' },
-  { href: '/membership-pricing', label: 'Membership' },
+  { href: '/tools', label: 'Tools' },
+  { href: '/membership-pricing', label: 'Plans' },
   { href: '/about-us', label: 'About' },
   { href: '/contact-us', label: 'Contact' },
   { href: '/profile', label: 'Profile' },
