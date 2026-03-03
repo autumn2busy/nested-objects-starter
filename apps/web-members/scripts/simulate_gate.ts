@@ -6,7 +6,7 @@ const env = dotenv.parse(fs.readFileSync('.env.local'));
 const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 async function simulateGateLogic() {
-    const outsetaId = 'QGereJeW'; // Automated test user who passed Mod 5
+    const outsetaId = 'QY8J81Mm';
 
     // 1. Fetch modules like app/challenges/page.tsx
     const { data: modules } = await supabase

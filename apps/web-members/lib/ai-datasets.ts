@@ -113,10 +113,10 @@ export const membershipPlans: MembershipPlan[] = [
     planUid: PLAN_UIDS.FOUNDERS,
     price: '$37',
     period: 'year',
-    headline: 'Founding Member — Locked In for Life',
+    headline: 'Founding Member',
     description: 'Early adopter plan honoring the original $37/year pricing. Includes everything promised at signup.',
-    highlight: false,
-    hidden: true,
+    highlight: true,
+    hidden: false,
     features: [
       'Full directory access (200+ verified firms)',
       'Full training portal access',
@@ -125,7 +125,6 @@ export const membershipPlans: MembershipPlan[] = [
       'Resources, templates, and guides',
       'Priority support',
       'Founding Member badge',
-      '$37/year pricing locked for life',
     ],
   },
 ]

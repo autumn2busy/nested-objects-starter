@@ -51,7 +51,7 @@ export async function persistQuizCompletion({
             quiz_score: score,
             quiz_passed: passed,
             updated_at: new Date().toISOString(),
-        })
+        }, { onConflict: 'user_id,module_id,lesson_id,resource_type' })
 
     if (!passed) {
         return { ok: true, attemptNumber }
