@@ -1,100 +1,76 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, BookOpen, DollarSign, Building2, Shield } from 'lucide-react'
 import { generatePageMetadata } from '@/lib/seo'
+import { ArrowRight, BookOpen, Clock } from 'lucide-react'
 
 export const metadata: Metadata = generatePageMetadata({
     title: 'Field Inspector Guides & Resources | Nested Objects',
-    description: 'Free guides for field inspectors, notaries, and property preservation contractors. Learn the industry, compare companies, and level up your career.',
+    description: 'Read our ultimate guides to building a six-figure independent route as a field inspector, property preservation contractor, or mobile notary.',
     path: '/guides',
 })
 
 const guides = [
     {
-        slug: 'how-to-become-a-field-inspector',
         title: 'How to Become a Field Inspector in 2026',
-        description: 'Step-by-step guide covering requirements, pay rates, training, and which companies are hiring. No degree needed.',
-        icon: BookOpen,
-        tags: ['Getting Started', 'Career Guide'],
-        status: 'live' as const,
+        description: 'No degree required. Learn the requirements, pay rates ($25–$75/inspection), training, and which companies are hiring right now.',
+        slug: 'how-to-become-a-field-inspector',
+        readTime: '12 min read',
+        category: 'Career Guide',
     },
     {
-        slug: 'property-preservation-pay-rates',
-        title: 'Property Preservation Contractor Pay Rates',
-        description: 'Real pay data from 460+ firms. What to expect by inspection type, company, and region.',
-        icon: DollarSign,
-        tags: ['Pay & Compensation'],
-        status: 'coming-soon' as const,
-    },
-    {
-        slug: 'mortgage-field-services-explained',
-        title: 'Mortgage Field Services Explained',
-        description: 'How the mortgage inspection industry works, who the players are, and how to get started.',
-        icon: Building2,
-        tags: ['Industry Guide'],
-        status: 'coming-soon' as const,
-    },
-    {
-        slug: 'best-property-preservation-companies',
-        title: 'Top 15 Property Preservation Companies',
-        description: 'Curated list of the best-rated property preservation firms hiring contractors nationwide.',
-        icon: Shield,
-        tags: ['Best Of', 'Company Reviews'],
-        status: 'coming-soon' as const,
+        title: 'Field Inspection vs. Home Inspection: The Ultimate Breakdown',
+        description: 'Stop paying thousands for a state license you don\'t need. Discover the difference in pay, licensing, liability, and day-to-day work.',
+        slug: 'field-inspection-vs-home-inspection',
+        readTime: '8 min read',
+        category: 'Industry Comparison',
     },
 ]
 
 export default function GuidesIndexPage() {
     return (
-        <main className="bg-brand-sand text-slate-900">
-            <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">Resources</p>
-                <h1 className="mt-2 text-3xl font-bold sm:text-4xl">Guides for field service professionals</h1>
-                <p className="mt-3 max-w-2xl text-base text-slate-600">
-                    Free, no-fluff guides to help you start, grow, and earn more as a field inspector, notary,
-                    or property preservation contractor.
-                </p>
+        <main className="bg-brand-sand min-h-[80vh] text-slate-900 pb-24">
+            <header className="bg-white border-b border-slate-200 py-16 sm:py-24">
+                <div className="mx-auto max-w-5xl px-4 sm:px-6">
+                    <p className="text-sm font-bold uppercase tracking-widest text-brand mb-4 flex items-center gap-2">
+                        <BookOpen className="h-5 w-5" /> Resource Library
+                    </p>
+                    <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+                        Guides & Strategies
+                    </h1>
+                    <p className="mt-4 max-w-2xl text-lg text-slate-600">
+                        Actionable intelligence for independent field inspectors, property preservation contractors, and mobile notaries who want to build a profitable route.
+                    </p>
+                </div>
+            </header>
 
-                <div className="mt-10 space-y-4">
-                    {guides.map((guide) => {
-                        const isLive = guide.status === 'live'
-                        const Wrapper = isLive ? Link : 'div'
-                        const wrapperProps = isLive ? { href: `/guides/${guide.slug}` } : {}
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 mt-16">
+                <div className="grid gap-8 md:grid-cols-2">
+                    {guides.map((guide) => (
+                        <Link
+                            key={guide.slug}
+                            href={`/guides/${guide.slug}`}
+                            className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition hover:border-brand/30 hover:shadow-md"
+                        >
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-brand">{guide.category}</p>
+                                <h2 className="mt-3 text-2xl font-bold leading-snug text-slate-900 group-hover:text-brand transition">
+                                    {guide.title}
+                                </h2>
+                                <p className="mt-4 text-base leading-relaxed text-slate-600">
+                                    {guide.description}
+                                </p>
+                            </div>
 
-                        return (
-                            <Wrapper
-                                key={guide.slug}
-                                {...(wrapperProps as any)}
-                                className={`flex items-start gap-5 rounded-xl border bg-white px-6 py-5 transition ${isLive
-                                        ? 'border-slate-200 hover:border-brand/30 hover:shadow-sm cursor-pointer'
-                                        : 'border-slate-100 opacity-70'
-                                    }`}
-                            >
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/10">
-                                    <guide.icon className="h-5 w-5 text-brand" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <h2 className="text-base font-semibold text-slate-900">{guide.title}</h2>
-                                        {!isLive && (
-                                            <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                                                Coming Soon
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="mt-1 text-sm text-slate-600">{guide.description}</p>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {guide.tags.map((tag) => (
-                                            <span key={tag} className="rounded bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-slate-200/60">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                                {isLive && <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-300" />}
-                            </Wrapper>
-                        )
-                    })}
+                            <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
+                                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                                    <Clock className="h-4 w-4" /> {guide.readTime}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900 group-hover:text-brand transition">
+                                    Read Guide <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                                </span>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             </div>
         </main>
