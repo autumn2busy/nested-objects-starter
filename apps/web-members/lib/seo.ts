@@ -100,9 +100,6 @@ export function getFAQPageSchema(faqs: { question: string; answer: string }[]) {
     }
 }
 
-/**
- * Product/Service Schema Builder (for membership tiers)
- */
 export function getProductSchema(product: {
     name: string
     description: string
@@ -111,18 +108,20 @@ export function getProductSchema(product: {
 }) {
     return {
         '@context': 'https://schema.org',
-        '@type': 'Product',
+        '@type': 'Service',
         name: product.name,
         description: product.description,
-        brand: {
-            '@type': 'Brand',
+        provider: {
+            '@type': 'Organization',
             name: SITE_NAME,
+            url: SITE_URL,
         },
         offers: {
             '@type': 'Offer',
             price: product.price,
             priceCurrency: product.priceCurrency || 'USD',
             availability: 'https://schema.org/InStock',
+            url: `${SITE_URL}/membership-pricing`,
         },
     }
 }
