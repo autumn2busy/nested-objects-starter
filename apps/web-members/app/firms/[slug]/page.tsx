@@ -11,6 +11,7 @@ import {
 import { FirmServiceArea } from '@/components/FirmServiceArea'
 import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
+import { FirmReviews } from '@/components/directory/FirmReviews'
 import { FirmGatedContent } from './FirmGatedContent'
 import { AuthCTA } from './AuthCTA'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
@@ -310,7 +311,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
       <FirmGatedContent>
         <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
           {/* Main — tabs */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex flex-col gap-8">
             <FirmDetailTabs
               firm={firm}
               pay={pay}
@@ -321,6 +322,8 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
               hasCoordinates={hasCoordinates}
               socialLinks={socialLinks}
             />
+
+            <FirmReviews firmId={firm.id} />
           </div>
 
           {/* Sidebar */}
