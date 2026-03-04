@@ -5,6 +5,7 @@ import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
+import { LeadMagnetSection } from '@/components/LeadMagnetSection'
 import { FoundersPromoBanner } from '@/components/FoundersPromoBanner'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
@@ -363,6 +364,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── Lead Magnet ──────────────────────────── */}
+        <LeadMagnetSection />
 
         {/* Split section */}
         <section className="border-b border-slate-200 bg-slate-50">
