@@ -5,8 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck, Bookmark, BookmarkCheck } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Breadcrumbs } from '@/components/Breadcrumbs'
-import { SITE_URL } from '@/lib/seo'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -588,7 +586,11 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
 
     const isProOrHigher = !!planUid && !isRestricted
 
-    const displayedFirms = isGuest ? [] : isFree ? firms.slice(0, 6) : firms
+    const FREE_VISIBLE_COUNT = 3
+    const FREE_TEASER_COUNT = 4 // blurred cards shown after visible ones
+
+    const displayedFirms = isGuest ? [] : isFree ? firms.slice(0, FREE_VISIBLE_COUNT) : firms
+    const teaserFirms = isFree ? firms.slice(FREE_VISIBLE_COUNT, FREE_VISIBLE_COUNT + FREE_TEASER_COUNT) : []
     const totalPages = Math.max(1, Math.ceil(totalCount / limit))
     const startIndex = totalCount === 0 ? 0 : (page - 1) * limit + 1
     const endIndex = Math.min(page * limit, totalCount)
@@ -677,12 +679,6 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 no-select no-drag">
-            <Breadcrumbs
-                items={[
-                    { name: 'Home', url: SITE_URL },
-                    { name: 'Firms Directory', url: `${SITE_URL}/hiring-firms` },
-                ]}
-            />
             <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -795,6 +791,75 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                             isAuthenticated={isAuthenticated}
                         />
                     ))}
+
+                    {/* Blurred teaser cards for free users */}
+                    {teaserFirms.length > 0 && (
+                        <>
+                            {teaserFirms.map((firm) => (
+                                <div
+                                    key={`teaser-${firm.id}`}
+                                    className="relative flex h-full flex-col justify-between rounded-md border border-slate-300 px-6 py-5 select-none overflow-hidden"
+                                    style={{
+                                        backgroundColor: '#f5efe1',
+                                        backgroundImage:
+                                            `linear-gradient(135deg, rgba(255,255,255,0.94), rgba(244,236,222,0.92))`,
+                                    }}
+                                    aria-hidden="true"
+                                >
+                                    {/* Blurred content */}
+                                    <div className="pointer-events-none" style={{ filter: 'blur(7px)' }}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-full bg-slate-300" />
+                                            <div className="space-y-1">
+                                                <div className="text-lg font-semibold text-slate-900">{firm.name}</div>
+                                                <div className="text-[10px] text-slate-400">Verified Firm</div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 text-xs text-slate-700 leading-relaxed">
+                                            {firm.description?.slice(0, 120) || 'Hiring inspectors and field service professionals nationwide...'}
+                                        </div>
+                                        <div className="mt-3 flex gap-4 text-xs text-slate-600">
+                                            <span>{firm.geographic_coverage || 'Multiple states'}</span>
+                                            <span>{firm.pay_max ? `Up to $${Math.round(Number(firm.pay_max))}` : '$$ – $$$'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Lock overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[2px]">
+                                        <div className="rounded-lg bg-slate-900/90 px-4 py-2 text-center shadow-lg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-amber-400">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                            </svg>
+                                            <p className="mt-1 text-xs font-semibold text-white">Upgrade to view</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Upgrade CTA after blurred cards */}
+                            <div className="col-span-full rounded-md border-2 border-dashed border-amber-400 bg-amber-50/80 px-6 py-8 text-center">
+                                <p className="text-lg font-bold text-slate-900">
+                                    {totalCount - FREE_VISIBLE_COUNT}+ more firms are waiting
+                                </p>
+                                <p className="mt-2 text-sm text-slate-600">
+                                    You&apos;re seeing {FREE_VISIBLE_COUNT} of {totalCount} verified firms. Unlock the full directory with pay rates, contact info, and AI-powered firm matching.
+                                </p>
+                                <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                                    <Link
+                                        href="/membership-pricing"
+                                        className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                                    >
+                                        See Plans & Unlock Directory
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="9 18 15 12 9 6" />
+                                        </svg>
+                                    </Link>
+                                    <span className="text-xs text-slate-500">Starting at $37/year</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Static Map Image */}
@@ -848,8 +913,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
 
             {isFree && firms.length > displayedFirms.length && (
                 <p className="mt-4 text-xs text-slate-600">
-                    Showing {displayedFirms.length} of {firms.length} matching firms on the Free
-                    preview.
+                    Showing {displayedFirms.length} of {totalCount} verified firms on the Free
+                    preview. Upgrade to unlock them all.
                 </p>
             )}
 
