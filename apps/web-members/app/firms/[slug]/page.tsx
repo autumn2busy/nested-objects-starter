@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { notFound } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
@@ -19,7 +20,6 @@ if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 }
 
-export const revalidate = 3600
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -82,7 +82,7 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
-async function getFirmBySlug(slug: string): Promise<FirmRow | null> {
+const _getFirmBySlug = async (slug: string): Promise<FirmRow | null> => {
   const { data, error } = await getSupabase()
     .from('firms')
     .select('*')
@@ -93,21 +93,33 @@ async function getFirmBySlug(slug: string): Promise<FirmRow | null> {
   return data as FirmRow | null
 }
 
-async function getSimilarFirms(firm: FirmRow): Promise<FirmRow[]> {
+const getFirmBySlugCached = unstable_cache(
+  _getFirmBySlug,
+  ['firm-by-slug'],
+  { tags: ['firms'] }
+)
+
+const _getSimilarFirms = async (firmId: string): Promise<FirmRow[]> => {
   const { data } = await getSupabase()
     .from('firms')
     .select('id, name, slug, industry_focus, geographic_coverage, pay_min, pay_max, pay_type, logo_url, url, vendor_verified, contractor_rating')
     .eq('is_published', true)
-    .neq('id', firm.id)
+    .neq('id', firmId)
     .limit(4)
   return (data || []) as FirmRow[]
 }
+
+const getSimilarFirmsCached = unstable_cache(
+  _getSimilarFirms,
+  ['similar-firms'],
+  { tags: ['firms'] }
+)
 
 /* ── Metadata ──────────────────────────────────────────── */
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const firm = await getFirmBySlug(slug)
+  const firm = await getFirmBySlugCached(slug)
   if (!firm) return {}
   const pay = formatPay(firm)
   const desc = firm.description
@@ -127,14 +139,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function FirmDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const firm = await getFirmBySlug(slug)
+  const firm = await getFirmBySlugCached(slug)
   if (!firm) notFound()
 
   const pay = formatPay(firm)
   const categories = parseCategories(firm.categories)
   const socialLinks = parseSocialLinks(firm.social_links)
   const hasCoordinates = firm.latitude != null && firm.longitude != null
-  const similarFirms = await getSimilarFirms(firm)
+  const similarFirms = await getSimilarFirmsCached(firm.id)
 
   const contactHref =
     firm.vendor_page_url ||

@@ -199,7 +199,7 @@ async function getFirms(
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         Prefer: 'count=exact',
       },
-      next: { revalidate: 300 },
+      next: { tags: ['firms'] },
     })
 
     if (!res.ok) throw new Error('Failed to fetch firms')

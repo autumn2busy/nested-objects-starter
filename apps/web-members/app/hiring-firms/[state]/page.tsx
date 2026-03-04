@@ -7,7 +7,6 @@ import { generatePageMetadata, SITE_URL, getBreadcrumbSchema, getFAQPageSchema }
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { STATE_MAP, ALL_STATE_SLUGS, TOP_STATES } from '../state-data'
 
-export const revalidate = 3600 // Re-fetch firm data every hour
 
 /* ── Static params for all 50 states ─────────────────── */
 
@@ -82,7 +81,7 @@ async function getFirmsByState(stateCode: string, stateLabel: string): Promise<F
                 Authorization: `Bearer ${supabaseKey}`,
                 Prefer: 'count=exact',
             },
-            next: { revalidate: 3600 },
+            next: { tags: ['firms'] },
         })
 
         if (!res.ok) return []
