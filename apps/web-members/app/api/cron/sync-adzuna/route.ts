@@ -43,47 +43,50 @@ export async function GET(request: Request) {
         // 2. We will run multiple API requests to Adzuna for each keyword
         const fetchedJobs: any[] = [];
 
-        // Use Promise.all to fetch all queries concurrently
-        await Promise.all(
-            SEARCH_QUERIES.map(async (query) => {
-                const url = `${ADZUNA_BASE_URL}?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=50&what=${encodeURIComponent(query.what)}&sort_by=date`;
+        // Helper to pause execution for Adzuna rate limits
+        const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-                try {
-                    const res = await fetch(url);
-                    if (!res.ok) {
-                        console.error(`Adzuna API Error for ${query.what}: ${res.status}`);
-                        return;
-                    }
+        // Execute sequentially to avoid Adzuna 429 Rate Limits
+        for (const query of SEARCH_QUERIES) {
+            const url = `${ADZUNA_BASE_URL}?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=50&what=${encodeURIComponent(query.what)}&sort_by=date`;
 
-                    const data = await res.json();
-                    if (data.results && Array.isArray(data.results)) {
-                        // Map the jobs to our schema immediately and attach the vertical
-                        data.results.forEach((job: any) => {
-                            fetchedJobs.push({
-                                source_id: `adzuna_${job.id}`,
-                                title: job.title.replace(/<\/?[^>]+(>|$)/g, ""), // strip HTML
-                                company: job.company?.display_name || 'Unknown',
-                                description: job.description || '',
-                                location_display: job.location?.display_name || '',
-                                state: extractState(job.location?.area || []),
-                                salary_min: job.salary_min || null,
-                                salary_max: job.salary_max || null,
-                                salary_type: 'annual', // Adzuna defaults to annual unless indicated
-                                salary_is_predicted: job.salary_is_predicted === '1',
-                                service_vertical: query.vertical,
-                                category: 'Field Service',
-                                source: 'Adzuna',
-                                source_url: job.redirect_url || '',
-                                posted_date: job.created ? new Date(job.created).toISOString() : new Date().toISOString(),
-                                is_active: true
-                            });
-                        });
-                    }
-                } catch (e) {
-                    console.error(`Failed fetching ${query.what}:`, e);
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    console.error(`Adzuna API Error for ${query.what}: ${res.status}`);
+                    continue; // Skip and try next query
                 }
-            })
-        );
+
+                const data = await res.json();
+                if (data.results && Array.isArray(data.results)) {
+                    data.results.forEach((job: any) => {
+                        fetchedJobs.push({
+                            source_id: `adzuna_${job.id}`,
+                            title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
+                            company: job.company?.display_name || 'Unknown',
+                            description: job.description || '',
+                            location_display: job.location?.display_name || '',
+                            state: extractState(job.location?.area || []),
+                            salary_min: job.salary_min || null,
+                            salary_max: job.salary_max || null,
+                            salary_type: 'annual',
+                            salary_is_predicted: job.salary_is_predicted === '1',
+                            service_vertical: query.vertical,
+                            category: 'Field Service',
+                            source: 'Adzuna',
+                            source_url: job.redirect_url || '',
+                            posted_date: job.created ? new Date(job.created).toISOString() : new Date().toISOString(),
+                            is_active: true
+                        });
+                    });
+                }
+
+                // Wait 1 second before firing the next Adzuna webhook to prevent 429 limits
+                await delay(1000);
+            } catch (e) {
+                console.error(`Failed fetching ${query.what}:`, e);
+            }
+        }
 
         // 3. Deactivate old Adzuna jobs so we don't have stale listings
         // We only deactivate jobs sourced from Adzuna to preserve manual ones
