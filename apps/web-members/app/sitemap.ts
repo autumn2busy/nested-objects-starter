@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 
 import { SITE_URL } from '@/lib/seo'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { ALL_STATE_SLUGS } from './hiring-firms/state-data'
 
 type SlugRow = {
   slug: string | null
@@ -93,6 +94,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.6,
+  }))
+
+  const stateEntries = ALL_STATE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/hiring-firms/${slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
   }))
 
   return [
@@ -191,5 +199,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...memberEntries,
     ...roleEntries,
     ...toolEntries,
+    ...stateEntries,
   ]
 }
