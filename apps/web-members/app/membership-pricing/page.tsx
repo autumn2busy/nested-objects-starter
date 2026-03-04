@@ -2,6 +2,7 @@ import { MembershipView } from './MembershipView'
 import { generatePageMetadata, getProductSchema } from '@/lib/seo'
 import type { Metadata } from 'next'
 import { membershipPlans } from '@/lib/ai-datasets'
+import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Membership Plans | Certified Inspection & Notary Hub',
@@ -9,28 +10,42 @@ export const metadata: Metadata = generatePageMetadata({
   path: '/membership-pricing',
 })
 
-// Generate structured data for visible plans only (exclude hidden/legacy)
-const visiblePlans = membershipPlans.filter((plan) => !plan.hidden)
-const productSchemas = visiblePlans.map((plan) =>
+// Generate structured data for plans
+const productSchemas = membershipPlans.map((plan) =>
   getProductSchema({
     name: `Nested Objects ${plan.name} Plan`,
     description: plan.description,
-    price: plan.price.replace('$', '').replace('/mo', '').replace('/yr', ''),
+    price: plan.price.replace('$', '').replace('/mo', ''),
     priceCurrency: 'USD',
   })
 )
 
+// AggregateRating for rich snippets in search results
+const aggregateRatingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Nested Objects',
+  url: 'https://members.nestedobjects.com',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: getAverageRating(),
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: TESTIMONIALS.length,
+  },
+}
+
 export default function MembershipPage() {
   return (
     <>
-      {/* One JSON-LD block per product for maximum Google Rich Results compatibility */}
-      {productSchemas.map((schema, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchemas) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
+      />
       <MembershipView />
     </>
   )

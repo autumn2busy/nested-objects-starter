@@ -3,12 +3,27 @@ import { DirectoryView } from './DirectoryView'
 import type { Firm } from './DirectoryView'
 import { generatePageMetadata } from '@/lib/seo'
 import { US_STATES } from './constants'
+import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Firm Directory | Field Inspection & Notary Vendors',
   description: 'Browse verified firms hiring field inspectors, notaries, and appraisal professionals across the US.',
   path: '/hiring-firms',
 })
+
+const aggregateRatingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Nested Objects',
+  url: 'https://members.nestedobjects.com',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: getAverageRating(),
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: TESTIMONIALS.length,
+  },
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -247,11 +262,17 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort)
 
   return (
-    <DirectoryView
-      initialFirms={firms}
-      totalCount={totalCount}
-      page={page}
-      limit={limit}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
+      />
+      <DirectoryView
+        initialFirms={firms}
+        totalCount={totalCount}
+        page={page}
+        limit={limit}
+      />
+    </>
   )
 }

@@ -5,10 +5,23 @@ import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
-import { LeadMagnetSection } from '@/components/LeadMagnetSection'
-import { FoundersPromoBanner } from '@/components/FoundersPromoBanner'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
+
+const aggregateRatingLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Nested Objects',
+  url: 'https://members.nestedobjects.com',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: getAverageRating(),
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: TESTIMONIALS.length,
+  },
+}
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -21,7 +34,7 @@ const jsonLd = {
     '@type': 'PostalAddress',
     addressCountry: 'US',
   },
-  url: 'https://members.nestedobjects.com',
+  url: 'https://nested-objects-starter.vercel.app',
   priceRange: '$$',
   telephone: '+1-555-010-9999',
   sameAs: [
@@ -48,6 +61,12 @@ export default function HomePage() {
         id="nested-objects-ld-json"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <Script
+        id="aggregate-rating-ld-json"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingLd) }}
       />
 
       <Script
@@ -364,9 +383,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-        {/* ── Lead Magnet ──────────────────────────── */}
-        <LeadMagnetSection />
 
         {/* Split section */}
         <section className="border-b border-slate-200 bg-slate-50">

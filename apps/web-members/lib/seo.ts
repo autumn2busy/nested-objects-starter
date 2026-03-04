@@ -229,7 +229,48 @@ export function getOccupationSchema(occupation: {
         }),
     }
 }
+/**
+ * AggregateRating Schema Builder
+ * Generates rich snippet star ratings in Google search results.
+ */
+export function getAggregateRatingSchema(reviewData: {
+    ratingValue: number
+    reviewCount: number
+    bestRating?: number
+    worstRating?: number
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: SITE_NAME,
+        url: SITE_URL,
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: reviewData.ratingValue,
+            bestRating: reviewData.bestRating || 5,
+            worstRating: reviewData.worstRating || 1,
+            reviewCount: reviewData.reviewCount,
+        },
+    }
+}
 
+/**
+ * Individual Review Schema Builder
+ */
+export function getReviewSchema(reviews: {
+    author: string
+    rating: number
+    body: string
+    datePublished: string
+}[]) {
+    return reviews.map((review) => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: review.author },
+        reviewRating: { '@type': 'Rating', ratingValue: review.rating, bestRating: 5 },
+        reviewBody: review.body,
+        datePublished: review.datePublished,
+    }))
+}
 /**
  * Generate canonical URL for a given path
  */
