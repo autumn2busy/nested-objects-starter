@@ -180,7 +180,8 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
     // 1. Determine correct tags
-    const tagTier = profile.subscription_tier === 'founders' ? 'founders' : profile.subscription_tier;
+    // For founders tier, use 'founder' to match AC tag 'plan-founder' exactly
+    const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
     const expectedTierTag = `plan-${tagTier}`;
     const expectedStatusTag = profile.subscription_status ? `status-${profile.subscription_status}` : null;
 
