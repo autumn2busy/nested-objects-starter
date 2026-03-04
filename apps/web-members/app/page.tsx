@@ -5,6 +5,7 @@ import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
+import { FoundersPromoBanner } from '@/components/FoundersPromoBanner'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
 
@@ -19,7 +20,7 @@ const jsonLd = {
     '@type': 'PostalAddress',
     addressCountry: 'US',
   },
-  url: 'https://nested-objects-starter.vercel.app',
+  url: 'https://members.nestedobjects.com',
   priceRange: '$$',
   telephone: '+1-555-010-9999',
   sameAs: [
