@@ -14,6 +14,10 @@ export const metadata: Metadata = {
     siteName: 'Nested Objects',
     locale: 'en_US',
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 function SiteHeader() {

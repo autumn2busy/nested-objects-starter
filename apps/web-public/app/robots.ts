@@ -5,9 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        disallow: '/',
       },
     ],
-    sitemap: 'https://nestedobjects.com/sitemap.xml',
   }
 }
