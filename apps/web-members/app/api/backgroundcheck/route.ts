@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { isBackgroundCheckAdmin } from '@/lib/backgroundcheck-admin-auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -133,7 +134,6 @@ export async function POST(request: Request) {
  *   notes?: string
  * }
  * 
- * TODO: Add admin role check (for now, check for specific Outseta IDs)
  */
 export async function PATCH(request: Request) {
     try {
@@ -144,10 +144,29 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // TODO: Replace with proper admin role check
-        // For now, hardcode admin Outseta IDs
-        const ADMIN_IDS = process.env.ADMIN_OUTSETA_IDS?.split(',') || []
-        const isAdmin = ADMIN_IDS.includes(outsetaId) || user.email === 'autumn.williams@nestedobjects.com' || user.email === 'syre.gibson@nestedobjects.com'
+        const supabase = createServiceRoleClient()
+
+        const isAdmin = await isBackgroundCheckAdmin(user, outsetaId, async (id) => {
+            const roleMappingTable = process.env.ROLE_MAPPING_TABLE || 'user_role_mappings'
+            const { data, error } = await supabase
+                .from(roleMappingTable)
+                .select('role, permissions')
+                .or(`outseta_person_uid.eq.${id},user_id.eq.${id}`)
+                .limit(1)
+                .maybeSingle()
+
+            if (error) {
+                console.error('[BACKGROUND_CHECK][ADMIN_AUTH] Failed to load role claims from mapping table', {
+                    roleMappingTable,
+                    outsetaId: id,
+                    code: error.code,
+                    message: error.message,
+                })
+                return null
+            }
+
+            return data
+        })
 
         if (!isAdmin) {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
@@ -162,8 +181,6 @@ export async function PATCH(request: Request) {
         if (!['verify', 'reject'].includes(action)) {
             return NextResponse.json({ error: 'Action must be "verify" or "reject"' }, { status: 400 })
         }
-
-        const supabase = createServiceRoleClient()
 
         if (action === 'verify') {
             // Verify the background check
@@ -184,6 +201,14 @@ export async function PATCH(request: Request) {
                 .eq('id', profile_id)
 
             if (error) throw error
+
+            console.info('[BACKGROUND_CHECK][AUDIT]', {
+                action: 'verify',
+                profile_id,
+                verified_by_outseta_id: outsetaId,
+                verified_by_email: user.email || null,
+                occurred_at: new Date().toISOString(),
+            })
 
             // Recalculate trust score (+25 for background check)
             const { data: profile } = await supabase
@@ -226,6 +251,14 @@ export async function PATCH(request: Request) {
                 .eq('id', profile_id)
 
             if (error) throw error
+
+            console.info('[BACKGROUND_CHECK][AUDIT]', {
+                action: 'reject',
+                profile_id,
+                verified_by_outseta_id: outsetaId,
+                verified_by_email: user.email || null,
+                occurred_at: new Date().toISOString(),
+            })
 
             return NextResponse.json({ success: true, status: 'rejected' })
         }
