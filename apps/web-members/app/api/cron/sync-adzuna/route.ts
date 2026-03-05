@@ -96,11 +96,20 @@ export async function GET(request: Request) {
             .eq('source', 'Adzuna');
 
         // 4. Batch Upsert into Supabase
-        // We use source_id to prevent duplicates (requires a unique constraint on source_id)
-        if (fetchedJobs.length > 0) {
+        // Adzuna can occasionally return the same job across different keyword searches
+        // We must deduplicate them in-memory first so the Supabase Upsert payload doesn't conflict with itself
+        const uniqueJobsMap = new Map();
+        fetchedJobs.forEach(job => {
+            if (!uniqueJobsMap.has(job.source_id)) {
+                uniqueJobsMap.set(job.source_id, job);
+            }
+        });
+        const uniqueFetchedJobs = Array.from(uniqueJobsMap.values());
+
+        if (uniqueFetchedJobs.length > 0) {
             const { error, count } = await supabaseAdmin
                 .from('jobs')
-                .upsert(fetchedJobs, { onConflict: 'source_id', ignoreDuplicates: false });
+                .upsert(uniqueFetchedJobs, { onConflict: 'source_id', ignoreDuplicates: false });
 
             if (error) {
                 console.error('Supabase upsert error:', error);
@@ -108,7 +117,7 @@ export async function GET(request: Request) {
                 return NextResponse.json({ error: 'Database upsert failed', details: error }, { status: 500 });
             }
 
-            totalInserted = fetchedJobs.length;
+            totalInserted = uniqueFetchedJobs.length;
         }
 
         return NextResponse.json({
