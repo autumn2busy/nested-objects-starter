@@ -43,7 +43,7 @@ async function getMemberTrustData(memberId: string) {
     // We assume memberId matches the profile 'id' or 'user_id'
     const { data, error } = await getSupabase()
         .from('profiles')
-        .select('verified_at, rating, rating_count, is_published')
+        .select('verified_at, rating, rating_count, is_published, background_check_status')
         .eq('id', memberId)
         .maybeSingle()
 
@@ -274,18 +274,20 @@ export default async function MemberProfilePage({
                     </section>
 
                     {/* Verification */}
-                    <section className="bg-slate-900 rounded-xl p-5 text-white shadow-lg shadow-slate-900/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Shield className="w-5 h-5 text-emerald-400" />
-                            <h3 className="font-bold">Background Checked</h3>
-                        </div>
-                        <p className="text-sm text-slate-400 mb-4">
-                            This member has completed identity verification and background screening.
-                        </p>
-                        <div className="text-xs text-slate-500 font-mono">
-                            ID: {params.memberId.substring(0, 8)}...
-                        </div>
-                    </section>
+                    {trustData?.background_check_status === 'verified' && (
+                        <section className="bg-slate-900 rounded-xl p-5 text-white shadow-lg shadow-slate-900/10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Shield className="w-5 h-5 text-emerald-400" />
+                                <h3 className="font-bold">Background Checked</h3>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-4">
+                                This member has completed identity verification and background screening.
+                            </p>
+                            <div className="text-xs text-slate-500 font-mono">
+                                ID: {params.memberId.substring(0, 8)}...
+                            </div>
+                        </section>
+                    )}
 
                 </div>
             </div>
