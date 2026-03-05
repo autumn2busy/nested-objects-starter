@@ -1,7 +1,20 @@
+import fs from 'fs'
+import path from 'path'
 import { MetadataRoute } from 'next'
 import { getAllGuides } from '@/lib/guides'
 
 const BASE_URL = 'https://nestedobjects.com'
+const APP_DIR = path.join(process.cwd(), 'apps', 'web-public', 'app')
+
+function getFileLastModified(relativePath: string): Date {
+  const fullPath = path.join(APP_DIR, relativePath)
+
+  try {
+    return fs.statSync(fullPath).mtime
+  } catch {
+    return new Date()
+  }
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const guides = getAllGuides()
@@ -16,13 +29,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: BASE_URL,
-      lastModified: new Date(),
+      lastModified: getFileLastModified('page.tsx'),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
       url: `${BASE_URL}/guides`,
-      lastModified: new Date(),
+      lastModified: getFileLastModified('guides/page.tsx'),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
