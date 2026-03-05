@@ -24,6 +24,13 @@ const guides = [
         readTime: '8 min read',
         category: 'Industry Comparison',
     },
+    {
+        title: 'List of Top Field Inspection Companies',
+        description: 'A curated directory of the top companies currently hiring residential, commercial, and property preservation field inspectors.',
+        slug: 'list-of-field-inspection-companies',
+        readTime: '6 min read',
+        category: 'Company Directory',
+    },
 ]
 
 export default function GuidesIndexPage() {
