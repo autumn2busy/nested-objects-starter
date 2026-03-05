@@ -8,8 +8,10 @@
  * (Set NEXT_PUBLIC_SITE_URL in Vercel before migration)
  */
 
-// Base URL - uses environment variable for easy domain migration
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nested-objects-starter.vercel.app'
+import { getSiteUrl } from '@/lib/seo-env'
+
+// Base URL - validated environment variable with local dev fallback
+export const SITE_URL = getSiteUrl()
 
 // Site-wide constants
 export const SITE_NAME = 'Nested Objects'
@@ -328,4 +330,3 @@ export function generatePageMetadata({
         },
     }
 }
-
