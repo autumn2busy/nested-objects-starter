@@ -34,7 +34,8 @@ const EXCLUDED_KEYWORDS = [
     'superintendent', 'intern', 'aide', 'housekeeper', 'support specialist',
     'pest control', 'termite', 'hvac', 'plumber', 'electrician', 'developer',
     'technician', 'mental', 'health', 'correctional', 'sergeant', 'police',
-    'nurse', 'mechanic', 'teacher', 'driver', 'warehouse', 'software'
+    'nurse', 'mechanic', 'teacher', 'driver', 'warehouse', 'software',
+    'serving', 'call today', 'notary service -', 'certified mobile notary service' // Spam & Ads
 ];
 
 export async function GET(request: Request) {
