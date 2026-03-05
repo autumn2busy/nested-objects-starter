@@ -18,14 +18,23 @@ const SEARCH_QUERIES = [
     { what: '"mortgage field services"', vertical: 'Inspections & Evaluations' }
 ];
 
-// Keywords that indicate a job is an internal corporate or management role rather than field service
+// Keywords that MUST be in the title for the job to be considered valid
+const REQUIRED_TITLE_KEYWORDS = [
+    'inspector', 'preservation', 'notary', 'apprais', 'field service',
+    'signing agent', 'signer', 'occupancy', 'reo', 'foreclosure',
+    'bpo', 'evaluation', 'mortgage', 'property'
+];
+
+// Keywords that indicate a job is an internal corporate or completely unrelated role
 const EXCLUDED_KEYWORDS = [
     'supervisor', 'manager', 'banker', 'teller', 'coordinator', 'director',
     'vp', 'president', 'executive', 'admin', 'assistant', 'clerk',
     'receptionist', 'officer', 'analyst', 'underwriter', 'processor',
     'closer', 'retail', 'sales', 'consultant', 'accountant', 'hr', 'marketing',
     'superintendent', 'intern', 'aide', 'housekeeper', 'support specialist',
-    'pest control', 'termite', 'hvac', 'plumber', 'electrician'
+    'pest control', 'termite', 'hvac', 'plumber', 'electrician', 'developer',
+    'technician', 'mental', 'health', 'correctional', 'sergeant', 'police',
+    'nurse', 'mechanic', 'teacher', 'driver', 'warehouse', 'software'
 ];
 
 export async function GET(request: Request) {
@@ -76,7 +85,10 @@ export async function GET(request: Request) {
                         // Sever jobs containing corporate/management keywords
                         const isExcluded = EXCLUDED_KEYWORDS.some(keyword => lowerTitle.includes(keyword));
 
-                        if (!isExcluded) {
+                        // Mandate that the title actually contains at least one target industry keyword
+                        const hasRequiredKeyword = REQUIRED_TITLE_KEYWORDS.some(keyword => lowerTitle.includes(keyword));
+
+                        if (!isExcluded && hasRequiredKeyword) {
                             fetchedJobs.push({
                                 source_id: `adzuna_${job.id}`,
                                 title: cleanTitle,
