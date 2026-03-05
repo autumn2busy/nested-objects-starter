@@ -9,13 +9,13 @@ const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY;
 // Base configuration for our search queries
 const ADZUNA_BASE_URL = 'https://api.adzuna.com/v1/api/jobs/us/search/1';
 
-// We search for these specific keywords related to Nested Objects' niche
+// We search for these specific exact phrases related to Nested Objects' niche
 const SEARCH_QUERIES = [
-    { what: 'field inspector', vertical: 'Inspections & Evaluations' },
-    { what: 'property preservation', vertical: 'Property Preservation' },
-    { what: 'mobile notary', vertical: 'Closing & Notary Services' },
-    { what: 'real estate appraiser', vertical: 'Appraisals' },
-    { what: 'mortgage field services', vertical: 'Inspections & Evaluations' }
+    { what: '"field inspector"', vertical: 'Inspections & Evaluations' },
+    { what: '"property preservation"', vertical: 'Property Preservation' },
+    { what: '"mobile notary"', vertical: 'Closing & Notary Services' },
+    { what: '"real estate appraiser"', vertical: 'Appraisals' },
+    { what: '"mortgage field services"', vertical: 'Inspections & Evaluations' }
 ];
 
 // Keywords that indicate a job is an internal corporate or management role rather than field service
@@ -23,7 +23,9 @@ const EXCLUDED_KEYWORDS = [
     'supervisor', 'manager', 'banker', 'teller', 'coordinator', 'director',
     'vp', 'president', 'executive', 'admin', 'assistant', 'clerk',
     'receptionist', 'officer', 'analyst', 'underwriter', 'processor',
-    'closer', 'retail', 'sales', 'consultant', 'accountant', 'hr', 'marketing'
+    'closer', 'retail', 'sales', 'consultant', 'accountant', 'hr', 'marketing',
+    'superintendent', 'intern', 'aide', 'housekeeper', 'support specialist',
+    'pest control', 'termite', 'hvac', 'plumber', 'electrician'
 ];
 
 export async function GET(request: Request) {
