@@ -93,7 +93,8 @@ export async function GET(request: Request) {
                                 posted_date: job.created ? new Date(job.created).toISOString() : new Date().toISOString(),
                                 is_active: true
                             });
-                        });
+                        }
+                    });
                 }
 
                 // Wait 1 second before firing the next Adzuna webhook to prevent 429 limits
