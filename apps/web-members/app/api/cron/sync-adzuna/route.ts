@@ -18,6 +18,14 @@ const SEARCH_QUERIES = [
     { what: 'mortgage field services', vertical: 'Inspections & Evaluations' }
 ];
 
+// Keywords that indicate a job is an internal corporate or management role rather than field service
+const EXCLUDED_KEYWORDS = [
+    'supervisor', 'manager', 'banker', 'teller', 'coordinator', 'director',
+    'vp', 'president', 'executive', 'admin', 'assistant', 'clerk',
+    'receptionist', 'officer', 'analyst', 'underwriter', 'processor',
+    'closer', 'retail', 'sales', 'consultant', 'accountant', 'hr', 'marketing'
+];
+
 export async function GET(request: Request) {
     // 1. Verify cron secret to prevent unauthorized scraping
     const authHeader = request.headers.get('Authorization');
@@ -60,25 +68,32 @@ export async function GET(request: Request) {
                 const data = await res.json();
                 if (data.results && Array.isArray(data.results)) {
                     data.results.forEach((job: any) => {
-                        fetchedJobs.push({
-                            source_id: `adzuna_${job.id}`,
-                            title: job.title.replace(/<\/?[^>]+(>|$)/g, ""),
-                            company: job.company?.display_name || 'Unknown',
-                            description: job.description || '',
-                            location_display: job.location?.display_name || '',
-                            state: extractState(job.location?.area || []),
-                            salary_min: job.salary_min || null,
-                            salary_max: job.salary_max || null,
-                            salary_type: 'annual',
-                            salary_is_predicted: job.salary_is_predicted === '1',
-                            service_vertical: query.vertical,
-                            category: 'Field Service',
-                            source: 'Adzuna',
-                            source_url: job.redirect_url || '',
-                            posted_date: job.created ? new Date(job.created).toISOString() : new Date().toISOString(),
-                            is_active: true
+                        const cleanTitle = job.title.replace(/<\/?[^>]+(>|$)/g, ""); // strip HTML
+                        const lowerTitle = cleanTitle.toLowerCase();
+
+                        // Sever jobs containing corporate/management keywords
+                        const isExcluded = EXCLUDED_KEYWORDS.some(keyword => lowerTitle.includes(keyword));
+
+                        if (!isExcluded) {
+                            fetchedJobs.push({
+                                source_id: `adzuna_${job.id}`,
+                                title: cleanTitle,
+                                company: job.company?.display_name || 'Unknown',
+                                description: job.description || '',
+                                location_display: job.location?.display_name || '',
+                                state: extractState(job.location?.area || []),
+                                salary_min: job.salary_min || null,
+                                salary_max: job.salary_max || null,
+                                salary_type: 'annual',
+                                salary_is_predicted: job.salary_is_predicted === '1',
+                                service_vertical: query.vertical,
+                                category: 'Field Service',
+                                source: 'Adzuna',
+                                source_url: job.redirect_url || '',
+                                posted_date: job.created ? new Date(job.created).toISOString() : new Date().toISOString(),
+                                is_active: true
+                            });
                         });
-                    });
                 }
 
                 // Wait 1 second before firing the next Adzuna webhook to prevent 429 limits
