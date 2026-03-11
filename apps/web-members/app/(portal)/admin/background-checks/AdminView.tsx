@@ -28,7 +28,7 @@ export default function AdminView({ initialProfiles }: { initialProfiles: Pendin
                 ? 'Your ABC# could not be verified in our external records. Please double-check your ID.'
                 : 'Verified by Admin.'
 
-            const response = await fetch('/api/backgroundcheck', {
+            const response = await fetch('/api/background-check', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
