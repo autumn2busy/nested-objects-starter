@@ -14,7 +14,6 @@ process.env.ACTIVE_CAMPAIGN_API_KEY = process.env.AC_API_KEY || process.env.ACTI
 process.env.ACTIVE_CAMPAIGN_CONNECTION_ID = process.env.NEXT_PUBLIC_AC_ACTID || '1';
 
 import { createServiceRoleClient } from './lib/supabase-admin';
-import { createServiceRoleClient } from './lib/supabase-admin';
 import { syncFullProfileDeepData } from './lib/active-campaign-deep-data';
 import { PLAN_UIDS } from './lib/plan-config';
 
