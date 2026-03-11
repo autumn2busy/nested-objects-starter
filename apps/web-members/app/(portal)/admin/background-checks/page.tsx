@@ -32,10 +32,9 @@ export default async function AdminBackgroundChecksPage() {
             shield_id_submitted_at,
             background_check_status,
             trust_score,
-            users (
-                email,
-                raw_user_meta_data
-            )
+            user_email,
+            first_name,
+            last_name
         `)
         .eq('background_check_status', 'pending_verification')
         .order('shield_id_submitted_at', { ascending: false })
@@ -46,10 +45,8 @@ export default async function AdminBackgroundChecksPage() {
 
     // Map the relational user data cleanly for the client component
     const formattedProfiles = (pendingProfiles || []).map(profile => {
-        // Since 'users' relation can be an array depending on foreign keys, extract it cleanly
-        const userObj = Array.isArray(profile.users) ? profile.users[0] : profile.users
-        const fullName = userObj?.raw_user_meta_data?.full_name || 'Unknown User'
-        const email = userObj?.email || 'No email'
+        const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unknown User'
+        const email = profile.user_email || 'No email'
 
         return {
             id: profile.id,
