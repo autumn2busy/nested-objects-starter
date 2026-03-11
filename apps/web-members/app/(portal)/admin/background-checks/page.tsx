@@ -14,6 +14,7 @@ export default async function AdminBackgroundChecksPage() {
         redirect('/')
     }
 
+    const ADMIN_IDS = process.env.ADMIN_OUTSETA_IDS?.split(',') || []
     const isAdmin = ADMIN_IDS.includes(outsetaId) || user.email === 'autumn.williams@nestedobjects.com' || user.email === 'syre.gibson@nestedobjects.com' || user.email === 'autumn.s.williams@gmail.com'
 
     if (!isAdmin) {
