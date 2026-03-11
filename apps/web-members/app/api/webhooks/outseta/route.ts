@@ -304,12 +304,12 @@ export async function POST(request: NextRequest) {
         const existingTime = new Date(existing.outseta_updated_at).getTime();
         const incomingTime = new Date(profileData.outseta_updated_at).getTime();
 
-        if (existingTime >= incomingTime) {
-          console.log(`[${requestId}] Skipping update: Profile already verified up to ${existing.outseta_updated_at}`);
+        if (existingTime > incomingTime) {
+          console.log(`[${requestId}] Skipping update: Incoming payload is older than existing record (${existing.outseta_updated_at})`);
           return NextResponse.json({
             success: true,
             operation: 'skipped',
-            reason: 'newer_version_exists',
+            reason: 'older_version',
             requestId,
             duration: `${Date.now() - startTime}ms`
           });

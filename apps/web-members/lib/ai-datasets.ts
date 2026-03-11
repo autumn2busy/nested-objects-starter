@@ -15,6 +15,25 @@ export type MembershipPlan = {
 
 export const membershipPlans: MembershipPlan[] = [
   {
+    name: 'Founders Directory Annual',
+    planUid: PLAN_UIDS.FOUNDERS,
+    price: '$37',
+    period: 'year',
+    headline: 'Founding Member',
+    description: 'Early adopter plan honoring the original $37/year pricing. Includes everything promised at signup.',
+    highlight: true,
+    hidden: false,
+    features: [
+      'Full directory access (400+ verified firms)',
+      'Full training portal access',
+      'AI Resume Builder access',
+      'Live job board access',
+      'Resources, templates, and guides',
+      'Priority support',
+      'Founding Member badge',
+    ],
+  },
+  {
     name: 'Free',
     planUid: PLAN_UIDS.FREE,
     price: '$0',
@@ -106,25 +125,6 @@ export const membershipPlans: MembershipPlan[] = [
       'API access',
       'Team onboarding and admin tooling',
       'Enterprise support path',
-    ],
-  },
-  {
-    name: 'Founders Directory Annual',
-    planUid: PLAN_UIDS.FOUNDERS,
-    price: '$37',
-    period: 'year',
-    headline: 'Founding Member',
-    description: 'Early adopter plan honoring the original $37/year pricing. Includes everything promised at signup.',
-    highlight: true,
-    hidden: false,
-    features: [
-      'Full directory access (200+ verified firms)',
-      'Full training portal access',
-      'AI Resume Builder access',
-      'Live job board access',
-      'Resources, templates, and guides',
-      'Priority support',
-      'Founding Member badge',
     ],
   },
 ]

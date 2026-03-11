@@ -124,7 +124,16 @@ const schemaMarkup = {
     }))
 };
 
-export default function FieldInspectionCompaniesPage() {
+import { getCurrentUser } from '@/lib/auth-server'
+
+export default async function FieldInspectionCompaniesPage() {
+    const user = await getCurrentUser()
+    const isAuthenticated = !!user
+
+    const visibleCount = isAuthenticated ? companies.length : 3
+    const visibleCompanies = companies.slice(0, visibleCount)
+    const blurredCompanies = isAuthenticated ? [] : companies.slice(visibleCount, visibleCount + 3)
+
     return (
         <>
             <script
@@ -144,8 +153,8 @@ export default function FieldInspectionCompaniesPage() {
                     </div>
 
                     {/* List Section */}
-                    <div className="grid gap-6">
-                        {companies.map((company, idx) => (
+                    <div className="grid gap-6 relative pb-12">
+                        {visibleCompanies.map((company, idx) => (
                             <div
                                 key={company.name}
                                 className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md hover:border-brand/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6"
@@ -185,6 +194,52 @@ export default function FieldInspectionCompaniesPage() {
                                 </div>
                             </div>
                         ))}
+
+                        {!isAuthenticated && (
+                            <>
+                                {blurredCompanies.map((company, idx) => (
+                                    <div
+                                        key={`blurred-${company.name}`}
+                                        className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 blur-[6px] opacity-60 select-none pointer-events-none"
+                                        aria-hidden="true"
+                                    >
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-semibold text-sm">
+                                                    {visibleCount + idx + 1}
+                                                </div>
+                                                <h2 className="text-xl font-bold text-slate-900 bg-slate-200 text-transparent rounded w-48">
+                                                    Hidden Company Name
+                                                </h2>
+                                            </div>
+                                            <p className="text-slate-600 mb-4 sm:mb-2 ml-11 bg-slate-100 text-transparent rounded">
+                                                {company.description}
+                                            </p>
+                                        </div>
+                                        <div className="sm:text-right shrink-0 ml-11 sm:ml-0">
+                                            <div className="inline-flex items-center justify-center rounded-lg bg-slate-100 px-5 py-2.5 w-32 h-10"></div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <div className="absolute bottom-0 left-0 right-0 h-[120%] bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent flex flex-col items-center justify-end pb-8 z-10 pointer-events-none">
+                                    <div className="pointer-events-auto bg-white p-8 sm:p-10 rounded-2xl shadow-xl border border-brand/20 text-center max-w-lg mx-auto w-full -translate-y-8 relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+                                        <h3 className="text-2xl font-extrabold text-slate-900 mb-3 tracking-tight">Unlock the Full List</h3>
+                                        <p className="text-slate-600 mb-8 font-medium leading-relaxed">
+                                            Create a free account to instantly uncover <strong>{companies.length - visibleCount} more top-rated companies</strong> and access our entire field vendor network.
+                                        </p>
+                                        <a
+                                            href="https://nested-objects.outseta.com/auth?widgetMode=register"
+                                            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-4 text-base font-bold text-white shadow hover:bg-emerald-400 transition-colors"
+                                        >
+                                            Create Free Account
+                                        </a>
+                                        <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Takes less than 30 seconds</p>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Disclaimer */}
@@ -192,29 +247,25 @@ export default function FieldInspectionCompaniesPage() {
                         Note: This information is provided for educational purposes. We encourage individuals to conduct their own due diligence before engaging with any businesses mentioned.
                     </div>
 
-                    {/* CTA Section */}
-                    <div className="mt-20 bg-brand-sand rounded-2xl border border-brand/20 p-8 sm:p-12 text-center shadow-sm">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">
-                            Want access to our full, verifiable directory?
-                        </h2>
-                        <p className="text-slate-600 mb-8 max-w-2xl mx-auto text-lg">
-                            Stop guessing which companies are actually hiring. Nested Objects maintains the largest verified directory of active field inspections and notary vendors, complete with real contractor reviews and pay transparent data.
-                        </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <a
-                                href="/membership-pricing"
-                                className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
-                            >
-                                Join Nested Objects
-                            </a>
-                            <a
-                                href="/hiring-firms"
-                                className="inline-flex items-center justify-center rounded-lg bg-white border border-slate-300 px-8 py-3.5 text-base font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
-                            >
-                                Browse Full Directory
-                            </a>
+                    {/* CTA Section (Only visible for logged in users, otherwise the gate handles CTA) */}
+                    {isAuthenticated && (
+                        <div className="mt-20 bg-brand-sand rounded-2xl border border-brand/20 p-8 sm:p-12 text-center shadow-sm">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">
+                                Want access to our full directory?
+                            </h2>
+                            <p className="text-slate-600 mb-8 max-w-2xl mx-auto text-lg">
+                                Stop guessing which companies are actually hiring. Nested Objects maintains the largest verified directory of active field inspections and notary vendors, complete with real contractor reviews and pay transparent data.
+                            </p>
+                            <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                <a
+                                    href="/hiring-firms"
+                                    className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                                >
+                                    Browse Full Directory
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </main>
         </>

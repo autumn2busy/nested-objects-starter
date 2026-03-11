@@ -1,0 +1,59 @@
+{
+  "outseta_data": {
+    "Uid": "WyJJ3rVm",
+    "Email": "dechijob@gmail.com",
+    "Created": "2026-03-09T13:56:57",
+    "Referer": "https://members.nestedobjects.com/",
+    "Updated": "2026-03-09T13:57:39",
+    "FullName": "jessika quinones",
+    "Language": "en-US",
+    "LastName": "quinones",
+    "FirstName": "jessika",
+    "IPAddress": "2601:985:4003:1380:1461:7ee8:77fe:dffd",
+    "PhoneWork": "",
+    "UserAgent": "Mozilla/5.0 (Android 13; Mobile; rv:148.0) Gecko/148.0 Firefox/148.0",
+    "DealPeople": [],
+    "HasLoggedIn": true,
+    "PhoneMobile": "",
+    "_objectType": "Person",
+    "PersonAccount": [
+      {
+        "Uid": "1Qpapy69",
+        "Account": {
+          "Uid": "B9lXpnv9",
+          "IsDemo": false,
+          "Created": "0001-01-01T00:00:00",
+          "Updated": "0001-01-01T00:00:00",
+          "IsLivemode": false,
+          "HasLoggedIn": false,
+          "_objectType": "Account",
+          "AccountStage": 0,
+          "TaxIdIsInvalid": false,
+          "LifetimeRevenue": 0,
+          "AccountStageLabel": "",
+          "SchemaLessDataLoaded": false
+        },
+        "Created": "2026-03-09T13:56:57",
+        "Updated": "2026-03-09T13:56:57",
+        "IsPrimary": true,
+        "_objectType": "PersonAccount",
+        "ReceiveInvoices": false
+      }
+    ],
+    "EmailListPerson": [],
+    "HasUnsubscribed": false,
+    "OptInToEmailList": false,
+    "ActivityEventData": {
+      "FirstTime": "True",
+      "PasswordSet": "True"
+    },
+    "LastLoginDateTime": "2026-03-09T13:57:31",
+    "PasswordMustChange": false,
+    "LeadFormSubmissions": [],
+    "PasswordLastUpdated": "2026-03-09T13:57:30",
+    "IsConnectedToDiscord": false,
+    "SchemaLessDataLoaded": false,
+    "OAuthIntegrationStatus": 0,
+    "UserAgentPlatformBrowser": "Unknown (Firefox)"
+  }
+}

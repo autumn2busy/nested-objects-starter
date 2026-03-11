@@ -146,7 +146,7 @@ export async function PATCH(request: Request) {
 
         const supabase = createServiceRoleClient()
 
-        const isAdmin = await isBackgroundCheckAdmin(user, outsetaId, async (id) => {
+        let isAdmin = await isBackgroundCheckAdmin(user, outsetaId, async (id) => {
             const roleMappingTable = process.env.ROLE_MAPPING_TABLE || 'user_role_mappings'
             const { data, error } = await supabase
                 .from(roleMappingTable)
@@ -167,6 +167,11 @@ export async function PATCH(request: Request) {
 
             return data
         })
+
+        const ADMIN_IDS = process.env.ADMIN_OUTSETA_IDS?.split(',') || []
+        if (ADMIN_IDS.includes(outsetaId) || user.email === 'autumn.williams@nestedobjects.com' || user.email === 'syre.gibson@nestedobjects.com' || user.email === 'autumn.s.williams@gmail.com') {
+            isAdmin = true
+        }
 
         if (!isAdmin) {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
