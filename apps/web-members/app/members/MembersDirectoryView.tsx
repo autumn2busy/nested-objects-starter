@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Search, GraduationCap, ShieldCheck, Briefcase } from 'lucide-react'
+import { BadgeCheck, MapPin, Search, GraduationCap, ShieldCheck, Briefcase, Star, TrendingUp } from 'lucide-react'
 
 import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
@@ -27,6 +27,9 @@ export type Member = {
     training_modules_completed?: number
     training_modules_total?: number
     shield_id?: string | null
+    subscription_tier?: string | null
+    trust_score?: number | null
+    experience_level?: string | null
 }
 
 const US_STATES = [
@@ -167,9 +170,11 @@ type MemberCardProps = {
 }
 
 function MemberCard({ member }: MemberCardProps) {
+    const isElite = member.subscription_tier === 'elite' || member.subscription_tier === 'agency'
+
     return (
         <Link href={`/members/${member.id}`} className="block h-full">
-            <article className="flex h-full flex-col rounded-md border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md">
+            <article className={`flex h-full flex-col rounded-md border bg-white p-5 transition-shadow hover:shadow-md ${isElite ? 'border-amber-300 ring-1 ring-amber-200/50' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-4">
                         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 border border-slate-200">
@@ -195,6 +200,12 @@ function MemberCard({ member }: MemberCardProps) {
                                 {member.role || 'Field Inspector'}
                             </p>
                             <div className="mt-1 flex items-center gap-2">
+                                {isElite && (
+                                    <div className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded">
+                                        <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                        <span>ELITE</span>
+                                    </div>
+                                )}
                                 {member.verified_at ? (
                                     <VerifiedBadge date={member.verified_at} />
                                 ) : (
@@ -207,6 +218,13 @@ function MemberCard({ member }: MemberCardProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* Bio snippet */}
+                {member.bio && (
+                    <p className="mt-3 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                        {member.bio}
+                    </p>
+                )}
 
                 <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-sm">
@@ -223,14 +241,36 @@ function MemberCard({ member }: MemberCardProps) {
                         )}
                     </div>
 
-                    {/* New B2B Metrics */}
+                    {/* Trust Score + B2B Metrics */}
                     <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
+                        {/* Trust Score bar */}
+                        {(member.trust_score != null && member.trust_score > 0) && (
+                            <div className="flex items-center gap-2 text-xs">
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                <span className="text-slate-600 font-medium">Trust: {member.trust_score}</span>
+                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-emerald-500 rounded-full transition-all"
+                                        style={{ width: `${Math.min(member.trust_score, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {member.primary_services && (
                             <div className="flex items-start gap-1.5 text-xs text-slate-600">
                                 <Briefcase className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                                 <span className="line-clamp-1">{member.primary_services}</span>
                             </div>
                         )}
+
+                        {member.experience_level && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>{member.experience_level}</span>
+                            </div>
+                        )}
+
                         <div className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-1.5 text-slate-600">
                                 <GraduationCap className="w-3.5 h-3.5" />

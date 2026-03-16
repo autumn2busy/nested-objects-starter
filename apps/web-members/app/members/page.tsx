@@ -32,7 +32,11 @@ async function getMembers(): Promise<Member[]> {
                 'shield_id',
                 'role',
                 'city',
-                'state'
+                'state',
+                'subscription_tier',
+                'trust_score',
+                'bio',
+                'experience_level'
             ].join(',') +
             '&is_published=eq.true&order=created_at.desc'
 

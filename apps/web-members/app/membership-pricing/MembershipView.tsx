@@ -20,26 +20,43 @@ function MembershipContent() {
     const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
         if (isCurrentPlan || plan.waitlist) return
 
-        if (!isAuthenticated) {
-            if (typeof window !== 'undefined' && window.Outseta?.auth?.open) {
-                window.Outseta.auth.open({
-                    widgetMode: 'register',
-                    planUid: plan.planUid,
-                    planPaymentTerm: plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime',
-                    skipPlanOptions: true,
-                })
-            } else {
-                window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}`
-            }
+        if (typeof window === 'undefined') return
+
+        const Outseta = (window as any).Outseta
+
+        // Ensure the embedded widget is aware of the existing session cookie so
+        // authenticated users aren't prompted to log in again when upgrading.
+        const accessToken = document.cookie
+            .split('; ')
+            .find((cookie) => cookie.startsWith('outseta_access_token='))
+            ?.split('=')[1]
+
+        if (accessToken && Outseta?.setAccessToken) {
+            Outseta.setAccessToken(decodeURIComponent(accessToken))
+        }
+
+        const widgetMode = isAuthenticated || Boolean(accessToken) ? 'updateSubscription' : 'register'
+        const planPaymentTerm = plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime'
+
+        if (Outseta?.auth?.open) {
+            Outseta.auth.open({
+                widgetMode,
+                planUid: plan.planUid,
+                planPaymentTerm,
+                skipPlanOptions: true,
+            })
             return
         }
 
-        // Authenticated: Open profile widget to plan tab
-        // Note: For specific plan changes, we might want to redirect to a specific URL, 
-        // but opening the plan tab is the standard "Upgrade" path in Outseta widgets.
-        if (typeof window !== 'undefined') {
-            ; (window as any).Outseta?.profile?.open({ tab: 'plan' })
-        }
+        // Fallback to hosted URL if widget doesn't load
+        const params = new URLSearchParams({
+            widgetMode,
+            planUid: plan.planUid,
+            skipPlanOptions: 'true',
+        })
+        if (planPaymentTerm) params.set('planPaymentTerm', planPaymentTerm)
+
+        window.location.href = `https://nested-objects.outseta.com/auth?${params.toString()}`
     }
 
     const openManageBilling = () => {
@@ -106,8 +123,8 @@ function MembershipContent() {
                                     if (isCurrentPlan) return 'Current plan'
                                     if (plan.waitlist) return 'Join Waitlist'
                                     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-                                    if (isPro && !isAuthenticated) return 'Start 7 Day Free Trial'
-                                    if (isPro && isAuthenticated) return 'Upgrade to Pro'
+                                    if (!isAuthenticated && plan.name === 'Pro') return 'Start 7 Day Free Trial'
+                                    if (isAuthenticated) return `Upgrade to ${plan.name}`
                                     return 'Sign up'
                                 })()
 
@@ -275,11 +292,13 @@ function MembershipContent() {
                     Ready to build routes that actually pay for your time?
                 </h2>
                 <p className="mx-auto mt-3 max-w-xl text-sm text-slate-200 sm:text-base">
-                    Start with the Pro plan so you can see firms, intel, and tools in one place instead of
-                    chasing random posts and rumor threads.
+                    {isAuthenticated && planUid === PLAN_UIDS.PRO
+                        ? "Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews."
+                        : "Start with the Pro plan so you can see firms, intel, and tools in one place instead of chasing random posts and rumor threads."
+                    }
                 </p>
 
-                {isProOrHigher ? (
+                {isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY) ? (
                     <button
                         type="button"
                         onClick={openManageBilling}
@@ -287,13 +306,24 @@ function MembershipContent() {
                     >
                         Open manage plan &amp; billing
                     </button>
+                ) : isAuthenticated && planUid === PLAN_UIDS.PRO ? (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const elitePlan = membershipPlans.find(p => p.planUid === PLAN_UIDS.ELITE);
+                            if (elitePlan) openPlanWidget(elitePlan, false);
+                        }}
+                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                    >
+                        Upgrade to Elite
+                    </button>
                 ) : (
                     <button
                         type="button"
                         onClick={() => openPlanWidget(proPlan, false)}
                         className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
-                        Start 7 Day Free Trial
+                        {isAuthenticated ? 'Upgrade to Pro' : 'Start 7 Day Free Trial'}
                     </button>
                 )}
 

@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { BadgeCheck, MapPin, Hammer, Truck, Shield, Clock } from 'lucide-react'
+import { BadgeCheck, MapPin, Hammer, Truck, Shield, Clock, Star } from 'lucide-react'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
 
@@ -39,11 +39,25 @@ async function getMemberResume(memberId: string) {
 }
 
 async function getMemberTrustData(memberId: string) {
-    // Attempt to fetch trust signals from the main profiles table
-    // We assume memberId matches the profile 'id' or 'user_id'
+    // Attempt to fetch full details from the main profiles table
     const { data, error } = await getSupabase()
         .from('profiles')
-        .select('verified_at, rating, rating_count, is_published, background_check_status')
+        .select(`
+            verified_at, 
+            rating, 
+            rating_count, 
+            is_published, 
+            background_check_status,
+            display_name,
+            email,
+            bio,
+            city,
+            state,
+            primary_services,
+            subscription_tier,
+            experience_level,
+            trust_score
+        `)
         .eq('id', memberId)
         .maybeSingle()
 
@@ -76,8 +90,8 @@ export default async function MemberProfilePage({
     ])
 
     // If profile has elected not to publish via their dashboard Settings 
-    // or if no profile data exists, abort the route.
-    if (!resume || !resume.profile || trustData?.is_published === false) {
+    // or if no profile data exists at all, abort the route.
+    if ((!resume?.profile && !trustData) || trustData?.is_published === false) {
         return (
             <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="text-center space-y-4 max-w-md">
@@ -93,9 +107,14 @@ export default async function MemberProfilePage({
         )
     }
 
-    const { profile, experience, outputs } = resume
-    const summary = outputs?.summary || "Field professional with verified experience."
-    const initials = profile.fullName ? profile.fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'VO'
+    // Determine values with fallbacks
+    const isElite = trustData?.subscription_tier === 'elite' || trustData?.subscription_tier === 'agency'
+    const fullName = resume?.profile?.fullName || trustData?.display_name || 'Verified Member'
+    const profileSummary = resume?.outputs?.summary || trustData?.bio || "Field professional with verified experience."
+    const initials = fullName ? fullName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'VO'
+    const serviceArea = resume?.profile?.serviceArea || (trustData?.city && trustData?.state ? `${trustData.city}, ${trustData.state}` : null)
+    const experienceLevel = trustData?.experience_level || "Field Professional"
+    const primaryServices = trustData?.primary_services
 
     return (
         <main
@@ -108,11 +127,11 @@ export default async function MemberProfilePage({
         >
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 mb-8 text-sm text-slate-500">
-                <Link href="/hiring-firms" className="text-blue-600 font-medium hover:underline">
+                <Link href="/members" className="text-blue-600 font-medium hover:underline">
                     Directory
                 </Link>
                 <span>/</span>
-                <span className="text-slate-900 font-medium">{profile.fullName || 'Member'}</span>
+                <span className="text-slate-900 font-medium">{fullName}</span>
             </div>
 
             {/* Hero Card */}
@@ -134,7 +153,7 @@ export default async function MemberProfilePage({
 
                         <div className="flex gap-3 mb-1">
                             <Link
-                                href={`mailto:${profile.email || ''}`}
+                                href={`mailto:${resume?.profile?.email || trustData?.email || ''}`}
                                 className="bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
                             >
                                 Contact Member
@@ -144,7 +163,13 @@ export default async function MemberProfilePage({
 
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <h1 className="text-3xl font-bold text-slate-900">{profile.fullName}</h1>
+                            <h1 className="text-3xl font-bold text-slate-900">{fullName}</h1>
+                            {isElite && (
+                                <div className="flex items-center gap-1 text-[12px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded shadow-sm">
+                                    <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                                    <span>ELITE</span>
+                                </div>
+                            )}
                             {trustData?.verified_at && <VerifiedBadge date={trustData.verified_at} />}
                         </div>
 
@@ -158,16 +183,22 @@ export default async function MemberProfilePage({
                         </div>
 
                         <div className="flex flex-wrap gap-y-2 gap-x-6 text-sm text-slate-600 mt-2">
-                            {profile.serviceArea && (
+                            {serviceArea && (
                                 <div className="flex items-center gap-1.5">
                                     <MapPin className="w-4 h-4 text-slate-400" />
-                                    {profile.serviceArea}
+                                    {serviceArea}
                                 </div>
                             )}
-                            {experience?.turnaroundTime && (
+                            {resume?.experience?.turnaroundTime && (
                                 <div className="flex items-center gap-1.5">
                                     <Clock className="w-4 h-4 text-slate-400" />
-                                    {experience.turnaroundTime} TAT
+                                    {resume.experience.turnaroundTime} TAT
+                                </div>
+                            )}
+                            {experienceLevel && (
+                                <div className="flex items-center gap-1.5">
+                                    <Shield className="w-4 h-4 text-slate-400" />
+                                    {experienceLevel}
                                 </div>
                             )}
                         </div>
@@ -180,7 +211,6 @@ export default async function MemberProfilePage({
                 {/* Main Content */}
                 <div className="space-y-8">
 
-                    {/* About / Summary */}
                     <section>
                         <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <span className="w-1 h-5 bg-blue-600 rounded-full block"></span>
@@ -188,13 +218,13 @@ export default async function MemberProfilePage({
                         </h2>
                         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <p className="text-slate-700 leading-relaxed text-base">
-                                {summary}
+                                {profileSummary}
                             </p>
                         </div>
                     </section>
 
                     {/* AI Generated Experience Bullets */}
-                    {outputs?.experienceBullets && outputs.experienceBullets.length > 0 && (
+                    {resume?.outputs?.experienceBullets && resume.outputs.experienceBullets.length > 0 && (
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <span className="w-1 h-5 bg-blue-600 rounded-full block"></span>
@@ -202,7 +232,7 @@ export default async function MemberProfilePage({
                             </h2>
                             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                                 <ul className="space-y-3">
-                                    {outputs.experienceBullets.map((bullet: string, i: number) => (
+                                    {resume.outputs.experienceBullets.map((bullet: string, i: number) => (
                                         <li key={i} className="flex gap-3 text-slate-700">
                                             <span className="text-blue-500 mt-1.5">•</span>
                                             <span>{bullet}</span>
@@ -214,7 +244,7 @@ export default async function MemberProfilePage({
                     )}
 
                     {/* Skills */}
-                    {outputs?.skillsBullets && outputs.skillsBullets.length > 0 && (
+                    {(resume?.outputs?.skillsBullets && resume.outputs.skillsBullets.length > 0) ? (
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <span className="w-1 h-5 bg-blue-600 rounded-full block"></span>
@@ -222,9 +252,25 @@ export default async function MemberProfilePage({
                             </h2>
                             <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                                 <div className="flex flex-wrap gap-2">
-                                    {outputs.skillsBullets.map((skill: string, i: number) => (
+                                    {resume.outputs.skillsBullets.map((skill: string, i: number) => (
                                         <span key={i} className="bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-sm font-medium">
                                             {skill}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+                    ) : primaryServices && (
+                        <section>
+                            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <span className="w-1 h-5 bg-blue-600 rounded-full block"></span>
+                                Primary Services
+                            </h2>
+                            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                                <div className="flex flex-wrap gap-2">
+                                    {primaryServices.split(',').map((service: string, i: number) => (
+                                        <span key={i} className="bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-sm font-medium">
+                                            {service.trim()}
                                         </span>
                                     ))}
                                 </div>
@@ -238,40 +284,42 @@ export default async function MemberProfilePage({
                 <div className="space-y-6">
 
                     {/* Field Gear */}
-                    <section className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                            <Truck className="w-4 h-4" />
-                            Field Gear
-                        </h3>
-                        <div className="space-y-3">
-                            {experience?.ladderHeights && experience.ladderHeights.length > 0 && (
-                                <div className="text-sm">
-                                    <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Ladders</span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {experience.ladderHeights.map((h: string) => (
-                                            <span key={h} className="bg-slate-100 px-2 py-1 rounded text-slate-700 font-medium text-xs">
-                                                {h}
-                                            </span>
-                                        ))}
+                    {resume?.experience && (
+                        <section className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <Truck className="w-4 h-4" />
+                                Field Gear
+                            </h3>
+                            <div className="space-y-3">
+                                {resume.experience.ladderHeights && resume.experience.ladderHeights.length > 0 && (
+                                    <div className="text-sm">
+                                        <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Ladders</span>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {resume.experience.ladderHeights.map((h: string) => (
+                                                <span key={h} className="bg-slate-100 px-2 py-1 rounded text-slate-700 font-medium text-xs">
+                                                    {h}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {experience?.hasDrone && (
-                                <div className="text-sm border-t border-slate-100 pt-3">
-                                    <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Drone</span>
-                                    <span className="text-slate-900 font-medium">{experience.droneModel || "Equipped"}</span>
-                                </div>
-                            )}
+                                {resume.experience.hasDrone && (
+                                    <div className="text-sm border-t border-slate-100 pt-3">
+                                        <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Drone</span>
+                                        <span className="text-slate-900 font-medium">{resume.experience.droneModel || "Equipped"}</span>
+                                    </div>
+                                )}
 
-                            {experience?.measuringTools && (
-                                <div className="text-sm border-t border-slate-100 pt-3">
-                                    <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Measuring</span>
-                                    <span className="text-slate-900 font-medium">{experience.measuringTools}</span>
-                                </div>
-                            )}
-                        </div>
-                    </section>
+                                {resume.experience.measuringTools && (
+                                    <div className="text-sm border-t border-slate-100 pt-3">
+                                        <span className="text-slate-500 block text-xs uppercase tracking-wide mb-1">Measuring</span>
+                                        <span className="text-slate-900 font-medium">{resume.experience.measuringTools}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
 
                     {/* Verification */}
                     {trustData?.background_check_status === 'verified' && (
@@ -286,6 +334,28 @@ export default async function MemberProfilePage({
                             <div className="text-xs text-slate-500 font-mono">
                                 ID: {params.memberId.substring(0, 8)}...
                             </div>
+                        </section>
+                    )}
+
+                    {/* Trust Score */}
+                    {trustData?.trust_score != null && trustData.trust_score > 0 && (
+                        <section className="bg-emerald-50 rounded-xl p-5 border border-emerald-100 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Shield className="w-5 h-5 text-emerald-600" />
+                                <h3 className="font-bold text-emerald-900">Trust Score</h3>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="text-3xl font-bold text-emerald-600">{trustData.trust_score}</div>
+                                <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-emerald-100">
+                                    <div 
+                                        className="h-full bg-emerald-500 rounded-full"
+                                        style={{ width: `${Math.min(trustData.trust_score, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-xs text-emerald-700 mt-3">
+                                Based on verification status, training completion, and activity metrics.
+                            </p>
                         </section>
                     )}
 

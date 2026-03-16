@@ -1,0 +1,218 @@
+# Elite Plan Enhancements & Bug Fixes — Implementation Plan
+
+## Goal
+
+Update the Elite plan feature list in code, add the gaming session booking flow, and provide strategic deliverables for partner outreach, member visibility, and retention messaging.
+
+---
+
+## Proposed Changes
+
+### Feature List Update
+
+#### [MODIFY] [ai-datasets.ts](file:///c:/Users/Mother/Projects/nested-objects-starter/apps/web-members/lib/ai-datasets.ts#L93-L110)
+
+Update the Elite `features` array from the current 5 generic bullet points to a richer list that includes partner referrals, 1-to-1 gaming sessions, and concierge calls. Same change in both copies:
+
+```diff
+ features: [
+   'Everything in Pro',
+-  'Higher AI limits than Pro',
+-  'Priority support',
+-  'Advanced templates and workflows',
+-  'Early access to new tools',
++  'Partner referrals — vetted intros to firms like Asteroom',
++  '1-to-1 gaming session — strategy call with the team',
++  'Concierge calls — 15-min route & onboarding reviews',
++  'Higher AI limits (2x Pro)',
++  'Priority support (faster response SLA)',
++  'Advanced templates and workflows',
++  'Early access to new tools and features',
+ ],
+```
+
+#### [MODIFY] [ai-datasets.ts (launch copy)](file:///c:/Users/Mother/Projects/nested-objects-starter/launch-files/apps/web-members/lib/ai-datasets.ts#L72-L89)
+
+Same feature list update.
+
+---
+
+### Gaming Session Calendar Setup
+
+#### Google Workspace Instructions
+
+Your existing concierge call uses: `https://calendar.app.google/mhKo47RvNkCTiEp97`
+
+To create a second appointment type for the **1-to-1 Gaming Session**:
+
+1. Go to **Google Calendar** → ⚙️ Settings → **Appointment schedules**
+2. Click **+ New appointment schedule**
+3. Name it: `"1-to-1 Gaming Session — Elite Members"`
+4. Set duration (30 min or 60 min), your available hours, and buffer time
+5. Save → Copy the shareable booking link
+6. Share the link with me and I'll wire it into the `ConciergeSection.tsx` alongside the existing concierge call link
+
+> [!NOTE]
+> Until the link is ready, I'll add a placeholder in the code that you can swap in later.
+
+---
+
+## Strategic Recommendations
+
+### 1. /members Page: All Members Listed + Elite Badge
+
+**Recommendation: Show all members. Add a visible Elite badge.**
+
+| Approach | Pros | Cons |
+|---|---|---|
+| ❌ Elite only | Creates exclusivity | Kills social proof. Firms see a ghost town. Fewer-tier members feel excluded. |
+| ❌ All members, no distinction | More profiles = more social proof | No reason to upgrade. Elite members feel invisible. |
+| ✅ **All members + Elite badge** | Social proof stays high. Elite members stand out. Aspiration drives upgrades. | None — this is industry standard. |
+
+**How it works with your trust score:**
+- Trust score = *capability signal* (training completed, background check passed)
+- Elite badge = *commitment signal* (this person invested $97/mo in their career)
+- Together they tell firms: "This person is both trained AND serious."
+
+**Implementation:** Add `subscription_tier` to the members API query. Display a copper/gold `ELITE` badge next to the verified badge on member cards. Firms scanning the directory will immediately see who's all-in.
+
+---
+
+### 2. "Why Would I Keep Paying $97/mo After You've Referred Me?"
+
+This is the most important retention question for Elite. Here's the framework:
+
+**The wrong answer:** "Because we'll refer you to more firms."
+**The right answer:** "Because the referral is just the introduction. Everything that happens *after* is where Elite pays for itself."
+
+#### The Retention Pitch (use this in copy, sales calls, and FAQs)
+
+> **The referral opens the door. Elite keeps you inside.**
+>
+> When we introduce you to a partner like Asteroom, you get the meeting because we vouched for you. But staying valuable to that partner — keeping your routes, expanding your territory, handling problems before they fire you — that's what Elite does every month:
+>
+> - **Concierge calls** — Review your routes, troubleshoot issues, plan your next move with someone who knows the industry.
+> - **Gaming sessions** — Strategy and coaching tailored to your situation. Not a webinar. Not a group call. You and us.
+> - **AI tools at higher limits** — Generate cover letters per firm, get market intel, optimize your pipeline. The volume an Elite operator needs.
+> - **Priority support** — When a firm asks you to onboard by Friday, you need answers today, not next week.
+> - **Advanced templates** — Subcontractor agreements, coverage area proposals, the operational docs that separate pros from hobbyists.
+> - **Early access** — You're the first to test new tools and the first to give feedback that shapes them.
+> - **New partner intros** — Asteroom is the beginning. As we sign more partners, Elite members are first in line.
+>
+> **Think of it this way:** The referral is a fishing rod. Elite is the boat, the GPS, and the guide who knows where the fish are.
+
+#### Pricing Psychology
+
+$97/mo = $3.23/day. One extra inspection covers the entire month. Frame it as:
+
+> "If Elite helps you land even **one extra inspection per month**, it pays for itself 3x over."
+
+---
+
+## Partner Outreach Plan
+
+### Target Partner Profile
+
+Companies that serve the same audience (field inspectors, notaries, property preservation pros) with **complementary** products — not competing ones.
+
+### Priority Partner Categories
+
+| Category | Example Companies | Value to Elite Members |
+|---|---|---|
+| **Virtual Tour / 3D Scanning** | Asteroom ✅, Matterport, EyeSpy360 | Add virtual tour upsells to inspections |
+| **Route Optimization** | Circuit, OptimoRoute, RoadWarrior | Save time/gas on multi-stop routes |
+| **Mileage/Expense Tracking** | Stride, MileIQ, Hurdlr | Tax-deductible tool discounts |
+| **Background Check Providers** | Accurate Background, Sterling, IntelliCorp | Discounted checks for verified members |
+| **Equipment / Gear** | Milwaukee Tool, Home Depot Pro, Lockbox suppliers | Member pricing on field gear |
+| **Insurance (E&O)** | FREA, InspectorPro Insurance | Discounted E&O for verified members |
+| **Notary Platforms** | Snapdocs, Notarize, SigningOrder.com | Pipeline of signing jobs |
+| **Preservation Supplies** | Preservation supplies vendors | Discounted winterization/lawn kits |
+
+---
+
+### Cold Outreach Email Template
+
+**Subject:** Partnership inquiry — Nested Objects (field inspector member hub)
+
+> Hi [First Name],
+>
+> I run **Nested Objects**, a member hub for independent field inspectors, mobile notaries, and property preservation pros. We have a growing network of trained, background-checked professionals across [X] states.
+>
+> Our **Elite members** ($97/mo plan) get vetted introductions to partners whose tools help them earn more per route. I think **[Company Name]** would be a strong fit — your [product/service] solves a real problem for our members.
+>
+> Here's what a partnership could look like:
+>
+> - **For you:** Direct access to a qualified, pre-vetted audience of [inspectors / notaries / field pros] who are actively looking for [what the partner sells].
+> - **For our members:** [Discounted access / priority onboarding / exclusive feature] through [Company Name].
+> - **Structure:** We'd feature you in our Elite partner portal, do a co-branded intro session, and route qualified members your way.
+>
+> No cost on your end to explore. Would a 15-minute call this week work?
+>
+> Best,
+> [Your Name]
+> Nested Objects · nestedobjects.com
+
+---
+
+### Facebook Group Outreach Strategy
+
+**Target groups** (join these, engage for 1–2 weeks before pitching):
+
+| Group Type | Example Search Terms | Goal |
+|---|---|---|
+| Property preservation contractors | "Property Preservation Contractors", "REO Contractors" | Find gear/supply partners + recruit members |
+| Mobile notary communities | "Mobile Notary Network", "Loan Signing Agents" | Find notary platform partners |
+| Field inspection groups | "Field Inspector Network", "Property Inspection" | Recruit members + identify pain points |
+| Real estate tech vendors | "PropTech Founders", "Real Estate Technology" | Find tech partners (3D, software) |
+| Small business tools | "SaaS for Small Business", "Tools for Contractors" | Find tool/software partners |
+
+**Engagement playbook:**
+
+1. **Week 1:** Join 5–8 groups. Introduce yourself. Answer questions. Add value.
+2. **Week 2:** Share a useful post (training tip, industry insight, no hard sell).
+3. **Week 3:** Post something like:
+
+> "We run a member hub for field inspectors and notaries. We're looking for partners who offer [category] tools — if you're a vendor or know one, DM me. We intro our Elite members directly."
+
+4. **Ongoing:** When someone asks "What tools should I use for X?" — answer genuinely, and if a partner fits, mention the partnership organically.
+
+---
+
+### LinkedIn Outreach (Bonus Channel)
+
+Search for: *"Partnership Manager"* or *"Business Development"* at the target companies above. Send connection requests with:
+
+> "Hi [Name] — I run a member hub for field inspectors and preservation pros. We're building our Elite partner program and I think [Company] could be a great fit. Would love to connect."
+
+---
+
+### 3. Fix Elite Plan Link on /membership-pricing Page
+
+**Issue:** The Elite plan "Sign up" button currently feels generic, and the authenticated flow just opens the general account tab rather than the Elite upgrade specifically. Additionally, the bottom CTA banner is hardcoded to the Pro plan.
+
+**Changes:**
+- **[MODIFY] [MembershipView.tsx](file:///c:/Users/Mother/Projects/nested-objects-starter/apps/web-members/app/membership-pricing/MembershipView.tsx)**:
+    - Update `label` logic to show "Upgrade to Elite" or "Upgrade to Agency" when authenticated.
+    - Update `openPlanWidget` to use `Outseta.auth.open` with `widgetMode: 'updateSubscription'` and the specific `planUid` for authenticated users. This ensures the user goes directly to the selected plan's checkout.
+    - Update the final CTA banner to show "Start 7 Day Trial" for Pro or "Upgrade to Elite" dynamically based on the most relevant upsell.
+
+---
+
+## Verification Plan
+
+### Automated
+- After updating `ai-datasets.ts` and `MembershipView.tsx`, run `npm run dev` and visually confirm the pricing page at `/membership-pricing` renders correctly.
+
+### Manual (Browser)
+1. Navigate to `/membership-pricing`.
+2. **Unauthenticated:** Confirm clicking "Sign up" on Elite opens the Outseta registration widget WITH the Elite plan selected.
+3. **Authenticated (as Free/Pro):** Confirm the button says "Upgrade to Elite" and clicking it opens the Outseta update subscription widget WITH the Elite plan pre-selected.
+4. **Final CTA:** Confirm the bottom banner now correctly routes to the plan mentioned in its copy (or make the copy/button dynamic).
+
+---
+
+## Next Steps After Approval
+
+1. Update `ai-datasets.ts` (Already done in previous sessions, but will verify).
+2. Apply fixes to `MembershipView.tsx` and `UpgradeContent.tsx`.
+3. Verify the `/members` directory enhancements (Badge, Trust Score, etc. - in progress).

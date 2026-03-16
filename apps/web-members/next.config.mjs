@@ -36,6 +36,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'nested-objects.outseta.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'lzzghrjjsyzlvofpidis.supabase.co',
+      },
     ],
   },
   async redirects() {
