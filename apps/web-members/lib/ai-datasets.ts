@@ -102,10 +102,13 @@ export const membershipPlans: MembershipPlan[] = [
     waitlist: false,
     features: [
       'Everything in Pro',
-      'Higher AI limits than Pro',
-      'Priority support',
+      'Partner referrals — vetted intros to firms like Asteroom',
+      '1-to-1 gaming session — strategy call with the team',
+      'Concierge calls — 15-min route & onboarding reviews',
+      'Higher AI limits (2x Pro)',
+      'Priority support (faster response SLA)',
       'Advanced templates and workflows',
-      'Early access to new tools',
+      'Early access to new tools and features',
     ],
   },
   {

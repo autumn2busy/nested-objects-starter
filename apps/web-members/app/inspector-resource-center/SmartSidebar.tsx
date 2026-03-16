@@ -347,7 +347,7 @@ export default function SmartSidebar() {
                     </p>
                     <p className="mt-1 text-slate-200">
                         {tier === 'Pro'
-                            ? 'Elite members get concierge calls, priority job routing, and custom briefings.'
+                            ? 'Elite members get partner referrals, 1-to-1 gaming sessions, and concierge calls.'
                             : 'Pro members unlock AI tools, full training, and the job pipeline.'}
                     </p>
                     <Link
