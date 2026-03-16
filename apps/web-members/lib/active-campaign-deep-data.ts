@@ -163,8 +163,13 @@ async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[])
                 });
                 const getData = await getRes.json();
                 if (getData.ecomCustomers && getData.ecomCustomers.length > 0) {
-                    logs.push(`Found existing customer via GET: ${getData.ecomCustomers[0].id}`);
-                    return getData.ecomCustomers[0].id;
+                    const match = getData.ecomCustomers.find((c: any) => String(c.connectionid) === String(AC_CONNECTION_ID));
+                    if (match) {
+                        logs.push(`Found existing customer via GET for connection ${AC_CONNECTION_ID}: ${match.id}`);
+                        return match.id;
+                    } else {
+                        logs.push(`Found customers via GET but none matched connection ${AC_CONNECTION_ID}.`);
+                    }
                 }
             } catch (fetchErr) {
                 logs.push(`Error fetching existing customer: ${fetchErr}`);
@@ -420,8 +425,11 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
             });
             const getData = await getRes.json();
             if (getData.ecomOrders && getData.ecomOrders.length > 0) {
-                logs.push(`Found existing order via GET: ${getData.ecomOrders[0].id}`);
-                return getData.ecomOrders[0].id;
+                const match = getData.ecomOrders.find((o: any) => String(o.connectionid) === String(AC_CONNECTION_ID));
+                if (match) {
+                    logs.push(`Found existing order via GET for connection ${AC_CONNECTION_ID}: ${match.id}`);
+                    return match.id;
+                }
             }
         } catch (fetchErr) {
             logs.push(`Error fetching existing order: ${fetchErr}`);
