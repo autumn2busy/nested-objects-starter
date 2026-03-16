@@ -89,15 +89,36 @@ export default async function MemberProfilePage({
         getMemberTrustData(params.memberId)
     ])
 
-    // If profile has elected not to publish via their dashboard Settings 
-    // or if no profile data exists at all, abort the route.
-    if ((!resume?.profile && !trustData) || trustData?.is_published === false) {
+    console.log(`[ProfileDebug] ID: ${params.memberId}`);
+    console.log(`[ProfileDebug] Resume found: ${!!resume?.profile}`);
+    console.log(`[ProfileDebug] TrustData found: ${!!trustData}`);
+    console.log(`[ProfileDebug] Is Published: ${trustData?.is_published}`);
+
+    // If profile data exists but no resume exists, we still show the profile.
+    // We only 404 if both are missing OR if the profile is explicitly set to not published.
+    if (!resume?.profile && !trustData) {
         return (
             <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="text-center space-y-4 max-w-md">
-                    <h1 className="text-2xl font-bold text-slate-900">Profile Not Found</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Member Not Found</h1>
                     <p className="text-slate-600">
-                        This member has not published their profile yet or the ID is incorrect.
+                        We couldn't find a member with this ID.
+                    </p>
+                    <Link href="/members" className="inline-block text-blue-600 hover:underline">
+                        Return to Directory
+                    </Link>
+                </div>
+            </main>
+        )
+    }
+
+    if (trustData?.is_published === false) {
+        return (
+            <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="text-center space-y-4 max-w-md">
+                    <h1 className="text-2xl font-bold text-slate-900">Profile Private</h1>
+                    <p className="text-slate-600">
+                        This member has not published their profile yet.
                     </p>
                     <Link href="/members" className="inline-block text-blue-600 hover:underline">
                         Return to Directory

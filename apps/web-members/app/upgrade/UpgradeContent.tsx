@@ -21,27 +21,18 @@ export function UpgradeContent() {
     if (isCurrentPlan) return
     if (typeof window === 'undefined') return
 
-    const Outseta = window.Outseta
-
-    // Ensure the embedded widget is aware of the existing session cookie so
-    // authenticated users aren't prompted to log in again when upgrading.
-    const accessToken = document.cookie
-      .split('; ')
-      .find((cookie) => cookie.startsWith('outseta_access_token='))
-      ?.split('=')[1]
-
-    if (accessToken && Outseta?.setAccessToken) {
-      Outseta.setAccessToken(decodeURIComponent(accessToken))
+    const Outseta = (window as any).Outseta
+    if (!Outseta) {
+      window.location.href = `${hostedBaseUrl}?widgetMode=${isAuthenticated ? 'updateSubscription' : 'register'}&planUid=${selectedPlanUid}&skipPlanOptions=true`
+      return
     }
-
-    const hasSession = isAuthenticated || Boolean(accessToken)
-    const widgetMode = hasSession ? 'updateSubscription' : 'register'
 
     const planPaymentTerm = getPlanPaymentTerm(planPeriod)
 
-    if (Outseta?.auth?.open) {
+    // If authenticated, we use updateSubscription. 
+    if (isAuthenticated && Outseta.auth?.open) {
       Outseta.auth.open({
-        widgetMode,
+        widgetMode: 'updateSubscription',
         planUid: selectedPlanUid,
         planPaymentTerm,
         skipPlanOptions: true,
@@ -49,17 +40,18 @@ export function UpgradeContent() {
       return
     }
 
-    const params = new URLSearchParams({
-      widgetMode,
-      planUid: selectedPlanUid,
-      skipPlanOptions: 'true',
-    })
-
-    if (planPaymentTerm) {
-      params.set('planPaymentTerm', planPaymentTerm)
+    // If not authenticated, standard register
+    if (Outseta.auth?.open) {
+      Outseta.auth.open({
+        widgetMode: 'register',
+        planUid: selectedPlanUid,
+        planPaymentTerm,
+        skipPlanOptions: true,
+      })
+      return
     }
 
-    window.location.href = `${hostedBaseUrl}?${params.toString()}`
+    window.location.href = `${hostedBaseUrl}?widgetMode=register&planUid=${selectedPlanUid}`
   }
 
   return (

@@ -244,7 +244,7 @@ function MemberCard({ member }: MemberCardProps) {
                     {/* Trust Score + B2B Metrics */}
                     <div className="pt-3 mt-3 border-t border-slate-100 space-y-2">
                         {/* Trust Score bar */}
-                        {(member.trust_score != null && member.trust_score > 0) && (
+                        {member.trust_score != null && (
                             <div className="flex items-center gap-2 text-xs">
                                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                                 <span className="text-slate-600 font-medium">Trust: {member.trust_score}</span>

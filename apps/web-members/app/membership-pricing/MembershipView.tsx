@@ -23,24 +23,17 @@ function MembershipContent() {
         if (typeof window === 'undefined') return
 
         const Outseta = (window as any).Outseta
-
-        // Ensure the embedded widget is aware of the existing session cookie so
-        // authenticated users aren't prompted to log in again when upgrading.
-        const accessToken = document.cookie
-            .split('; ')
-            .find((cookie) => cookie.startsWith('outseta_access_token='))
-            ?.split('=')[1]
-
-        if (accessToken && Outseta?.setAccessToken) {
-            Outseta.setAccessToken(decodeURIComponent(accessToken))
+        if (!Outseta) {
+            window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=${isAuthenticated ? 'updateSubscription' : 'register'}&planUid=${plan.planUid}&skipPlanOptions=true`
+            return
         }
 
-        const widgetMode = isAuthenticated || Boolean(accessToken) ? 'updateSubscription' : 'register'
         const planPaymentTerm = plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime'
 
-        if (Outseta?.auth?.open) {
+        // If authenticated, we use updateSubscription. 
+        if (isAuthenticated && Outseta.auth?.open) {
             Outseta.auth.open({
-                widgetMode,
+                widgetMode: 'updateSubscription',
                 planUid: plan.planUid,
                 planPaymentTerm,
                 skipPlanOptions: true,
@@ -48,15 +41,18 @@ function MembershipContent() {
             return
         }
 
-        // Fallback to hosted URL if widget doesn't load
-        const params = new URLSearchParams({
-            widgetMode,
-            planUid: plan.planUid,
-            skipPlanOptions: 'true',
-        })
-        if (planPaymentTerm) params.set('planPaymentTerm', planPaymentTerm)
+        // If not authenticated, standard register
+        if (Outseta.auth?.open) {
+            Outseta.auth.open({
+                widgetMode: 'register',
+                planUid: plan.planUid,
+                planPaymentTerm,
+                skipPlanOptions: true,
+            })
+            return
+        }
 
-        window.location.href = `https://nested-objects.outseta.com/auth?${params.toString()}`
+        window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}`
     }
 
     const openManageBilling = () => {
