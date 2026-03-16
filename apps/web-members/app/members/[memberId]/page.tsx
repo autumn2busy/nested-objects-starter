@@ -102,7 +102,7 @@ export default async function MemberProfilePage({
                 <div className="text-center space-y-4 max-w-md">
                     <h1 className="text-2xl font-bold text-slate-900">Member Not Found</h1>
                     <p className="text-slate-600">
-                        We couldn't find a member with this ID.
+                        We couldn&apos;t find a member with this ID.
                     </p>
                     <Link href="/members" className="inline-block text-blue-600 hover:underline">
                         Return to Directory
