@@ -22,26 +22,22 @@ export function UpgradeContent() {
     if (typeof window === 'undefined') return
 
     const Outseta = (window as any).Outseta
-    if (!Outseta) {
-      window.location.href = `${hostedBaseUrl}?widgetMode=${isAuthenticated ? 'updateSubscription' : 'register'}&planUid=${selectedPlanUid}&skipPlanOptions=true`
+
+    // For authenticated users, open the profile widget's plan change tab.
+    // Outseta.auth.open only supports login/register — NOT subscription changes.
+    if (isAuthenticated) {
+      if (Outseta?.profile?.open) {
+        Outseta.profile.open({ tab: 'planChange' })
+      } else {
+        window.location.href = 'https://nested-objects.outseta.com/profile#o-plan-change'
+      }
       return
     }
 
+    // For unauthenticated users, standard registration with plan pre-selected
     const planPaymentTerm = getPlanPaymentTerm(planPeriod)
 
-    // If authenticated, we use updateSubscription. 
-    if (isAuthenticated && Outseta.auth?.open) {
-      Outseta.auth.open({
-        widgetMode: 'updateSubscription',
-        planUid: selectedPlanUid,
-        planPaymentTerm,
-        skipPlanOptions: true,
-      })
-      return
-    }
-
-    // If not authenticated, standard register
-    if (Outseta.auth?.open) {
+    if (Outseta?.auth?.open) {
       Outseta.auth.open({
         widgetMode: 'register',
         planUid: selectedPlanUid,
@@ -51,7 +47,7 @@ export function UpgradeContent() {
       return
     }
 
-    window.location.href = `${hostedBaseUrl}?widgetMode=register&planUid=${selectedPlanUid}`
+    window.location.href = `${hostedBaseUrl}?widgetMode=register&planUid=${selectedPlanUid}&skipPlanOptions=true`
   }
 
   return (

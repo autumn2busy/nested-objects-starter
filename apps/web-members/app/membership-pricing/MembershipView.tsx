@@ -23,26 +23,23 @@ function MembershipContent() {
         if (typeof window === 'undefined') return
 
         const Outseta = (window as any).Outseta
-        if (!Outseta) {
-            window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=${isAuthenticated ? 'updateSubscription' : 'register'}&planUid=${plan.planUid}&skipPlanOptions=true`
+
+        // For authenticated users, open the profile widget's plan change tab.
+        // Outseta.auth.open only supports login/register — using it for
+        // subscription changes shows a blank login form.
+        if (isAuthenticated) {
+            if (Outseta?.profile?.open) {
+                Outseta.profile.open({ tab: 'planChange' })
+            } else {
+                window.location.href = 'https://nested-objects.outseta.com/profile#o-plan-change'
+            }
             return
         }
 
+        // For unauthenticated users, standard registration with plan pre-selected
         const planPaymentTerm = plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime'
 
-        // If authenticated, we use updateSubscription. 
-        if (isAuthenticated && Outseta.auth?.open) {
-            Outseta.auth.open({
-                widgetMode: 'updateSubscription',
-                planUid: plan.planUid,
-                planPaymentTerm,
-                skipPlanOptions: true,
-            })
-            return
-        }
-
-        // If not authenticated, standard register
-        if (Outseta.auth?.open) {
+        if (Outseta?.auth?.open) {
             Outseta.auth.open({
                 widgetMode: 'register',
                 planUid: plan.planUid,
@@ -52,7 +49,7 @@ function MembershipContent() {
             return
         }
 
-        window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}`
+        window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`
     }
 
     const openManageBilling = () => {
