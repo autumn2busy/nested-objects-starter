@@ -95,21 +95,25 @@ function getInitials(name: string): string {
 type FilterBarProps = {
     stateFilter: string
     search: string
+    eliteOnly: boolean
     isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
+    onEliteOnlyChange: (value: boolean) => void
 }
 
 function FilterBar({
     stateFilter,
     search,
+    eliteOnly,
     isAuthenticated,
     onSearchChange,
     onStateChange,
+    onEliteOnlyChange,
 }: FilterBarProps) {
     return (
         <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] md:items-end">
                 <div className="space-y-1">
                     <FieldLabel htmlFor="state-filter">SERVICE AREA</FieldLabel>
                     <Select
@@ -141,6 +145,23 @@ function FilterBar({
                             <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
                         )}
                     </div>
+                </div>
+
+                <div className="flex items-center gap-2 pb-2.5 h-full">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={eliteOnly}
+                                onChange={(e) => onEliteOnlyChange(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-600 group-hover:text-amber-600 transition-colors">
+                            Elite Only
+                        </span>
+                    </label>
                 </div>
             </div>
             {!isAuthenticated && (
@@ -299,6 +320,7 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
     const [members] = useState<Member[]>(initialMembers)
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
+    const [eliteOnly, setEliteOnly] = useState<boolean>(false)
 
     const matchesStateFilter = (member: Member) => {
         if (stateFilter === 'ALL') return true
@@ -320,16 +342,31 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
         return (
             (member.display_name || '').toLowerCase().includes(q) ||
             (member.service_area || '').toLowerCase().includes(q) ||
-            (member.role || '').toLowerCase().includes(q)
+            (member.role || '').toLowerCase().includes(q) ||
+            (member.primary_services || '').toLowerCase().includes(q)
         )
     }
 
-    const filteredMembers = members.filter(matchesStateFilter).filter(matchesSearch)
+    const matchesElite = (member: Member) => {
+        if (!eliteOnly) return true
+        return member.subscription_tier === 'elite' || member.subscription_tier === 'agency'
+    }
+
+    const filteredMembers = members
+        .filter(matchesStateFilter)
+        .filter(matchesSearch)
+        .filter(matchesElite)
+
+    // Sort Elite members to the top
+    const sortedMembers = [...filteredMembers].sort((a, b) => {
+        const aElite = a.subscription_tier === 'elite' || a.subscription_tier === 'agency' ? 1 : 0
+        const bElite = b.subscription_tier === 'elite' || b.subscription_tier === 'agency' ? 1 : 0
+        if (aElite !== bElite) return bElite - aElite
+        return 0
+    })
 
     // Guest Preview: Show limited set (e.g. 6) if not authenticated
-    // User requested "Firms searching for members" verbiage for logged out state too?
-    // Actually user said explicitly "directory is for firms searching for members".
-    const displayedMembers = !isAuthenticated ? filteredMembers.slice(0, 6) : filteredMembers
+    const displayedMembers = !isAuthenticated ? sortedMembers.slice(0, 6) : sortedMembers
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -352,9 +389,11 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
             <FilterBar
                 stateFilter={stateFilter}
                 search={search}
+                eliteOnly={eliteOnly}
                 isAuthenticated={isAuthenticated}
                 onSearchChange={setSearch}
                 onStateChange={setStateFilter}
+                onEliteOnlyChange={setEliteOnly}
             />
 
             {!isAuthenticated && (

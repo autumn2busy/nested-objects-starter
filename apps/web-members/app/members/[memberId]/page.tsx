@@ -186,9 +186,9 @@ export default async function MemberProfilePage({
                         <div className="flex items-center gap-2 mb-1">
                             <h1 className="text-3xl font-bold text-slate-900">{fullName}</h1>
                             {isElite && (
-                                <div className="flex items-center gap-1 text-[12px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded shadow-sm">
+                                <div className="flex items-center gap-1.5 text-[11px] font-bold bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full shadow-sm">
                                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                                    <span>ELITE</span>
+                                    <span>PRIORITY VERIFIED</span>
                                 </div>
                             )}
                             {trustData?.verified_at && <VerifiedBadge date={trustData.verified_at} />}
@@ -355,6 +355,19 @@ export default async function MemberProfilePage({
                             <div className="text-xs text-slate-500 font-mono">
                                 ID: {params.memberId.substring(0, 8)}...
                             </div>
+                        </section>
+                    )}
+
+                    {/* Concierge Managed Status (Elite Only) */}
+                    {isElite && (
+                        <section className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-5 text-white shadow-lg shadow-amber-500/20">
+                            <div className="flex items-center gap-2 mb-3">
+                                <BadgeCheck className="w-5 h-5 text-white" />
+                                <h3 className="font-bold">Concierge Managed</h3>
+                            </div>
+                            <p className="text-sm text-white/90 mb-0 leading-relaxed">
+                                This member is personally vetted by the Nested Objects team for priority concierge routing and high-stakes assignments.
+                            </p>
                         </section>
                     )}
 
