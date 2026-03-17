@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useRef, useCallback } from 'react'
 import { useAuth } from '@/components/auth-provider'
 import { Loader2, Camera } from 'lucide-react'
@@ -108,10 +109,11 @@ export function AvatarUpload({ size = 'md', className = '' }: AvatarUploadProps)
                 {isUploading ? (
                     <Loader2 className="animate-spin text-brand-copper" size={size === 'sm' ? 12 : 20} />
                 ) : profileAvatarUrl ? (
-                    <img
+                    <Image
                         src={profileAvatarUrl}
                         alt="Profile"
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
                     />
                 ) : (
                     <span className="font-bold text-brand-copper">{initials}</span>

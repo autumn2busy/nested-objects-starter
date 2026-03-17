@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
-import { CheckCircle, Briefcase, GraduationCap, Shield, TrendingUp, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle, Briefcase, GraduationCap, Shield, TrendingUp, Loader2, AlertCircle, Star } from "lucide-react";
 import { OnboardingWidget } from "@/components/onboarding/onboarding-widget";
 
 interface DashboardViewProps {
