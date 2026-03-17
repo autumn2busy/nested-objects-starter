@@ -132,13 +132,17 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                           </div>
                           {status === 'locked-plan' ? (
                             <>
-                              <p className="text-sm font-semibold text-slate-700">Upgrade to unlock</p>
-                              <p className="text-xs text-slate-500 mt-1">Module {module.module_number}</p>
+                              <p className="text-sm font-semibold text-slate-700">
+                                {planUid === 'rQVqlLm6' ? 'Upgrade to Elite' : 'Upgrade to unlock'}
+                              </p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {planUid === 'rQVqlLm6' ? 'Priority Vetting Access' : `Module ${module.module_number}`}
+                              </p>
                               <Link
                                 href="/membership-pricing"
                                 className="mt-3 inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-copperDark"
                               >
-                                View plans
+                                {planUid === 'rQVqlLm6' ? 'Elite Upgrade' : 'View plans'}
                               </Link>
                             </>
                           ) : (

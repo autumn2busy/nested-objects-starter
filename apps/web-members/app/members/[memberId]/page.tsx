@@ -56,7 +56,8 @@ async function getMemberTrustData(memberId: string) {
             primary_services,
             subscription_tier,
             experience_level,
-            trust_score
+            trust_score,
+            created_at
         `)
         .eq('id', memberId)
         .maybeSingle()
@@ -157,11 +158,17 @@ export default async function MemberProfilePage({
 
             {/* Hero Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                <div className="h-32 bg-gradient-to-r from-slate-900 to-slate-800 relative">
+                <div className={`h-32 relative ${isElite ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-800' : 'bg-gradient-to-r from-slate-900 to-slate-800'}`}>
                     <div className="absolute inset-0 opacity-10" style={{
                         backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
                         backgroundSize: '24px 24px'
                     }}></div>
+                    {isElite && (
+                        <div className="absolute top-4 right-6 flex items-center gap-2 text-white/90 text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <span>Elite Status Active</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="px-8 pb-8">
@@ -172,7 +179,12 @@ export default async function MemberProfilePage({
                             </div>
                         </div>
 
-                        <div className="flex gap-3 mb-1">
+                        <div className="flex flex-col items-end gap-3 mb-1">
+                            {trustData?.created_at && (
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                    Member since {new Date(trustData.created_at).getFullYear()}
+                                </span>
+                            )}
                             <Link
                                 href={`mailto:${resume?.profile?.email || trustData?.email || ''}`}
                                 className="bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"

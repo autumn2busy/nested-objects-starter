@@ -126,6 +126,53 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
             {/* Onboarding Checklist */}
             {showOnboarding && <OnboardingWidget />}
 
+            {/* Elite Exclusive Perks */}
+            {isAuthenticated && (planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g') && (
+                <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-md">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg font-bold text-amber-900 flex items-center gap-2">
+                                <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+                                Elite Exclusive Perks
+                            </CardTitle>
+                            <span className="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full uppercase tracking-widest">Priority Member</span>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-amber-100 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="font-bold text-slate-900 text-sm mb-1">Weekly Gaming & Strategy</h3>
+                                    <p className="text-xs text-slate-600 leading-relaxed">Book your 1-to-1 session to talk strategy, routes, and firm deep-dives.</p>
+                                </div>
+                                <a
+                                    href="https://calendar.app.google/NrcA4CNwzH28vnZn9"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-3 inline-flex items-center justify-center rounded-lg bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition-colors"
+                                >
+                                    Book Gaming Session
+                                </a>
+                            </div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-amber-100 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="font-bold text-slate-900 text-sm mb-1">Concierge Partner Routing</h3>
+                                    <p className="text-xs text-slate-600 leading-relaxed">Request a 15-minute priority call with the Nested Objects team for partner intros.</p>
+                                </div>
+                                <a
+                                    href="https://calendar.app.google/hQR4QBQeZQWTBfCU8"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-3 inline-flex items-center justify-center rounded-lg border border-amber-300 bg-white px-4 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 transition-colors"
+                                >
+                                    Request Concierge Call
+                                </a>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Loading State */}
             {isLoading && (
                 <div className="flex items-center justify-center py-8">
