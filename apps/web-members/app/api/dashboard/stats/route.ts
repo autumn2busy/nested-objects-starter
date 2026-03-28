@@ -37,6 +37,8 @@ export async function GET() {
       .from('profiles')
       .select(`
         id,
+        outseta_person_uid,
+        user_id,
         trust_score,
         trust_tier,
         trust_score_breakdown,
