@@ -416,6 +416,66 @@ function BackgroundCheckFlow({
   )
 }
 
+function ManualVerificationForm({ 
+  type, 
+  onSuccess 
+}: { 
+  type: 'phone' | 'identity', 
+  onSuccess: () => void 
+}) {
+  const [value, setValue] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  const handleSubmit = async () => {
+    if (!value.trim()) return
+    setIsSubmitting(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/profile/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, value: value.trim() })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setMessage({ type: 'success', text: data.message })
+        setTimeout(onSuccess, 1500)
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to submit' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+      <p className="text-xs font-semibold text-slate-700 capitalize">Verify {type}</p>
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
+          placeholder={type === 'phone' ? 'e.g. +1 555-0123' : 'e.g. Driver License #'}
+          className="flex-1 h-9 text-sm"
+        />
+        <Button onClick={handleSubmit} disabled={isSubmitting || !value.trim()} size="sm" className="h-9">
+          {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Verify'}
+        </Button>
+      </div>
+      {message && (
+        <p className={`text-[10px] ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+          {message.text}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // --- Main Component ---
 
 export default function ProfilePage() {
@@ -675,9 +735,32 @@ export default function ProfilePage() {
 
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
                 <VerificationStatus verified={profile?.email_verified || false} label="Email verified" />
-                <VerificationStatus verified={profile?.phone_verified || false} label="Phone verified" />
+                
+                <div className="space-y-1">
+                  <VerificationStatus verified={profile?.phone_verified || false} label="Phone verified" />
+                  {!profile?.phone_verified && (
+                    <ManualVerificationForm 
+                      type="phone" 
+                      onSuccess={() => {
+                        if (profile) setProfile({ ...profile, phone_verified: true })
+                      }} 
+                    />
+                  )}
+                </div>
+
                 <VerificationStatus verified={!!profile?.avatar_url || !!profileAvatarUrl} label="Profile photo" />
-                <VerificationStatus verified={profile?.identity_verified || false} label="Identity verified" />
+                
+                <div className="space-y-1">
+                  <VerificationStatus verified={profile?.identity_verified || false} label="Identity verified" />
+                  {!profile?.identity_verified && (
+                    <ManualVerificationForm 
+                      type="identity" 
+                      onSuccess={() => {
+                        if (profile) setProfile({ ...profile, identity_verified: true })
+                      }} 
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-slate-100">

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 import ConciergeSection from './ConciergeSection'
+import ContactForm from './ContactForm'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Contact Us | Member Support & Partnerships',
@@ -90,71 +91,8 @@ export default function ContactPage() {
             <ConciergeSection />
           </div>
 
-          <div className="rounded-3xl border border-brand-copper/20 bg-white p-6 shadow-lg shadow-brand-copper/10">
-            <h2 className="text-lg font-semibold text-brand-dark">Send us a quick note</h2>
-            <p className="mt-1 text-sm text-slate-700">Share a few details and we will route it to the right teammate.</p>
-            <form className="mt-4 space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-brand-dark" htmlFor="name">
-                  Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  className="mt-1 w-full rounded-lg border border-brand-copper/30 bg-brand-mist px-3 py-2 text-sm text-brand-dark placeholder:text-brand-steel focus:border-brand-copper focus:outline-none focus:ring-2 focus:ring-brand-copper/40"
-                  placeholder="Your name"
-                  type="text"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-brand-dark" htmlFor="email">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  className="mt-1 w-full rounded-lg border border-brand-copper/30 bg-brand-mist px-3 py-2 text-sm text-brand-dark placeholder:text-brand-steel focus:border-brand-copper focus:outline-none focus:ring-2 focus:ring-brand-copper/40"
-                  placeholder="name@email.com"
-                  type="email"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-brand-dark" htmlFor="topic">
-                  Topic
-                </label>
-                <select
-                  id="topic"
-                  name="topic"
-                  className="mt-1 w-full rounded-lg border border-brand-copper/30 bg-brand-mist px-3 py-2 text-sm text-brand-dark focus:border-brand-copper focus:outline-none focus:ring-2 focus:ring-brand-copper/40"
-                >
-                  <option>Plan comparison</option>
-                  <option>Billing question</option>
-                  <option>Partnership opportunity</option>
-                  <option>Training or resources</option>
-                  <option>Something else</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-brand-dark" htmlFor="message">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  className="mt-1 w-full rounded-lg border border-brand-copper/30 bg-brand-mist px-3 py-2 text-sm text-brand-dark placeholder:text-brand-steel focus:border-brand-copper focus:outline-none focus:ring-2 focus:ring-brand-copper/40"
-                  placeholder="Share how we can help or which plan you are on."
-                />
-              </div>
-              <button
-                type="button"
-                className="w-full rounded-full bg-brand-copper px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
-              >
-                Send message
-              </button>
-              <p className="text-xs text-brand-steel">We reply within one business day. Priority routing for Pro, Elite, and Agency members.</p>
-            </form>
-          </div>
+          <ContactForm />
+
         </div>
       </section>
 

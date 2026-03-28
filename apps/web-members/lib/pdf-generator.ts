@@ -119,8 +119,15 @@ export const generateResumePDF = (data: ResumeData, template: string) => {
       doc.setFont(headerFont, 'italic');
       doc.setFontSize(11);
       doc.setTextColor(80, 80, 80);
-      doc.text(`Targeting: ${data.targetRoles.join(', ')}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 12;
+      
+      const targetingText = `Targeting: ${data.targetRoles.join(', ')}`;
+      const targetingLines = doc.splitTextToSize(targetingText, pageWidth - (margin * 2));
+      
+      targetingLines.forEach((line: string) => {
+        doc.text(line, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 5;
+      });
+      yPos += 7;
     }
 
     doc.setDrawColor(200, 200, 200);

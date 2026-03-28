@@ -6,7 +6,8 @@ import {
   ChevronLeft, Check, AlertCircle, Briefcase, MapPin, Phone, Mail,
   Globe, Linkedin, Calendar, Award, Wrench, Car, Camera, Clock,
   Shield, Users, Target, Zap, RefreshCw, Copy, Trash2, Plus,
-  GripVertical, X, CheckCircle2, Loader2, FileUp, Brain, RotateCcw
+  GripVertical, X, CheckCircle2, Loader2, FileUp, Brain, RotateCcw,
+  ChevronUp, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 
@@ -550,6 +551,21 @@ export default function ResumeBuilder() {
       ...prev,
       experience: prev.experience.filter(exp => exp.id !== id)
     }));
+  };
+
+  const moveExperience = (id: string, direction: 'up' | 'down') => {
+    setResumeData(prev => {
+      const index = prev.experience.findIndex(exp => exp.id === id);
+      if (index === -1) return prev;
+      if (direction === 'up' && index === 0) return prev;
+      if (direction === 'down' && index === prev.experience.length - 1) return prev;
+
+      const newExperience = [...prev.experience];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      [newExperience[index], newExperience[targetIndex]] = [newExperience[targetIndex], newExperience[index]];
+
+      return { ...prev, experience: newExperience };
+    });
   };
 
   const addEducation = () => {
@@ -1299,16 +1315,64 @@ export default function ResumeBuilder() {
           {resumeData.experience.map((exp, index) => (
             <div
               key={exp.id}
-              className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', exp.id);
+                e.currentTarget.style.opacity = '0.4';
+              }}
+              onDragEnd={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId !== exp.id) {
+                  setResumeData(prev => {
+                    const newExp = [...prev.experience];
+                    const draggedIdx = newExp.findIndex(e => e.id === draggedId);
+                    const targetIdx = newExp.findIndex(e => e.id === exp.id);
+                    if (draggedIdx !== -1 && targetIdx !== -1) {
+                      const [draggedItem] = newExp.splice(draggedIdx, 1);
+                      newExp.splice(targetIdx, 0, draggedItem);
+                    }
+                    return { ...prev, experience: newExp };
+                  });
+                }
+              }}
+              className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:border-emerald-500/50 transition-colors group relative"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                    <GripVertical className="w-5 h-5 text-slate-400" />
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center cursor-move group-hover:bg-emerald-50 transition-colors">
+                    <GripVertical className="w-5 h-5 text-slate-400 group-hover:text-emerald-500" />
                   </div>
-                  <span className="text-sm font-medium text-slate-500">
-                    Position {index + 1}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-500">
+                      Position {index + 1}
+                    </span>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <button
+                        onClick={() => moveExperience(exp.id, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-slate-400 hover:text-emerald-500 disabled:opacity-30 disabled:hover:text-slate-400"
+                        title="Move Up"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => moveExperience(exp.id, 'down')}
+                        disabled={index === resumeData.experience.length - 1}
+                        className="p-1 text-slate-400 hover:text-emerald-500 disabled:opacity-30 disabled:hover:text-slate-400"
+                        title="Move Down"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={() => removeExperience(exp.id)}

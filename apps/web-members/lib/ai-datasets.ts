@@ -22,7 +22,7 @@ export const membershipPlans: MembershipPlan[] = [
     headline: 'Founding Member',
     description: 'Early adopter plan honoring the original $37/year pricing. Includes everything promised at signup.',
     highlight: true,
-    hidden: false,
+    hidden: true,
     features: [
       'Full directory access (400+ verified firms)',
       'Full training portal access',

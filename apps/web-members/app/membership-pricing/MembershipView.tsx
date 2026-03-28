@@ -324,9 +324,6 @@ function MembershipContent() {
                     Prefer to ease in? Stay on Free and upgrade from your dashboard any time.
                 </p>
 
-                <p className="mt-8 text-xs text-slate-500 border-t border-slate-800 pt-4">
-                    Founders plan is available for legacy members during migration.
-                </p>
             </section>
 
             {/* ── Social proof ────────────────────────────────── */}

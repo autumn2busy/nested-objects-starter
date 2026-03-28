@@ -90,12 +90,28 @@ export async function GET() {
     // Use profile field, but also do a live count from quiz_attempts as source of truth
     let modulesCompleted = profile?.training_modules_completed || 0
     
-    // Live count from quiz_attempts (more reliable than cached profile field)
-    const { data: passedQuizzes } = await supabase
+    // Live count from quiz_attempts — use all possible linked IDs for this user
+    const lookupIds = [userId, profile?.outseta_person_uid, profile?.user_id].filter(Boolean) as string[]
+    const uniqueLookupIds = Array.from(new Set(lookupIds))
+    
+    let { data: passedQuizzes } = await supabase
       .from('quiz_attempts')
       .select('module_id')
-      .or(`profile_id.eq.${profile?.id || '00000000-0000-0000-0000-000000000000'},user_id.eq.${userId}`)
+      .in('user_id', uniqueLookupIds)
       .eq('passed', true)
+
+    // Fallback search by profile_id if user_id records are missing
+    if (profile?.id) {
+       const { data: profileQuizzes } = await supabase
+        .from('quiz_attempts')
+        .select('module_id')
+        .eq('profile_id', profile.id)
+        .eq('passed', true)
+      
+      if (profileQuizzes) {
+        passedQuizzes = [...(passedQuizzes || []), ...profileQuizzes]
+      }
+    }
     
     if (passedQuizzes && passedQuizzes.length > 0) {
       const uniqueModules = new Set(passedQuizzes.map(q => q.module_id))
