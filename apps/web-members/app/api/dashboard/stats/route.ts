@@ -130,11 +130,75 @@ export async function GET() {
     const accountCreated = profile?.created_at ? new Date(profile.created_at) : new Date()
     const accountAgeDays = Math.floor((now.getTime() - accountCreated.getTime()) / (1000 * 60 * 60 * 24))
 
+    // Self-heal: If live modulesCompleted differs from stored value, recalculate trust score
+    let trustScore = profile?.trust_score || 0
+    let trustTier = profile?.trust_tier || 'bronze'
+    let trustScoreBreakdown = profile?.trust_score_breakdown || null
+
+    const storedModules = profile?.training_modules_completed || 0
+    if (profile && modulesCompleted !== storedModules) {
+      console.log(`[DASHBOARD_STATS] Self-healing trust score: stored ${storedModules} modules, live ${modulesCompleted}`)
+
+      const trainingScore = Math.min(modulesCompleted * 5, 40)
+      const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, number>
+
+      let backgroundScore = existingBreakdown.background || existingBreakdown.background_check || 0
+      const bgStatus = profile.background_check_status || 'not_started'
+      if (bgStatus === 'completed' || bgStatus === 'verified') backgroundScore = 25
+      else if (bgStatus === 'in_progress' || bgStatus === 'pending_verification') backgroundScore = 5
+
+      const profileScore = existingBreakdown.profile || existingBreakdown.profile_completeness || 0
+      const identityScore = existingBreakdown.identity || 0
+      const tenureScore = existingBreakdown.tenure || 0
+      const inspectionsScore = existingBreakdown.inspections || 0
+      const activityScore = existingBreakdown.activity || 0
+
+      const newTotal = Math.min(
+        trainingScore + backgroundScore + profileScore + identityScore + tenureScore + inspectionsScore + activityScore,
+        100
+      )
+
+      let newTier = 'bronze'
+      if (newTotal >= 80) newTier = 'platinum'
+      else if (newTotal >= 60) newTier = 'gold'
+      else if (newTotal >= 40) newTier = 'silver'
+
+      const newBreakdown = {
+        training: trainingScore,
+        background: backgroundScore,
+        profile: profileScore,
+        identity: identityScore,
+        tenure: tenureScore,
+        inspections: inspectionsScore,
+        activity: activityScore,
+      }
+
+      // Write corrected values back to profile (fire-and-forget)
+      supabase
+        .from('profiles')
+        .update({
+          training_modules_completed: modulesCompleted,
+          trust_score: newTotal,
+          trust_tier: newTier,
+          trust_score_breakdown: newBreakdown,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id)
+        .then(({ error: updateErr }: { error: any }) => {
+          if (updateErr) console.error('[DASHBOARD_STATS] Self-heal update failed:', updateErr)
+          else console.log(`[DASHBOARD_STATS] Self-healed trust score: ${newTotal} (${newTier})`)
+        })
+
+      trustScore = newTotal
+      trustTier = newTier
+      trustScoreBreakdown = newBreakdown
+    }
+
     return NextResponse.json({
       // Trust score
-      trustScore: profile?.trust_score || 0,
-      trustTier: profile?.trust_tier || 'bronze',
-      trustScoreBreakdown: profile?.trust_score_breakdown || null,
+      trustScore,
+      trustTier,
+      trustScoreBreakdown,
       
       // Profile stats
       rating: profile?.rating || 0,

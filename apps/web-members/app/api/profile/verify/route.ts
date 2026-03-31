@@ -23,32 +23,107 @@ export async function POST(req: Request) {
 
     const supabase = createServiceRoleClient();
 
-    // In a real automated system, we'd verify the value here (e.g. SMS code or ID lookup).
-    // For this implementation, we will mark it as verified and log the request for admin review.
-    
+    // Step 1: Resolve the profile by outseta_person_uid, user_id, or email
+    // This fixes the bug where .or() with string interpolation matched 0 rows
+    let profile: { id: string; trust_score: number | null; trust_score_breakdown: Record<string, number> | null; background_check_status: string | null; training_modules_completed: number | null } | null = null;
+
+    const { data: profileByUid } = await supabase
+      .from('profiles')
+      .select('id, trust_score, trust_score_breakdown, background_check_status, training_modules_completed')
+      .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (profileByUid) {
+      profile = profileByUid;
+    } else if (user.email) {
+      // Fallback: try email lookup
+      const { data: profileByEmail } = await supabase
+        .from('profiles')
+        .select('id, trust_score, trust_score_breakdown, background_check_status, training_modules_completed')
+        .eq('email', user.email)
+        .maybeSingle();
+      profile = profileByEmail;
+    }
+
+    if (!profile) {
+      console.error(`[VERIFY_API_ERROR] No profile found for outsetaId=${outsetaId}, email=${user.email}`);
+      return NextResponse.json({ error: 'Profile not found. Please contact support.' }, { status: 404 });
+    }
+
+    // Step 2: Update the verification field using the profile's primary key (id)
     const updateField = type === 'phone' ? 'phone_verified' : 'identity_verified';
     const metadataField = type === 'phone' ? 'phone_number' : 'identity_proof_id';
 
-    const { error: profileError } = await supabase
+    // Step 3: Recalculate trust score with the new verification included
+    const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, number>;
+    const updatedBreakdown = { ...existingBreakdown };
+
+    if (type === 'identity') {
+      updatedBreakdown.identity = 15; // max 15 points for identity verification
+    }
+    // Phone verification contributes to the profile score component
+    // We also ensure any existing profile score is preserved
+    if (type === 'phone') {
+      // Phone verified adds 5pts to the profile component (max 20 for profile)
+      const currentProfileScore = updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0;
+      updatedBreakdown.profile = Math.min(currentProfileScore + 5, 20);
+    }
+
+    // Recalculate total
+    const newTotal = Math.min(
+      (updatedBreakdown.training || 0) +
+      (updatedBreakdown.background || updatedBreakdown.background_check || 0) +
+      (updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0) +
+      (updatedBreakdown.identity || 0) +
+      (updatedBreakdown.tenure || 0) +
+      (updatedBreakdown.inspections || 0) +
+      (updatedBreakdown.activity || 0),
+      100
+    );
+
+    // Determine tier
+    let newTier = 'bronze';
+    if (newTotal >= 80) newTier = 'platinum';
+    else if (newTotal >= 60) newTier = 'gold';
+    else if (newTotal >= 40) newTier = 'silver';
+
+    const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
       .update({
         [updateField]: true,
         [metadataField]: value,
+        trust_score: newTotal,
+        trust_tier: newTier,
+        trust_score_breakdown: {
+          training: updatedBreakdown.training || 0,
+          background: updatedBreakdown.background || updatedBreakdown.background_check || 0,
+          profile: updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0,
+          identity: updatedBreakdown.identity || 0,
+          tenure: updatedBreakdown.tenure || 0,
+          inspections: updatedBreakdown.inspections || 0,
+          activity: updatedBreakdown.activity || 0,
+        },
         updated_at: new Date().toISOString()
       })
-      .or(`outseta_person_uid.eq.${outsetaId},user_id.eq.${outsetaId}`);
+      .eq('id', profile.id)
+      .select('id')
+      .single();
 
-    if (profileError) {
+    if (profileError || !updatedProfile) {
       console.error('[VERIFY_API_ERROR]', profileError);
       return NextResponse.json({ error: 'Failed to update verification status' }, { status: 500 });
     }
 
     // LOGGING for Admin Audit
-    console.log(`[MANUAL_VERIFICATION] User ${outsetaId} verified ${type} with value: ${value}`);
+    console.log(`[MANUAL_VERIFICATION] User ${outsetaId} (profile ${profile.id}) verified ${type} with value: ${value}. Trust score: ${newTotal} (${newTier})`);
 
     return NextResponse.json({ 
       success: true, 
-      message: `Your ${type} has been submitted and marked as verified! Our team will review the details shortly.` 
+      message: `Your ${type} has been verified! Your Trust Score has been updated.`,
+      trustScore: newTotal,
+      trustTier: newTier,
+      trustScoreBreakdown: updatedBreakdown,
     });
   } catch (err) {
     console.error('[VERIFY_API_UNEXPECTED_ERROR]', err);

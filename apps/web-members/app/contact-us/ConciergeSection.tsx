@@ -12,7 +12,8 @@ import { useAuth } from '@/components/auth-provider'
 // Elite = NmdnNO90, Agency = rmk5Xk9g
 const ELITE_AGENCY_UIDS = ['NmdnNO90', 'rmk5Xk9g']
 
-const CALENDAR_LINK = 'https://calendar.app.google/hQR4QBQeZQWTBfCU8'
+const CALENDAR_LINK = 'https://calendar.app.google/UYJz8Ythw1tCbdPn6'
+const STRATEGY_CALL_LINK = 'https://calendar.app.google/ndksjETjb3CbYTs28'
 const GAMING_SESSION_LINK = 'https://calendar.app.google/NrcA4CNwzH28vnZn9'
 
 export default function ConciergeSection() {

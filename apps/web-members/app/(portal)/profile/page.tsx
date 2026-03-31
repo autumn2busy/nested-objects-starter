@@ -421,7 +421,7 @@ function ManualVerificationForm({
   onSuccess 
 }: { 
   type: 'phone' | 'identity', 
-  onSuccess: () => void 
+  onSuccess: (trustData?: { trustScore: number; trustTier: string; trustScoreBreakdown: ProfileData['trust_score_breakdown'] }) => void 
 }) {
   const [value, setValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -442,7 +442,13 @@ function ManualVerificationForm({
 
       if (data.success) {
         setMessage({ type: 'success', text: data.message })
-        setTimeout(onSuccess, 1500)
+        setTimeout(() => onSuccess(
+          data.trustScore !== undefined ? {
+            trustScore: data.trustScore,
+            trustTier: data.trustTier,
+            trustScoreBreakdown: data.trustScoreBreakdown,
+          } : undefined
+        ), 1500)
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to submit' })
       }
@@ -741,8 +747,16 @@ export default function ProfilePage() {
                   {!profile?.phone_verified && (
                     <ManualVerificationForm 
                       type="phone" 
-                      onSuccess={() => {
+                      onSuccess={(trustData) => {
                         if (profile) setProfile({ ...profile, phone_verified: true })
+                        if (trustData) {
+                          setDashboardTrustSnapshot(prev => ({
+                            ...(prev || { backgroundCheckStatus: 'not_started' }),
+                            trustScore: trustData.trustScore,
+                            trustTier: trustData.trustTier,
+                            trustScoreBreakdown: trustData.trustScoreBreakdown,
+                          }))
+                        }
                       }} 
                     />
                   )}
@@ -755,8 +769,16 @@ export default function ProfilePage() {
                   {!profile?.identity_verified && (
                     <ManualVerificationForm 
                       type="identity" 
-                      onSuccess={() => {
+                      onSuccess={(trustData) => {
                         if (profile) setProfile({ ...profile, identity_verified: true })
+                        if (trustData) {
+                          setDashboardTrustSnapshot(prev => ({
+                            ...(prev || { backgroundCheckStatus: 'not_started' }),
+                            trustScore: trustData.trustScore,
+                            trustTier: trustData.trustTier,
+                            trustScoreBreakdown: trustData.trustScoreBreakdown,
+                          }))
+                        }
                       }} 
                     />
                   )}
