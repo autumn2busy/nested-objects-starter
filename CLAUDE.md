@@ -1,35 +1,101 @@
-# Claude Repository Guide
+# Nested Objects — Members App
 
-## Development Workflow
-- **Development Server**: Always use `npm run dev` in the root or `cd apps/web-members && npm run dev`. Avoid `npm run build`.
-- **HMR**: Ensure Hot Module Replacement remains functional. If it breaks, restart the dev server.
-- **Dependencies**: After adding/updating dependencies, restart the dev server. Update lockfiles correctly.
+## Project role
+Membership platform for field inspectors, notaries, and property preservation contractors.
+Next.js 14 (App Router) + Supabase + Outseta + Stripe + ActiveCampaign.
+Deployed to Vercel.
 
-## Tech Stack & Architecture
-- **Framework**: Next.js 14+ (App Router).
-- **Styling**: Tailwind CSS (Vanilla CSS preferred for custom components).
-- **Backend**: Supabase (Database + Admin client for server-side tasks).
-- **Auth**: Outseta (Handled via `components/auth-provider.tsx` and `lib/auth-server.ts`).
-- **Marketing/CRM**: ActiveCampaign (Sync logic in `apps/web-members/lib/active-campaign-deep-data.ts`).
-- **Monorepo Structure**:
-  - `apps/web-members`: Primary platform and dashboard.
-  - `apps/web-public`: Landing and public marketing pages.
-  - `supabase/`: Database schema and seed scripts.
+## Architecture
+- **Auth:** Outseta JWT verified via JWKS (lib/auth-server.ts)
+- **Database:** Supabase (Postgres + pgvector)
+- **Payments:** Outseta (primary) + Stripe (Pro checkout)
+- **Email:** ActiveCampaign (deep data sync, automations)
+- **AI:** n8n webhook relay to concierge (lib/ai-quota.ts for limits)
+- **Rate limiting:** Upstash Redis with in-memory fallback
+- **Jobs:** Adzuna API synced daily via Vercel cron
 
-## Coding Standards
-- **TypeScript**: Use `.ts`/`.tsx` for all new files. Defined types should be in `packages/types` or local `types/` folders.
-- **Components**: Co-locate styles and specific utilities within the component folder when possible.
-- **Design**: "Premium" aesthetic—vibrant HSL colors, dark mode support, smooth gradients, and micro-animations. Avoid generic browser defaults.
-- **SEO**: Every page must have proper metadata, descriptive titles, and semantic HTML (`<h1>`, etc.).
+## Plan tiers (lib/plan-config.ts)
+FREE → STARTER (hidden) → FOUNDERS ($37/yr legacy) → PRO ($49/mo) → ELITE ($97/mo) → AGENCY ($297/mo)
 
-## Key Commands
-| Action | Command |
-| :--- | :--- |
-| Start Dev Server | `npm run dev` |
-| Run Linting | `npm run lint` |
-| Database Migration | Check `supabase/migrations/` for latest scripts |
-| Sync AC Data | Use `lib/active-campaign-deep-data.ts` helpers |
+## Critical rules
+- NEVER expose SUPABASE_SERVICE_ROLE_KEY to the client
+- NEVER commit data dumps, JSON exports, or temp files (see .gitignore)
+- NEVER commit files containing member PII
+- Use `createServiceRoleClient()` only in server-side API routes
+- Always check plan tier for feature access, not just authentication
+- Package manager: npm
+- Use `npm run dev` during development, NEVER `npm run build` in agent sessions
 
-## Integration Notes
-- **Outseta**: Use `ProfileUpdateData` type for webhook handling.
-- **ActiveCampaign**: Contacts are synced to list ID `12`. Plan tags follow `plan-[tier]` format.
+## Two apps in this repo
+- **apps/web-members** — main product (members.nestedobjects.com)
+- **apps/web-public** — marketing site (nestedobjects.com)
+
+---
+
+## Development Standards
+
+### Plan First
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways, STOP and re-plan immediately
+- Write detailed specs upfront to reduce ambiguity
+
+### Subagent Strategy
+- Use subagents liberally to keep main context window clean
+- Offload research, exploration, and parallel analysis to subagents
+- One task per subagent for focused execution
+
+### Self-Improvement Loop
+- After ANY correction from the user: update tasks/lessons.md with the pattern
+- Write rules for yourself that prevent the same mistake
+- Review lessons at session start for relevant project
+
+### Verification Before Done
+- Never mark a task complete without proving it works
+- Ask yourself: "Would a staff engineer approve this?"
+- Run tests, check logs, demonstrate correctness
+
+### Demand Elegance (Balanced)
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- Skip this for simple, obvious fixes — don't over-engineer
+
+### Autonomous Bug Fixing
+- When given a bug report: just fix it. Don't ask for hand-holding
+- Point at logs, errors, failing tests then resolve them
+
+## Task Management
+1. Write plan to tasks/todo.md with checkable items
+2. Check in before starting implementation
+3. Mark items complete as you go
+4. High-level summary at each step
+5. Add review section to tasks/todo.md
+6. Update tasks/lessons.md after corrections
+
+## Core Principles
+- **Simplicity First:** Make every change as simple as possible. Impact minimal code.
+- **No Laziness:** Find root causes. No temporary fixes. Senior developer standards.
+- Prefer TypeScript (.tsx/.ts) for new components and utilities.
+
+---
+
+## Change Logging
+
+After completing any task that modifies files, create or append to:
+`C:/Users/Mother/Vault/command-center/00-Inbox/changelog-nested-objects.md`
+
+Format each entry as:
+
+```
+### YYYY-MM-DD — [brief title]
+**Files changed:**
+- path/to/file.ts — what changed and why
+
+**Decisions made:**
+- any choices or tradeoffs
+
+**Notes:**
+- anything the owner should know
+
+---
+```
+
+Always append to the end of the file. Never overwrite previous entries.
