@@ -21,6 +21,20 @@ const aggregateRatingLd = {
     worstRating: 1,
     reviewCount: TESTIMONIALS.length,
   },
+  review: TESTIMONIALS.filter(t => t.source === 'google' || t.source === 'review').map((t) => ({
+    '@type': 'Review',
+    author: {
+      '@type': 'Person',
+      name: t.name,
+    },
+    datePublished: t.date,
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: t.rating,
+      bestRating: 5,
+    },
+    reviewBody: t.quote,
+  })),
 }
 
 const jsonLd = {

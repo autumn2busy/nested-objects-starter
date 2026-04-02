@@ -1,9 +1,46 @@
 import Link from 'next/link'
+import Script from 'next/script'
 import { ArrowRight, Search, GraduationCap, Bot, Shield, Users, TrendingUp, Star, CheckCircle2 } from 'lucide-react'
+import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
+
+const aggregateRatingLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Nested Objects',
+  url: 'https://nestedobjects.com',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: getAverageRating(),
+    bestRating: 5,
+    worstRating: 1,
+    reviewCount: TESTIMONIALS.length,
+  },
+  review: TESTIMONIALS.filter(t => t.source === 'google' || t.source === 'review').map((t) => ({
+    '@type': 'Review',
+    author: {
+      '@type': 'Person',
+      name: t.name,
+    },
+    datePublished: t.date,
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: t.rating,
+      bestRating: 5,
+    },
+    reviewBody: t.quote,
+  })),
+}
 
 export default function HomePage() {
   return (
-    <main className="bg-brand-sand text-slate-900">
+    <>
+      <Script
+        id="aggregate-rating-ld-json"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingLd) }}
+      />
+      <main className="bg-brand-sand text-slate-900">
       {/* ── Hero ── */}
       <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 lg:pt-24">
         <div className="mx-auto max-w-3xl text-center">
@@ -76,8 +113,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Member testimonials ── */}
+      <div className="border-t border-slate-200 bg-white">
+        <TestimonialsSection variant="full" />
+      </div>
+
       {/* ── Latest Guides ── */}
-      <section className="border-t border-slate-200 bg-white py-16">
+      <section className="border-t border-slate-200 bg-slate-50 py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Latest guides</h2>
@@ -128,5 +170,6 @@ export default function HomePage() {
         </div>
       </section>
     </main>
+    </>
   )
 }

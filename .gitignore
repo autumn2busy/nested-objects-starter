@@ -14,3 +14,12 @@ dist/
 .DS_Store
 
 .DS_Store
+
+# Prevent PII JSON leaks
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!.eslintrc.json
+!vercel.json
+!components.json

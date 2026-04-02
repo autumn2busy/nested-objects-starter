@@ -1,5 +1,0 @@
-{
-  "status": 400,
-  "statusText": "Bad Request",
-  "body": "{\"ErrorMessage\":\"A validation error has occurred: An account must have one primary person associated with it.\",\"EntityValidationErrors\":[]}"
-}

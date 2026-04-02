@@ -56,29 +56,41 @@ export async function POST(req: Request) {
     const metadataField = type === 'phone' ? 'phone_number' : 'identity_proof_id';
 
     // Step 3: Recalculate trust score with the new verification included
-    const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, number>;
+    const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, any>;
     const updatedBreakdown = { ...existingBreakdown };
 
     if (type === 'identity') {
-      updatedBreakdown.identity = 15; // max 15 points for identity verification
+      const currentIdScore = typeof updatedBreakdown.identity === 'number' ? updatedBreakdown.identity : 0;
+      updatedBreakdown.identity = Math.min(currentIdScore + 15, 15);
     }
     // Phone verification contributes to the profile score component
     // We also ensure any existing profile score is preserved
     if (type === 'phone') {
-      // Phone verified adds 5pts to the profile component (max 20 for profile)
-      const currentProfileScore = updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0;
+      const currentProfileScore = typeof updatedBreakdown.profile === 'number' ? updatedBreakdown.profile : 
+                                  (typeof updatedBreakdown.profile_completeness === 'number' ? updatedBreakdown.profile_completeness : 0);
       updatedBreakdown.profile = Math.min(currentProfileScore + 5, 20);
     }
 
-    // Recalculate total
+    // Preserve history array if exists, and append verification action
+    if (!Array.isArray(updatedBreakdown.history)) {
+      updatedBreakdown.history = [];
+    }
+    updatedBreakdown.history.push({
+      action: type === 'phone' ? 'phone_verification' : 'identity_verification',
+      points: type === 'phone' ? 5 : 15,
+      timestamp: new Date().toISOString()
+    });
+
+    // Recalculate total safely
+    const getScore = (key: string) => typeof updatedBreakdown[key] === 'number' ? updatedBreakdown[key] : 0;
     const newTotal = Math.min(
-      (updatedBreakdown.training || 0) +
-      (updatedBreakdown.background || updatedBreakdown.background_check || 0) +
-      (updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0) +
-      (updatedBreakdown.identity || 0) +
-      (updatedBreakdown.tenure || 0) +
-      (updatedBreakdown.inspections || 0) +
-      (updatedBreakdown.activity || 0),
+      getScore('training') +
+      Math.max(getScore('background'), getScore('background_check')) +
+      Math.max(getScore('profile'), getScore('profile_completeness')) +
+      getScore('identity') +
+      getScore('tenure') +
+      getScore('inspections') +
+      getScore('activity'),
       100
     );
 
@@ -88,6 +100,17 @@ export async function POST(req: Request) {
     else if (newTotal >= 60) newTier = 'gold';
     else if (newTotal >= 40) newTier = 'silver';
 
+    const finalBreakdown = {
+      ...updatedBreakdown,
+      training: getScore('training'),
+      background: Math.max(getScore('background'), getScore('background_check')),
+      profile: Math.max(getScore('profile'), getScore('profile_completeness')),
+      identity: getScore('identity'),
+      tenure: getScore('tenure'),
+      inspections: getScore('inspections'),
+      activity: getScore('activity'),
+    };
+
     const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
       .update({
@@ -95,15 +118,7 @@ export async function POST(req: Request) {
         [metadataField]: value,
         trust_score: newTotal,
         trust_tier: newTier,
-        trust_score_breakdown: {
-          training: updatedBreakdown.training || 0,
-          background: updatedBreakdown.background || updatedBreakdown.background_check || 0,
-          profile: updatedBreakdown.profile || updatedBreakdown.profile_completeness || 0,
-          identity: updatedBreakdown.identity || 0,
-          tenure: updatedBreakdown.tenure || 0,
-          inspections: updatedBreakdown.inspections || 0,
-          activity: updatedBreakdown.activity || 0,
-        },
+        trust_score_breakdown: finalBreakdown,
         updated_at: new Date().toISOString()
       })
       .eq('id', profile.id)

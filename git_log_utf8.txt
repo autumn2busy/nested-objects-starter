@@ -1,0 +1,10 @@
+d3bd463 fix: platform verification bugs and add activecampaign elite calendar urls
+fb866a0 chore: add CLAUDE.md and gitignore for temp files
+96d06d1 fix build error
+631efcd chore: remove PII, data dumps, and temp files
+c1fb9d4 fix(build): resolve missing Star import and ESLint warnings
+45e0bee feat(elite): finalize Phase 2 with dashboard perks and training upsells
+0382d75 feat(elite): implement Elite-first directory sorting, filters, and priority profile status
+9a842ed fix(outseta): use profile.open for authenticated plan changes instead of auth.open
+df44d9a fix: escape apostrophe in member profile page to fix Vercel build
+8d09844 fix(elite): stabilize Outseta upgrade flow, fix member profile 404, and enhance directory cards
