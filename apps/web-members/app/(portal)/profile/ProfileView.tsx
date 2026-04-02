@@ -185,8 +185,6 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
     { key: 'training', label: 'Training', max: 40, icon: GraduationCap, altKey: null },
     { key: 'profile', label: 'Profile', max: 20, icon: User, altKey: 'profile_completeness' },
     { key: 'identity', label: 'Identity', max: 15, icon: FileCheck, altKey: null },
-    { key: 'tenure', label: 'Tenure', max: 10, icon: Calendar, altKey: null },
-    { key: 'inspections', label: 'Inspections', max: 10, icon: Activity, altKey: null },
   ]
 
   return (
@@ -724,15 +722,6 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
                     />
                   )}
                 </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Increase your Trust Score by verifying your phone and email.
-                  <button onClick={openOutsetaProfile} className="text-brand-copper hover:underline font-semibold ml-1">
-                    Manage in Account Settings
-                  </button>
-                </p>
               </div>
             </Card>
 

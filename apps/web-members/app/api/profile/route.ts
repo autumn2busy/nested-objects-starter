@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { calculateTrustScore } from '@/lib/trust-score'
 import {
   PROFILE_CRITICAL_COLUMNS,
   PROFILE_GUARANTEED_COLUMNS,
@@ -302,6 +303,24 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
       }
       result = data
+    }
+
+    if (result) {
+      const { total, tier, breakdown } = calculateTrustScore(result)
+      const { data: updatedResult, error: trustError } = await supabase
+        .from('profiles')
+        .update({
+          trust_score: total,
+          trust_tier: tier,
+          trust_score_breakdown: breakdown,
+        })
+        .eq('id', result.id)
+        .select()
+        .single()
+      
+      if (!trustError && updatedResult) {
+        result = updatedResult
+      }
     }
 
     return NextResponse.json({ profile: result })

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server';
 import { createServiceRoleClient } from '@/lib/supabase-admin';
+import { calculateTrustScore } from '@/lib/trust-score';
 
 export async function POST(req: Request) {
   try {
@@ -55,66 +56,36 @@ export async function POST(req: Request) {
     const updateField = type === 'phone' ? 'phone_verified' : 'identity_verified';
     
     // Step 3: Recalculate trust score with the new verification included
-    const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, any>;
-    const updatedBreakdown = { ...existingBreakdown };
+    // Create an updated profile object for the calculation
+    const profileToCalculate = {
+      ...profile,
+      [updateField]: true,
+    }
 
-    if (type === 'identity') {
-      const currentIdScore = typeof updatedBreakdown.identity === 'number' ? updatedBreakdown.identity : 0;
-      updatedBreakdown.identity = Math.min(currentIdScore + 15, 15);
-    }
-    // Phone verification contributes to the profile score component
-    // We also ensure any existing profile score is preserved
-    if (type === 'phone') {
-      const currentProfileScore = typeof updatedBreakdown.profile === 'number' ? updatedBreakdown.profile : 
-                                  (typeof updatedBreakdown.profile_completeness === 'number' ? updatedBreakdown.profile_completeness : 0);
-      updatedBreakdown.profile = Math.min(currentProfileScore + 5, 20);
-    }
+    const { total: newTotal, tier: newTier, breakdown: finalBreakdown } = calculateTrustScore(profileToCalculate, profile.training_modules_completed || 0)
 
     // Preserve history array if exists, and append verification action
-    if (!Array.isArray(updatedBreakdown.history)) {
-      updatedBreakdown.history = [];
+    const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, any>;
+    if (!Array.isArray(existingBreakdown.history)) {
+      existingBreakdown.history = [];
     }
-    updatedBreakdown.history.push({
-      action: type === 'phone' ? 'phone_verification' : 'identity_verification',
-      points: type === 'phone' ? 5 : 15,
-      timestamp: new Date().toISOString()
-    });
-
-    // Recalculate total safely
-    const getScore = (key: string) => typeof updatedBreakdown[key] === 'number' ? updatedBreakdown[key] : 0;
-    const newTotal = Math.min(
-      getScore('training') +
-      Math.max(getScore('background'), getScore('background_check')) +
-      Math.max(getScore('profile'), getScore('profile_completeness')) +
-      getScore('identity') +
-      getScore('tenure') +
-      getScore('inspections') +
-      getScore('activity'),
-      100
-    );
-
-    // Determine tier
-    let newTier = 'bronze';
-    if (newTotal >= 80) newTier = 'platinum';
-    else if (newTotal >= 60) newTier = 'gold';
-    else if (newTotal >= 40) newTier = 'silver';
-
-    const finalBreakdown = {
-      ...updatedBreakdown,
-      training: getScore('training'),
-      background: Math.max(getScore('background'), getScore('background_check')),
-      profile: Math.max(getScore('profile'), getScore('profile_completeness')),
-      identity: getScore('identity'),
-      tenure: getScore('tenure'),
-      inspections: getScore('inspections'),
-      activity: getScore('activity'),
-    };
+    const finalBreakdownWithHistory = {
+      ...finalBreakdown,
+      history: [
+        ...existingBreakdown.history,
+        {
+          action: type === 'phone' ? 'phone_verification' : 'identity_verification',
+          points: type === 'phone' ? 5 : 15,
+          timestamp: new Date().toISOString()
+        }
+      ]
+    }
 
     const updatePayload: any = {
       [updateField]: true,
       trust_score: newTotal,
       trust_tier: newTier,
-      trust_score_breakdown: finalBreakdown,
+      trust_score_breakdown: finalBreakdownWithHistory,
       updated_at: new Date().toISOString()
     };
 
@@ -143,7 +114,7 @@ export async function POST(req: Request) {
       message: `Your ${type} has been verified! Your Trust Score has been updated.`,
       trustScore: newTotal,
       trustTier: newTier,
-      trustScoreBreakdown: updatedBreakdown,
+      trustScoreBreakdown: finalBreakdownWithHistory,
     });
   } catch (err) {
     console.error('[VERIFY_API_UNEXPECTED_ERROR]', err);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { calculateTrustScore } from '@/lib/trust-score'
 
 export const dynamic = 'force-dynamic'
 
@@ -139,39 +140,7 @@ export async function GET() {
     if (profile && modulesCompleted !== storedModules) {
       console.log(`[DASHBOARD_STATS] Self-healing trust score: stored ${storedModules} modules, live ${modulesCompleted}`)
 
-      const trainingScore = Math.min(modulesCompleted * 5, 40)
-      const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, number>
-
-      let backgroundScore = existingBreakdown.background || existingBreakdown.background_check || 0
-      const bgStatus = profile.background_check_status || 'not_started'
-      if (bgStatus === 'completed' || bgStatus === 'verified') backgroundScore = 25
-      else if (bgStatus === 'in_progress' || bgStatus === 'pending_verification') backgroundScore = 5
-
-      const profileScore = existingBreakdown.profile || existingBreakdown.profile_completeness || 0
-      const identityScore = existingBreakdown.identity || 0
-      const tenureScore = existingBreakdown.tenure || 0
-      const inspectionsScore = existingBreakdown.inspections || 0
-      const activityScore = existingBreakdown.activity || 0
-
-      const newTotal = Math.min(
-        trainingScore + backgroundScore + profileScore + identityScore + tenureScore + inspectionsScore + activityScore,
-        100
-      )
-
-      let newTier = 'bronze'
-      if (newTotal >= 80) newTier = 'platinum'
-      else if (newTotal >= 60) newTier = 'gold'
-      else if (newTotal >= 40) newTier = 'silver'
-
-      const newBreakdown = {
-        training: trainingScore,
-        background: backgroundScore,
-        profile: profileScore,
-        identity: identityScore,
-        tenure: tenureScore,
-        inspections: inspectionsScore,
-        activity: activityScore,
-      }
+      const { total: newTotal, tier: newTier, breakdown: newBreakdown } = calculateTrustScore(profile, modulesCompleted)
 
       // Write corrected values back to profile (fire-and-forget)
       supabase

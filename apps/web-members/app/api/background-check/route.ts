@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 import { isBackgroundCheckAdmin } from '@/lib/backgroundcheck-admin-auth'
+import { calculateTrustScore } from '@/lib/trust-score'
 
 export const dynamic = 'force-dynamic'
 
@@ -215,27 +216,25 @@ export async function PATCH(request: Request) {
                 occurred_at: new Date().toISOString(),
             })
 
-            // Recalculate trust score (+25 for background check)
+            // Recalculate trust score
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('trust_score, trust_score_breakdown')
+                .select('*')
                 .eq('id', profile_id)
                 .single()
 
             if (profile) {
-                const breakdown = (profile.trust_score_breakdown as Record<string, number>) || {}
-                breakdown.background = 25
-                const newTotal = Object.values(breakdown).reduce((a, b) => a + b, 0)
-
-                let tier = 'bronze'
-                if (newTotal >= 80) tier = 'platinum'
-                else if (newTotal >= 60) tier = 'gold'
-                else if (newTotal >= 40) tier = 'silver'
+                // Ensure profileToCalculate has the newly set verified status
+                const profileToCalculate = {
+                    ...profile,
+                    background_check_status: 'verified'
+                }
+                const { total: newTotal, tier, breakdown } = calculateTrustScore(profileToCalculate)
 
                 await supabase
                     .from('profiles')
                     .update({
-                        trust_score: Math.min(newTotal, 100),
+                        trust_score: newTotal,
                         trust_tier: tier,
                         trust_score_breakdown: breakdown,
                     })
