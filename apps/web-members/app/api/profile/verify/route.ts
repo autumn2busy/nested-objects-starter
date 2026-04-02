@@ -51,10 +51,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Profile not found. Please contact support.' }, { status: 404 });
     }
 
-    // Step 2: Update the verification field using the profile's primary key (id)
+    // Step 2: Set the correct updates based on type
     const updateField = type === 'phone' ? 'phone_verified' : 'identity_verified';
-    const metadataField = type === 'phone' ? 'phone_number' : 'identity_proof_id';
-
+    
     // Step 3: Recalculate trust score with the new verification included
     const existingBreakdown = (profile.trust_score_breakdown || {}) as Record<string, any>;
     const updatedBreakdown = { ...existingBreakdown };
@@ -111,16 +110,22 @@ export async function POST(req: Request) {
       activity: getScore('activity'),
     };
 
+    const updatePayload: any = {
+      [updateField]: true,
+      trust_score: newTotal,
+      trust_tier: newTier,
+      trust_score_breakdown: finalBreakdown,
+      updated_at: new Date().toISOString()
+    };
+
+    if (type === 'phone') {
+      updatePayload.phone = value;
+    }
+    // We don't save identity_proof_id because it's not in the DB schema
+
     const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
-      .update({
-        [updateField]: true,
-        [metadataField]: value,
-        trust_score: newTotal,
-        trust_tier: newTier,
-        trust_score_breakdown: finalBreakdown,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', profile.id)
       .select('id')
       .single();
