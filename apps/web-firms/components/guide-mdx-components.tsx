@@ -172,12 +172,41 @@ function H3({ children }: { children?: React.ReactNode }) {
   return <h3 className="mt-8 mb-2 text-lg font-semibold text-slate-900">{children}</h3>
 }
 
+function Table({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm my-6">
+      <table className="w-full text-left text-sm">{children}</table>
+    </div>
+  )
+}
+function Thead({ children }: { children?: React.ReactNode }) {
+  return <thead className="bg-slate-50">{children}</thead>
+}
+function Tbody({ children }: { children?: React.ReactNode }) {
+  return <tbody className="divide-y divide-slate-100">{children}</tbody>
+}
+function Tr({ children }: { children?: React.ReactNode }) {
+  return <tr className="hover:bg-slate-50/50">{children}</tr>
+}
+function Th({ children }: { children?: React.ReactNode }) {
+  return <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{children}</th>
+}
+function Td({ children }: { children?: React.ReactNode }) {
+  return <td className="px-4 py-3 text-slate-600 font-medium">{children}</td>
+}
+
 // ─── Export all components for MDX ──────────────────────────────
 export const guideMDXComponents = {
   // Prose
   p: P,
   h2: H2,
   h3: H3,
+  table: Table,
+  thead: Thead,
+  tbody: Tbody,
+  tr: Tr,
+  th: Th,
+  td: Td,
   // Custom
   SectionHeading,
   StepCard,
