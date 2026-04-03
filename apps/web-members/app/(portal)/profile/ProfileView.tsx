@@ -181,10 +181,8 @@ function TrustScoreBreakdown({ breakdown, total }: { breakdown: ProfileData['tru
   if (!breakdown) return null
 
   const items = [
-    { key: 'background', label: 'Background Check', max: 25, icon: Shield, altKey: 'background_check' },
-    { key: 'training', label: 'Training', max: 40, icon: GraduationCap, altKey: null },
-    { key: 'profile', label: 'Profile', max: 20, icon: User, altKey: 'profile_completeness' },
-    { key: 'identity', label: 'Identity', max: 15, icon: FileCheck, altKey: null },
+    { key: 'background', label: 'Background Check', max: 50, icon: Shield, altKey: 'background_check' },
+    { key: 'training', label: 'Training', max: 50, icon: GraduationCap, altKey: null },
   ]
 
   return (
@@ -309,7 +307,7 @@ function BackgroundCheckFlow({
           </div>
         )}
         <p className="text-xs text-slate-500">
-          +25 Trust Score points applied. Your verified status is visible to firms.
+          +50 Trust Score points applied. Your verified status is visible to firms.
         </p>
       </div>
     )
@@ -363,7 +361,7 @@ function BackgroundCheckFlow({
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
-            +25 Trust Score points when verified
+            +50 Trust Score points when verified
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
@@ -414,71 +412,7 @@ function BackgroundCheckFlow({
   )
 }
 
-function ManualVerificationForm({ 
-  type, 
-  onSuccess 
-}: { 
-  type: 'phone' | 'identity', 
-  onSuccess: (trustData?: { trustScore: number; trustTier: string; trustScoreBreakdown: ProfileData['trust_score_breakdown'] }) => void 
-}) {
-  const [value, setValue] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-
-  const handleSubmit = async () => {
-    if (!value.trim()) return
-    setIsSubmitting(true)
-    setMessage(null)
-
-    try {
-      const res = await fetch('/api/profile/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, value: value.trim() })
-      })
-      const data = await res.json()
-
-      if (data.success) {
-        setMessage({ type: 'success', text: data.message })
-        setTimeout(() => onSuccess(
-          data.trustScore !== undefined ? {
-            trustScore: data.trustScore,
-            trustTier: data.trustTier,
-            trustScoreBreakdown: data.trustScoreBreakdown,
-          } : undefined
-        ), 1500)
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to submit' })
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <div className="mt-3 space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-      <p className="text-xs font-semibold text-slate-700 capitalize">Verify {type}</p>
-      <div className="flex gap-2">
-        <Input
-          value={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
-          placeholder={type === 'phone' ? 'e.g. +1 555-0123' : 'e.g. Driver License #'}
-          className="flex-1 h-9 text-sm"
-        />
-        <Button onClick={handleSubmit} disabled={isSubmitting || !value.trim()} size="sm" className="h-9">
-          {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Verify'}
-        </Button>
-      </div>
-      {message && (
-        <p className={`text-[10px] ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-          {message.text}
-        </p>
-      )}
-    </div>
-  )
-}
+// Removed manual verification forms as they are no longer required
 
 // --- Main Component ---
 
@@ -686,48 +620,8 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
 
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
                 <VerificationStatus verified={profile?.email_verified || false} label="Email verified" />
-                
-                <div className="space-y-1">
-                  <VerificationStatus verified={profile?.phone_verified || false} label="Phone verified" />
-                  {!profile?.phone_verified && (
-                    <ManualVerificationForm 
-                      type="phone" 
-                      onSuccess={(trustData) => {
-                        if (profile) setProfile({ ...profile, phone_verified: true })
-                        if (trustData) {
-                          setDashboardTrustSnapshot(prev => ({
-                            ...(prev || { backgroundCheckStatus: 'not_started' }),
-                            trustScore: trustData.trustScore,
-                            trustTier: trustData.trustTier,
-                            trustScoreBreakdown: trustData.trustScoreBreakdown,
-                          }))
-                        }
-                      }} 
-                    />
-                  )}
-                </div>
-
+                <VerificationStatus verified={profile?.phone_verified || false} label="Phone verified" />
                 <VerificationStatus verified={!!profile?.avatar_url || !!profileAvatarUrl} label="Profile photo" />
-                
-                <div className="space-y-1">
-                  <VerificationStatus verified={profile?.identity_verified || false} label="Identity verified" />
-                  {!profile?.identity_verified && (
-                    <ManualVerificationForm 
-                      type="identity" 
-                      onSuccess={(trustData) => {
-                        if (profile) setProfile({ ...profile, identity_verified: true })
-                        if (trustData) {
-                          setDashboardTrustSnapshot(prev => ({
-                            ...(prev || { backgroundCheckStatus: 'not_started' }),
-                            trustScore: trustData.trustScore,
-                            trustTier: trustData.trustTier,
-                            trustScoreBreakdown: trustData.trustScoreBreakdown,
-                          }))
-                        }
-                      }} 
-                    />
-                  )}
-                </div>
               </div>
             </Card>
 
