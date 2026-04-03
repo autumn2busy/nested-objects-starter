@@ -36,22 +36,7 @@ export async function GET() {
     // Fetch profile data (trust score, training, etc.)
     const { data: profile } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        outseta_person_uid,
-        user_id,
-        trust_score,
-        trust_tier,
-        trust_score_breakdown,
-        training_modules_completed,
-        training_modules_total,
-        inspections_completed,
-        background_check_status,
-        rating,
-        rating_count,
-        verified_at,
-        created_at
-      `)
+      .select('*')
       .or(`outseta_person_uid.eq.${userId},user_id.eq.${userId}`)
       .limit(1)
       .single()
@@ -131,36 +116,38 @@ export async function GET() {
     const accountCreated = profile?.created_at ? new Date(profile.created_at) : new Date()
     const accountAgeDays = Math.floor((now.getTime() - accountCreated.getTime()) / (1000 * 60 * 60 * 24))
 
-    // Self-heal: If live modulesCompleted differs from stored value, recalculate trust score
+    // Compute live trust score
     let trustScore = profile?.trust_score || 0
     let trustTier = profile?.trust_tier || 'bronze'
     let trustScoreBreakdown = profile?.trust_score_breakdown || null
 
-    const storedModules = profile?.training_modules_completed || 0
-    if (profile && modulesCompleted !== storedModules) {
-      console.log(`[DASHBOARD_STATS] Self-healing trust score: stored ${storedModules} modules, live ${modulesCompleted}`)
-
-      const { total: newTotal, tier: newTier, breakdown: newBreakdown } = calculateTrustScore(profile, modulesCompleted)
-
-      // Write corrected values back to profile (fire-and-forget)
-      supabase
-        .from('profiles')
-        .update({
-          training_modules_completed: modulesCompleted,
-          trust_score: newTotal,
-          trust_tier: newTier,
-          trust_score_breakdown: newBreakdown,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id)
-        .then(({ error: updateErr }: { error: any }) => {
-          if (updateErr) console.error('[DASHBOARD_STATS] Self-heal update failed:', updateErr)
-          else console.log(`[DASHBOARD_STATS] Self-healed trust score: ${newTotal} (${newTier})`)
-        })
-
-      trustScore = newTotal
-      trustTier = newTier
-      trustScoreBreakdown = newBreakdown
+    if (profile) {
+      const live = calculateTrustScore(profile, modulesCompleted)
+      
+      // If the profile's stored score doesn't match the new deterministic calculation, self-heal.
+      if (live.total !== trustScore || profile.training_modules_completed !== modulesCompleted) {
+        console.log(`[DASHBOARD_STATS] Self-healing trust score: old ${trustScore}, new ${live.total}`)
+        
+        // Write corrected values back to profile (fire-and-forget)
+        supabase
+          .from('profiles')
+          .update({
+            training_modules_completed: modulesCompleted,
+            trust_score: live.total,
+            trust_tier: live.tier,
+            trust_score_breakdown: live.breakdown,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', profile.id)
+          .then(({ error: updateErr }: { error: any }) => {
+            if (updateErr) console.error('[DASHBOARD_STATS] Self-heal update failed:', updateErr)
+            else console.log(`[DASHBOARD_STATS] Self-healed trust score: ${live.total} (${live.tier})`)
+          })
+      }
+      
+      trustScore = live.total
+      trustTier = live.tier
+      trustScoreBreakdown = live.breakdown
     }
 
     return NextResponse.json({

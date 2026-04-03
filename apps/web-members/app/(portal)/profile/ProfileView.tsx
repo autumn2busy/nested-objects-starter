@@ -542,6 +542,12 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
 
       const data = await res.json()
       setProfile(data.profile)
+      setDashboardTrustSnapshot(prev => prev ? {
+        ...prev,
+        trustScore: data.profile.trust_score,
+        trustTier: data.profile.trust_tier,
+        trustScoreBreakdown: data.profile.trust_score_breakdown
+      } : null)
       setSuccess('Profile saved successfully!')
 
       // Clear success message after 3 seconds
