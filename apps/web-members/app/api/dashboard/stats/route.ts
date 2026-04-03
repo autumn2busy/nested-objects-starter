@@ -125,7 +125,9 @@ export async function GET() {
       const live = calculateTrustScore(profile, modulesCompleted)
       
       // If the profile's stored score doesn't match the new deterministic calculation, self-heal.
-      if (live.total !== trustScore || profile.training_modules_completed !== modulesCompleted) {
+      const breakdownMismatch = JSON.stringify(live.breakdown) !== JSON.stringify(trustScoreBreakdown);
+      
+      if (live.total !== trustScore || profile.training_modules_completed !== modulesCompleted || breakdownMismatch) {
         console.log(`[DASHBOARD_STATS] Self-healing trust score: old ${trustScore}, new ${live.total}`)
         
         // Write corrected values back to profile (fire-and-forget)

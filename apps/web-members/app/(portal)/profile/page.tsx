@@ -1,5 +1,6 @@
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { calculateTrustScore } from '@/lib/trust-score'
 import ProfileView from './ProfileView'
 
 function resolveUserId(outsetaUser: any) {
@@ -32,17 +33,20 @@ export default async function ProfilePage() {
           .single();
 
         if (profile) {
+            // Guarantee fresh trust score adherence
+            const live = calculateTrustScore(profile, profile.training_modules_completed || 0);
+
             initialProfile = {
               ...profile,
               // Required for hydration sync with client data type
-              trust_score: profile.trust_score || 0,
-              trust_tier: profile.trust_tier || 'bronze',
-              trust_score_breakdown: profile.trust_score_breakdown || null,
+              trust_score: live.total,
+              trust_tier: live.tier,
+              trust_score_breakdown: live.breakdown,
             };
             initialTrustStats = {
-                trustScore: profile.trust_score || 0,
-                trustTier: profile.trust_tier || 'bronze',
-                trustScoreBreakdown: profile.trust_score_breakdown || null,
+                trustScore: live.total,
+                trustTier: live.tier,
+                trustScoreBreakdown: live.breakdown,
                 backgroundCheckStatus: profile.background_check_status || 'not_started'
             };
         }
