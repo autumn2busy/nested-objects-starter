@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Google Fonts ──────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 html {
   scroll-behavior: smooth;
 }
@@ -9,4 +12,108 @@ html {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Gradient Hero ─────────────────────────────────── */
+.hero-gradient {
+  background: linear-gradient(135deg, #312E81 0%, #4338CA 40%, #3730A3 70%, #1E1B4B 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at 30% 50%,
+    rgba(99, 102, 241, 0.15) 0%,
+    transparent 50%
+  );
+  animation: drift 20s ease-in-out infinite;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(2%, -1%) rotate(1deg); }
+  66% { transform: translate(-1%, 1%) rotate(-0.5deg); }
+}
+
+/* ── Glass Card ────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(67, 56, 202, 0.15);
+}
+
+/* ── B2B Card Hover ────────────────────────────────── */
+.b2b-card {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.b2b-card:hover {
+  border-color: #C7D2FE;
+  box-shadow: 0 4px 24px rgba(67, 56, 202, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* ── Step Connector Line ───────────────────────────── */
+.step-connector {
+  position: relative;
+}
+
+.step-connector::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -1.5rem;
+  width: 3rem;
+  height: 2px;
+  background: linear-gradient(90deg, #C7D2FE, transparent);
+}
+
+.step-connector:last-child::after {
+  display: none;
+}
+
+/* ── Stat counter glow ─────────────────────────────── */
+.stat-glow {
+  text-shadow: 0 0 40px rgba(67, 56, 202, 0.3);
+}
+
+/* ── Button shimmer ────────────────────────────────── */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-shimmer:hover::after {
+  left: 100%;
 }
