@@ -193,7 +193,7 @@ export function GuideLayout({ frontmatter, children }: GuideLayoutProps) {
               <Clock className="h-4 w-4" /> {frontmatter.readTime}
             </span>
             <span className="flex items-center gap-1.5">
-              <TrendingUp className="h-4 w-4" /> Updated {frontmatter.updatedAt}
+              <TrendingUp className="h-4 w-4" /> Updated {String(frontmatter.updatedAt)}
             </span>
           </div>
         </header>
