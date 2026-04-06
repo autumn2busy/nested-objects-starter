@@ -6,9 +6,19 @@ import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 const aggregateRatingLd = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
+  '@type': ['LocalBusiness', 'Organization'],
   name: 'Nested Objects',
   url: 'https://nestedobjects.com',
+  logo: 'https://nestedobjects.com/logo.png',
+  description: 'The #1 platform for field inspectors, notaries, and property preservation contractors. Browse hiring firms, get trained, and level up with AI tools.',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'US',
+  },
+  areaServed: {
+    '@type': 'Country',
+    name: 'United States',
+  },
   aggregateRating: {
     '@type': 'AggregateRating',
     ratingValue: getAverageRating(),
