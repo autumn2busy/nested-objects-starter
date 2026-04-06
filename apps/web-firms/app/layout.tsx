@@ -3,99 +3,106 @@ import Link from 'next/link'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nestedobjects.com'),
+  metadataBase: new URL('https://firms.nestedobjects.com'),
   title: {
-    default: 'Nested Objects — Field Inspector Directory, Training & AI Tools',
-    template: '%s | Nested Objects',
+    default: 'Nested Objects for Firms — Source Vetted Field Inspectors Nationwide',
+    template: '%s | Nested Objects for Firms',
   },
-  description: 'The #1 platform for field inspectors, notaries, and property preservation contractors. Browse 460+ hiring firms, get trained, and level up with AI tools.',
+  description: 'The #1 platform for hiring firms to source, vet, and deploy field inspectors, notaries, and property preservation contractors across all 50 states.',
   openGraph: {
     type: 'website',
-    siteName: 'Nested Objects',
+    siteName: 'Nested Objects for Firms',
     locale: 'en_US',
   },
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 }
 
-function SiteHeader() {
+function FirmsHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-indigo-900/30 bg-brand-deeper/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="text-lg font-bold text-slate-900">
-          Nested<span className="text-brand">Objects</span>
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold text-white">
+          Nested<span className="text-brand-accent">Objects</span>
+          <span className="rounded bg-brand-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-accent">
+            Firms
+          </span>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-          <Link href="/guides" className="transition hover:text-brand">Guides</Link>
-          <Link href="/pricing" className="transition hover:text-brand">Pricing</Link>
-          <Link href="/about" className="transition hover:text-brand">About</Link>
+        <nav className="hidden items-center gap-6 text-sm font-medium text-indigo-200 md:flex">
+          <Link href="/inspectors" className="transition hover:text-white">Browse Inspectors</Link>
+          <Link href="/post-a-job" className="transition hover:text-white">Post a Job</Link>
+          <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
           <a
-            href="https://members.nestedobjects.com/hiring-firms"
-            className="transition hover:text-brand"
+            href="https://nestedobjects.com/guides"
+            className="transition hover:text-white"
           >
-            Directory
+            Resources
           </a>
         </nav>
         <div className="flex items-center gap-3">
           <a
             href="https://members.nestedobjects.com"
-            className="text-sm font-medium text-slate-600 transition hover:text-brand"
+            className="text-sm font-medium text-indigo-200 transition hover:text-white"
           >
             Log in
           </a>
-          <a
-            href="https://members.nestedobjects.com/membership-pricing"
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          <Link
+            href="/post-a-job"
+            className="btn-shimmer rounded-lg bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-400"
           >
-            Join Free
-          </a>
+            Post a Job
+          </Link>
         </div>
       </div>
     </header>
   )
 }
 
-function SiteFooter() {
+function FirmsFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-white">
+    <footer className="border-t border-slate-800 bg-brand-deeper text-indigo-200">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-sm font-bold text-slate-900">
-              Nested<span className="text-brand">Objects</span>
+            <p className="text-sm font-bold text-white">
+              Nested<span className="text-brand-accent">Objects</span>
+              <span className="ml-2 rounded bg-brand-accent/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-brand-accent">
+                Firms
+              </span>
             </p>
-            <p className="mt-2 text-xs text-slate-500">
-              For inspectors. By inspectors.<br />
-              Helping underestimated workers find, learn, and earn in field services.
+            <p className="mt-2 text-xs text-indigo-300/70">
+              The hiring platform built for field services.<br />
+              Source vetted inspectors across all 50 states.
             </p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Resources</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><Link href="/guides" className="hover:text-brand">Guides</Link></li>
-              <li><a href="https://members.nestedobjects.com/hiring-firms" className="hover:text-brand">Firm Directory</a></li>
-              <li><a href="https://members.nestedobjects.com/training" className="hover:text-brand">Training</a></li>
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">For Firms</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li><Link href="/post-a-job" className="hover:text-white transition">Post a Job</Link></li>
+              <li><Link href="/inspectors" className="hover:text-white transition">Browse Inspectors</Link></li>
+              <li><Link href="/dashboard" className="hover:text-white transition">Firm Dashboard</Link></li>
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Company</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><Link href="/about" className="hover:text-brand">About</Link></li>
-              <li><Link href="/contact" className="hover:text-brand">Contact</Link></li>
-              <li><Link href="/pricing" className="hover:text-brand">Pricing</Link></li>
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">For Inspectors</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li><a href="https://nestedobjects.com" className="hover:text-white transition">Inspector Hub</a></li>
+              <li><a href="https://members.nestedobjects.com" className="hover:text-white transition">Member Portal</a></li>
+              <li><a href="https://nestedobjects.com/guides" className="hover:text-white transition">Guides &amp; Training</a></li>
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Brands</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><a href="https://members.nestedobjects.com" className="hover:text-brand">Member Hub</a></li>
-              <li><a href="https://flynerdofficial.com" className="hover:text-brand">Fly Nerd</a></li>
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Company</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li><a href="https://nestedobjects.com/about" className="hover:text-white transition">About</a></li>
+              <li><a href="https://nestedobjects.com/contact" className="hover:text-white transition">Contact</a></li>
+              <li><a href="https://flynerdofficial.com" className="hover:text-white transition">Fly Nerd</a></li>
             </ul>
           </div>
         </div>
-        <div className="mt-10 border-t border-slate-100 pt-6 text-center text-xs text-slate-400">
+        <div className="mt-10 border-t border-indigo-800/50 pt-6 text-center text-xs text-indigo-400/60">
           © {new Date().getFullYear()} Nested Objects LLC. All rights reserved.
         </div>
       </div>
@@ -106,10 +113,14 @@ function SiteFooter() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-screen bg-brand-sand text-slate-900 antialiased">
-        <SiteHeader />
+        <FirmsHeader />
         {children}
-        <SiteFooter />
+        <FirmsFooter />
       </body>
     </html>
   )
