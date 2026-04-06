@@ -155,6 +155,21 @@ function TipStack({ children }: { children: React.ReactNode }) {
   return <div className="space-y-3">{children}</div>
 }
 
+// ─── Key Takeaways block for SGE/AEO ────────────────────────────
+function KeyTakeaways({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="my-8 rounded-2xl border border-brand/30 bg-brand/5 px-6 py-6 shadow-sm">
+      <h2 className="static mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 !mt-0 border-b border-brand/10 pb-3">
+        <CheckCircle2 className="h-5 w-5 text-brand" />
+        Key Takeaways
+      </h2>
+      <div className="prose-sm leading-relaxed text-slate-700 marker:text-brand [&>ul]:space-y-2 [&>ul]:pl-5 [&>ul>li]:pl-1">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 // ─── Standard prose overrides for MDX ───────────────────────────
 function P({ children }: { children?: React.ReactNode }) {
   return <p className="mt-3 text-base leading-relaxed text-slate-700">{children}</p>
@@ -221,4 +236,5 @@ export const guideMDXComponents = {
   CTALink,
   TipCard,
   TipStack,
+  KeyTakeaways,
 }
