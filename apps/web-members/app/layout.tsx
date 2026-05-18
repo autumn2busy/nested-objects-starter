@@ -5,7 +5,7 @@ import { AuthProvider } from '@/components/auth-provider'
 import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
-import { FoundersPromoBanner } from '@/components/FoundersPromoBanner'
+import { PromoBanner } from '@/components/PromoBanner'
 import { cn } from '@/lib/utils'
 import {
   SITE_URL,
@@ -166,7 +166,7 @@ export default function RootLayout({
 
         <AuthProvider>
           <ActiveCampaignTracker />
-          <FoundersPromoBanner />
+          <PromoBanner />
           <div className="flex min-h-screen flex-col">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="flex-1">{children}</main>

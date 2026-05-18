@@ -64,11 +64,11 @@ export const metadata: Metadata = {
   description:
     'Understand how Nested Objects collects, uses, and protects member data. No resale or copying of your information and transparent rights requests.',
   alternates: {
-    canonical: 'https://nested-objects-starter.vercel.app/privacy',
+    canonical: 'https://members.nestedobjects.com/privacy',
   },
   openGraph: {
     type: 'article',
-    url: 'https://nested-objects-starter.vercel.app/privacy',
+    url: 'https://members.nestedobjects.com/privacy',
     title: 'Privacy Policy | Nested Objects member data and usage',
     description:
       'Details on data collection, security, retention, and your rights. Nested Objects does not resell or copy member information.',
@@ -86,13 +86,13 @@ export default function PrivacyPage() {
     '@context': 'https://schema.org',
     '@type': 'PrivacyPolicy',
     name: 'Nested Objects Privacy Policy',
-    url: 'https://nested-objects-starter.vercel.app/privacy',
+    url: 'https://members.nestedobjects.com/privacy',
     description:
       'Privacy policy outlining collection, use, retention, and strict no resale or copy practices for Nested Objects members.',
     publisher: {
       '@type': 'Organization',
       name: 'Nested Objects',
-      url: 'https://nested-objects-starter.vercel.app',
+      url: 'https://members.nestedobjects.com',
     },
     inLanguage: 'en',
   }

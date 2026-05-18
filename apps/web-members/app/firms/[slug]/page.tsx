@@ -9,7 +9,7 @@ import {
   ShieldCheck, TrendingUp, CalendarDays
 } from 'lucide-react'
 import { FirmServiceArea } from '@/components/FirmServiceArea'
-import { generatePageMetadata, getLocalBusinessSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
+import { generatePageMetadata, getHiringFirmSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmReviews } from '@/components/directory/FirmReviews'
 import { FirmGatedContent } from './FirmGatedContent'
@@ -155,7 +155,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     (firm.phone ? `tel:${firm.phone}` : null)
 
   /* JSON-LD */
-  const jsonLd = getLocalBusinessSchema({
+  const jsonLd = getHiringFirmSchema({
     name: firm.name,
     description: firm.description || `${firm.name} — field services hiring firm`,
     url: firm.url || `${SITE_URL}/firms/${firm.slug}`,

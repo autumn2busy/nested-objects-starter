@@ -53,7 +53,7 @@ export default function ContactForm() {
           <p className="font-semibold text-sm">{success}</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form method="POST" onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="text-sm font-semibold text-brand-dark" htmlFor="name">
               Name
@@ -120,7 +120,7 @@ export default function ContactForm() {
             disabled={isSubmitting}
             className="w-full rounded-full bg-brand-copper px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Sending...' : 'Send message'}
+            {isSubmitting ? 'Sending...' : 'Send Message'}
           </button>
           <p className="text-xs text-brand-steel">We reply within one business day. Priority routing for Pro, Elite, and Agency members.</p>
         </form>

@@ -96,12 +96,15 @@ export function TechHero() {
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
-                    <Link
-                        href="/membership-pricing"
-                        className="w-full sm:w-auto px-8 py-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2"
-                    >
-                        Start Searching Free <ArrowRight className="w-5 h-5" />
-                    </Link>
+                    <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
+                        <Link
+                            href="/membership-pricing"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] sm:w-auto"
+                        >
+                            Start Searching Free <ArrowRight className="w-5 h-5" />
+                        </Link>
+                        <p className="text-xs font-medium text-text-muted">No credit card required</p>
+                    </div>
 
                     <Link
                         href="/hiring-firms"

@@ -37,26 +37,6 @@ const aggregateRatingLd = {
   })),
 }
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: 'Nested Objects Member Hub',
-  image: 'https://nested-objects-starter.vercel.app/hero.jpg',
-  description:
-    'Connect with Mortgage Field Inspection services, Certified residential property appraisal firms, and Mobile Notary for real estate closings.',
-  address: {
-    '@type': 'PostalAddress',
-    addressCountry: 'US',
-  },
-  url: 'https://nested-objects-starter.vercel.app',
-  priceRange: '$$',
-  telephone: '+1-555-010-9999',
-  sameAs: [
-    'https://twitter.com/nestedobjects',
-    'https://linkedin.com/company/nested-objects',
-  ],
-}
-
 export default function HomePage() {
   const heroImage = '/hero.jpg'
   // reuse hero for now. you can swap this to another image later
@@ -70,13 +50,6 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Structured data for SEO */}
-      <Script
-        id="nested-objects-ld-json"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <Script
         id="aggregate-rating-ld-json"
         type="application/ld+json"

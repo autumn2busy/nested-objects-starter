@@ -1,6 +1,6 @@
-# Nested Objects - Auth Implementation Deployment Guide
+﻿# Nested Objects - Auth Implementation Deployment Guide
 
-## ✅ What We Just Built
+## âœ… What We Just Built
 
 ### New Files Created:
 1. `components/auth-provider.tsx` - React Context for Outseta authentication
@@ -16,7 +16,7 @@
 
 ---
 
-## 🚀 Deployment Steps
+## ðŸš€ Deployment Steps
 
 ### Step 1: Copy Files to Your Project
 
@@ -37,7 +37,7 @@ The updated files are already in place in `/mnt/project/`.
 
 ### Step 2: Set Environment Variables in Vercel
 
-Go to: https://vercel.com/dashboard → Your Project → Settings → Environment Variables
+Go to: https://vercel.com/dashboard â†’ Your Project â†’ Settings â†’ Environment Variables
 
 Add these variables (replace with your actual values):
 
@@ -53,12 +53,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 # App
-NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
+NEXT_PUBLIC_APP_URL=https://members.nestedobjects.com
 
 # Stripe (test mode)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_SITE_URL=https://nested-objects-starter.vercel.app
+NEXT_PUBLIC_SITE_URL=https://members.nestedobjects.com
 ```
 
 **CRITICAL:** After adding env vars, click **"Redeploy"** from the Deployments tab.
@@ -70,23 +70,23 @@ NEXT_PUBLIC_SITE_URL=https://nested-objects-starter.vercel.app
 Go to: https://nested-objects.outseta.com/
 
 #### A) Set Post-Login URL
-1. Go to **AUTH → SIGN UP AND LOGIN**
+1. Go to **AUTH â†’ SIGN UP AND LOGIN**
 2. Find **"Post Login URL"** field
-3. Set to: `https://nested-objects-starter.vercel.app/auth/callback`
+3. Set to: `https://members.nestedobjects.com/auth/callback`
 4. Save
 
 #### B) Set Access Denied URL  
 1. In the same page, find **"Access Denied URL"** (might be under Advanced Options)
-2. Set to: `https://nested-objects-starter.vercel.app/upgrade`
+2. Set to: `https://members.nestedobjects.com/upgrade`
 3. Save
 
-#### C) Verify Content Groups (Already Done ✅)
+#### C) Verify Content Groups (Already Done âœ…)
 Your content groups are already configured:
-- `ai_chatbot` → Pro, Elite, Agency
-- `directory_access` → Starter, Pro, Elite, Agency
-- `job_intel` → Pro, Elite, Agency
-- `priority_support` → Elite, Agency
-- `white_label` → Agency
+- `ai_chatbot` â†’ Pro, Elite, Agency
+- `directory_access` â†’ Starter, Pro, Elite, Agency
+- `job_intel` â†’ Pro, Elite, Agency
+- `priority_support` â†’ Elite, Agency
+- `white_label` â†’ Agency
 
 ---
 
@@ -114,19 +114,19 @@ Vercel will automatically deploy.
 
 ---
 
-## 🧪 Testing Checklist
+## ðŸ§ª Testing Checklist
 
 ### Test 1: Anonymous User Flow
-1. Go to: https://nested-objects-starter.vercel.app/directory
+1. Go to: https://members.nestedobjects.com/directory
 2. **Expected:** See "Authentication Required" message with Login/Sign Up buttons
 3. Click "Sign Up"
 4. **Expected:** Outseta modal opens
 5. Create a test account on **Starter plan** (free)
-6. **Expected:** Redirected to `/auth/callback` → then `/directory`
+6. **Expected:** Redirected to `/auth/callback` â†’ then `/directory`
 7. **Expected:** See firm directory list
 
 ### Test 2: Feature Gating
-1. While logged in as Starter user, go to: https://nested-objects-starter.vercel.app/ai_chatbot
+1. While logged in as Starter user, go to: https://members.nestedobjects.com/ai_chatbot
 2. **Expected:** Outseta redirects you to `/upgrade` (Access Denied URL)
 3. **Expected:** See pricing page with "Upgrade Required" message
 
@@ -154,12 +154,12 @@ export async function GET() {
 }
 ```
 
-2. Visit: https://nested-objects-starter.vercel.app/api/test-auth
+2. Visit: https://members.nestedobjects.com/api/test-auth
 3. **Expected:** JSON response with user data
 
 ---
 
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
 ### Issue: "Outseta is not defined"
 **Cause:** Outseta script didn't load
@@ -172,7 +172,7 @@ export async function GET() {
 ### Issue: "Authentication required" even after login
 **Cause:** Token not stored or expired
 **Fix:** 
-1. Check browser DevTools → Application → Cookies → Look for `outseta_access_token`
+1. Check browser DevTools â†’ Application â†’ Cookies â†’ Look for `outseta_access_token`
 2. If missing, check `/auth/callback` page is working
 3. Check Outseta dashboard for valid subscription
 
@@ -189,7 +189,7 @@ export async function GET() {
 
 ---
 
-## 📊 Expected User Flows
+## ðŸ“Š Expected User Flows
 
 ### Flow 1: New User Signup
 ```
@@ -235,20 +235,20 @@ export async function GET() {
 
 ---
 
-## 🎯 Phase 1 Completion Criteria
+## ðŸŽ¯ Phase 1 Completion Criteria
 
-- ✅ Outseta embed script loads
-- ✅ Users can sign up/login
-- ✅ JWT stored in cookie
-- ✅ Gate component shows/hides content by plan
-- ✅ Server-side JWT verification works
-- ✅ Supabase queries work (with RLS)
-- ✅ Upgrade page shows pricing
-- ✅ Content groups protect URLs
+- âœ… Outseta embed script loads
+- âœ… Users can sign up/login
+- âœ… JWT stored in cookie
+- âœ… Gate component shows/hides content by plan
+- âœ… Server-side JWT verification works
+- âœ… Supabase queries work (with RLS)
+- âœ… Upgrade page shows pricing
+- âœ… Content groups protect URLs
 
 ---
 
-## 🚧 Known Limitations (To Fix in Phase 2)
+## ðŸš§ Known Limitations (To Fix in Phase 2)
 
 1. **JWT Verification:** Currently decoding without signature verification
    - TODO: Fetch Outseta's public key from `/.well-known/jwks`
@@ -268,7 +268,7 @@ export async function GET() {
 
 ---
 
-## 📞 Support
+## ðŸ“ž Support
 
 If you hit any blockers:
 1. Check browser console for errors
@@ -278,21 +278,21 @@ If you hit any blockers:
 
 ---
 
-## ✅ Success Metrics
+## âœ… Success Metrics
 
 Your auth implementation is working when:
-- ✅ Users can sign up and login via Outseta modal
-- ✅ Directory page shows firms to authenticated Starter+ users
-- ✅ `/ai_chatbot` redirects Starter users to `/upgrade`
-- ✅ Pro users can access `/ai_chatbot`
-- ✅ Upgrade flow completes successfully
-- ✅ No console errors on any page
+- âœ… Users can sign up and login via Outseta modal
+- âœ… Directory page shows firms to authenticated Starter+ users
+- âœ… `/ai_chatbot` redirects Starter users to `/upgrade`
+- âœ… Pro users can access `/ai_chatbot`
+- âœ… Upgrade flow completes successfully
+- âœ… No console errors on any page
 
-**Once these work, Phase 1 is complete! 🎉**
+**Once these work, Phase 1 is complete! ðŸŽ‰**
 
 ---
 
-## 🔒 Phase 2: Security Hardening
+## ðŸ”’ Phase 2: Security Hardening
 
 ### 1. HttpOnly Cookies
 - **Change**: Moved from client-side cookie access to HttpOnly server-side cookies.

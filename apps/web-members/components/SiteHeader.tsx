@@ -308,16 +308,18 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               >
                 Login
               </a>
-              <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
-                className={buttonVariants({
-                  variant: 'primary',
-                  size: 'sm',
-                  className: 'hidden sm:inline-flex',
-                })}
-              >
-                Join free
-              </a>
+              <div className="hidden flex-col items-center gap-1 sm:flex">
+                <a
+                  href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
+                  className={buttonVariants({
+                    variant: 'primary',
+                    size: 'sm',
+                  })}
+                >
+                  Join free
+                </a>
+                <p className="text-[11px] leading-none text-text-muted">No credit card required</p>
+              </div>
             </div>
           )}
         </div>

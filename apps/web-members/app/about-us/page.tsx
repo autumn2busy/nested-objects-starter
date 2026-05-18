@@ -80,11 +80,11 @@ export const metadata: Metadata = {
   description:
     'Learn how Nested Objects equips home and property inspectors with AI-powered intel, routing support, and conversion-ready resources modeled after leading industry associations.',
   alternates: {
-    canonical: 'https://nested-objects-starter.vercel.app/about-us',
+    canonical: 'https://members.nestedobjects.com/about-us',
   },
   openGraph: {
     type: 'article',
-    url: 'https://nested-objects-starter.vercel.app/about-us',
+    url: 'https://members.nestedobjects.com/about-us',
     title: 'About Nested Objects | AI support for property inspectors and coordinators',
     description:
       'The Nested Objects story, mission, and team behind AI-driven intel for inspectors, coordinators, and property pros.',
@@ -110,11 +110,11 @@ export default function AboutPage() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Nested Objects',
-    url: 'https://nested-objects-starter.vercel.app',
-    logo: 'https://nested-objects-starter.vercel.app/logo-light.svg',
+    url: 'https://members.nestedobjects.com',
+    logo: 'https://members.nestedobjects.com/logo-light.svg',
     description:
       'AI-powered member hub for home inspectors, notaries, realtors, and coordinators seeking verified intel and modern workflows.',
-    sameAs: ['https://nested-objects-starter.vercel.app/about-us', 'https://nested-objects-starter.vercel.app/contact-us'],
+    sameAs: ['https://members.nestedobjects.com/about-us', 'https://members.nestedobjects.com/contact-us'],
   }
 
   const serviceSchema = {

@@ -277,17 +277,23 @@ function FilterBar({
 
                 <div className="col-span-2 md:col-span-1 space-y-1">
                     <FieldLabel htmlFor="sort-filter">SORT BY</FieldLabel>
-                    <Select
-                        id="sort-filter"
-                        value={sortFilter}
-                        onChange={(e) => onSortChange(e.target.value)}
-                    >
-                        {SORT_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </Select>
+                    {isFree ? (
+                        <Select disabled value="rating_desc">
+                            <option value="rating_desc">Highest Rated (Upgrade)</option>
+                        </Select>
+                    ) : (
+                        <Select
+                            id="sort-filter"
+                            value={sortFilter}
+                            onChange={(e) => onSortChange(e.target.value)}
+                        >
+                            {SORT_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </Select>
+                    )}
                 </div>
             </div>
 
@@ -578,11 +584,11 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
         if (!isLoading && isRestricted && (
             urlStateFilter !== 'ALL' || urlSearch.trim() !== '' ||
             urlRating !== 'ALL' || urlIndustry !== 'ALL' || urlSource !== 'ALL' ||
-            urlPay !== 'ALL'
+            urlPay !== 'ALL' || urlSort !== 'rating_desc'
         )) {
             router.replace('/hiring-firms')
         }
-    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, urlSource, urlPay, router])
+    }, [isLoading, isRestricted, urlStateFilter, urlSearch, urlRating, urlIndustry, urlSource, urlPay, urlSort, router])
 
     const isProOrHigher = !!planUid && !isRestricted
 

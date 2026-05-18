@@ -6,7 +6,7 @@ import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 const aggregateRatingLd = {
   '@context': 'https://schema.org',
-  '@type': ['LocalBusiness', 'Organization'],
+  '@type': 'Organization',
   name: 'Nested Objects',
   url: 'https://nestedobjects.com',
   logo: 'https://nestedobjects.com/logo.png',

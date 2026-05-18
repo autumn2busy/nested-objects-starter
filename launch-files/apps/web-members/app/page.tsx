@@ -10,18 +10,18 @@ import { TestimonialsSection } from '@/components/TestimonialsSection'
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
+  '@type': 'Organization',
   name: 'Nested Objects Member Hub',
-  image: 'https://nested-objects-starter.vercel.app/hero.jpg',
+  image: 'https://members.nestedobjects.com/hero.jpg',
   description:
     'Connect with Mortgage Field Inspection services, Certified residential property appraisal firms, and Mobile Notary for real estate closings.',
   address: {
     '@type': 'PostalAddress',
     addressCountry: 'US',
   },
-  url: 'https://nested-objects-starter.vercel.app',
+  url: 'https://members.nestedobjects.com',
   priceRange: '$$',
-  telephone: '+1-555-010-9999',
+  telephone: '+1-615-739-7029',
   sameAs: [
     'https://twitter.com/nestedobjects',
     'https://linkedin.com/company/nested-objects',
