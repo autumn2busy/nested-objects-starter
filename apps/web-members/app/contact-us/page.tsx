@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { generatePageMetadata } from '@/lib/seo'
+import { CONTACT_PHONE_DISPLAY, generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 import ConciergeSection from './ConciergeSection'
 import ContactForm from './ContactForm'
@@ -126,7 +126,7 @@ export default function ContactPage() {
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Call us</p>
-              <p className="mt-2 font-semibold">+1 (312) 555-0142</p>
+              <p className="mt-2 font-semibold">{CONTACT_PHONE_DISPLAY}</p>
               <p className="text-brand-steel">Available for press and partner calls with scheduling.</p>
             </div>
           </div>

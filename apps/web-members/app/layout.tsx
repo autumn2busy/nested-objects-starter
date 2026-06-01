@@ -8,12 +8,16 @@ import { SiteFooter } from '@/components/SiteFooter'
 import { PromoBanner } from '@/components/PromoBanner'
 import { cn } from '@/lib/utils'
 import {
+  DEFAULT_OG_IMAGE,
   SITE_URL,
   SITE_NAME,
   SITE_DESCRIPTION,
+  getBreadcrumbSchema,
   getOrganizationSchema,
+  getSoftwareApplicationSchema,
   getWebSiteSchema
 } from '@/lib/seo'
+import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 import '../styles/globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -52,11 +56,23 @@ export const metadata: Metadata = {
     title: `Field Inspector Directory & Independent Vendor Hub | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} field inspector directory`,
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Field Inspector Directory & Independent Vendor Hub | ${SITE_NAME}`,
     description: SITE_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
 }
 
@@ -67,6 +83,19 @@ export default function RootLayout({
 }) {
   const organizationSchema = getOrganizationSchema()
   const webSiteSchema = getWebSiteSchema()
+  const softwareApplicationSchema = getSoftwareApplicationSchema({
+    ratingValue: getAverageRating(),
+    reviewCount: TESTIMONIALS.length,
+    reviews: TESTIMONIALS.filter((testimonial) => testimonial.source === 'google' || testimonial.source === 'review')
+      .slice(0, 5)
+      .map((testimonial) => ({
+        author: testimonial.name,
+        rating: testimonial.rating,
+        body: testimonial.quote,
+        datePublished: testimonial.date,
+      })),
+  })
+  const homeBreadcrumbSchema = getBreadcrumbSchema([{ name: 'Home', url: SITE_URL }])
 
   const shouldLoadOutseta =
     process.env.NODE_ENV === 'production' ||
@@ -98,6 +127,14 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homeBreadcrumbSchema) }}
         />
 
         {/* Preconnect to external CDNs */}

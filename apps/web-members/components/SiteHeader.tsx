@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Camera, Loader2 } from 'lucide-react'
+import { Camera, Loader2, Menu, X } from 'lucide-react'
 
 import { useAuth } from './auth-provider'
 import { useProfile } from '@/lib/use-profile'
@@ -187,6 +187,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           <nav className="relative text-sm font-medium" aria-label="Primary">
             <Button
               type="button"
+              aria-label={isNavOpen ? 'Close main navigation' : 'Open main navigation'}
               aria-expanded={isNavOpen}
               aria-controls="primary-navigation"
               onClick={() => setIsNavOpen((open) => !open)}
@@ -195,18 +196,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               shape="rounded"
               className="gap-2 md:hidden"
             >
-              <span className="flex flex-col gap-1" aria-hidden>
-                <span className="block h-0.5 w-5 bg-text-primary" />
-                <span className="block h-0.5 w-5 bg-text-primary" />
-                <span className="block h-0.5 w-5 bg-text-primary" />
-              </span>
+              {isNavOpen ? <X className="h-4 w-4" aria-hidden /> : <Menu className="h-4 w-4" aria-hidden />}
               Menu
             </Button>
 
             <div
               id="primary-navigation"
               className={`${isNavOpen ? 'flex' : 'hidden'
-                } absolute left-0 right-0 top-full z-20 mt-3 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-1 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
+                } fixed left-4 right-4 top-20 z-40 flex-col gap-1 rounded-2xl border border-brand-steel/40 bg-white px-2 py-2 shadow-xl md:static md:mt-0 md:flex md:flex-row md:items-center md:gap-1 md:border-none md:bg-transparent md:px-1 md:py-1 md:shadow-none`}
             >
               {visibleNavLinks.map((link) => {
                 // Profile now links to /profile page instead of Outseta modal
@@ -308,18 +305,16 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               >
                 Login
               </a>
-              <div className="hidden flex-col items-center gap-1 sm:flex">
-                <a
-                  href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
-                  className={buttonVariants({
-                    variant: 'primary',
-                    size: 'sm',
-                  })}
-                >
-                  Join free
-                </a>
-                <p className="text-[11px] leading-none text-text-muted">No credit card required</p>
-              </div>
+              <a
+                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
+                className={buttonVariants({
+                  variant: 'primary',
+                  size: 'sm',
+                })}
+              >
+                Join free
+              </a>
+              <p className="hidden text-[11px] leading-none text-text-muted sm:block">No credit card required</p>
             </div>
           )}
         </div>

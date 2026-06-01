@@ -21,7 +21,7 @@ export const SITE_DESCRIPTION = 'The #1 Hub for Mortgage Field Inspection servic
 
 // Social/branding
 export const LOGO_URL = `${SITE_URL}/logo.png`
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/hero.jpg`
 
 // Contact info
 export const CONTACT_EMAIL = 'info@nestedobjects.com'
@@ -93,7 +93,16 @@ export function getWebSiteSchema() {
 /**
  * SoftwareApplication Schema for the national member platform
  */
-export function getSoftwareApplicationSchema() {
+export function getSoftwareApplicationSchema(reviewData?: {
+    ratingValue: number
+    reviewCount: number
+    reviews?: {
+        author: string
+        rating: number
+        body: string
+        datePublished: string
+    }[]
+}) {
     return {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
@@ -101,6 +110,36 @@ export function getSoftwareApplicationSchema() {
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web',
         url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        publisher: {
+            '@type': 'Organization',
+            name: SITE_NAME,
+            url: SITE_URL,
+        },
+        ...(reviewData && {
+            aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: reviewData.ratingValue,
+                bestRating: 5,
+                worstRating: 1,
+                reviewCount: reviewData.reviewCount,
+            },
+            review: reviewData.reviews?.map((review) => ({
+                '@type': 'Review',
+                author: {
+                    '@type': 'Person',
+                    name: review.author,
+                },
+                datePublished: review.datePublished,
+                reviewRating: {
+                    '@type': 'Rating',
+                    ratingValue: review.rating,
+                    bestRating: 5,
+                    worstRating: 1,
+                },
+                reviewBody: review.body,
+            })),
+        }),
         offers: SOFTWARE_APPLICATION_OFFERS.map((plan) => ({
             '@type': 'Offer',
             name: plan.name,
