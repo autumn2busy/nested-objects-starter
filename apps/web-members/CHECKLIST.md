@@ -1,8 +1,8 @@
-# 🚀 Deployment Checklist
+﻿# ðŸš€ Deployment Checklist
 
 ## Pre-Deployment (Local Setup)
 
-### ☐ 1. Copy All Files
+### â˜ 1. Copy All Files
 ```bash
 cd /path/to/your/apps/web-members
 
@@ -21,13 +21,13 @@ cp /home/claude/app/upgrade/page.tsx ./app/upgrade/
 # Updated files are already in /mnt/project/
 ```
 
-### ☐ 2. Install Dependencies
+### â˜ 2. Install Dependencies
 ```bash
 npm install jsonwebtoken
 npm install --save-dev @types/jsonwebtoken
 ```
 
-### ☐ 3. Verify Files Copied
+### â˜ 3. Verify Files Copied
 Check that these files exist:
 - [ ] `components/auth-provider.tsx`
 - [ ] `components/gate.tsx`
@@ -43,9 +43,9 @@ Check that these files exist:
 
 ## Vercel Configuration
 
-### ☐ 4. Set Environment Variables
+### â˜ 4. Set Environment Variables
 
-Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
+Go to: Vercel Dashboard â†’ Your Project â†’ Settings â†’ Environment Variables
 
 Add these **exact** values:
 
@@ -63,12 +63,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_KEY]
 SUPABASE_SERVICE_ROLE_KEY=[YOUR_KEY]
 
 # App URL
-NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
+NEXT_PUBLIC_APP_URL=https://members.nestedobjects.com
 ```
 
 **CRITICAL:** After adding env vars, click **"Redeploy"** button!
 
-### ☐ 5. Verify Deployment
+### â˜ 5. Verify Deployment
 - [ ] Visit Vercel Deployments tab
 - [ ] Wait for build to complete (2-3 minutes)
 - [ ] Check for any build errors
@@ -78,40 +78,40 @@ NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
 
 ## Outseta Configuration
 
-### ☐ 6. Set Redirect URLs
+### â˜ 6. Set Redirect URLs
 
 Go to: https://nested-objects.outseta.com/
 
-**A) Auth Settings (AUTH → SIGN UP AND LOGIN)**
-- [ ] Post Login URL: `https://nested-objects-starter.vercel.app/auth/callback`
+**A) Auth Settings (AUTH â†’ SIGN UP AND LOGIN)**
+- [ ] Post Login URL: `https://members.nestedobjects.com/auth/callback`
 - [ ] Click **Save**
 
-**B) Content Protection (might be under Settings → Protected Content)**
-- [ ] Access Denied URL: `https://nested-objects-starter.vercel.app/upgrade`
+**B) Content Protection (might be under Settings â†’ Protected Content)**
+- [ ] Access Denied URL: `https://members.nestedobjects.com/upgrade`
 - [ ] Click **Save**
 
-### ☐ 7. Verify Content Groups (Already Done ✅)
-Go to: **Settings → Protected Content**
+### â˜ 7. Verify Content Groups (Already Done âœ…)
+Go to: **Settings â†’ Protected Content**
 
 Confirm these exist:
-- [ ] `ai_chatbot` → Pro, Elite, Agency
-- [ ] `directory_access` → Starter, Pro, Elite, Agency  
-- [ ] `job_intel` → Pro, Elite, Agency
-- [ ] `priority_support` → Elite, Agency
-- [ ] `white_label` → Agency
+- [ ] `ai_chatbot` â†’ Pro, Elite, Agency
+- [ ] `directory_access` â†’ Starter, Pro, Elite, Agency  
+- [ ] `job_intel` â†’ Pro, Elite, Agency
+- [ ] `priority_support` â†’ Elite, Agency
+- [ ] `white_label` â†’ Agency
 
 ---
 
 ## Git Deployment
 
-### ☐ 8. Commit & Push
+### â˜ 8. Commit & Push
 ```bash
 git add .
 git commit -m "feat: implement Outseta authentication with feature gates"
 git push origin main
 ```
 
-### ☐ 9. Wait for Auto-Deploy
+### â˜ 9. Wait for Auto-Deploy
 - [ ] Vercel detects push
 - [ ] Build starts automatically
 - [ ] Check Vercel dashboard for progress
@@ -121,8 +121,8 @@ git push origin main
 
 ## Testing (Post-Deployment)
 
-### ☐ 10. Test Anonymous User Flow
-1. [ ] Visit: https://nested-objects-starter.vercel.app/directory
+### â˜ 10. Test Anonymous User Flow
+1. [ ] Visit: https://members.nestedobjects.com/directory
 2. [ ] See "Authentication Required" message
 3. [ ] Click "Sign Up"
 4. [ ] Outseta modal opens
@@ -131,27 +131,27 @@ git push origin main
 7. [ ] Redirected to /directory
 8. [ ] See firm directory list
 
-### ☐ 11. Test Feature Gating
-1. [ ] While logged in, visit: https://nested-objects-starter.vercel.app/ai_chatbot
+### â˜ 11. Test Feature Gating
+1. [ ] While logged in, visit: https://members.nestedobjects.com/ai_chatbot
 2. [ ] Should redirect to /upgrade (if you're on Starter plan)
 3. [ ] See pricing comparison
 4. [ ] Current plan should be highlighted
 
-### ☐ 12. Test Home Page
-1. [ ] Visit: https://nested-objects-starter.vercel.app
+### â˜ 12. Test Home Page
+1. [ ] Visit: https://members.nestedobjects.com
 2. [ ] See features grid
 3. [ ] Click "Try AI Chatbot" link
 4. [ ] Should show appropriate gate (login or upgrade)
 
-### ☐ 13. Browser Console Check
-Open DevTools → Console on each page:
+### â˜ 13. Browser Console Check
+Open DevTools â†’ Console on each page:
 - [ ] No JavaScript errors on home page
 - [ ] No JavaScript errors on directory page
 - [ ] No JavaScript errors on upgrade page
 - [ ] Outseta script loaded successfully
 
-### ☐ 14. Cookie Verification
-Open DevTools → Application → Cookies:
+### â˜ 14. Cookie Verification
+Open DevTools â†’ Application â†’ Cookies:
 - [ ] `outseta_access_token` exists after login
 - [ ] Token is a valid JWT (check at jwt.io)
 - [ ] Token contains `outseta:planUid` field
@@ -187,7 +187,7 @@ Open DevTools → Application → Cookies:
 
 ---
 
-## Success Criteria ✅
+## Success Criteria âœ…
 
 Phase 1 is complete when ALL of these work:
 
@@ -205,14 +205,14 @@ Phase 1 is complete when ALL of these work:
 
 ## Post-Launch Tasks
 
-### ☐ 15. Create Test Accounts
+### â˜ 15. Create Test Accounts
 Create one account for each plan tier:
 - [ ] test-starter@yourdomain.com (Starter plan)
 - [ ] test-pro@yourdomain.com (Pro plan)
 - [ ] test-elite@yourdomain.com (Elite plan)
 - [ ] test-agency@yourdomain.com (Agency plan)
 
-### ☐ 16. Document Plan UIDs
+### â˜ 16. Document Plan UIDs
 Save these somewhere secure:
 ```
 Starter: L9nbKV9Z
@@ -221,7 +221,7 @@ Elite: NmdnNO90
 Agency: rmk5Xk9g
 ```
 
-### ☐ 17. Monitor for Issues
+### â˜ 17. Monitor for Issues
 - [ ] Check Vercel logs for errors
 - [ ] Check Outseta webhook logs
 - [ ] Watch for auth-related support questions
@@ -255,6 +255,6 @@ If stuck, check:
 
 ---
 
-**Once all checkboxes are complete, Phase 1 is DONE! 🎉**
+**Once all checkboxes are complete, Phase 1 is DONE! ðŸŽ‰**
 
 Next: Build AI Chatbot and Job Intel features (Phase 2)

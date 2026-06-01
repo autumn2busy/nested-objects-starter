@@ -185,8 +185,8 @@ function MembershipContent() {
                                             </button>
 
                                             {plan.name === 'Free' && (
-                                                <p className="mt-2 text-center text-xs text-slate-500">
-                                                    No credit card required.
+                                                <p className="mt-2 text-center text-xs text-text-muted">
+                                                    No credit card required
                                                 </p>
                                             )}
                                             {isPro && (

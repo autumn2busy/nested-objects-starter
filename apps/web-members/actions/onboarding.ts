@@ -2,6 +2,7 @@
 
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
+import { applyACContactTag } from '@/lib/ac-event-tracking'
 import { revalidatePath } from 'next/cache'
 
 export async function completeOnboardingAction() {
@@ -26,6 +27,17 @@ export async function completeOnboardingAction() {
     if (error) {
         console.error('Failed to complete onboarding:', error)
         throw new Error('Failed to update profile')
+    }
+
+    if (user?.email) {
+        const tagged = await applyACContactTag({
+            email: user.email,
+            tag: 'onboarding-complete',
+        })
+
+        if (!tagged) {
+            console.warn(`[Onboarding] Failed to apply onboarding-complete AC tag for ${user.email}`)
+        }
     }
 
     revalidatePath('/inspector-dashboard')

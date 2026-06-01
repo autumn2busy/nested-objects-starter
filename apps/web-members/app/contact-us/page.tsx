@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { generatePageMetadata } from '@/lib/seo'
+import { CONTACT_PHONE_DISPLAY, generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 import ConciergeSection from './ConciergeSection'
 import ContactForm from './ContactForm'
@@ -69,6 +69,16 @@ export default function ContactPage() {
               <p className="mt-2 text-sm text-slate-700">
                 Free members can use the form below for general questions. Pro receives faster routing in the queue, while Elite and Agency unlock concierge handling with tailored next steps based on your region.
               </p>
+              <p className="mt-3 text-sm text-slate-700">
+                Prefer email? Reach us at{' '}
+                <a
+                  href="mailto:info@nestedobjects.com"
+                  className="font-semibold text-brand-copper transition hover:text-brand-copperDark hover:underline hover:underline-offset-4"
+                >
+                  info@nestedobjects.com
+                </a>
+                .
+              </p>
               <div className="mt-4 grid gap-2 text-xs text-brand-dark sm:grid-cols-3">
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Free &middot; 1-2 business days</span>
                 <span className="rounded-full bg-white px-3 py-1 font-semibold">Pro &middot; priority queue</span>
@@ -81,7 +91,12 @@ export default function ContactPage() {
                 <div key={channel.title} className="rounded-2xl border border-brand-copper/20 bg-white p-4 shadow-sm">
                   <p className="text-sm font-semibold text-brand-dark">{channel.title}</p>
                   <p className="mt-1 text-sm text-slate-700">{channel.description}</p>
-                  <p className="mt-2 text-sm font-semibold text-brand-copper">{channel.email}</p>
+                  <a
+                    href={`mailto:${channel.email}`}
+                    className="mt-2 inline-flex text-sm font-semibold text-brand-copper transition hover:text-brand-copperDark hover:underline hover:underline-offset-4"
+                  >
+                    {channel.email}
+                  </a>
                   <p className="mt-1 text-xs text-brand-steel">{channel.response}</p>
                 </div>
               ))}
@@ -111,7 +126,7 @@ export default function ContactPage() {
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-copper">Call us</p>
-              <p className="mt-2 font-semibold">+1 (312) 555-0142</p>
+              <p className="mt-2 font-semibold">{CONTACT_PHONE_DISPLAY}</p>
               <p className="text-brand-steel">Available for press and partner calls with scheduling.</p>
             </div>
           </div>

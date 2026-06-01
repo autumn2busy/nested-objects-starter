@@ -9,6 +9,7 @@
  */
 
 import { getSiteUrl } from '@/lib/seo-env'
+import { PLAN_UIDS } from '@/lib/plan-config'
 
 // Base URL - validated environment variable with local dev fallback
 export const SITE_URL = getSiteUrl()
@@ -20,10 +21,28 @@ export const SITE_DESCRIPTION = 'The #1 Hub for Mortgage Field Inspection servic
 
 // Social/branding
 export const LOGO_URL = `${SITE_URL}/logo.png`
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/hero.jpg`
 
 // Contact info
-export const CONTACT_EMAIL = 'support@nestedobjects.com'
+export const CONTACT_EMAIL = 'info@nestedobjects.com'
+export const CONTACT_PHONE = '+1-615-739-7029'
+export const CONTACT_PHONE_DISPLAY = '+1-615-739-7029'
+
+const SOFTWARE_APPLICATION_OFFERS = [
+    { name: 'Free', planUid: PLAN_UIDS.FREE, price: '0' },
+    { name: 'Pro', planUid: PLAN_UIDS.PRO, price: '49' },
+    { name: 'Elite', planUid: PLAN_UIDS.ELITE, price: '97' },
+    { name: 'Agency', planUid: PLAN_UIDS.AGENCY, price: '297' },
+] as const
+
+function getMonthlyPriceSpecification(price: string) {
+    return {
+        '@type': 'UnitPriceSpecification',
+        price,
+        priceCurrency: 'USD',
+        billingDuration: 'P1M',
+    }
+}
 
 /**
  * Organization Schema (JSON-LD)
@@ -39,14 +58,17 @@ export function getOrganizationSchema() {
         description: SITE_DESCRIPTION,
         contactPoint: {
             '@type': 'ContactPoint',
-            email: CONTACT_EMAIL,
+            telephone: CONTACT_PHONE,
             contactType: 'customer service',
+            email: CONTACT_EMAIL,
+            areaServed: 'US',
+            availableLanguage: 'English',
         },
         sameAs: [
-            'https://www.linkedin.com/company/nested-objects',
-            'https://www.facebook.com/profile.php?id=61573970294153',
-            'https://www.instagram.com/nestedobjects',
-            'https://www.youtube.com/user/@nestedobjects',
+            'https://www.linkedin.com/company/nested-objects/',
+            'https://www.facebook.com/groups/nestedobjects',
+            'https://www.instagram.com/nestedobjects/',
+            'https://www.youtube.com/@nestedobjects',
         ],
     }
 }
@@ -58,13 +80,75 @@ export function getWebSiteSchema() {
     return {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: SITE_NAME,
+        name: 'Nested Objects Member Hub',
         url: SITE_URL,
         potentialAction: {
             '@type': 'SearchAction',
-            target: `${SITE_URL}/hiring-firms?q={search_term_string}`,
+            target: `${SITE_URL}/search?q={search_term_string}`,
             'query-input': 'required name=search_term_string',
         },
+    }
+}
+
+/**
+ * SoftwareApplication Schema for the national member platform
+ */
+export function getSoftwareApplicationSchema(reviewData?: {
+    ratingValue: number
+    reviewCount: number
+    reviews?: {
+        author: string
+        rating: number
+        body: string
+        datePublished: string
+    }[]
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Nested Objects Member Hub',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        publisher: {
+            '@type': 'Organization',
+            name: SITE_NAME,
+            url: SITE_URL,
+        },
+        ...(reviewData && {
+            aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: reviewData.ratingValue,
+                bestRating: 5,
+                worstRating: 1,
+                reviewCount: reviewData.reviewCount,
+            },
+            review: reviewData.reviews?.map((review) => ({
+                '@type': 'Review',
+                author: {
+                    '@type': 'Person',
+                    name: review.author,
+                },
+                datePublished: review.datePublished,
+                reviewRating: {
+                    '@type': 'Rating',
+                    ratingValue: review.rating,
+                    bestRating: 5,
+                    worstRating: 1,
+                },
+                reviewBody: review.body,
+            })),
+        }),
+        offers: SOFTWARE_APPLICATION_OFFERS.map((plan) => ({
+            '@type': 'Offer',
+            name: plan.name,
+            price: plan.price,
+            priceCurrency: 'USD',
+            ...(plan.price !== '0' && {
+                priceSpecification: getMonthlyPriceSpecification(plan.price),
+            }),
+        })),
     }
 }
 
@@ -150,9 +234,9 @@ export function getCourseSchema(course: {
 }
 
 /**
- * LocalBusiness Schema Builder (for firm pages)
+ * Organization Schema Builder for firm profile pages
  */
-export function getLocalBusinessSchema(business: {
+export function getHiringFirmSchema(business: {
     name: string
     description: string
     url: string
@@ -172,21 +256,29 @@ export function getLocalBusinessSchema(business: {
 }) {
     return {
         '@context': 'https://schema.org',
-        '@type': 'LocalBusiness',
+        '@type': 'Organization',
         name: business.name,
         description: business.description,
         url: business.url,
         logo: business.logo,
-        telephone: business.telephone,
-        email: business.email,
-        address: typeof business.address === 'string' ? business.address : {
-            '@type': 'PostalAddress',
-            streetAddress: business.address?.streetAddress,
-            addressLocality: business.address?.addressLocality,
-            addressRegion: business.address?.addressRegion,
-            postalCode: business.address?.postalCode,
-            addressCountry: business.address?.addressCountry,
+        contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: business.telephone,
+            email: business.email,
+            contactType: 'vendor relations',
+            areaServed: business.areaServed || 'US',
+            availableLanguage: 'English',
         },
+        ...(business.address ? {
+            address: typeof business.address === 'string' ? business.address : {
+                '@type': 'PostalAddress',
+                streetAddress: business.address?.streetAddress,
+                addressLocality: business.address?.addressLocality,
+                addressRegion: business.address?.addressRegion,
+                postalCode: business.address?.postalCode,
+                addressCountry: business.address?.addressCountry,
+            },
+        } : {}),
         ...(business.geo && {
             geo: {
                 '@type': 'GeoCoordinates',

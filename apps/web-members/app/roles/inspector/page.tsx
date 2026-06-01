@@ -70,10 +70,10 @@ export const metadata: Metadata = {
     title: 'Inspectors | Field-ready membership for home and property inspectors',
     description:
       'Nested Objects gives inspectors prep briefs, submission guardrails, and payout clarity so every route runs smoother.',
-    url: 'https://nested-objects-starter.vercel.app/roles/inspector',
+    url: 'https://members.nestedobjects.com/roles/inspector',
     images: [
       {
-        url: 'https://nested-objects-starter.vercel.app/logo-slate.svg',
+        url: 'https://members.nestedobjects.com/logo-slate.svg',
         width: 1200,
         height: 630,
         alt: 'Nested Objects wordmark in slate',
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     title: 'Inspectors | Field-ready membership for home and property inspectors',
     description:
       'Use AI-assisted checklists, gear prompts, and firm intel to keep every inspection compliant without slowing down.',
-    images: ['https://nested-objects-starter.vercel.app/logo-slate.svg'],
+    images: ['https://members.nestedobjects.com/logo-slate.svg'],
   },
 }
 

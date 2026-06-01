@@ -1,4 +1,4 @@
-# Dashboard Setup Instructions
+﻿# Dashboard Setup Instructions
 
 ## What We're Building
 
@@ -29,11 +29,11 @@ mkdir dashboard
 
 ### 2. Update Outseta Post Login URL
 
-Go to: **Outseta → AUTH → SIGN UP AND LOGIN**
+Go to: **Outseta â†’ AUTH â†’ SIGN UP AND LOGIN**
 
 **Change Post Login URL to:**
 ```
-https://nested-objects-starter.vercel.app/dashboard
+https://members.nestedobjects.com/dashboard
 ```
 
 **Click Save**
@@ -74,12 +74,12 @@ git push origin main
 
 ## What the Dashboard Shows
 
-✅ **Welcome message** with user's first name
-✅ **Account overview** with current plan, email, member since date
-✅ **Quick actions** - Directory, AI Chatbot, Job Intel
-✅ **Feature access indicators** - Shows which features are available based on plan
-✅ **Upgrade prompts** - For locked features
-✅ **Recent activity** - Placeholder for future activity tracking
+âœ… **Welcome message** with user's first name
+âœ… **Account overview** with current plan, email, member since date
+âœ… **Quick actions** - Directory, AI Chatbot, Job Intel
+âœ… **Feature access indicators** - Shows which features are available based on plan
+âœ… **Upgrade prompts** - For locked features
+âœ… **Recent activity** - Placeholder for future activity tracking
 
 ---
 
@@ -87,19 +87,19 @@ git push origin main
 
 ```
 1. User signs up on membership page
-   ↓
+   â†“
 2. Redirected to Outseta for form
-   ↓
+   â†“
 3. Fills email, name, password
-   ↓
+   â†“
 4. Gets confirmation email
-   ↓
+   â†“
 5. Clicks email link to confirm
-   ↓
+   â†“
 6. Redirected to: /dashboard?access_token=...
-   ↓
+   â†“
 7. Dashboard loads, shows welcome message
-   ↓
+   â†“
 8. User sees their plan and available features
 ```
 
@@ -127,8 +127,8 @@ git push origin main
 
 After deployment:
 
-- [ ] Visit `/dashboard` while logged out → Redirects to home
-- [ ] Sign up new account → Lands on dashboard after email confirmation
+- [ ] Visit `/dashboard` while logged out â†’ Redirects to home
+- [ ] Sign up new account â†’ Lands on dashboard after email confirmation
 - [ ] Dashboard shows correct name and email
 - [ ] Current plan displays correctly
 - [ ] Feature cards show correct access (locked vs unlocked)

@@ -46,11 +46,11 @@ export const metadata: Metadata = {
   description:
     'Review the refund policy for Nested Objects. Digital goods and memberships are non-refundable once delivered, with clear guidance for billing questions.',
   alternates: {
-    canonical: 'https://nested-objects-starter.vercel.app/refund-policy',
+    canonical: 'https://members.nestedobjects.com/refund-policy',
   },
   openGraph: {
     type: 'article',
-    url: 'https://nested-objects-starter.vercel.app/refund-policy',
+    url: 'https://members.nestedobjects.com/refund-policy',
     title: 'Refund Policy | Non-refundable digital goods at Nested Objects',
     description:
       'No refunds on digital goods or memberships once delivered. Learn how to handle billing errors, cancellations, and chargebacks.',
@@ -68,7 +68,7 @@ export default function RefundPolicyPage() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'Nested Objects Refund Policy',
-    url: 'https://nested-objects-starter.vercel.app/refund-policy',
+    url: 'https://members.nestedobjects.com/refund-policy',
     description:
       'Refund policy stating that digital goods and memberships are non-refundable, with guidance for cancellations and billing questions.',
     inLanguage: 'en',

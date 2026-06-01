@@ -1,4 +1,4 @@
-# Auth Implementation Complete ✅
+﻿# Auth Implementation Complete âœ…
 
 ## What Was Built
 
@@ -38,12 +38,12 @@ NEXT_PUBLIC_SUPABASE_URL=[YOUR_URL]
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_KEY]
 SUPABASE_SERVICE_ROLE_KEY=[YOUR_KEY]
 
-NEXT_PUBLIC_APP_URL=https://nested-objects-starter.vercel.app
+NEXT_PUBLIC_APP_URL=https://members.nestedobjects.com
 ```
 
 ### 3. Configure Outseta
-- **Post Login URL:** `https://nested-objects-starter.vercel.app/auth/callback`
-- **Access Denied URL:** `https://nested-objects-starter.vercel.app/upgrade`
+- **Post Login URL:** `https://members.nestedobjects.com/auth/callback`
+- **Access Denied URL:** `https://members.nestedobjects.com/upgrade`
 
 ### 4. Deploy
 ```bash
@@ -58,18 +58,18 @@ git push origin main
 
 After deployment, test these flows:
 
-1. **Home Page:** https://nested-objects-starter.vercel.app
+1. **Home Page:** https://members.nestedobjects.com
    - Should show Login/Sign Up buttons when logged out
    
-2. **Directory (Gated):** https://nested-objects-starter.vercel.app/directory
+2. **Directory (Gated):** https://members.nestedobjects.com/directory
    - Should show login prompt if not authenticated
    - Should show firm list for Starter+ users
    
-3. **AI Chatbot (Pro+):** https://nested-objects-starter.vercel.app/ai_chatbot
+3. **AI Chatbot (Pro+):** https://members.nestedobjects.com/ai_chatbot
    - Should redirect Starter users to /upgrade
    - Should allow Pro+ users (when you build the page)
    
-4. **Upgrade Page:** https://nested-objects-starter.vercel.app/upgrade
+4. **Upgrade Page:** https://members.nestedobjects.com/upgrade
    - Should show all 4 plans with features
    - Should highlight current plan
 
@@ -80,50 +80,50 @@ After deployment, test these flows:
 ### Client-Side Flow
 ```
 User visits /directory
-    ↓
+    â†“
 <Gate feature="directory_access"> checks auth
-    ↓
-If not authenticated → Show login prompt
-If authenticated but no access → Show upgrade CTA  
-If has access → Show content
+    â†“
+If not authenticated â†’ Show login prompt
+If authenticated but no access â†’ Show upgrade CTA  
+If has access â†’ Show content
 ```
 
 ### Server-Side Flow  
 ```
 API route called
-    ↓
+    â†“
 requireFeature('directory_access')
-    ↓
+    â†“
 Reads outseta_access_token cookie
-    ↓
+    â†“
 Verifies JWT (checks planUid)
-    ↓
+    â†“
 Returns user data or throws error
 ```
 
 ### Outseta Content Protection
 ```
 User navigates to /ai_chatbot URL
-    ↓
+    â†“
 Outseta Quick Start script checks JWT
-    ↓
+    â†“
 Compares planUid to allowed plans
-    ↓
-If no access → Redirects to /upgrade
-If has access → Page loads normally
+    â†“
+If no access â†’ Redirects to /upgrade
+If has access â†’ Page loads normally
 ```
 
 ---
 
-## Plan → Feature Mapping
+## Plan â†’ Feature Mapping
 
 | Feature | Starter | Pro | Elite | Agency |
 |---------|---------|-----|-------|--------|
-| directory_access | ✅ | ✅ | ✅ | ✅ |
-| ai_chatbot | ❌ | ✅ | ✅ | ✅ |
-| job_intel | ❌ | ✅ | ✅ | ✅ |
-| priority_support | ❌ | ❌ | ✅ | ✅ |
-| white_label | ❌ | ❌ | ❌ | ✅ |
+| directory_access | âœ… | âœ… | âœ… | âœ… |
+| ai_chatbot | âŒ | âœ… | âœ… | âœ… |
+| job_intel | âŒ | âœ… | âœ… | âœ… |
+| priority_support | âŒ | âŒ | âœ… | âœ… |
+| white_label | âŒ | âŒ | âŒ | âœ… |
 
 ---
 
@@ -210,7 +210,7 @@ export default function MyComponent() {
 
 ### Still seeing "Authentication Required" after login
 - **Cause:** Token not stored or expired
-- **Fix:** Check DevTools → Application → Cookies
+- **Fix:** Check DevTools â†’ Application â†’ Cookies
 
 ### Supabase queries fail with "new row violates RLS policy"
 - **Cause:** RLS blocks anonymous queries
@@ -220,14 +220,14 @@ export default function MyComponent() {
 
 ## Next Steps (Phase 2)
 
-1. ✅ Add proper JWT signature verification
-2. ✅ Integrate Outseta JWT with Supabase RLS
-3. ✅ Build AI Chatbot page
-4. ✅ Build Job Intel page
-5. ✅ Add token refresh handling
-6. ✅ Implement HttpOnly cookies
-7. ✅ Add loading states and error boundaries
-8. ✅ Write E2E tests for auth flows
+1. âœ… Add proper JWT signature verification
+2. âœ… Integrate Outseta JWT with Supabase RLS
+3. âœ… Build AI Chatbot page
+4. âœ… Build Job Intel page
+5. âœ… Add token refresh handling
+6. âœ… Implement HttpOnly cookies
+7. âœ… Add loading states and error boundaries
+8. âœ… Write E2E tests for auth flows
 
 ---
 
@@ -236,32 +236,32 @@ export default function MyComponent() {
 From `/home/claude/`:
 ```
 components/
-  ├── auth-provider.tsx
-  └── gate.tsx
+  â”œâ”€â”€ auth-provider.tsx
+  â””â”€â”€ gate.tsx
 lib/
-  └── auth-server.ts
+  â””â”€â”€ auth-server.ts
 app/
-  ├── page.tsx
-  ├── auth/
-  │   └── callback/
-  │       └── page.tsx
-  └── upgrade/
-      └── page.tsx
+  â”œâ”€â”€ page.tsx
+  â”œâ”€â”€ auth/
+  â”‚   â””â”€â”€ callback/
+  â”‚       â””â”€â”€ page.tsx
+  â””â”€â”€ upgrade/
+      â””â”€â”€ page.tsx
 ```
 
 Updated files (already in `/mnt/project/`):
 ```
 app/
-  ├── layout.tsx
-  └── directory/
-      └── page.tsx
+  â”œâ”€â”€ layout.tsx
+  â””â”€â”€ directory/
+      â””â”€â”€ page.tsx
 lib/
-  └── feature-gate.ts
+  â””â”€â”€ feature-gate.ts
 ```
 
 ---
 
-## Success Criteria ✅
+## Success Criteria âœ…
 
 Your Phase 1 is complete when:
 - [ ] Users can sign up via Outseta modal
@@ -276,4 +276,4 @@ Your Phase 1 is complete when:
 
 **Read DEPLOYMENT.md for detailed step-by-step instructions.**
 
-**You're ready to deploy! 🚀**
+**You're ready to deploy! ðŸš€**

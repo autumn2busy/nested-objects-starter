@@ -68,10 +68,10 @@ export const metadata: Metadata = {
     title: 'Gig workers | Confident routes with safety and payout clarity',
     description:
       'Nested Objects gives gig workers route briefs, access scripts, and payout transparency so you can focus on the next stop.',
-    url: 'https://nested-objects-starter.vercel.app/roles/gig-worker',
+    url: 'https://members.nestedobjects.com/roles/gig-worker',
     images: [
       {
-        url: 'https://nested-objects-starter.vercel.app/logo-slate.svg',
+        url: 'https://members.nestedobjects.com/logo-slate.svg',
         width: 1200,
         height: 630,
         alt: 'Nested Objects wordmark in slate',
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     title: 'Gig workers | Confident routes with safety and payout clarity',
     description:
       'See stop-by-stop prompts, safety notes, and payout expectations so routes stay predictable.',
-    images: ['https://nested-objects-starter.vercel.app/logo-slate.svg'],
+    images: ['https://members.nestedobjects.com/logo-slate.svg'],
   },
 }
 

@@ -52,6 +52,12 @@ export function SiteFooter({ containerClassName }: SiteFooterProps) {
             <p className="text-sm text-text-secondary">
               Compare firms, prep for routes, and get tools that help inspectors, notaries, and real estate pros plan smarter days on the road.
             </p>
+            <a
+              href="mailto:info@nestedobjects.com"
+              className="inline-flex text-sm font-semibold text-brand-copper transition hover:text-brand-copperDark hover:underline hover:underline-offset-4"
+            >
+              info@nestedobjects.com
+            </a>
           </div>
 
           {footerSections.map((section) => (

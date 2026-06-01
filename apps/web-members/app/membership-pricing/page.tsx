@@ -2,6 +2,7 @@ import { MembershipView } from './MembershipView'
 import { generatePageMetadata, getProductSchema } from '@/lib/seo'
 import type { Metadata } from 'next'
 import { membershipPlans } from '@/lib/ai-datasets'
+import { PLAN_UIDS } from '@/lib/plan-config'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
@@ -11,14 +12,23 @@ export const metadata: Metadata = generatePageMetadata({
 })
 
 // Generate structured data for plans
-const productSchemas = membershipPlans.map((plan) =>
-  getProductSchema({
-    name: `Nested Objects ${plan.name} Plan`,
-    description: plan.description,
-    price: plan.price.replace('$', '').replace('/mo', ''),
-    priceCurrency: 'USD',
-  })
-)
+const publicSchemaPlanUids = new Set<string>([
+  PLAN_UIDS.FREE,
+  PLAN_UIDS.PRO,
+  PLAN_UIDS.ELITE,
+  PLAN_UIDS.AGENCY,
+])
+
+const productSchemas = membershipPlans
+  .filter((plan) => publicSchemaPlanUids.has(plan.planUid))
+  .map((plan) =>
+    getProductSchema({
+      name: `Nested Objects ${plan.name} Plan`,
+      description: plan.description,
+      price: plan.price.replace('$', '').replace('/mo', ''),
+      priceCurrency: 'USD',
+    })
+  )
 
 // AggregateRating for rich snippets in search results
 const aggregateRatingSchema = {

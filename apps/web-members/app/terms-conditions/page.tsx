@@ -63,11 +63,11 @@ export const metadata: Metadata = {
   description:
     'Terms and conditions for using Nested Objects, including membership rules, strict no resale or copy obligations, and compliance-aligned usage.',
   alternates: {
-    canonical: 'https://nested-objects-starter.vercel.app/terms-conditions',
+    canonical: 'https://members.nestedobjects.com/terms-conditions',
   },
   openGraph: {
     type: 'article',
-    url: 'https://nested-objects-starter.vercel.app/terms-conditions',
+    url: 'https://members.nestedobjects.com/terms-conditions',
     title: 'Terms & Conditions | Nested Objects member obligations',
     description:
       'Membership, billing, and digital goods terms for Nested Objects with no resale, no copying, and compliance-first guidelines.',
@@ -85,14 +85,14 @@ export default function TermsPage() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'Nested Objects Terms and Conditions',
-    url: 'https://nested-objects-starter.vercel.app/terms-conditions',
+    url: 'https://members.nestedobjects.com/terms-conditions',
     description:
       'Terms and conditions describing membership, billing, acceptable use, and strict prohibitions on resale or copying of Nested Objects digital goods.',
     inLanguage: 'en',
     isPartOf: {
       '@type': 'WebSite',
       name: 'Nested Objects',
-      url: 'https://nested-objects-starter.vercel.app',
+      url: 'https://members.nestedobjects.com',
     },
   }
 
