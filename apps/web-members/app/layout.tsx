@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/components/auth-provider'
 import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
@@ -210,6 +211,7 @@ export default function RootLayout({
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
