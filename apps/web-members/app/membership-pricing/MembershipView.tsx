@@ -83,7 +83,7 @@ function MembershipContent() {
 
                 {!isAuthenticated && (
                     <p className="mt-4 text-sm text-slate-500">
-                        Start the Pro plan with a 7-day free trial, or create a Free account and upgrade when you are ready.
+                        Start Pro with $0 due today for 7 days, or create a Free account with no card required.
                     </p>
                 )}
             </header>
@@ -100,7 +100,7 @@ function MembershipContent() {
                     <Clock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
                     <div>
                         <p className="font-semibold text-slate-900">7-day Pro trial</p>
-                        <p className="mt-1 text-xs text-slate-600">Try Pro before your paid membership begins.</p>
+                        <p className="mt-1 text-xs text-slate-600">$0 due today. Cancel before billing.</p>
                     </div>
                 </div>
                 <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
@@ -148,7 +148,7 @@ function MembershipContent() {
                                     if (isCurrentPlan) return 'Current plan'
                                     if (plan.waitlist) return 'Join Waitlist'
                                     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-                                    if (!isAuthenticated && plan.name === 'Pro') return 'Start 7 Day Free Trial'
+                                    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Today'
                                     if (isAuthenticated) return `Upgrade to ${plan.name}`
                                     return 'Sign up'
                                 })()
@@ -223,7 +223,7 @@ function MembershipContent() {
                                             )}
                                             {isPro && (
                                                 <p className="mt-2 text-center text-xs text-brand-copper">
-                                                    7-day free trial. Cancel before billing.
+                                                    7-day free trial. Cancel before paid billing begins.
                                                 </p>
                                             )}
                                         </div>
@@ -275,9 +275,9 @@ function MembershipContent() {
                                 Billing clarity
                             </h2>
                             <p className="mt-3">
-                                Pro starts with a 7-day free trial. After the trial, paid digital memberships,
-                                firm intel, templates, and AI tools are non-refundable because access is
-                                delivered instantly.
+                                Pro starts with $0 due today for the 7-day trial. After the trial, paid digital
+                                memberships, firm intel, templates, and AI tools are non-refundable because
+                                access is delivered instantly.
                             </p>
                             <p className="mt-2">
                                 You can cancel anytime before renewal from your billing settings.
@@ -344,7 +344,7 @@ function MembershipContent() {
                 <p className="mx-auto mt-3 max-w-xl text-sm text-slate-200 sm:text-base">
                     {isAuthenticated && planUid === PLAN_UIDS.PRO
                         ? "Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews."
-                        : "Start with the Pro plan so you can see firms, intel, and tools in one place instead of chasing random posts and rumor threads."
+                        : "Start Pro with $0 due today so you can see firms, intel, and tools in one place before paid billing begins."
                     }
                 </p>
 
@@ -373,7 +373,7 @@ function MembershipContent() {
                         onClick={() => openPlanWidget(proPlan, false)}
                         className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                     >
-                        {isAuthenticated ? 'Upgrade to Pro' : 'Start 7 Day Free Trial'}
+                        {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Today'}
                     </button>
                 )}
 

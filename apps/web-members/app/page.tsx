@@ -1,9 +1,5 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Calculator, Search, Sparkles } from 'lucide-react'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
@@ -39,16 +35,6 @@ const aggregateRatingLd = {
 }
 
 export default function HomePage() {
-  const heroImage = '/hero.jpg'
-  // reuse hero for now. you can swap this to another image later
-  const rolesHeroImage = '/hero.jpg'
-
-  const [roleHeroLoaded, setRoleHeroLoaded] = useState(false)
-
-  useEffect(() => {
-    setRoleHeroLoaded(true)
-  }, [])
-
   return (
     <>
       <Script
@@ -151,10 +137,7 @@ export default function HomePage() {
         {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
         <section className="relative border-b border-slate-200 overflow-hidden">
           {/* background image sits directly under the section. spans full width */}
-          <div
-            className={`pointer-events-none absolute inset-0 transform-gpu transition-[transform,opacity] duration-1000 ease-out ${roleHeroLoaded ? 'scale-100 opacity-100' : 'scale-[1.07] opacity-0'
-              }`}
-          >
+          <div className="pointer-events-none absolute inset-0">
 
             {/* gradient fade from solid hub color into the image. like oracle */}
             <div className="absolute inset-0 bg-gradient-to-r from-brand-background/92 via-brand-background/70 to-transparent" />
