@@ -6,6 +6,7 @@ import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { PromoBanner } from '@/components/PromoBanner'
+import { MobileActionBar } from '@/components/MobileActionBar'
 import { cn } from '@/lib/utils'
 import {
   DEFAULT_OG_IMAGE,
@@ -204,11 +205,12 @@ export default function RootLayout({
         <AuthProvider>
           <ActiveCampaignTracker />
           <PromoBanner />
-          <div className="flex min-h-screen flex-col">
+          <div className="flex min-h-screen flex-col pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="flex-1">{children}</main>
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
+          <MobileActionBar />
         </AuthProvider>
       </body>
     </html>

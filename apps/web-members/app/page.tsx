@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Calculator, Search, Sparkles } from 'lucide-react'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection, TestimonialStrip } from '@/components/TestimonialsSection'
@@ -108,6 +109,42 @@ export default function HomePage() {
               </p>
             </div>
             <TestimonialStrip />
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-slate-50 md:hidden">
+          <div className="mx-auto max-w-md px-4 py-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
+              Start here
+            </p>
+            <div className="mt-3 grid gap-2">
+              <Link
+                href="/membership-pricing"
+                className="flex min-h-14 items-center gap-3 border border-brand-copper bg-brand-copper px-4 py-3 text-sm font-semibold text-white shadow-sm"
+              >
+                <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
+                <span>Start the 7-day Pro trial</span>
+              </Link>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/hiring-firms"
+                  className="flex min-h-14 flex-col justify-center border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm"
+                >
+                  <Search className="mb-1 h-4 w-4 text-brand-copper" aria-hidden />
+                  Browse firms
+                </Link>
+                <Link
+                  href="/tools/income-calculator"
+                  className="flex min-h-14 flex-col justify-center border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm"
+                >
+                  <Calculator className="mb-1 h-4 w-4 text-brand-copper" aria-hidden />
+                  Estimate income
+                </Link>
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-slate-500">
+              Pro includes a 7-day free trial. Paid digital memberships are non-refundable after billing begins.
+            </p>
           </div>
         </section>
 
