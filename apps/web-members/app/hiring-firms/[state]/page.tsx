@@ -26,7 +26,7 @@ export async function generateMetadata({
     if (!stateInfo) return {}
 
     return generatePageMetadata({
-        title: `Field Inspector & Notary Firms Hiring in ${stateInfo.label}`,
+        title: `${stateInfo.label} Inspection Firms`,
         description: `Browse verified firms hiring field inspectors, mobile notaries, and appraisal professionals in ${stateInfo.label}. Compare pay rates, coverage areas, and apply directly.`,
         path: `/hiring-firms/${stateSlug}`,
     })

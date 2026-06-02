@@ -63,7 +63,7 @@ const faqItems = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Inspectors | Field-ready membership for home and property inspectors',
+  title: 'Inspectors',
   description:
     'Prep briefs, inspection checklists, and firm intel tailored for inspectors who want fewer surprises and faster approvals.',
   openGraph: {

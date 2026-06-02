@@ -131,6 +131,34 @@ function isTrustedLogoUrl(logoUrl: string | null): logoUrl is string {
 
 /* ── Metadata ──────────────────────────────────────────── */
 
+function normalizeExternalHref(rawUrl: string | null): string | null {
+  if (!rawUrl) return null
+  const trimmedUrl = rawUrl.trim()
+  if (!trimmedUrl) return null
+
+  if (/^(https?:|mailto:|tel:)/i.test(trimmedUrl)) return trimmedUrl
+  if (/^(www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/.*)?$/i.test(trimmedUrl)) {
+    return `https://${trimmedUrl}`
+  }
+
+  return null
+}
+
+function getFirmSeoTitle(name: string): string {
+  const compactName = name
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s+(?:-|\u2013|\u2014)\s+.+$/g, '')
+    .replace(/\s*\/\s*.+$/g, '')
+    .replace(/\b(?:incorporated|corporation|company|inc|llc|ltd|corp|co)\.?$/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+
+  if (compactName.length <= 35) return `${compactName} Profile`
+
+  const truncated = compactName.slice(0, 32).replace(/\s+\S*$/g, '').trim()
+  return `${truncated || compactName.slice(0, 32).trim()}... Profile`
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const firm = await getFirmBySlugCached(slug)
@@ -141,7 +169,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     : `${firm.name} hiring profile — coverage: ${firm.geographic_coverage || 'National'}${pay ? `, pay: ${pay}` : ''}. Requirements, onboarding, and apply info.`
 
   return generatePageMetadata({
-    title: `${firm.name} Hiring Profile`,
+    title: getFirmSeoTitle(firm.name),
     description: desc,
     path: `/firms/${firm.slug}`,
     type: 'profile',
@@ -161,9 +189,11 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const socialLinks = parseSocialLinks(firm.social_links)
   const hasCoordinates = firm.latitude != null && firm.longitude != null
   const similarFirms = await getSimilarFirmsCached(firm.id)
+  const websiteHref = normalizeExternalHref(firm.url)
+  const vendorPageHref = normalizeExternalHref(firm.vendor_page_url)
 
   const contactHref =
-    firm.vendor_page_url ||
+    vendorPageHref ||
     (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry — ${firm.name}`)}` : null) ||
     (firm.phone ? `tel:${firm.phone}` : null)
 
@@ -171,7 +201,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const jsonLd = getHiringFirmSchema({
     name: firm.name,
     description: firm.description || `${firm.name} — field services hiring firm`,
-    url: firm.url || `${SITE_URL}/firms/${firm.slug}`,
+    url: websiteHref || `${SITE_URL}/firms/${firm.slug}`,
     logo: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : '',
     telephone: firm.phone || '',
     email: firm.email || '',
@@ -275,20 +305,20 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                   </a>
                 </AuthCTA>
               )}
-              {firm.vendor_page_url && contactHref !== firm.vendor_page_url && (
+              {vendorPageHref && contactHref !== vendorPageHref && (
                 <AuthCTA>
-                  <a href={firm.vendor_page_url} target="_blank" rel="nofollow noopener noreferrer"
+                  <a href={vendorPageHref} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
                     <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
                   </a>
                 </AuthCTA>
               )}
-              {firm.url && (
+              {websiteHref && (
                 <AuthCTA>
-                  <a href={firm.url} target="_blank" rel="nofollow noopener noreferrer"
+                  <a href={websiteHref} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
                     <Globe className="h-3.5 w-3.5" />
-                    {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return firm.url } })()}
+                    {(() => { try { return new URL(websiteHref).hostname.replace('www.', '') } catch { return 'Website' } })()}
                   </a>
                 </AuthCTA>
               )}
@@ -367,10 +397,10 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                       <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" /> {firm.email}
                     </a>
                   )}
-                  {firm.url && (
-                    <a href={firm.url} target="_blank" rel="nofollow noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                  {websiteHref && (
+                    <a href={websiteHref} target="_blank" rel="nofollow noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
                       <Globe className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                      {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return 'Website' } })()}
+                      {(() => { try { return new URL(websiteHref).hostname.replace('www.', '') } catch { return 'Website' } })()}
                     </a>
                   )}
                 </div>
