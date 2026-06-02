@@ -18,7 +18,7 @@ const roles: RoleCard[] = [
     title: 'Mortgage field inspector',
     slug: 'mortgage-field-inspector',
     value: 'Verify occupancy, capture photo sets, and keep lenders informed without surprises.',
-    image: '/mortgage-field-inspector.png',
+    image: '/mortgage-field-inspector.webp',
     alt: 'Mortgage field inspector photographing the exterior of a property',
     gradient: 'from-[#F7F5F2] via-white to-[#E7F1F2]',
   },
@@ -26,7 +26,7 @@ const roles: RoleCard[] = [
     title: 'Insurance loss control surveyor',
     slug: 'insurance-loss-control',
     value: 'Document risk factors, measurements, and mitigations so underwriters can move faster.',
-    image: '/insurance-loss-control.png',
+    image: '/insurance-loss-control.webp',
     alt: 'Insurance loss control surveyor reviewing risks outside a building',
     gradient: 'from-[#F7F5F2] via-white to-[#EDE6FA]',
   },
@@ -34,7 +34,7 @@ const roles: RoleCard[] = [
     title: 'Mobile notary & signing agent',
     slug: 'mobile-notary',
     value: 'Route signings with confidence, track ID requirements, and keep borrowers at ease.',
-    image: '/mobile-notary.png',
+    image: '/mobile-notary.webp',
     alt: 'Mobile notary guiding a borrower through documents at their kitchen table',
     gradient: 'from-[#F7F5F2] via-white to-[#FBEAD6]',
   },
@@ -42,7 +42,7 @@ const roles: RoleCard[] = [
     title: 'Asset preservation / REO specialist',
     slug: 'asset-preservation',
     value: 'Combine before/after sets, vendor contacts, and material lists for REO turnarounds.',
-    image: '/asset-preservation.png',
+    image: '/asset-preservation.webp',
     alt: 'REO specialist inspecting a vacant property interior',
     gradient: 'from-[#F7F5F2] via-white to-[#E8F5E9]',
   },
@@ -50,7 +50,7 @@ const roles: RoleCard[] = [
     title: 'Gig pros adding inspections',
     slug: 'gig-pro-inspector',
     value: 'Blend rides, deliveries, and property checks with light gear and predictable rates.',
-    image: '/gig-pro-inspector.png',
+    image: '/gig-pro-inspector.webp',
     alt: 'Gig worker loading inspection gear into a hatchback',
     gradient: 'from-[#F7F5F2] via-white to-[#E7F1F2]',
   },
@@ -188,7 +188,6 @@ export function RoleCarousel() {
                       fill
                       sizes="(min-width: 1280px) 520px, (min-width: 1024px) 420px, (min-width: 768px) 60vw, 90vw"
                       className="object-cover"
-                      priority={index === 0}
                     />
                   </div>
                 </div>

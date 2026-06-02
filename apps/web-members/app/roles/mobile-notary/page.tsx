@@ -73,7 +73,7 @@ export default function MobileNotaryPage() {
             <div className="space-y-4">
               <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
                 <Image
-                  src="/mobile-notary.png"
+                  src="/mobile-notary.webp"
                   alt="Mobile notary preparing documents and inspection materials"
                   className="h-full w-full object-cover"
                   width={880}

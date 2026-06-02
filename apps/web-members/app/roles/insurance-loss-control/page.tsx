@@ -89,7 +89,7 @@ export default function InsuranceLossControlPage() {
             <div className="space-y-4">
               <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
                 <Image
-                  src="/insurance-loss-control.png"
+                  src="/insurance-loss-control.webp"
                   alt="Insurance loss control inspector reviewing underwriting checklist"
                   className="h-full w-full object-cover"
                   width={880}

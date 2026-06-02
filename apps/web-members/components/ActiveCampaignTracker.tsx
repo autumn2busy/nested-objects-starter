@@ -25,8 +25,24 @@ export function ActiveCampaignTracker() {
     // Identify user to AC when they log in
     useEffect(() => {
         if (isAuthenticated && user?.email && !identifiedRef.current) {
-            identifyVisitor(user.email)
-            identifiedRef.current = true
+            let attempts = 0
+            const maxAttempts = 12
+
+            const identifyWhenReady = () => {
+                attempts += 1
+
+                if (typeof window !== 'undefined' && window.vgo) {
+                    identifyVisitor(user.email!)
+                    identifiedRef.current = true
+                    return
+                }
+
+                if (attempts < maxAttempts) {
+                    window.setTimeout(identifyWhenReady, 500)
+                }
+            }
+
+            identifyWhenReady()
         }
 
         // Reset when user logs out
