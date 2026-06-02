@@ -71,7 +71,7 @@ export default function AssetPreservationPage() {
             </div>
             <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
               <Image
-                src="/asset-preservation.png"
+                src="/asset-preservation.webp"
                 alt="Asset preservation crew coordinating property upkeep"
                 className="h-full w-full object-cover"
                 width={880}

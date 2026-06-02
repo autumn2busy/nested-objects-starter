@@ -82,7 +82,7 @@ export default function MortgageFieldInspectorPage() {
               <div className="space-y-4">
                 <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-brand-sand shadow-sm">
                   <Image
-                    src="/mortgage-field-inspector.png"
+                    src="/mortgage-field-inspector.webp"
                     alt="Mortgage field inspector reviewing property details"
                     className="h-full w-full object-cover"
                     width={880}

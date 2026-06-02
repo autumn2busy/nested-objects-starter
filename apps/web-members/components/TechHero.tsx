@@ -82,7 +82,7 @@ export function TechHero() {
     }, [prefersReducedMotion])
 
     return (
-        <section className="relative w-full min-h-[90vh] bg-slate-950 overflow-hidden flex flex-col pt-20">
+        <section className="relative flex min-h-[calc(100svh-10rem)] w-full flex-col overflow-hidden bg-slate-950 pt-8 sm:min-h-[90vh] sm:pt-20">
 
             {/* 1. Background Grid & Map Layer */}
             <div className="absolute inset-0 z-0">
@@ -105,24 +105,24 @@ export function TechHero() {
             </div>
 
             {/* 2. Foreground Content */}
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col justify-center items-center text-center">
+            <div className="relative z-10 container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-8 text-center sm:px-6 sm:py-0 lg:px-8">
 
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-8 backdrop-blur-md animate-fade-in-up motion-reduce:animate-none">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[0.65rem] font-mono text-emerald-400 backdrop-blur-md animate-fade-in-up motion-reduce:animate-none sm:mb-8 sm:text-xs">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    VERIFIED FIRMS: LIVE DIRECTORY SIGNAL
+                    VERIFIED FIRMS: LIVE DIRECTORY
                 </div>
 
                 {/* Headline */}
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-white mb-6 max-w-4xl mx-auto drop-shadow-2xl">
+                <h1 className="mx-auto mb-4 max-w-4xl text-4xl font-bold tracking-tighter text-white drop-shadow-2xl sm:mb-6 sm:text-6xl md:text-7xl">
                     See Who Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Hiring Now</span> in <br className="hidden md:block" /> Your Area.
                 </h1>
 
                 {/* Subhead */}
-                <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                <p className="mx-auto mb-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:mb-10 sm:text-xl">
                     Compare hiring firms, pay clues, route expectations, and starter tools before you spend hours applying to portals that may not fit your lane.
                 </p>
 
@@ -140,7 +140,7 @@ export function TechHero() {
 
                     <Link
                         href="/hiring-firms"
-                        className="w-full sm:w-auto px-8 py-4 rounded-lg border border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-white font-medium text-lg backdrop-blur-sm transition-all flex items-center justify-center gap-2"
+                        className="hidden w-full items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all hover:bg-slate-800 sm:flex sm:w-auto"
                     >
                         <Activity className="w-5 h-5 text-emerald-400" />
                         View Live Directory

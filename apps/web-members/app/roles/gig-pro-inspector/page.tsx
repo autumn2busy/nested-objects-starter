@@ -91,7 +91,7 @@ export default function GigProInspectorPage() {
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <Image
-                src="/gig-pro-inspector.png"
+                src="/gig-pro-inspector.webp"
                 alt="Gig pro inspector preparing for the next route"
                 className="h-full w-full object-cover"
                 width={880}
