@@ -1,10 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { HeroMap } from './HeroMap'
 // Icons
 import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
+
+const HeroMap = dynamic(() => import('./HeroMap').then((mod) => mod.HeroMap), {
+    ssr: false,
+    loading: () => <MapPlaceholder />,
+})
 
 // Dummy data for the ticker - in real app, fetch this from Supabase
 const TICKER_ITEMS = [
@@ -34,9 +39,37 @@ function useReducedMotion() {
     return matches
 }
 
+function useDesktopViewport() {
+    const [matches, setMatches] = useState(false)
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(min-width: 768px)')
+        setMatches(mediaQuery.matches)
+
+        const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches)
+        mediaQuery.addEventListener('change', handleChange)
+        return () => mediaQuery.removeEventListener('change', handleChange)
+    }, [])
+
+    return matches
+}
+
+function MapPlaceholder() {
+    return (
+        <div className="absolute inset-0 opacity-40">
+            <div className="absolute left-[12%] top-[22%] h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_22px_rgba(52,211,153,0.8)]" />
+            <div className="absolute left-[38%] top-[44%] h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_22px_rgba(103,232,249,0.7)]" />
+            <div className="absolute right-[18%] top-[30%] h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_22px_rgba(52,211,153,0.8)]" />
+            <div className="absolute bottom-[24%] left-[28%] h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_22px_rgba(103,232,249,0.7)]" />
+            <div className="absolute bottom-[18%] right-[30%] h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_22px_rgba(52,211,153,0.8)]" />
+        </div>
+    )
+}
+
 export function TechHero() {
     const [tickerIndex, setTickerIndex] = useState(0)
     const prefersReducedMotion = useReducedMotion()
+    const isDesktopViewport = useDesktopViewport()
 
     // Cycle ticker text only if motion is NOT reduced
     useEffect(() => {
@@ -64,7 +97,7 @@ export function TechHero() {
 
                 {/* The D3 Map */}
                 <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0 motion-reduce:transform-none">
-                    <HeroMap />
+                    {isDesktopViewport ? <HeroMap /> : <MapPlaceholder />}
                 </div>
 
                 {/* Radial Gradient Vignette (Lighter) */}
@@ -80,7 +113,7 @@ export function TechHero() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    SYSTEM OPERATIONAL: LIVE DATA FEED
+                    VERIFIED FIRMS: LIVE DIRECTORY SIGNAL
                 </div>
 
                 {/* Headline */}
@@ -90,8 +123,7 @@ export function TechHero() {
 
                 {/* Subhead */}
                 <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-                    The interactive map below isn&apos;t just data—it&apos;s opportunity.
-                    Filter by <strong>pay rate</strong>, <strong>volume</strong>, and <strong>requirements</strong> to find the field service firms actively recruiting in your zip code.
+                    Compare hiring firms, pay clues, route expectations, and starter tools before you spend hours applying to portals that may not fit your lane.
                 </p>
 
                 {/* CTA Buttons */}
@@ -101,7 +133,7 @@ export function TechHero() {
                             href="/membership-pricing"
                             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] sm:w-auto"
                         >
-                            Start Searching Free <ArrowRight className="w-5 h-5" />
+                            Start free <ArrowRight className="w-5 h-5" />
                         </Link>
                         <p className="text-xs font-medium text-text-muted">No credit card required</p>
                     </div>
@@ -121,7 +153,7 @@ export function TechHero() {
             <div className="relative z-20 w-full bg-slate-900/80 border-t border-slate-800 backdrop-blur-md h-12 flex items-center overflow-hidden">
                 <div className="container mx-auto px-4 flex items-center gap-6 text-xs sm:text-sm font-mono text-emerald-500/80">
                     <span className="font-bold text-emerald-500 shrink-0 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4" /> VERIFIED FEED
+                        <ShieldCheck className="w-4 h-4" /> VERIFIED SIGNAL
                     </span>
                     <div className="h-4 w-px bg-slate-700 shrink-0" />
 

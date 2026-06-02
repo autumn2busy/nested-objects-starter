@@ -1,6 +1,4 @@
-'use client'
-
-import { Star, Quote, MessageCircle, Mail, Youtube, StarHalf } from 'lucide-react'
+import { Star, Quote, MessageCircle, Mail, Youtube } from 'lucide-react'
 import {
   type Testimonial,
   getFeaturedTestimonials,

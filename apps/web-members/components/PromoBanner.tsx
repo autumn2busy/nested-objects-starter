@@ -31,9 +31,8 @@ function getTimeLeft() {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-    return { days, hours, minutes, seconds }
+    return { days, hours, minutes }
 }
 
 export function PromoBanner() {
@@ -47,7 +46,7 @@ export function PromoBanner() {
                 clearInterval(interval)
             }
             setTimeLeft(remaining)
-        }, 1000)
+        }, 60_000)
 
         return () => clearInterval(interval)
     }, [])
@@ -91,7 +90,7 @@ export function PromoBanner() {
             </button>
 
             <div className="mx-auto flex min-h-[8.5rem] max-w-5xl items-center px-4 py-4 sm:min-h-[5.5rem] sm:px-6 sm:py-3">
-                <div className="grid w-full items-center gap-3 sm:grid-cols-[minmax(0,1fr)_13rem_10.5rem] sm:gap-4">
+                <div className="grid w-full items-center gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_10.5rem] sm:gap-4">
                     {/* Left: Message */}
                     <div className="min-w-0 text-center sm:text-left">
                         <p className="text-xs font-semibold uppercase tracking-wider text-amber-400 sm:text-sm">
@@ -108,7 +107,7 @@ export function PromoBanner() {
                     </div>
 
                     {/* Center: Countdown */}
-                    <div className="mx-auto grid w-52 grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center text-center sm:w-full" aria-label="Time remaining">
+                    <div className="mx-auto grid w-40 grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center sm:w-full" aria-label="Time remaining">
                         <div className="flex w-10 flex-col justify-self-center">
                             <span className="text-xl font-bold tabular-nums text-white">{timeLeft.days}</span>
                             <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">days</span>
@@ -122,11 +121,6 @@ export function PromoBanner() {
                         <div className="flex w-10 flex-col justify-self-center">
                             <span className="text-xl font-bold tabular-nums text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
                             <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">min</span>
-                        </div>
-                        <span className="text-lg font-light text-slate-500">:</span>
-                        <div className="flex w-10 flex-col justify-self-center">
-                            <span className="text-xl font-bold tabular-nums text-white">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">sec</span>
                         </div>
                     </div>
 
