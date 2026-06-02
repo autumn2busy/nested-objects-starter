@@ -105,22 +105,16 @@ export function ToolsView() {
                                 </p>
                             </div>
                             <div className="relative z-10 mt-auto">
-                                {!isAuthenticated ? (
-                                    <span className="text-sm font-semibold text-brand-copper opacity-90">
-                                        Log in to access
-                                    </span>
-                                ) : (
-                                    <Link
-                                        href={tool.href}
-                                        className={buttonVariants({
-                                            variant: 'link',
-                                            size: 'sm',
-                                            className: 'text-sm font-semibold px-0',
-                                        })}
-                                    >
-                                        {tool.cta}
-                                    </Link>
-                                )}
+                                <Link
+                                    href={tool.href}
+                                    className={buttonVariants({
+                                        variant: 'link',
+                                        size: 'sm',
+                                        className: 'text-sm font-semibold px-0',
+                                    })}
+                                >
+                                    {isAuthenticated ? tool.cta : 'Log in to access'}
+                                </Link>
                             </div>
                         </Card>
                     ))}

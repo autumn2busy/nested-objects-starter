@@ -6,7 +6,7 @@ import {
 import { generatePageMetadata } from '@/lib/seo'
 
 export const metadata: Metadata = generatePageMetadata({
-    title: 'Field Inspection vs Home Inspection | Nested Objects',
+    title: 'Field Inspection vs Home Inspection',
     description: 'Learn the massive differences between Field Inspections vs Home Inspections. Licensing, costs, liability, and pay broken down.',
     path: '/guides/field-inspection-vs-home-inspection',
 })

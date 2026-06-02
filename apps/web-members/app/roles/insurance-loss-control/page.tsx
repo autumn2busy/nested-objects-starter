@@ -54,7 +54,7 @@ const faqs = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Insurance loss control | Nested Objects',
+  title: 'Insurance loss control',
   description: 'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
 }
 

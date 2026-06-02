@@ -9,7 +9,7 @@ type WelcomePageProps = {
 }
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Welcome to Nested Objects',
+  title: 'Welcome',
   description: 'Activate your Nested Objects member account and start finding field inspection work near you.',
   path: '/welcome',
 })

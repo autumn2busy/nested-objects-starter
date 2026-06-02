@@ -59,7 +59,7 @@ const legalNotes = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Nested Objects member obligations',
+  title: 'Terms & Conditions',
   description:
     'Terms and conditions for using Nested Objects, including membership rules, strict no resale or copy obligations, and compliance-aligned usage.',
   alternates: {
@@ -68,13 +68,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: 'https://members.nestedobjects.com/terms-conditions',
-    title: 'Terms & Conditions | Nested Objects member obligations',
+    title: 'Terms & Conditions',
     description:
       'Membership, billing, and digital goods terms for Nested Objects with no resale, no copying, and compliance-first guidelines.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Terms & Conditions | Nested Objects member obligations',
+    title: 'Terms & Conditions',
     description:
       'Usage rules for Nested Objects members covering billing, acceptable use, and protections against resale or copying of content.',
   },

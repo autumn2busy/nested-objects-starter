@@ -35,15 +35,6 @@ const SOFTWARE_APPLICATION_OFFERS = [
     { name: 'Agency', planUid: PLAN_UIDS.AGENCY, price: '297' },
 ] as const
 
-function getMonthlyPriceSpecification(price: string) {
-    return {
-        '@type': 'UnitPriceSpecification',
-        price,
-        priceCurrency: 'USD',
-        billingDuration: 'P1M',
-    }
-}
-
 /**
  * Organization Schema (JSON-LD)
  * Include this in layout.tsx for site-wide presence
@@ -145,9 +136,7 @@ export function getSoftwareApplicationSchema(reviewData?: {
             name: plan.name,
             price: plan.price,
             priceCurrency: 'USD',
-            ...(plan.price !== '0' && {
-                priceSpecification: getMonthlyPriceSpecification(plan.price),
-            }),
+            url: `${SITE_URL}/membership-pricing`,
         })),
     }
 }
@@ -372,6 +361,17 @@ export function getCanonicalUrl(path: string): string {
     return `${SITE_URL}${cleanPath}`
 }
 
+export function normalizeMetadataTitle(title: string): string {
+    return title
+        .replace(/\s+(?:-|–|—|â€”)\s+Hiring Profile & Pay/gi, ' Hiring Profile')
+        .replace(/\s*\|\s*Nested Objects(?:\s+roles)?/gi, '')
+        .replace(/\s+at\s+Nested Objects/gi, '')
+        .replace(/\s+for\s+Nested Objects/gi, '')
+        .replace(/\s+Nested Objects\s+membership/gi, ' membership')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+}
+
 /**
  * Default metadata generator for pages
  */
@@ -392,9 +392,10 @@ export function generatePageMetadata({
 }) {
     const canonicalUrl = getCanonicalUrl(path)
     const socialImage = image || ogImage || DEFAULT_OG_IMAGE
+    const cleanTitle = normalizeMetadataTitle(title)
 
     return {
-        title,
+        title: cleanTitle,
         description,
         alternates: {
             canonical: canonicalUrl,
@@ -402,7 +403,7 @@ export function generatePageMetadata({
         openGraph: {
             type,
             url: canonicalUrl,
-            title,
+            title: cleanTitle,
             description,
             siteName: SITE_NAME,
             images: [
@@ -410,13 +411,13 @@ export function generatePageMetadata({
                     url: socialImage,
                     width: 1200,
                     height: 630,
-                    alt: title,
+                    alt: cleanTitle,
                 },
             ],
         },
         twitter: {
             card: 'summary_large_image' as const,
-            title,
+            title: cleanTitle,
             description,
             images: [socialImage],
         },

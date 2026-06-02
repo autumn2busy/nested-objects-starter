@@ -42,7 +42,7 @@ const processSteps = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Refund Policy | Non-refundable digital goods at Nested Objects',
+  title: 'Refund Policy',
   description:
     'Review the refund policy for Nested Objects. Digital goods and memberships are non-refundable once delivered, with clear guidance for billing questions.',
   alternates: {
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: 'https://members.nestedobjects.com/refund-policy',
-    title: 'Refund Policy | Non-refundable digital goods at Nested Objects',
+    title: 'Refund Policy',
     description:
       'No refunds on digital goods or memberships once delivered. Learn how to handle billing errors, cancellations, and chargebacks.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Refund Policy | Non-refundable digital goods at Nested Objects',
+    title: 'Refund Policy',
     description:
       'Understand the non-refundable policy for Nested Objects digital goods and the steps to resolve billing issues.',
   },

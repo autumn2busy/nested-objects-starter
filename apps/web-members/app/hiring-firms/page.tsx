@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { DirectoryView } from './DirectoryView'
 import type { Firm } from './DirectoryView'
 import { generatePageMetadata } from '@/lib/seo'
 import { US_STATES } from './constants'
+import { ALL_STATE_SLUGS, STATE_MAP } from './state-data'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
@@ -37,10 +39,25 @@ type FirmResponse = {
   totalCount: number
 }
 
+type FirmIndexEntry = {
+  slug: string
+  name: string
+  industry_focus: string | null
+}
+
+type StateIndexEntry = {
+  slug: string
+  label: string
+}
+
 function parsePositiveInt(value: string | undefined, fallback: number) {
   if (!value) return fallback
   const parsed = Number.parseInt(value, 10)
   return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed
+}
+
+function isPublicFirmSlug(slug: string | null): slug is string {
+  return Boolean(slug && /^[a-z0-9-]+$/.test(slug))
 }
 
 function sanitizeFilterValue(value: string) {
@@ -234,6 +251,114 @@ async function getFirms(
   }
 }
 
+async function getFirmIndex(): Promise<FirmIndexEntry[]> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return []
+
+  try {
+    const params = new URLSearchParams()
+    params.set('select', 'slug,name,industry_focus')
+    params.set('is_published', 'eq.true')
+    params.set('order', 'name.asc')
+    params.set('limit', '1000')
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/firms?${params.toString()}`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      next: { tags: ['firms'] },
+    })
+
+    if (!res.ok) throw new Error('Failed to fetch firm index')
+    const rows = (await res.json()) as {
+      slug: string | null
+      name: string | null
+      industry_focus: string | null
+    }[]
+
+    return rows
+      .filter((firm): firm is FirmIndexEntry => isPublicFirmSlug(firm.slug) && Boolean(firm.name))
+      .map((firm) => ({
+        slug: firm.slug,
+        name: firm.name,
+        industry_focus: firm.industry_focus,
+      }))
+  } catch (error) {
+    console.error('Error fetching firm index', error)
+    return []
+  }
+}
+
+function getStateIndex(): StateIndexEntry[] {
+  return ALL_STATE_SLUGS
+    .map((slug) => STATE_MAP[slug])
+    .filter(Boolean)
+    .map((state) => ({ slug: state.slug, label: state.label }))
+}
+
+function DirectoryCrawlIndex({
+  firms,
+  states,
+}: {
+  firms: FirmIndexEntry[]
+  states: StateIndexEntry[]
+}) {
+  return (
+    <section className="border-t border-slate-200 bg-white px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-screen-xl">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Firm index
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">
+              Browse published hiring profiles
+            </h2>
+            <div className="mt-5 grid gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+              {firms.map((firm) => (
+                <Link
+                  key={firm.slug}
+                  href={`/firms/${firm.slug}`}
+                  className="group border-b border-slate-100 py-2 text-sm"
+                >
+                  <span className="font-semibold text-slate-800 group-hover:text-brand">
+                    {firm.name}
+                  </span>
+                  {firm.industry_focus && (
+                    <span className="block truncate text-xs text-slate-500">
+                      {firm.industry_focus}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              State index
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">
+              Browse by service area
+            </h2>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              {states.map((state) => (
+                <Link
+                  key={state.slug}
+                  href={`/hiring-firms/${state.slug}`}
+                  className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand"
+                >
+                  {state.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 type DirectoryPageProps = {
   searchParams: Promise<{
     page?: string
@@ -259,7 +384,11 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const source = params?.source ?? 'ALL'
   const pay = params?.pay ?? 'ALL'
   const sort = params?.sort ?? 'rating_desc'
-  const { firms, totalCount } = await getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort)
+  const [{ firms, totalCount }, firmIndex] = await Promise.all([
+    getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort),
+    getFirmIndex(),
+  ])
+  const stateIndex = getStateIndex()
 
   return (
     <>
@@ -273,6 +402,7 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         page={page}
         limit={limit}
       />
+      <DirectoryCrawlIndex firms={firmIndex} states={stateIndex} />
     </>
   )
 }

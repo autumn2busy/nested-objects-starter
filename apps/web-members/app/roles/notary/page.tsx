@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { RolePageLayout } from '@/components/RolePageLayout'
 
 export const metadata: Metadata = {
-  title: 'Notary Field Inspections | Nested Objects',
+  title: 'Notary Field Inspections',
   description:
     'Turn your notary routes into field inspection runs. Find firms hiring mobile notaries for occupancy verification, door knocks, and BPOs.',
 }

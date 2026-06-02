@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { WelcomeBackView } from './WelcomeBackView'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Welcome Back — Claim Your New Account | Nested Objects',
+  title: 'Welcome Back - Claim Your New Account',
   description:
     'Your Nested Objects membership just got a massive upgrade. Claim your Founding Member account on the new platform — same price, way more tools.',
   path: '/welcome-back',

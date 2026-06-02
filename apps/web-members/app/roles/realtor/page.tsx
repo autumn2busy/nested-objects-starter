@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { RolePageLayout } from '@/components/RolePageLayout'
 
 export const metadata: Metadata = {
-  title: 'Real Estate Agent BPOs & Inspections | Nested Objects',
+  title: 'Real Estate Agent BPOs & Inspections',
   description:
     'Monetize your market expertise between closings. Find firms hiring realtors for Broker Price Opinions (BPOs) and property condition reports.',
 }

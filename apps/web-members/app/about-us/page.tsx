@@ -76,7 +76,7 @@ const faqItems = [
 ]
 
 export const metadata: Metadata = {
-  title: 'About Nested Objects | AI support for property inspectors and coordinators',
+  title: 'About the Inspector Support Hub',
   description:
     'Learn how Nested Objects equips home and property inspectors with AI-powered intel, routing support, and conversion-ready resources modeled after leading industry associations.',
   alternates: {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: 'https://members.nestedobjects.com/about-us',
-    title: 'About Nested Objects | AI support for property inspectors and coordinators',
+    title: 'About the Inspector Support Hub',
     description:
       'The Nested Objects story, mission, and team behind AI-driven intel for inspectors, coordinators, and property pros.',
     images: [
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Nested Objects | AI support for property inspectors and coordinators',
+    title: 'About the Inspector Support Hub',
     description:
       'See how Nested Objects blends field-tested operations with AI to help inspectors and coordinators win more work.',
   },

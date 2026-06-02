@@ -12,14 +12,13 @@ interface FirmLogoProps {
 }
 
 /**
- * FirmLogo component with multiple fallback strategies:
+ * FirmLogo component with conservative crawler-friendly fallbacks:
  * 1. Try the provided logo_url
- * 2. Fall back to Clearbit Logo API (using website domain)
- * 3. Fall back to initials-based placeholder
+ * 2. Fall back to initials-based placeholder
  */
-export function FirmLogo({ name, logoUrl, websiteUrl, size = 'md', className = '' }: FirmLogoProps) {
+export function FirmLogo({ name, logoUrl, size = 'md', className = '' }: FirmLogoProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(null)
-  const [fallbackLevel, setFallbackLevel] = useState(0) // 0 = original, 1 = clearbit, 2 = initials
+  const [fallbackLevel, setFallbackLevel] = useState(0) // 0 = original, 1 = initials
   const [isLoading, setIsLoading] = useState(true)
 
   const sizeClasses = {
@@ -34,26 +33,11 @@ export function FirmLogo({ name, logoUrl, websiteUrl, size = 'md', className = '
     lg: 64,
   }
 
-  // Extract domain from URL for Clearbit fallback
-  const getDomain = (url: string | null): string | null => {
-    if (!url) return null
-    try {
-      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`)
-      return parsed.hostname.replace('www.', '')
-    } catch {
-      return null
-    }
-  }
-
-  // Check if URL is a valid image URL (not a Wix URL or other invalid format)
+  // Keep public crawls focused on first-party assets. External firm logos often
+  // block crawlers or return transient 4xx statuses.
   const isValidImageUrl = (url: string | null): boolean => {
     if (!url) return false
-    // Skip Wix image URLs
-    if (url.startsWith('wix:image://')) return false
-    // Skip data URLs that are too short (likely broken)
-    if (url.startsWith('data:') && url.length < 100) return false
-    // Must start with http or be a relative path
-    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')
+    return url.startsWith('/')
   }
 
   // Generate initials from company name
@@ -100,39 +84,16 @@ export function FirmLogo({ name, logoUrl, websiteUrl, size = 'md', className = '
     if (isValidImageUrl(logoUrl)) {
       setImgSrc(logoUrl)
     } else {
-      // Skip to Clearbit if original URL is invalid
-      const domain = getDomain(websiteUrl)
-      if (domain) {
-        setImgSrc(`https://logo.clearbit.com/${domain}`)
-        setFallbackLevel(1)
-      } else {
-        // No valid URL or domain, go straight to initials
-        setImgSrc(null)
-        setFallbackLevel(2)
-        setIsLoading(false)
-      }
-    }
-  }, [logoUrl, websiteUrl])
-
-  const handleImageError = () => {
-    if (fallbackLevel === 0) {
-      // Original failed, try Clearbit
-      const domain = getDomain(websiteUrl)
-      if (domain) {
-        setImgSrc(`https://logo.clearbit.com/${domain}`)
-        setFallbackLevel(1)
-      } else {
-        // No domain, go to initials
-        setImgSrc(null)
-        setFallbackLevel(2)
-        setIsLoading(false)
-      }
-    } else if (fallbackLevel === 1) {
-      // Clearbit failed, go to initials
       setImgSrc(null)
-      setFallbackLevel(2)
+      setFallbackLevel(1)
       setIsLoading(false)
     }
+  }, [logoUrl])
+
+  const handleImageError = () => {
+    setImgSrc(null)
+    setFallbackLevel(1)
+    setIsLoading(false)
   }
 
   const handleImageLoad = () => {
@@ -143,7 +104,7 @@ export function FirmLogo({ name, logoUrl, websiteUrl, size = 'md', className = '
   const bgColor = getColorFromName(name)
 
   // Render initials placeholder
-  if (fallbackLevel === 2 || !imgSrc) {
+  if (fallbackLevel === 1 || !imgSrc) {
     return (
       <div
         className={`
@@ -195,7 +156,6 @@ export function FirmLogo({ name, logoUrl, websiteUrl, size = 'md', className = '
 export function FirmLogoSimple({ 
   name, 
   logoUrl, 
-  websiteUrl,
   size = 'md',
   className = '' 
 }: FirmLogoProps) {
@@ -229,18 +189,7 @@ export function FirmLogoSimple({
 
   const isValidUrl = (url: string | null): boolean => {
     if (!url) return false
-    if (url.startsWith('wix:image://')) return false
-    return url.startsWith('http://') || url.startsWith('https://')
-  }
-
-  const getDomain = (url: string | null): string | null => {
-    if (!url) return null
-    try {
-      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`)
-      return parsed.hostname.replace('www.', '')
-    } catch {
-      return null
-    }
+    return url.startsWith('/')
   }
 
   // Determine which URL to use
@@ -248,11 +197,6 @@ export function FirmLogoSimple({
   if (!hasError) {
     if (isValidUrl(logoUrl)) {
       imgUrl = logoUrl
-    } else {
-      const domain = getDomain(websiteUrl)
-      if (domain) {
-        imgUrl = `https://logo.clearbit.com/${domain}`
-      }
     }
   }
 

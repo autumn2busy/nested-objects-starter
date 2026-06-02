@@ -24,7 +24,7 @@ const checklist = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Mobile notary | Nested Objects',
+  title: 'Mobile notary',
   description: 'Role page for mobile notaries with hero bullets, scenarios, social proof, checklist, and CTA.',
 }
 

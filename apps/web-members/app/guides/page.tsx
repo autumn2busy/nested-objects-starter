@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo'
 import { ArrowRight, BookOpen, Clock } from 'lucide-react'
 
 export const metadata: Metadata = generatePageMetadata({
-    title: 'Field Inspector Guides & Resources | Nested Objects',
+    title: 'Field Inspector Guides & Resources',
     description: 'Read our ultimate guides to building a six-figure independent route as a field inspector, property preservation contractor, or mobile notary.',
     path: '/guides',
 })

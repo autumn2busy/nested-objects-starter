@@ -36,7 +36,7 @@ const playbook = [
 ]
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Mortgage Field Inspector Roles | Nested Objects',
+  title: 'Mortgage Field Inspector Roles',
   description: 'Deliver lender-ready property inspections with our field guide. Includes checklist for insurance photos, occupancy checks, and rush orders.',
   path: '/roles/mortgage-field-inspector',
 })

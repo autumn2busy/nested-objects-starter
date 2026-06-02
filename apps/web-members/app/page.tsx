@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
-import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { TestimonialsSection, TestimonialStrip } from '@/components/TestimonialsSection'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 const aggregateRatingLd = {
@@ -96,6 +96,21 @@ export default function HomePage() {
       <main className="min-h-screen bg-brand-background text-brand-text">
         {/* TECH HERO (Control Center) */}
         <TechHero />
+
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-5 sm:px-6 md:flex-row lg:px-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
+                Verified review signal
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Real member reviews from Google, YouTube, email, and in-app messages.
+              </p>
+            </div>
+            <TestimonialStrip />
+          </div>
+        </section>
+
         {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
         <section className="relative border-b border-slate-200 overflow-hidden">
           {/* background image sits directly under the section. spans full width */}
