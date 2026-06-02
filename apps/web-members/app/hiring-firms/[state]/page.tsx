@@ -241,29 +241,29 @@ export default async function StateLandingPage({
                         ]}
                     />
 
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-copper/10 text-brand-copper">
-                            <MapPin className="h-7 w-7" />
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-copper/10 text-brand-copper sm:h-14 sm:w-14">
+                            <MapPin className="h-6 w-6 sm:h-7 sm:w-7" />
                         </div>
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
                                 Field Inspector & Notary Firms Hiring in {stateInfo.label}
                             </h1>
                             <p className="max-w-3xl text-base text-slate-600">
                                 Find field inspection, mobile notary, appraisal support, and property preservation firms serving {stateInfo.label}.
                                 Compare service areas, pay clues, contractor reviews, and application next steps before you spend time on vendor portals.
                             </p>
-                            <div className="flex flex-wrap gap-3 pt-2">
+                            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
                                 <Link
                                     href={`/hiring-firms?state=${stateInfo.code}`}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto sm:py-2.5"
                                 >
                                     <Users className="h-4 w-4" />
                                     View full directory for {stateInfo.label}
                                 </Link>
                                 <Link
                                     href="/membership-pricing"
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto sm:py-2.5"
                                 >
                                     See membership plans
                                 </Link>
@@ -289,7 +289,7 @@ export default async function StateLandingPage({
                     </div>
                     <div className="mt-7 grid gap-4 md:grid-cols-2">
                         {quickAnswers.map((answer) => (
-                            <article key={answer.title} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                            <article key={answer.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5">
                                 <div className="flex items-start gap-3">
                                     <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
                                     <div>
@@ -327,7 +327,7 @@ export default async function StateLandingPage({
                             </p>
                             <Link
                                 href="/hiring-firms"
-                                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white"
+                                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white sm:w-auto sm:py-2.5"
                             >
                                 Browse all firms <ArrowRight className="h-4 w-4" />
                             </Link>
@@ -344,7 +344,7 @@ export default async function StateLandingPage({
                         <div className="mt-8 text-center">
                             <Link
                                 href={`/hiring-firms?state=${stateInfo.code}`}
-                                className="inline-flex items-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                             >
                                 See all {firms.length} firms in {stateInfo.label} <ArrowRight className="h-4 w-4" />
                             </Link>
@@ -375,7 +375,7 @@ export default async function StateLandingPage({
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-copper/10 text-brand-copper">
                                 <Search className="h-5 w-5" aria-hidden />
@@ -407,22 +407,22 @@ export default async function StateLandingPage({
                         Join Nested Objects for firm profiles, pay clues, route-fit notes, AI tools, and training resources.
                         Start free, then upgrade when you are ready to compare firms more seriously.
                     </p>
-                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
                         <Link
                             href="/membership-pricing"
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                            className="inline-flex w-full items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                         >
                             Start the 7-day Pro trial
                         </Link>
                         <Link
                             href={`/hiring-firms?state=${stateInfo.code}`}
-                            className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                            className="inline-flex w-full items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
                         >
                             Filter firms in {stateInfo.label}
                         </Link>
                         <Link
                             href="/contact-us"
-                            className="inline-flex items-center justify-center rounded-lg border border-white/20 px-6 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                            className="inline-flex w-full items-center justify-center rounded-lg border border-white/20 px-6 py-3 text-center text-sm font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto"
                         >
                             Talk with our team
                         </Link>
