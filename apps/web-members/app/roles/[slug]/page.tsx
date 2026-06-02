@@ -65,16 +65,16 @@ export function generateMetadata({
 
   if (!role) {
     return {
-      title: 'Role not found | Nested Objects',
+      title: 'Role not found',
       description: 'The role you are looking for does not exist.',
     }
   }
 
   return {
-    title: `${role.title} | Nested Objects roles`,
+    title: role.title,
     description: role.valueProp,
     openGraph: {
-      title: `${role.title} | Nested Objects roles`,
+      title: role.title,
       description: role.heroCopy,
       images: [
         {

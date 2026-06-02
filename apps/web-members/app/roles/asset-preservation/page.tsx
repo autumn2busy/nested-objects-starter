@@ -35,7 +35,7 @@ const roles = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Asset preservation | Nested Objects',
+  title: 'Asset preservation',
   description: 'Industrial hero, comparison, pillars, role table, and CTA for asset preservation teams.',
 }
 

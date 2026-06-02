@@ -11,11 +11,6 @@ type FirmRow = {
   updated_at: string | null
 }
 
-type MemberRow = {
-  id: string | null
-  updated_at: string | null
-}
-
 const APP_DIR = path.join(process.cwd(), 'apps', 'web-members', 'app')
 
 function getFileLastModified(relativePath: string): Date {
@@ -45,53 +40,43 @@ const STATIC_ROLE_SLUGS = [
   'realtor',
 ]
 
+function isPublicFirmSlug(slug: string | null): slug is string {
+  return Boolean(slug && /^[a-z0-9-]+$/.test(slug))
+}
+
 async function fetchDynamicSlugs() {
   try {
     const supabase = createServiceRoleClient()
-    const [firmsResult, membersResult] = await Promise.all([
-      supabase.from('firms').select('slug, updated_at').eq('is_published', true),
-      supabase.from('profiles').select('id, updated_at').eq('is_published', true),
-    ])
+    const firmsResult = await supabase
+      .from('firms')
+      .select('slug, updated_at')
+      .eq('is_published', true)
 
     if (firmsResult.error) {
       console.error('Error fetching firm slugs for sitemap', firmsResult.error)
-    }
-    if (membersResult.error) {
-      console.error('Error fetching member IDs for sitemap', membersResult.error)
     }
 
     return {
       firms:
         (firmsResult.data as FirmRow[] | null)?.filter(
-          (firm): firm is { slug: string; updated_at: string | null } => Boolean(firm.slug),
-        ) ?? [],
-      members:
-        (membersResult.data as MemberRow[] | null)?.filter(
-          (member): member is { id: string; updated_at: string | null } => Boolean(member.id),
+          (firm): firm is { slug: string; updated_at: string | null } => isPublicFirmSlug(firm.slug),
         ) ?? [],
       roles: STATIC_ROLE_SLUGS,
     }
   } catch (error) {
     console.error('Error loading dynamic sitemap slugs', error)
-    return { firms: [], members: [], roles: [] }
+    return { firms: [], roles: [] }
   }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { firms, members, roles } = await fetchDynamicSlugs()
+  const { firms, roles } = await fetchDynamicSlugs()
 
   const firmEntries = firms.map((firm) => ({
     url: `${SITE_URL}/firms/${firm.slug}`,
     lastModified: getDbLastModified(firm.updated_at),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
-  }))
-
-  const memberEntries = members.map((member) => ({
-    url: `${SITE_URL}/members/${member.id}`,
-    lastModified: getDbLastModified(member.updated_at),
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
   }))
 
   const roleEntries = roles.map((slug) => ({
@@ -151,6 +136,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${SITE_URL}/tools`,
       lastModified: getFileLastModified('tools/page.tsx'),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/roles`,
+      lastModified: getFileLastModified('roles/page.tsx'),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
@@ -233,7 +224,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // --- Dynamic entries ---
     ...firmEntries,
-    ...memberEntries,
     ...roleEntries,
     ...toolEntries,
     ...stateEntries,

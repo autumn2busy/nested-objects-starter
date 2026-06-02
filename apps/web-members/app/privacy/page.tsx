@@ -60,7 +60,7 @@ const rightsList = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Nested Objects member data and usage',
+  title: 'Privacy Policy',
   description:
     'Understand how Nested Objects collects, uses, and protects member data. No resale or copying of your information and transparent rights requests.',
   alternates: {
@@ -69,13 +69,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'article',
     url: 'https://members.nestedobjects.com/privacy',
-    title: 'Privacy Policy | Nested Objects member data and usage',
+    title: 'Privacy Policy',
     description:
       'Details on data collection, security, retention, and your rights. Nested Objects does not resell or copy member information.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Privacy Policy | Nested Objects member data and usage',
+    title: 'Privacy Policy',
     description:
       'How Nested Objects secures member data, prevents resale or copying, and honors access and deletion rights.',
   },

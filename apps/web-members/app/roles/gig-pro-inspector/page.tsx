@@ -51,7 +51,7 @@ const steps = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Gig pro inspector | Nested Objects',
+  title: 'Gig pro inspector',
   description:
     'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
 }

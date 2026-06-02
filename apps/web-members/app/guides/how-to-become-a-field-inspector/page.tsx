@@ -324,16 +324,16 @@ export default function HowToBecomeFieldInspectorPage() {
                         </p>
                         <div className="grid gap-3 sm:grid-cols-2">
                             {[
-                                { name: 'Safeguard Properties', focus: 'Property Preservation', slug: 'safeguard-properties' },
+                                { name: 'Safeguard Properties', focus: 'Property Preservation', slug: null, href: '/hiring-firms' },
                                 { name: 'National Field Representatives (NFR)', focus: 'Mortgage & Preservation', slug: 'national-field-representatives' },
                                 { name: 'ServiceLink', focus: 'Mortgage Field Services', slug: 'servicelink' },
-                                { name: 'MCS (Mortgage Contracting Services)', focus: 'Property Preservation', slug: 'mcs' },
-                                { name: 'Cyprexx', focus: 'Property Preservation & REO', slug: 'cyprexx' },
+                                { name: 'MCS (Mortgage Contracting Services)', focus: 'Property Preservation', slug: null, href: '/hiring-firms' },
+                                { name: 'Cyprexx', focus: 'Property Preservation & REO', slug: null, href: '/hiring-firms' },
                                 { name: 'GIS Field Services', focus: 'Mortgage Inspections', slug: 'gis-field-services' },
                             ].map((firm) => (
                                 <Link
-                                    key={firm.slug}
-                                    href={`/firms/${firm.slug}`}
+                                    key={firm.slug ?? firm.name}
+                                    href={firm.href ?? `/firms/${firm.slug}`}
                                     className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-brand/30 hover:shadow-sm"
                                 >
                                     <div>

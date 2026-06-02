@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
 
 // ─── Static map via OpenStreetMap (free, no API key) ────────────
@@ -14,9 +13,6 @@ type StaticMapProps = {
 }
 
 function StaticOSMMap({ lat, lng, name, zoom = 12, className = '' }: StaticMapProps) {
-    // Use multiple free tile sources as fallbacks
-    const tileUrl = `https://tile.openstreetmap.org/${zoom}/${lngLatToTile(lng, lat, zoom).x}/${lngLatToTile(lng, lat, zoom).y}.png`
-
     return (
         <div className={`relative overflow-hidden bg-slate-100 ${className}`}>
             {/* Embedded Leaflet-style map via iframe to OpenStreetMap */}
@@ -33,23 +29,13 @@ function StaticOSMMap({ lat, lng, name, zoom = 12, className = '' }: StaticMapPr
             <a
                 href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="nofollow noopener noreferrer"
                 className="absolute bottom-2 right-2 rounded bg-white/90 px-2 py-1 text-[10px] font-medium text-slate-600 shadow-sm transition hover:bg-white hover:text-brand"
             >
                 View larger map ↗
             </a>
         </div>
     )
-}
-
-// Helper to convert lat/lng to tile coordinates (for potential static image use)
-function lngLatToTile(lng: number, lat: number, zoom: number) {
-    const x = Math.floor(((lng + 180) / 360) * Math.pow(2, zoom))
-    const latRad = (lat * Math.PI) / 180
-    const y = Math.floor(
-        ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * Math.pow(2, zoom)
-    )
-    return { x, y }
 }
 
 // ─── Service Area Card (no map, shows coverage info) ────────────
@@ -122,7 +108,7 @@ function ServiceAreaCard({ coverage, address, name, className = '' }: ServiceAre
                 <a
                     href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="nofollow noopener noreferrer"
                     className="mt-3 text-xs text-slate-500 transition hover:text-brand"
                 >
                     📍 {address}
@@ -157,7 +143,12 @@ export function FirmServiceArea({
     address,
     className = '',
 }: FirmServiceAreaProps) {
-    const hasCoordinates = latitude != null && longitude != null
+    const hasCoordinates =
+        latitude != null &&
+        longitude != null &&
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude) &&
+        !(latitude === 0 && longitude === 0)
 
     return (
         <div className={`overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-sm ${className}`}>

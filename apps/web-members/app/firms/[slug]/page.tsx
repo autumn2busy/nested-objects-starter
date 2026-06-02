@@ -116,6 +116,19 @@ const getSimilarFirmsCached = unstable_cache(
   { tags: ['firms'] }
 )
 
+function isTrustedLogoUrl(logoUrl: string | null): logoUrl is string {
+  if (!logoUrl) return false
+  if (logoUrl.startsWith('/')) return true
+
+  try {
+    const parsedLogo = new URL(logoUrl)
+    const parsedSite = new URL(SITE_URL)
+    return parsedLogo.hostname === parsedSite.hostname
+  } catch {
+    return false
+  }
+}
+
 /* ── Metadata ──────────────────────────────────────────── */
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -128,11 +141,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     : `${firm.name} hiring profile — coverage: ${firm.geographic_coverage || 'National'}${pay ? `, pay: ${pay}` : ''}. Requirements, onboarding, and apply info.`
 
   return generatePageMetadata({
-    title: `${firm.name} — Hiring Profile & Pay | Nested Objects`,
+    title: `${firm.name} Hiring Profile`,
     description: desc,
     path: `/firms/${firm.slug}`,
     type: 'profile',
-    image: firm.logo_url || undefined,
+    image: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : undefined,
   })
 }
 
@@ -159,7 +172,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     name: firm.name,
     description: firm.description || `${firm.name} — field services hiring firm`,
     url: firm.url || `${SITE_URL}/firms/${firm.slug}`,
-    logo: firm.logo_url || '',
+    logo: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : '',
     telephone: firm.phone || '',
     email: firm.email || '',
     address: firm.address || '',
@@ -255,7 +268,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                   <a
                     href={contactHref}
                     target={contactHref.startsWith('http') ? '_blank' : undefined}
-                    rel={contactHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    rel={contactHref.startsWith('http') ? 'nofollow noopener noreferrer' : undefined}
                     className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                   >
                     <FileText className="h-4 w-4" /> Apply / Contact
@@ -264,7 +277,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
               )}
               {firm.vendor_page_url && contactHref !== firm.vendor_page_url && (
                 <AuthCTA>
-                  <a href={firm.vendor_page_url} target="_blank" rel="noopener noreferrer"
+                  <a href={firm.vendor_page_url} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
                     <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
                   </a>
@@ -272,7 +285,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
               )}
               {firm.url && (
                 <AuthCTA>
-                  <a href={firm.url} target="_blank" rel="noopener noreferrer"
+                  <a href={firm.url} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
                     <Globe className="h-3.5 w-3.5" />
                     {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return firm.url } })()}
@@ -355,7 +368,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                     </a>
                   )}
                   {firm.url && (
-                    <a href={firm.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
+                    <a href={firm.url} target="_blank" rel="nofollow noopener noreferrer" className="flex items-center gap-2 text-slate-600 transition hover:text-brand">
                       <Globe className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                       {(() => { try { return new URL(firm.url).hostname.replace('www.', '') } catch { return 'Website' } })()}
                     </a>
@@ -410,7 +423,7 @@ function LogoBlock({ name, logoUrl }: { name: string; logoUrl: string | null }) 
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   const hue = Math.abs(hash) % 360
-  const isValid = logoUrl && !logoUrl.startsWith('wix:') && (logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))
+  const isValid = isTrustedLogoUrl(logoUrl)
 
   if (isValid) {
     return (

@@ -43,7 +43,7 @@ const quickLinks = [
 ]
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'FAQs | Policies, billing, and membership at Nested Objects',
+  title: 'FAQs | Policies, billing, and membership',
   description: 'Find answers about memberships, non-refundable digital goods, no resale rules, and privacy practices aligned with member.nestedobjects.com.',
   path: '/faqs'
 });
