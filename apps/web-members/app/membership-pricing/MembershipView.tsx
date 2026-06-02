@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { Ban, Clock, ShieldCheck, Star } from 'lucide-react'
 
 function MembershipContent() {
     const { isAuthenticated, planUid } = useAuth()
@@ -82,10 +83,41 @@ function MembershipContent() {
 
                 {!isAuthenticated && (
                     <p className="mt-4 text-sm text-slate-500">
-                        Create a Free account first. Then upgrade inside the hub whenever you are ready.
+                        Start the Pro plan with a 7-day free trial, or create a Free account and upgrade when you are ready.
                     </p>
                 )}
             </header>
+
+            <section className="mx-auto mt-8 grid max-w-4xl gap-3 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
+                    <Star className="mt-0.5 h-4 w-4 shrink-0 fill-amber-400 text-amber-400" aria-hidden />
+                    <div>
+                        <p className="font-semibold text-slate-900">Verified reviews</p>
+                        <p className="mt-1 text-xs text-slate-600">Real member proof near the decision point.</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                    <div>
+                        <p className="font-semibold text-slate-900">7-day Pro trial</p>
+                        <p className="mt-1 text-xs text-slate-600">Try Pro before your paid membership begins.</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" aria-hidden />
+                    <div>
+                        <p className="font-semibold text-slate-900">Cancel anytime</p>
+                        <p className="mt-1 text-xs text-slate-600">Cancel before renewal from billing settings.</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
+                    <Ban className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+                    <div>
+                        <p className="font-semibold text-slate-900">Digital access</p>
+                        <p className="mt-1 text-xs text-slate-600">Paid digital memberships are non-refundable.</p>
+                    </div>
+                </div>
+            </section>
 
             {/* Plans + sidebar */}
             <section className="mt-10 lg:mt-14">
@@ -191,7 +223,7 @@ function MembershipContent() {
                                             )}
                                             {isPro && (
                                                 <p className="mt-2 text-center text-xs text-brand-copper">
-                                                    Risk-free trial. Cancel anytime.
+                                                    7-day free trial. Cancel before billing.
                                                 </p>
                                             )}
                                         </div>
@@ -237,6 +269,20 @@ function MembershipContent() {
                                 </li>
                             </ol>
                         </div>
+
+                        <div className="border-t border-slate-200 pt-4">
+                            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-900">
+                                Billing clarity
+                            </h2>
+                            <p className="mt-3">
+                                Pro starts with a 7-day free trial. After the trial, paid digital memberships,
+                                firm intel, templates, and AI tools are non-refundable because access is
+                                delivered instantly.
+                            </p>
+                            <p className="mt-2">
+                                You can cancel anytime before renewal from your billing settings.
+                            </p>
+                        </div>
                     </aside>
                 </div>
             </section>
@@ -252,8 +298,19 @@ function MembershipContent() {
                         </h3>
                         <p className="mt-2">
                             Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
-                            Changes take effect immediately and you keep access until the end of your billing
-                            period.
+                            You keep access until the end of your billing period, and Pro includes a 7-day free trial
+                            before paid billing begins.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 className="text-base font-semibold text-slate-900">
+                            Do you offer refunds?
+                        </h3>
+                        <p className="mt-2">
+                            No. Nested Objects is a digital membership, so paid access to firm intel, templates,
+                            and AI tools is non-refundable. Use the 7-day Pro trial to make sure the hub fits
+                            before billing starts.
                         </p>
                     </div>
 
@@ -321,7 +378,7 @@ function MembershipContent() {
                 )}
 
                 <p className="mt-3 text-xs text-slate-300">
-                    Prefer to ease in? Stay on Free and upgrade from your dashboard any time.
+                    Prefer to ease in? Stay on Free and upgrade from your dashboard any time. Paid digital access is non-refundable.
                 </p>
 
             </section>
