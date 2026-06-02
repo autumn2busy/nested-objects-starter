@@ -61,7 +61,7 @@ const faqItems = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Gig workers | Confident routes with safety and payout clarity',
+  title: 'Gig workers',
   description:
     'Route prep, safety guardrails, and payout expectations for gig workers who handle pickups, deliveries, and field support.',
   openGraph: {

@@ -94,7 +94,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     'weather',
     'routing',
     'job-tracker',
-    'job-tracking',
     'clients',
     'companies',
   ]
