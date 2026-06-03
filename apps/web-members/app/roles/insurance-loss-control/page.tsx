@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const segments = [
   {
@@ -53,34 +55,39 @@ const faqs = [
   },
 ]
 
-export const metadata: Metadata = {
-  title: 'Insurance loss control',
-  description: 'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
-}
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Insurance Loss Control Inspector Guide',
+  description:
+    'Compare insurance loss control inspection work, underwriting survey expectations, carrier-ready photos, pay factors, and firm requirements.',
+  path: '/roles/insurance-loss-control',
+})
 
 export default function InsuranceLossControlPage() {
+  const roleAeo = roleAeoContent['insurance-loss-control']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
+        <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
             <div className="space-y-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Insurance loss control</p>
-              <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Be the inspector underwriting loves.</h1>
+              <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">Be the inspector underwriting loves.</h1>
               <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
                 Pair on-site clarity with underwriting-friendly deliverables so every visit moves from scheduling to submission
                 smoothly.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
                   href="/hiring-firms"
-                  className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                 >
                   View carrier directory
                 </Link>
                 <Link
                   href="/inspector-resource-center"
-                  className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                 >
                   Loss control resources
                 </Link>
@@ -97,7 +104,7 @@ export default function InsuranceLossControlPage() {
                   priority
                 />
               </div>
-              <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-brand-sand p-4 shadow-sm sm:p-6">
                 <p className="text-sm font-semibold text-slate-900">Use cases you can toggle</p>
                 <ul className="mt-4 space-y-3 text-sm text-slate-700">
                   <li className="flex gap-2">
@@ -182,6 +189,8 @@ export default function InsuranceLossControlPage() {
         </div>
       </section>
 
+      <RoleAeoSection content={roleAeo} />
+
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-3">
@@ -189,16 +198,16 @@ export default function InsuranceLossControlPage() {
             <h2 className="text-2xl font-bold sm:text-3xl">Join the loss control toolkit</h2>
             <p className="text-sm text-slate-100">Hero briefs, tabs, and underwriting bullets keep every visit aligned.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/membership-pricing"
-              className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               Start membership
             </Link>
             <Link
               href="/hiring-firms"
-              className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               View directory
             </Link>

@@ -3,6 +3,7 @@ import { generatePageMetadata } from '@/lib/seo'
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const stats = [
   { label: 'Avg. appointment time saved', value: '22 min' },
@@ -42,29 +43,32 @@ export const metadata: Metadata = generatePageMetadata({
 })
 
 export default function MortgageFieldInspectorPage() {
+  const roleAeo = roleAeoContent['mortgage-field-inspector']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
+        <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
               <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Mortgage field inspector</p>
-                <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Consistency lenders expect, built in.</h1>
+                <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">Consistency lenders expect, built in.</h1>
                 <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
                   Deliver lender-ready inspections with stat clarity, expectation guides, and a playbook timeline you can rely on
                   every day.
                 </p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
                     href="/hiring-firms"
-                    className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                    className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                   >
                     See lender directory
                   </Link>
                   <Link
                     href="/inspector-resource-center"
-                    className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                    className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                   >
                     Open mortgage resources
                   </Link>
@@ -90,7 +94,7 @@ export default function MortgageFieldInspectorPage() {
                     priority
                   />
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+                <div className="rounded-lg border border-slate-200 bg-brand-sand p-4 shadow-sm sm:p-6">
                   <p className="text-sm font-semibold text-slate-900">Performance snapshot</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
                     {stats.map((item) => (
@@ -165,7 +169,7 @@ export default function MortgageFieldInspectorPage() {
 
       <section className="bg-brand-sand py-12 sm:py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="max-w-4xl rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Testimonial</p>
             <blockquote className="mt-3 space-y-3">
               <p className="text-xl font-semibold text-slate-900">“Nested Objects took the guesswork out of lender requests.”</p>
@@ -179,6 +183,8 @@ export default function MortgageFieldInspectorPage() {
         </div>
       </section>
 
+      <RoleAeoSection content={roleAeo} />
+
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="space-y-3">
@@ -186,16 +192,16 @@ export default function MortgageFieldInspectorPage() {
             <h2 className="text-2xl font-bold sm:text-3xl">Keep lender relationships strong</h2>
             <p className="text-sm text-slate-100">Join the hub that builds predictability into every mortgage inspection.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/membership-pricing"
-              className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               Start membership
             </Link>
             <Link
               href="/hiring-firms"
-              className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               View directory
             </Link>

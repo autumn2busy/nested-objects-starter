@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { MapPin, ArrowRight, Users, DollarSign, Star } from 'lucide-react'
+import { MapPin, ArrowRight, Users, DollarSign, Star, CheckCircle, Search, ShieldCheck } from 'lucide-react'
 
 import { generatePageMetadata, SITE_URL, getBreadcrumbSchema, getFAQPageSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
@@ -26,8 +26,8 @@ export async function generateMetadata({
     if (!stateInfo) return {}
 
     return generatePageMetadata({
-        title: `${stateInfo.label} Inspection Firms`,
-        description: `Browse verified firms hiring field inspectors, mobile notaries, and appraisal professionals in ${stateInfo.label}. Compare pay rates, coverage areas, and apply directly.`,
+        title: `${stateInfo.label} Field Inspector Firms Hiring`,
+        description: `Find field inspection, mobile notary, appraisal, and property preservation firms hiring in ${stateInfo.label}. Compare service areas, pay clues, reviews, and next steps.`,
         path: `/hiring-firms/${stateSlug}`,
     })
 }
@@ -98,18 +98,95 @@ async function getFirmsByState(stateCode: string, stateLabel: string): Promise<F
 function getStateFAQs(stateLabel: string) {
     return [
         {
-            question: `How many firms are hiring field inspectors in ${stateLabel}?`,
-            answer: `Our directory includes verified firms actively hiring in ${stateLabel}, plus national firms that service all 50 states. New firms are added weekly as we verify their contractor programs.`,
+            question: `Who hires field inspectors in ${stateLabel}?`,
+            answer: `Field inspectors in ${stateLabel} are commonly hired by mortgage field service firms, insurance loss control companies, property preservation vendors, appraisal support companies, and national firms that cover multiple states. Nested Objects lists state-specific and nationwide firms so you can compare options before applying.`,
+        },
+        {
+            question: `What field inspection work is available in ${stateLabel}?`,
+            answer: `Common opportunities include mortgage occupancy checks, exterior and interior photo inspections, insurance loss control surveys, property preservation checks, drive-by valuation support, mobile notary assignments, and other independent contractor field service work.`,
         },
         {
             question: `What does a field inspector earn in ${stateLabel}?`,
-            answer: `Pay varies by firm, assignment type, and experience. Most inspectors in ${stateLabel} earn $25–$75 per inspection for mortgage field work, with commercial and specialty inspections paying $75–$200+. Check individual firm profiles for current rates.`,
+            answer: `Pay varies by firm, assignment type, distance, photo requirements, and experience. Many basic mortgage field inspections are listed as per-order work, while specialty inspections, commercial surveys, and rush assignments may pay more. Always confirm current rates, trip fees, and revision rules before accepting work.`,
         },
         {
             question: `Do I need a license to be a field inspector in ${stateLabel}?`,
-            answer: `Requirements depend on the type of inspection. Mortgage field inspections typically require no state license—just a background check and reliable transportation. Home inspections and notary work may require state-specific certification. Check your state's Department of Professional Regulation for details.`,
+            answer: `Many mortgage field inspection assignments do not require a state field inspector license, but firms may require a background check, insurance, photos, a reliable vehicle, and basic training. Home inspection, appraisal, notary, and insurance-related work may have state-specific licensing or certification rules.`,
+        },
+        {
+            question: `How do I compare firms before applying in ${stateLabel}?`,
+            answer: `Compare the service area, assignment types, pay structure, onboarding requirements, revision policy, contractor reviews, and how often the firm appears to need vendors in your region. A higher rate is not always better if the route is sparse or the revision process is slow.`,
+        },
+        {
+            question: `What does Nested Objects Pro unlock for ${stateLabel} firm research?`,
+            answer: `Pro helps you move beyond a simple list by organizing firm profiles, pay clues, route expectations, application notes, contractor feedback, and AI tools that help you choose which firms fit your schedule and service lanes.`,
         },
     ]
+}
+
+function getQuickAnswers(stateLabel: string) {
+    return [
+        {
+            title: `Best place to start in ${stateLabel}`,
+            body: `Start with firms that explicitly cover ${stateLabel}, then add national firms that list nationwide or all-50-state coverage. This gives you both local and broader contractor options.`,
+        },
+        {
+            title: 'Most common first assignments',
+            body: 'New inspectors often begin with occupancy checks, exterior photos, insurance surveys, property condition reports, and simple route-based assignments before moving into specialty work.',
+        },
+        {
+            title: 'What to verify before applying',
+            body: 'Confirm pay per order, travel expectations, photo requirements, background check steps, insurance requirements, revision rules, and whether the firm has current work in your target counties.',
+        },
+        {
+            title: 'How to use this page',
+            body: `Use the ${stateLabel} list to shortlist firms, then open the full directory to filter by service area, rating, pay clues, and industry focus before you submit applications.`,
+        },
+    ]
+}
+
+function getComparisonChecks(stateLabel: string) {
+    return [
+        `Does the firm list ${stateLabel}, your metro, or nearby counties as an active service area?`,
+        'Are pay ranges, trip fees, or order types clear enough to decide whether the route is worth it?',
+        'Does the firm serve your lane: mortgage field inspections, loss control, notary, appraisal support, or preservation?',
+        'Are onboarding steps realistic for you: background check, equipment, insurance, training, and turnaround time?',
+        'Do contractor notes or reviews suggest consistent communication and fair revision handling?',
+    ]
+}
+
+function getStateCollectionSchema({
+    stateLabel,
+    stateSlug,
+    firms,
+}: {
+    stateLabel: string
+    stateSlug: string
+    firms: FirmPreview[]
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: `${stateLabel} field inspector firms hiring`,
+        url: `${SITE_URL}/hiring-firms/${stateSlug}`,
+        description: `A state directory page for field inspection, mobile notary, appraisal support, and property preservation firms hiring independent contractors in ${stateLabel}.`,
+        about: [
+            'Field inspection jobs',
+            'Mortgage field inspection services',
+            'Insurance loss control inspection',
+            'Mobile notary assignments',
+            'Property preservation vendors',
+        ],
+        mainEntity: {
+            '@type': 'ItemList',
+            itemListElement: firms.slice(0, 12).map((firm, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                url: `${SITE_URL}/firms/${firm.slug ?? firm.id}`,
+                name: firm.name,
+            })),
+        },
+    }
 }
 
 /* ── Page component ──────────────────────────────────── */
@@ -125,7 +202,14 @@ export default async function StateLandingPage({
 
     const firms = await getFirmsByState(stateInfo.code, stateInfo.label)
     const faqs = getStateFAQs(stateInfo.label)
+    const quickAnswers = getQuickAnswers(stateInfo.label)
+    const comparisonChecks = getComparisonChecks(stateInfo.label)
     const faqSchema = getFAQPageSchema(faqs)
+    const collectionSchema = getStateCollectionSchema({
+        stateLabel: stateInfo.label,
+        stateSlug,
+        firms,
+    })
     const breadcrumbSchema = getBreadcrumbSchema([
         { name: 'Home', url: SITE_URL },
         { name: 'Firm Directory', url: `${SITE_URL}/hiring-firms` },
@@ -143,6 +227,7 @@ export default async function StateLandingPage({
         <main className="min-h-screen bg-white text-slate-900">
             {/* JSON-LD */}
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             {/* ═══ Hero ═══ */}
@@ -156,34 +241,64 @@ export default async function StateLandingPage({
                         ]}
                     />
 
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-copper/10 text-brand-copper">
-                            <MapPin className="h-7 w-7" />
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-copper/10 text-brand-copper sm:h-14 sm:w-14">
+                            <MapPin className="h-6 w-6 sm:h-7 sm:w-7" />
                         </div>
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
                                 Field Inspector & Notary Firms Hiring in {stateInfo.label}
                             </h1>
                             <p className="max-w-3xl text-base text-slate-600">
-                                Browse {firms.length > 0 ? firms.length : ''} verified firms hiring field inspectors, mobile notaries,
-                                and appraisal professionals in {stateInfo.label}. Compare pay rates, read contractor reviews, and apply directly.
+                                Find field inspection, mobile notary, appraisal support, and property preservation firms serving {stateInfo.label}.
+                                Compare service areas, pay clues, contractor reviews, and application next steps before you spend time on vendor portals.
                             </p>
-                            <div className="flex flex-wrap gap-3 pt-2">
+                            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
                                 <Link
                                     href={`/hiring-firms?state=${stateInfo.code}`}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto sm:py-2.5"
                                 >
                                     <Users className="h-4 w-4" />
                                     View full directory for {stateInfo.label}
                                 </Link>
                                 <Link
                                     href="/membership-pricing"
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto sm:py-2.5"
                                 >
                                     See membership plans
                                 </Link>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Quick answers */}
+            <section className="border-b border-slate-200 bg-white py-10 sm:py-12">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Quick answers
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            Field inspection opportunities in {stateInfo.label}
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                            Use these answers to understand who hires, what work exists, and what to verify before applying.
+                        </p>
+                    </div>
+                    <div className="mt-7 grid gap-4 md:grid-cols-2">
+                        {quickAnswers.map((answer) => (
+                            <article key={answer.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-900">{answer.title}</h3>
+                                        <p className="mt-2 text-sm leading-6 text-slate-600">{answer.body}</p>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -212,7 +327,7 @@ export default async function StateLandingPage({
                             </p>
                             <Link
                                 href="/hiring-firms"
-                                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white"
+                                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white sm:w-auto sm:py-2.5"
                             >
                                 Browse all firms <ArrowRight className="h-4 w-4" />
                             </Link>
@@ -229,12 +344,56 @@ export default async function StateLandingPage({
                         <div className="mt-8 text-center">
                             <Link
                                 href={`/hiring-firms?state=${stateInfo.code}`}
-                                className="inline-flex items-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                             >
                                 See all {firms.length} firms in {stateInfo.label} <ArrowRight className="h-4 w-4" />
                             </Link>
                         </div>
                     )}
+                </div>
+            </section>
+
+            {/* Compare and qualify */}
+            <section className="border-y border-slate-200 bg-slate-50 py-10 sm:py-14">
+                <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-8">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Compare before applying
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            How to choose a {stateInfo.label} inspection firm
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            The best firm for you is not only the one with the highest listed pay. Route density,
+                            revision process, assignment type, and communication can matter just as much.
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
+                            <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Pay clues</span>
+                            <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Route fit</span>
+                            <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Reviews</span>
+                            <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Onboarding</span>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-copper/10 text-brand-copper">
+                                <Search className="h-5 w-5" aria-hidden />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-slate-900">Five checks before you apply</h3>
+                                <p className="text-xs text-slate-500">Use this checklist on every firm profile.</p>
+                            </div>
+                        </div>
+                        <ul className="mt-5 space-y-3">
+                            {comparisonChecks.map((check) => (
+                                <li key={check} className="flex gap-3 text-sm leading-6 text-slate-700">
+                                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                                    <span>{check}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </section>
 
@@ -245,19 +404,25 @@ export default async function StateLandingPage({
                         Ready to start inspecting in {stateInfo.label}?
                     </h2>
                     <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-300">
-                        Join Nested Objects for full firm profiles, pay intel, AI tools, and training resources.
-                        Start with a free account to preview the directory.
+                        Join Nested Objects for firm profiles, pay clues, route-fit notes, AI tools, and training resources.
+                        Start free, then upgrade when you are ready to compare firms more seriously.
                     </p>
-                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
                         <Link
                             href="/membership-pricing"
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+                            className="inline-flex w-full items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                         >
-                            Join free — explore the directory
+                            Start the 7-day Pro trial
+                        </Link>
+                        <Link
+                            href={`/hiring-firms?state=${stateInfo.code}`}
+                            className="inline-flex w-full items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+                        >
+                            Filter firms in {stateInfo.label}
                         </Link>
                         <Link
                             href="/contact-us"
-                            className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                            className="inline-flex w-full items-center justify-center rounded-lg border border-white/20 px-6 py-3 text-center text-sm font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto"
                         >
                             Talk with our team
                         </Link>
