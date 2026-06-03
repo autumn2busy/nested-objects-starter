@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { PLAN_UIDS } from '@/lib/plan-config'
+import { useAuth } from '@/components/auth-provider'
 
 // ─── SET YOUR PROMO END DATE HERE ───────────────────────────────────
 // Change this to whatever date you want the promo to expire.
@@ -36,6 +37,7 @@ function getTimeLeft() {
 }
 
 export function PromoBanner() {
+    const { isAuthenticated, planUid, isLoading } = useAuth()
     const [timeLeft, setTimeLeft] = useState(getTimeLeft())
     const [dismissed, setDismissed] = useState(false)
 
@@ -51,7 +53,9 @@ export function PromoBanner() {
         return () => clearInterval(interval)
     }, [])
 
-    // Don't render if promo expired or user dismissed
+    // Don't render if auth is loading, promo expired, user dismissed, or if authenticated paid user
+    if (isLoading) return null
+    if (isAuthenticated && planUid && planUid !== PLAN_UIDS.FREE) return null
     if (!timeLeft || dismissed) return null
 
     const handleSignup = () => {
