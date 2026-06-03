@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const segments = [
   {
@@ -53,14 +55,19 @@ const faqs = [
   },
 ]
 
-export const metadata: Metadata = {
-  title: 'Insurance loss control',
-  description: 'Role page for insurance loss control with hero, segments, underwriting bullets, FAQ, and CTA strip.',
-}
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Insurance Loss Control Inspector Guide',
+  description:
+    'Compare insurance loss control inspection work, underwriting survey expectations, carrier-ready photos, pay factors, and firm requirements.',
+  path: '/roles/insurance-loss-control',
+})
 
 export default function InsuranceLossControlPage() {
+  const roleAeo = roleAeoContent['insurance-loss-control']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
@@ -181,6 +188,8 @@ export default function InsuranceLossControlPage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">

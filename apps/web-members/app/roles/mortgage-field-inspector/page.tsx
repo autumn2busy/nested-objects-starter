@@ -3,6 +3,7 @@ import { generatePageMetadata } from '@/lib/seo'
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const stats = [
   { label: 'Avg. appointment time saved', value: '22 min' },
@@ -42,8 +43,11 @@ export const metadata: Metadata = generatePageMetadata({
 })
 
 export default function MortgageFieldInspectorPage() {
+  const roleAeo = roleAeoContent['mortgage-field-inspector']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
@@ -178,6 +182,8 @@ export default function MortgageFieldInspectorPage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">

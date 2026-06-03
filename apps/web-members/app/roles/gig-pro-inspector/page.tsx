@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const timeline = [
   {
@@ -50,15 +52,19 @@ const steps = [
   },
 ]
 
-export const metadata: Metadata = {
-  title: 'Gig pro inspector',
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Gig Pro Inspector Field Work Guide',
   description:
-    'Route-ready playbooks for independent inspectors who switch between lender, insurance, and occupancy checks.',
-}
+    'Compare flexible field inspection work for gig operators, including route density, pay factors, firm requirements, and mobile-first workflows.',
+  path: '/roles/gig-pro-inspector',
+})
 
 export default function GigProInspectorPage() {
+  const roleAeo = roleAeoContent['gig-pro-inspector']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
           <div className="space-y-5">
@@ -201,6 +207,8 @@ export default function GigProInspectorPage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">

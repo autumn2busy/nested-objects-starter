@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const scenarios = [
   {
@@ -23,14 +25,19 @@ const checklist = [
   'Send wrap-up scripts that set expectations on submission and payouts.',
 ]
 
-export const metadata: Metadata = {
-  title: 'Mobile notary',
-  description: 'Role page for mobile notaries with hero bullets, scenarios, social proof, checklist, and CTA.',
-}
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Mobile Notary Field Work Guide',
+  description:
+    'Learn how mobile notaries can compare signing, lender support, and field inspection work with clear requirements, route fit, and firm research.',
+  path: '/roles/mobile-notary',
+})
 
 export default function MobileNotaryPage() {
+  const roleAeo = roleAeoContent['mobile-notary']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
@@ -134,6 +141,8 @@ export default function MobileNotaryPage() {
           </ul>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">

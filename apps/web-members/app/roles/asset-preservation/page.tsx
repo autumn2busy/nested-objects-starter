@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { generatePageMetadata } from '@/lib/seo'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const comparison = [
   {
@@ -34,14 +36,19 @@ const roles = [
   },
 ]
 
-export const metadata: Metadata = {
-  title: 'Asset preservation',
-  description: 'Industrial hero, comparison, pillars, role table, and CTA for asset preservation teams.',
-}
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Asset Preservation Vendor Guide',
+  description:
+    'Learn how asset preservation vendors compare firms, service areas, documentation requirements, reimbursement rules, and route-fit expectations.',
+  path: '/roles/asset-preservation',
+})
 
 export default function AssetPreservationPage() {
+  const roleAeo = roleAeoContent['asset-preservation']
+
   return (
     <main className="bg-brand-sand text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
@@ -150,6 +157,8 @@ export default function AssetPreservationPage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-900 py-12 sm:py-14">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
