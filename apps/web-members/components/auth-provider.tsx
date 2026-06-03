@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
+import { trackOutsetaModalOpen } from '@/lib/ac-events'
 
 type JwtPayload = {
   email?: string
@@ -421,6 +422,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const Outseta = window.Outseta
 
     try {
+      trackOutsetaModalOpen({
+        sourcePage: pathname ?? 'unknown',
+        mode: 'login',
+      })
+
       if (Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'login' })
       } else {
@@ -437,6 +443,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const Outseta = window.Outseta
 
     try {
+      trackOutsetaModalOpen({
+        sourcePage: pathname ?? 'unknown',
+        mode: 'register',
+      })
+
       if (Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'register' })
       } else {

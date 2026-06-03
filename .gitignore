@@ -17,6 +17,7 @@ dist/
 
 # Prevent PII JSON leaks
 *.json
+apps/web-members/reports/
 !package.json
 !package-lock.json
 !tsconfig.json

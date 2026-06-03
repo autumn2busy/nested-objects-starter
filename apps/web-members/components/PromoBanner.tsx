@@ -7,7 +7,7 @@ import { PLAN_UIDS } from '@/lib/plan-config'
 // Change this to whatever date you want the promo to expire.
 // The banner auto-hides after this date — no code change needed.
 const PROMO_END = new Date('2026-06-19T23:59:59-05:00') // June 19, 2026
-const PROMO_CODE = 'SUMMER26'
+const PROMO_CODE = 'SUMMER2026'
 // ────────────────────────────────────────────────────────────────────
 
 const registrationDefaults = {

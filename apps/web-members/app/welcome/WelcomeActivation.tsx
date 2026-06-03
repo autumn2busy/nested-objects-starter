@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, ClipboardList, Search } from 'lucide-react'
+import { trackSignupCompleted } from '@/lib/ac-events'
 
 type WelcomeActivationProps = {
   isNewUser: boolean
@@ -84,6 +85,7 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
   const [email, setEmail] = useState('')
   const [isResolvingUser, setIsResolvingUser] = useState(true)
   const firedSignUpEvent = useRef(false)
+  const firedSignupCompletedEvent = useRef(false)
   const firedMemberActivatedTag = useRef(false)
 
   useEffect(() => {
@@ -141,6 +143,13 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
       plan: 'free',
     })
   }, [isNewUser])
+
+  useEffect(() => {
+    if (!isNewUser || isResolvingUser || firedSignupCompletedEvent.current) return
+
+    firedSignupCompletedEvent.current = true
+    trackSignupCompleted('free')
+  }, [isNewUser, isResolvingUser])
 
   useEffect(() => {
     if (!isNewUser || isResolvingUser || firedMemberActivatedTag.current) return

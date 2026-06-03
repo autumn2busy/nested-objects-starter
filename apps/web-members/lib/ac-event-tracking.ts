@@ -238,6 +238,27 @@ export async function trackPaymentReceived(email: string, amount: number): Promi
     })
 }
 
+export async function trackPurchase(
+    email: string,
+    purchaseData: {
+        value: number
+        currency: string
+        plan: string
+        planUid?: string | null
+        tier?: string
+        fromPlan?: string
+        fromTier?: string
+        source?: string
+        transition?: string
+    }
+): Promise<boolean> {
+    return trackACServerEvent({
+        email,
+        event: 'purchase',
+        eventData: JSON.stringify(purchaseData),
+    })
+}
+
 export async function trackAiQuotaExceeded(email: string, feature: string): Promise<boolean> {
     return trackACServerEvent({
         email,

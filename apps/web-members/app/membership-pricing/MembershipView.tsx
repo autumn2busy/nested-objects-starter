@@ -1,15 +1,22 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect } from 'react'
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
+import {
+    trackJoinFreeClick,
+    trackOutsetaModalOpen,
+    trackPricingCtaClick,
+    trackPricingView,
+    trackStartTrial,
+    trackUpgradeStarted,
+} from '@/lib/ac-events'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
 import { Ban, Clock, ShieldCheck, Star } from 'lucide-react'
 
 function MembershipContent() {
-    const { isAuthenticated, planUid } = useAuth()
+    const { isAuthenticated, planUid, isLoading } = useAuth()
 
     const currentPlanName =
         membershipPlans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
@@ -18,17 +25,72 @@ function MembershipContent() {
 
     const proPlan = membershipPlans.find((p) => p.planUid === PLAN_UIDS.PRO)!
 
+    useEffect(() => {
+        if (isLoading) return
+
+        trackPricingView({
+            sourcePage: 'membership_pricing',
+            currentPlan: currentPlanName ?? 'anonymous',
+            planUid: planUid ?? null,
+            isAuthenticated,
+        })
+    }, [currentPlanName, isAuthenticated, isLoading, planUid])
+
     const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
         if (isCurrentPlan || plan.waitlist) return
 
         if (typeof window === 'undefined') return
 
         const Outseta = (window as any).Outseta
+        const targetPlan = plan.name
+        const targetPlanUid = plan.planUid
+
+        trackPricingCtaClick({
+            sourcePage: 'membership_pricing',
+            currentPlan: currentPlanName ?? 'anonymous',
+            targetPlan,
+            targetPlanUid,
+            isAuthenticated,
+        })
+
+        if (!isAuthenticated && targetPlan === 'Free') {
+            trackJoinFreeClick({
+                sourcePage: 'membership_pricing',
+                targetPlan,
+                targetPlanUid,
+            })
+        }
+
+        if (!isAuthenticated && targetPlan === 'Pro') {
+            trackStartTrial({
+                sourcePage: 'membership_pricing',
+                targetPlan,
+                targetPlanUid,
+                value: 0,
+                currency: 'USD',
+            })
+        }
+
+        if (isAuthenticated && targetPlan !== currentPlanName) {
+            trackUpgradeStarted({
+                sourcePage: 'membership_pricing',
+                fromPlan: currentPlanName ?? 'unknown',
+                targetPlan,
+                targetPlanUid,
+            })
+        }
 
         // For authenticated users, open the profile widget's plan change tab.
         // Outseta.auth.open only supports login/register — using it for
         // subscription changes shows a blank login form.
         if (isAuthenticated) {
+            trackOutsetaModalOpen({
+                sourcePage: 'membership_pricing',
+                mode: 'profile_plan_change',
+                targetPlan,
+                targetPlanUid,
+            })
+
             if (Outseta?.profile?.open) {
                 Outseta.profile.open({ tab: 'planChange' })
             } else {
@@ -41,6 +103,14 @@ function MembershipContent() {
         const planPaymentTerm = plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime'
 
         if (Outseta?.auth?.open) {
+            trackOutsetaModalOpen({
+                sourcePage: 'membership_pricing',
+                mode: 'register',
+                targetPlan,
+                targetPlanUid,
+                planPaymentTerm,
+            })
+
             Outseta.auth.open({
                 widgetMode: 'register',
                 planUid: plan.planUid,
@@ -49,6 +119,14 @@ function MembershipContent() {
             })
             return
         }
+
+        trackOutsetaModalOpen({
+            sourcePage: 'membership_pricing',
+            mode: 'register_redirect',
+            targetPlan,
+            targetPlanUid,
+            planPaymentTerm,
+        })
 
         window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`
     }

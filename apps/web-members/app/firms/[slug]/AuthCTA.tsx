@@ -1,37 +1,56 @@
 'use client'
 
 import { useAuth } from '@/components/auth-provider'
+import { trackPaywallHit, trackUpgradeClicked } from '@/lib/ac-events'
 
 interface AuthCTAProps {
-    /** The real element to show when authenticated */
     children: React.ReactNode
 }
 
 /**
- * Wraps CTA buttons/links in the firm hero card.
- * - Authenticated users see the real link (children).
- * - Guests see the same visual button, but clicking opens login instead of navigating.
+ * Wraps firm hero CTAs.
+ * Guests are prompted to log in; Free members are sent to pricing; Pro+ members
+ * get the real firm contact/apply links.
  */
 export function AuthCTA({ children }: AuthCTAProps) {
-    const { isAuthenticated, isLoading, login } = useAuth()
+    const { isAuthenticated, isLoading, login, planUid, hasAccess } = useAuth()
 
-    // While loading, render nothing to avoid flash
     if (isLoading) return null
 
-    // Logged in — show the real link
-    if (isAuthenticated) return <>{children}</>
+    if (isAuthenticated && hasAccess('firm_intel')) {
+        return <>{children}</>
+    }
 
-    // Guest — intercept the click
     return (
         <div
             onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                login()
+
+                if (!isAuthenticated) {
+                    trackPaywallHit({
+                        sourcePage: 'firm_detail',
+                        feature: 'firm_intel_contact_cta',
+                        isAuthenticated: false,
+                    })
+                    login()
+                    return
+                }
+
+                trackPaywallHit({
+                    sourcePage: 'firm_detail',
+                    feature: 'firm_intel_contact_cta',
+                    planUid,
+                    isAuthenticated: true,
+                })
+                trackUpgradeClicked('firm_detail_contact_cta', 'Pro', {
+                    planUid,
+                    feature: 'firm_intel',
+                })
+                window.location.href = '/membership-pricing'
             }}
             className="cursor-pointer"
         >
-            {/* Render children but strip pointer events on the actual <a> so our onClick wins */}
             <div className="pointer-events-none">
                 {children}
             </div>

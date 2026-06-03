@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck, Bookmark, BookmarkCheck } from 'lucide-react'
@@ -13,6 +13,13 @@ import { Select } from '@/components/ui/select'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
 import { FirmLogo } from '@/components/ui/FirmLogo'
+import { PLAN_UIDS } from '@/lib/plan-config'
+import {
+    trackDirectoryViewed,
+    trackOutsetaModalOpen,
+    trackPaywallHit,
+    trackUpgradeClicked,
+} from '@/lib/ac-events'
 import { US_STATES } from './constants'
 
 // ─── Industry focus options (based on actual data distribution) ──
@@ -300,7 +307,15 @@ function FilterBar({
             {isFree ? (
                 <FieldHelperText className="mt-3 text-amber-800">
                     {!isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock all filters and search the full directory.{' '}
-                    <Link href="/membership-pricing" className="font-semibold text-amber-900 underline">
+                    <Link
+                        href="/membership-pricing"
+                        onClick={() =>
+                            trackUpgradeClicked('hiring_firms_filter_gate', 'Pro', {
+                                isAuthenticated,
+                            })
+                        }
+                        className="font-semibold text-amber-900 underline"
+                    >
                         View plans
                     </Link>
                 </FieldHelperText>
@@ -502,7 +517,7 @@ interface DirectoryViewProps {
 }
 
 export function DirectoryView({ initialFirms, totalCount, page, limit }: DirectoryViewProps) {
-    const { isAuthenticated, planUid, isLoading, user } = useAuth()
+    const { isAuthenticated, planUid, isLoading } = useAuth()
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [ratingFilter, setRatingFilter] = useState<string>('ALL')
@@ -515,6 +530,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     const router = useRouter()
     const searchParams = useSearchParams()
     const firms = initialFirms
+    const trackedDirectoryView = useRef(false)
 
     // Fetch tracked firms via server API (bypasses RLS)
     useEffect(() => {
@@ -576,8 +592,39 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
     }, [urlSearch, urlStateFilter, urlRating, urlIndustry, urlSource, urlPay, urlSort])
 
     const isGuest = !isAuthenticated
-    const isFree = planUid === 'L9nbKV9Z'
+    const isFree = planUid === PLAN_UIDS.FREE
     const isRestricted = isGuest || isFree
+
+    useEffect(() => {
+        if (isLoading || trackedDirectoryView.current) return
+
+        trackedDirectoryView.current = true
+
+        const accessLevel = isGuest ? 'guest' : isFree ? 'free' : 'pro_or_higher'
+        const visibleCount = isGuest ? 0 : isFree ? Math.min(3, firms.length) : firms.length
+        const teaserCount = isFree ? Math.min(4, Math.max(firms.length - visibleCount, 0)) : 0
+
+        trackDirectoryViewed({
+            sourcePage: 'hiring_firms',
+            accessLevel,
+            planUid: planUid ?? null,
+            totalCount,
+            visibleCount,
+            teaserCount,
+        })
+
+        if (isRestricted) {
+            trackPaywallHit({
+                sourcePage: 'hiring_firms',
+                feature: isGuest ? 'directory_login_required' : 'directory_preview_limit',
+                accessLevel,
+                planUid: planUid ?? null,
+                totalCount,
+                visibleCount,
+                teaserCount,
+            })
+        }
+    }, [firms.length, isFree, isGuest, isLoading, isRestricted, planUid, totalCount])
 
     // Safeguard: If a guest/free user tries to use URL params to filter, redirect
     useEffect(() => {
@@ -698,7 +745,16 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                     <Link href="/inspector-dashboard" className="text-slate-700 hover:text-slate-900">
                         ← BACK TO DASHBOARD
                     </Link>
-                    <Link href="/membership-pricing" className="text-slate-700 hover:text-slate-900">
+                    <Link
+                        href="/membership-pricing"
+                        onClick={() =>
+                            trackUpgradeClicked('hiring_firms_header', 'Pro', {
+                                planUid,
+                                isAuthenticated,
+                            })
+                        }
+                        className="text-slate-700 hover:text-slate-900"
+                    >
                         MEMBERSHIP & PRICING
                     </Link>
                 </div>
@@ -751,6 +807,13 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                         {!isAuthenticated ? (
                             <a
                                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
+                                onClick={() =>
+                                    trackOutsetaModalOpen({
+                                        sourcePage: 'hiring_firms',
+                                        mode: 'login_redirect',
+                                        feature: 'directory_login_required',
+                                    })
+                                }
                                 className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
                             >
                                 LOGIN FOR FULL ACCESS
@@ -758,6 +821,12 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                         ) : (
                             <Link
                                 href="/membership-pricing"
+                                onClick={() =>
+                                    trackUpgradeClicked('hiring_firms_access_banner', 'Pro', {
+                                        planUid,
+                                        feature: 'directory_preview_limit',
+                                    })
+                                }
                                 className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
                             >
                                 UPGRADE FOR FULL ACCESS
@@ -854,6 +923,14 @@ export function DirectoryView({ initialFirms, totalCount, page, limit }: Directo
                                 <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                                     <Link
                                         href="/membership-pricing"
+                                        onClick={() =>
+                                            trackUpgradeClicked('hiring_firms_blurred_teasers', 'Pro', {
+                                                planUid,
+                                                visibleCount: FREE_VISIBLE_COUNT,
+                                                teaserCount: teaserFirms.length,
+                                                totalCount,
+                                            })
+                                        }
                                         className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                                     >
                                         See Plans & Unlock Directory
