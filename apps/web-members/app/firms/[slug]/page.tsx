@@ -14,6 +14,7 @@ import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmReviews } from '@/components/directory/FirmReviews'
 import { FirmGatedContent } from './FirmGatedContent'
 import { AuthCTA } from './AuthCTA'
+import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 
 /* Dev SSL fix */
@@ -236,6 +237,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
       <Script id="firm-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Script id="firm-bc-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <FirmViewTracker firmId={firm.id} firmSlug={firm.slug} firmName={firm.name} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 text-sm text-slate-500">

@@ -11,15 +11,16 @@ interface FirmGatedContentProps {
  * Glassdoor-style: public visitors see firm name/description/categories,
  * but must sign up to access pay data, requirements, reputation, and contact info.
  *
- * Uses `directory_access` feature which maps to paid plans (Pro+, Founders, and legacy Starter).
+ * Uses `firm_intel` so Free members get directory preview but must upgrade
+ * for pay data, requirements, reputation, and contact info.
  */
 export function FirmGatedContent({ children }: FirmGatedContentProps) {
     return (
         <BlurGate
-            feature="directory_access"
-            title="Sign up to see full firm intel"
-            description="Pay rates, contact info, requirements, and reputation data are available to Nested Objects members."
-            ctaLabel="See membership plans"
+            feature="firm_intel"
+            title="Upgrade to Pro for full firm intel"
+            description="Pay rates, contact info, requirements, and reputation data are available on Pro and higher plans."
+            ctaLabel="See Pro plans"
             ctaHref="/membership-pricing"
         >
             {children}

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "geocode:firms": "node ./scripts/geocode-firms.js"
+    "geocode:firms": "node ./scripts/geocode-firms.js",
+    "audit:firms": "node ./scripts/audit-firm-data-quality.mjs",
+    "audit:free-to-pro": "node ./scripts/audit-free-to-pro-funnel.mjs"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",

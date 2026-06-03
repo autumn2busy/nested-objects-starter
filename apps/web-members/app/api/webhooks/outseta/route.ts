@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
+import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 
 // =================================================================
 // TYPES
@@ -70,6 +71,15 @@ interface OutsetaPersonAccount {
 // Account-centric payload (e.g., Subscription Started)
 interface OutsetaAccountPayload extends OutsetaAccount {
   PersonAccount?: OutsetaPersonAccount[];
+}
+
+interface ExistingProfileSnapshot {
+  id: string;
+  user_email: string;
+  outseta_updated_at: string | null;
+  subscription_tier: ProfileUpdateData['subscription_tier'] | null;
+  plan_name: string | null;
+  plan_uid: string | null;
 }
 
 // The webhook can send either type
@@ -291,9 +301,9 @@ export async function POST(request: NextRequest) {
     // Check if profile exists
     const { data: existing } = await supabase
       .from('profiles')
-      .select('id, user_email, outseta_updated_at')
+      .select('id, user_email, outseta_updated_at, subscription_tier, plan_name, plan_uid')
       .eq('user_email', profileData.user_email)
-      .single();
+      .single() as { data: ExistingProfileSnapshot | null };
 
     let result;
 
@@ -386,16 +396,48 @@ export async function POST(request: NextRequest) {
       acLogs.push(`Sync failed: ${syncErr}`);
     }
 
-    // Fire AC server-side events for lifecycle tracking (non-blocking)
+    // Fire AC server-side events only when the subscription actually changes.
+    // This gives #513 and GA4-style reporting a reliable upgrade/purchase signal
+    // without emitting duplicate subscription_created events on routine profile updates.
+    let lifecycleEventLogs: string[] = [];
     try {
-      const { trackSubscriptionCreated } = await import('@/lib/ac-event-tracking');
-      if (result.operation === 'insert' && profileData.plan_name) {
-        await trackSubscriptionCreated(profileData.email, profileData.plan_name, 0);
-      } else if (result.operation === 'update' && profileData.plan_name) {
-        await trackSubscriptionCreated(profileData.email, profileData.plan_name, 0);
+      const {
+        trackPurchase,
+        trackSubscriptionCreated,
+        trackSubscriptionUpgraded,
+      } = await import('@/lib/ac-event-tracking');
+
+      const lifecycleDecision = buildPaidLifecycleDecision({
+        operation: result.operation,
+        previous: existing,
+        current: profileData,
+      });
+
+      if (lifecycleDecision.shouldTrack && lifecycleDecision.purchasePayload) {
+        const purchaseTracked = await trackPurchase(profileData.email, lifecycleDecision.purchasePayload);
+        lifecycleEventLogs.push(`purchase=${purchaseTracked ? 'tracked' : 'not_tracked'}`);
+
+        if (lifecycleDecision.subscriptionEvent === 'subscription_created') {
+          const createdTracked = await trackSubscriptionCreated(
+            profileData.email,
+            lifecycleDecision.subscriptionPlan || profileData.plan_name || profileData.subscription_tier,
+            lifecycleDecision.subscriptionAmount || 0
+          );
+          lifecycleEventLogs.push(`subscription_created=${createdTracked ? 'tracked' : 'not_tracked'}`);
+        } else {
+          const upgradedTracked = await trackSubscriptionUpgraded(
+            profileData.email,
+            lifecycleDecision.previousPlan || 'free',
+            lifecycleDecision.subscriptionPlan || profileData.plan_name || profileData.subscription_tier
+          );
+          lifecycleEventLogs.push(`subscription_upgraded=${upgradedTracked ? 'tracked' : 'not_tracked'}`);
+        }
+      } else {
+        lifecycleEventLogs.push(`no_subscription_event_needed:${lifecycleDecision.reason}`);
       }
     } catch (eventErr) {
       console.error(`[${requestId}] AC Event Tracking Failed:`, eventErr);
+      lifecycleEventLogs.push(`event tracking failed: ${eventErr}`);
     }
 
     return NextResponse.json({
@@ -405,6 +447,7 @@ export async function POST(request: NextRequest) {
         performed: true,
         logs: acLogs
       },
+      lifecycleEvents: lifecycleEventLogs,
       requestId,
       duration: `${Date.now() - startTime}ms`
     });

@@ -6,6 +6,8 @@ import { generatePageMetadata } from '@/lib/seo'
 import { US_STATES } from './constants'
 import { ALL_STATE_SLUGS, STATE_MAP } from './state-data'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
+import { getCurrentUser } from '@/lib/auth-server'
+import { PLAN_UIDS } from '@/lib/plan-config'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Firm Directory | Field Inspection & Notary Vendors',
@@ -33,6 +35,8 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 24
 const MAX_LIMIT = 60
+const FREE_VISIBLE_COUNT = 3
+const FREE_TEASER_COUNT = 4
 
 type FirmResponse = {
   firms: Firm[]
@@ -105,6 +109,26 @@ function buildSourceOrFilter(source: string) {
   if (!source || source === 'ALL') return null
   const q = sanitizeFilterValue(source)
   return `source.ilike.*${q}*`
+}
+
+function sanitizeFreePreviewFirms(firms: Firm[]) {
+  return firms.map((firm, index) => {
+    if (index < FREE_VISIBLE_COUNT) return firm
+
+    return {
+      ...firm,
+      url: null,
+      vendor_page_url: null,
+      pay_min: null,
+      pay_max: null,
+      pay_type: null,
+      phone: null,
+      email: null,
+      address: null,
+      compensation_structure: null,
+      client_reviews: null,
+    }
+  })
 }
 
 async function getFirms(
@@ -375,19 +399,28 @@ type DirectoryPageProps = {
 
 export default async function DirectoryPage({ searchParams }: DirectoryPageProps) {
   const params = await searchParams
-  const page = parsePositiveInt(params?.page, DEFAULT_PAGE)
-  const limit = Math.min(parsePositiveInt(params?.limit, DEFAULT_LIMIT), MAX_LIMIT)
-  const stateFilter = params?.state ?? 'ALL'
-  const search = params?.search ?? ''
-  const ratingMin = params?.rating ?? 'ALL'
-  const industry = params?.industry ?? 'ALL'
-  const source = params?.source ?? 'ALL'
-  const pay = params?.pay ?? 'ALL'
-  const sort = params?.sort ?? 'rating_desc'
+  const user = await getCurrentUser()
+  const planUid = user?.['outseta:planUid'] ?? null
+  const isGuest = !user
+  const isFree = planUid === PLAN_UIDS.FREE
+  const isRestricted = isGuest || isFree
+
+  const page = isRestricted ? DEFAULT_PAGE : parsePositiveInt(params?.page, DEFAULT_PAGE)
+  const limit = isRestricted
+      ? FREE_VISIBLE_COUNT + FREE_TEASER_COUNT
+      : Math.min(parsePositiveInt(params?.limit, DEFAULT_LIMIT), MAX_LIMIT)
+  const stateFilter = isRestricted ? 'ALL' : params?.state ?? 'ALL'
+  const search = isRestricted ? '' : params?.search ?? ''
+  const ratingMin = isRestricted ? 'ALL' : params?.rating ?? 'ALL'
+  const industry = isRestricted ? 'ALL' : params?.industry ?? 'ALL'
+  const source = isRestricted ? 'ALL' : params?.source ?? 'ALL'
+  const pay = isRestricted ? 'ALL' : params?.pay ?? 'ALL'
+  const sort = isRestricted ? 'rating_desc' : params?.sort ?? 'rating_desc'
   const [{ firms, totalCount }, firmIndex] = await Promise.all([
     getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort),
     getFirmIndex(),
   ])
+  const directoryFirms = isGuest ? [] : isFree ? sanitizeFreePreviewFirms(firms) : firms
   const stateIndex = getStateIndex()
 
   return (
@@ -397,7 +430,7 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
       />
       <DirectoryView
-        initialFirms={firms}
+        initialFirms={directoryFirms}
         totalCount={totalCount}
         page={page}
         limit={limit}
