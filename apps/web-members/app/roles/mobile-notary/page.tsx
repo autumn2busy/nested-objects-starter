@@ -39,25 +39,25 @@ export default function MobileNotaryPage() {
     <main className="bg-brand-sand text-slate-900">
       <RoleAeoJsonLd content={roleAeo} />
       <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
+        <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:px-8 lg:pb-16 lg:pt-16">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
             <div className="space-y-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-steel">Mobile notary</p>
-              <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Signings plus inspections, without chaos.</h1>
+              <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">Signings plus inspections, without chaos.</h1>
               <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
                 Combine notary appointments with inspection tasks using ready-made scripts, checklists, and submission steps for
                 every lender.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
                   href="/hiring-firms"
-                  className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                 >
                   View lender directory
                 </Link>
                 <Link
                   href="/inspector-resource-center"
-                  className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
                 >
                   Notary resources
                 </Link>
@@ -88,7 +88,7 @@ export default function MobileNotaryPage() {
                   priority
                 />
               </div>
-              <div className="rounded-lg border border-slate-200 bg-brand-sand p-6 shadow-sm">
+              <div className="rounded-lg border border-slate-200 bg-brand-sand p-4 shadow-sm sm:p-6">
                 <p className="text-sm font-semibold text-slate-900">Scheduling scenarios</p>
                 <div className="mt-4 space-y-4">
                   {scenarios.map((scenario) => (
@@ -115,7 +115,7 @@ export default function MobileNotaryPage() {
               Member quote
             </span>
           </div>
-          <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <p className="text-base text-slate-700">
               “Nested Objects keeps me calm during signings with photos. Clients trust the flow, and I know exactly what to send
               the lender.”
@@ -151,16 +151,16 @@ export default function MobileNotaryPage() {
             <h2 className="text-2xl font-bold sm:text-3xl">Ready to combine signings and inspections?</h2>
             <p className="text-sm text-slate-100">Join the membership built for mobile notaries taking on inspection work.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/membership-pricing"
-              className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               Start membership
             </Link>
             <Link
               href="/hiring-firms"
-              className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               View directory
             </Link>

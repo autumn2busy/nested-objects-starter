@@ -65,25 +65,25 @@ export default function GigProInspectorPage() {
   return (
     <main className="bg-brand-sand text-slate-900">
       <RoleAeoJsonLd content={roleAeo} />
-      <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-16">
+      <section className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-12 lg:px-8 lg:pb-16 lg:pt-16">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
           <div className="space-y-5">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-steel">Gig pro inspector</p>
-            <h1 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">Arrive with a plan. Finish with proof.</h1>
+            <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">Arrive with a plan. Finish with proof.</h1>
             <p className="max-w-3xl text-base text-slate-700 sm:text-lg">
               Membership gives mobile inspectors lender-ready checklists, carrier scripts, and route clarity so you can move
               through each appointment with confidence.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/hiring-firms"
-                className="inline-flex items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
               >
                 Browse lender directory
               </Link>
               <Link
                 href="/inspector-resource-center"
-                className="inline-flex items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                className="inline-flex w-full items-center justify-center rounded-md border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 sm:w-auto"
               >
                 Open inspection resources
               </Link>
@@ -105,7 +105,7 @@ export default function GigProInspectorPage() {
                 priority
               />
             </div>
-            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
               <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <p className="text-sm font-semibold text-slate-900">Your day at a glance</p>
                 <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">Route ready</span>
@@ -219,16 +219,16 @@ export default function GigProInspectorPage() {
               Get lender-ready templates, on-site scripts, and payout clarity without adding another complex system.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/membership-pricing"
-              className="inline-flex items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               Start membership
             </Link>
             <Link
               href="/hiring-firms"
-              className="inline-flex items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
             >
               View lender partners
             </Link>
