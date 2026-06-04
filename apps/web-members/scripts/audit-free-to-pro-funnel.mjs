@@ -113,6 +113,16 @@ addCheck('Pricing page tracks pricing intent and Outseta handoff', 'app/membersh
   "mode: 'register'",
 ])
 
+addCheck('Promo banner routes Free members through upgrade instead of signup', 'components/PromoBanner.tsx', [
+  'trackUpgradeStarted',
+  'trackStartTrial',
+  'trackOutsetaModalOpen',
+  "sourcePage: 'promo_banner'",
+  "mode: 'profile_plan_change'",
+  "Outseta.profile.open",
+  "widgetMode: 'register'",
+])
+
 addCheck('Directory client tracks paywall and upgrade behavior', 'app/hiring-firms/DirectoryView.tsx', [
   'trackDirectoryViewed',
   'trackPaywallHit',
