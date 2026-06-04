@@ -201,12 +201,12 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, logs: str
             // Create map of tag ID to tag name
             const tagsMap = new Map<string, string>();
             for (const t of data.tags) {
-                tagsMap.set(t.id, t.tag);
+                tagsMap.set(String(t.id), t.tag);
             }
 
             // Loop associations
             for (const ct of data.contactTags) {
-                const tagName = tagsMap.get(ct.tag);
+                const tagName = tagsMap.get(String(ct.tag));
                 if (!tagName) continue;
 
                 const nameLower = tagName.toLowerCase();
