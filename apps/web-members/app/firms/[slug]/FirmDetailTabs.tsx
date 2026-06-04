@@ -59,22 +59,24 @@ export function FirmDetailTabs({
 
     return (
         <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="mb-6 flex w-full flex-wrap gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
-                <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TabsList className="mb-6 !grid !h-auto w-full grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 sm:!inline-flex sm:flex-nowrap sm:justify-start sm:overflow-x-auto">
+                <TabsTrigger value="overview" className="min-w-0 gap-1 text-xs sm:min-w-max sm:gap-1.5 sm:text-sm">
                     <Building2 className="h-3.5 w-3.5" /> Overview
                 </TabsTrigger>
                 {hasCompensation && (
-                    <TabsTrigger value="compensation" className="flex items-center gap-1.5 text-xs sm:text-sm">
-                        <DollarSign className="h-3.5 w-3.5" /> Pay & Volume
+                    <TabsTrigger value="compensation" className="min-w-0 gap-1 text-xs sm:min-w-max sm:gap-1.5 sm:text-sm">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        <span className="sm:hidden">Pay</span>
+                        <span className="hidden sm:inline">Pay &amp; Volume</span>
                     </TabsTrigger>
                 )}
                 {hasRequirements && (
-                    <TabsTrigger value="requirements" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                    <TabsTrigger value="requirements" className="min-w-0 gap-1 text-xs sm:min-w-max sm:gap-1.5 sm:text-sm">
                         <Wrench className="h-3.5 w-3.5" /> Requirements
                     </TabsTrigger>
                 )}
                 {hasReputation && (
-                    <TabsTrigger value="reputation" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                    <TabsTrigger value="reputation" className="min-w-0 gap-1 text-xs sm:min-w-max sm:gap-1.5 sm:text-sm">
                         <Award className="h-3.5 w-3.5" /> Reputation
                     </TabsTrigger>
                 )}
