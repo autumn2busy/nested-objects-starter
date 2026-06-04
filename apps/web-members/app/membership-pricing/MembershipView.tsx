@@ -15,6 +15,27 @@ import {
 import { TestimonialsSection } from '@/components/TestimonialsSection'
 import { Ban, Clock, ShieldCheck, Star } from 'lucide-react'
 
+const proBenefitHighlights = [
+    {
+        title: 'Full firm profiles',
+        body: 'Pay clues, coverage notes, application steps, and contractor expectations in one place.',
+    },
+    {
+        title: 'Route-fit decisions',
+        body: 'Compare firms by lane, geography, and assignment type before you spend time applying.',
+    },
+    {
+        title: 'AI tools and templates',
+        body: 'Use concierge prompts, resume tools, starter kits, and checklists while you test the hub.',
+    },
+]
+
+const planDecisionPrompts = [
+    'Start Free if you only need a low-pressure directory preview.',
+    'Start Pro if you are ready to compare firms seriously this week.',
+    'Upgrade later if you need Elite or Agency-level strategy support.',
+]
+
 function MembershipContent() {
     const { isAuthenticated, planUid, isLoading } = useAuth()
 
@@ -81,7 +102,7 @@ function MembershipContent() {
         }
 
         // For authenticated users, open the profile widget's plan change tab.
-        // Outseta.auth.open only supports login/register — using it for
+        // Outseta.auth.open only supports login/register - using it for
         // subscription changes shows a blank login form.
         if (isAuthenticated) {
             trackOutsetaModalOpen({
@@ -197,6 +218,47 @@ function MembershipContent() {
                 </div>
             </section>
 
+            <section className="mx-auto mt-8 max-w-5xl rounded-lg border border-brand-copper/25 bg-white p-5 shadow-sm sm:p-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] lg:items-start">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Pro trial path
+                        </p>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">
+                            Use the 7-day trial to decide whether the hub fits your route.
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                            Pro is the fastest way to evaluate real firm options, inspect the workflow, and test
+                            the tools before paid billing begins.
+                        </p>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                            {proBenefitHighlights.map((item) => (
+                                <div key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                    <h3 className="text-sm font-semibold text-slate-950">{item.title}</h3>
+                                    <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-slate-200 bg-slate-950 p-4 text-slate-50">
+                        <h3 className="text-sm font-semibold">Which plan should I pick?</h3>
+                        <ul className="mt-3 space-y-3 text-sm text-slate-200">
+                            {planDecisionPrompts.map((prompt) => (
+                                <li key={prompt} className="flex gap-2">
+                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" aria-hidden />
+                                    <span>{prompt}</span>
+                                </li>
+                            ))}
+                        </ul>
+                        <p className="mt-4 rounded-lg bg-white/10 px-3 py-2 text-xs text-slate-200">
+                            $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             {/* Plans + sidebar */}
             <section className="mt-10 lg:mt-14">
                 <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
@@ -278,7 +340,9 @@ function MembershipContent() {
                                         <ul className="mb-6 space-y-2 text-sm text-slate-700">
                                             {plan.features.map((feature) => (
                                                 <li key={feature} className="flex items-start gap-2">
-                                                    <span className="mt-0.5 text-emerald-500">✓</span>
+                                                    <span className="mt-0.5 font-semibold text-emerald-600" aria-hidden>
+                                                        +
+                                                    </span>
                                                     <span>{feature}</span>
                                                 </li>
                                             ))}
@@ -317,10 +381,10 @@ function MembershipContent() {
                                 This is for you if
                             </h2>
                             <ul className="mt-3 space-y-2">
-                                <li>• You are tired of guessing which firms actually pay well in your region.</li>
-                                <li>• You want one place to track firms, gear, and requirements instead of random posts.</li>
-                                <li>• You are adding inspections as a new lane on top of a job, family, or business.</li>
-                                <li>• You want to step into routes with clear expectations, not mystery assignments.</li>
+                                <li>You are tired of guessing which firms actually pay well in your region.</li>
+                                <li>You want one place to track firms, gear, and requirements instead of random posts.</li>
+                                <li>You are adding inspections as a new lane on top of a job, family, or business.</li>
+                                <li>You want to step into routes with clear expectations, not mystery assignments.</li>
                             </ul>
                         </div>
 
@@ -461,7 +525,7 @@ function MembershipContent() {
 
             </section>
 
-            {/* ── Social proof ────────────────────────────────── */}
+            {/* Social proof */}
             <TestimonialsSection variant="full" />
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
@@ -470,7 +534,7 @@ function MembershipContent() {
                         href="/"
                         className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
                     >
-                        ← Back to home
+                        Back to home
                     </a>
                 </Suspense>
             </div>
