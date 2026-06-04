@@ -440,10 +440,10 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
 
   // Set isLoading to false if auth resolves but no initial profile exists (meaning they need to save one).
   useEffect(() => {
-    if (!authLoading && !isLoading) {
+    if (!authLoading && isLoading) {
       setIsLoading(false);
     }
-  }, [authLoading]);
+  }, [authLoading, isLoading]);
 
   // Fetch trust data and profile are now managed strictly on the Server (page.tsx) to prevent hydration lag and client waterfalls.
 

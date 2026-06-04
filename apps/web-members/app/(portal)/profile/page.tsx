@@ -3,6 +3,8 @@ import { createServiceRoleClient } from '@/lib/supabase-server'
 import { calculateTrustScore } from '@/lib/trust-score'
 import ProfileView from './ProfileView'
 
+export const dynamic = 'force-dynamic'
+
 function resolveUserId(outsetaUser: any) {
   return (
     getOutsetaUserId(outsetaUser) ||
