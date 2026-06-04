@@ -21,7 +21,7 @@ export const SITE_DESCRIPTION = 'The #1 Hub for Mortgage Field Inspection servic
 
 // Social/branding
 export const LOGO_URL = `${SITE_URL}/logo.png`
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/hero.jpg`
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/hero-og.jpg`
 
 // Contact info
 export const CONTACT_EMAIL = 'info@nestedobjects.com'
