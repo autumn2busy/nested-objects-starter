@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { useAuth } from '@/components/auth-provider'
+import { trackOutsetaModalOpen, trackStartTrial, trackUpgradeStarted } from '@/lib/ac-events'
 
 // ─── SET YOUR PROMO END DATE HERE ───────────────────────────────────
 // Change this to whatever date you want the promo to expire.
@@ -58,16 +59,100 @@ export function PromoBanner() {
     if (isAuthenticated && planUid && planUid !== PLAN_UIDS.FREE) return null
     if (!timeLeft || dismissed) return null
 
-    const handleSignup = () => {
-        if (typeof window !== 'undefined' && (window as any).Outseta?.auth?.open) {
-            (window as any).Outseta.auth.open({
+    const handlePromoClick = () => {
+        if (typeof window === 'undefined') return
+
+        const Outseta = (window as any).Outseta
+        const planChangeParams = {
+            planUid: PLAN_UIDS.PRO,
+            planPaymentTerm: 'month',
+            skipPlanOptions: true,
+            registrationDefaults,
+        }
+
+        const redirectToPlanChange = () => {
+            const params = new URLSearchParams({
+                planUid: PLAN_UIDS.PRO,
+                planPaymentTerm: 'month',
+                skipPlanOptions: 'true',
+                registrationDefaults: JSON.stringify(registrationDefaults),
+            })
+            window.location.href = `https://nested-objects.outseta.com/profile?${params.toString()}#o-plan-change`
+        }
+
+        if (Outseta?.auth?.open) {
+            if (isAuthenticated) {
+                trackUpgradeStarted({
+                    sourcePage: 'promo_banner',
+                    fromPlan: 'Free',
+                    targetPlan: 'Pro',
+                    targetPlanUid: PLAN_UIDS.PRO,
+                    promoCode: PROMO_CODE,
+                })
+
+                trackOutsetaModalOpen({
+                    sourcePage: 'promo_banner',
+                    mode: 'profile_plan_change',
+                    targetPlan: 'Pro',
+                    targetPlanUid: PLAN_UIDS.PRO,
+                    promoCode: PROMO_CODE,
+                })
+
+                if (Outseta?.profile?.open) {
+                    Outseta.profile.open({
+                        tab: 'planChange',
+                        ...planChangeParams,
+                    })
+                } else {
+                    redirectToPlanChange()
+                }
+                return
+            }
+
+            trackStartTrial({
+                sourcePage: 'promo_banner',
+                targetPlan: 'Pro',
+                targetPlanUid: PLAN_UIDS.PRO,
+                promoCode: PROMO_CODE,
+                value: 0,
+                currency: 'USD',
+            })
+
+            trackOutsetaModalOpen({
+                sourcePage: 'promo_banner',
+                mode: 'register',
+                targetPlan: 'Pro',
+                targetPlanUid: PLAN_UIDS.PRO,
+                promoCode: PROMO_CODE,
+            })
+
+            Outseta.auth.open({
                 widgetMode: 'register',
-                planUid: PLAN_UIDS.PRO, // Assuming PRO plan
+                planUid: PLAN_UIDS.PRO,
                 planPaymentTerm: 'month',
                 skipPlanOptions: true,
                 registrationDefaults,
             })
+        } else if (isAuthenticated) {
+            redirectToPlanChange()
         } else {
+            trackStartTrial({
+                sourcePage: 'promo_banner',
+                targetPlan: 'Pro',
+                targetPlanUid: PLAN_UIDS.PRO,
+                promoCode: PROMO_CODE,
+                value: 0,
+                currency: 'USD',
+            })
+
+            trackOutsetaModalOpen({
+                sourcePage: 'promo_banner',
+                mode: 'register_redirect',
+                targetPlan: 'Pro',
+                targetPlanUid: PLAN_UIDS.PRO,
+                promoCode: PROMO_CODE,
+            })
+
             const params = new URLSearchParams({
                 widgetMode: 'register',
                 planUid: PLAN_UIDS.PRO,
@@ -130,7 +215,7 @@ export function PromoBanner() {
 
                     {/* Right: CTA */}
                     <button
-                        onClick={handleSignup}
+                        onClick={handlePromoClick}
                         className="inline-flex min-h-10 w-full min-w-[10.5rem] items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:min-h-11 sm:py-2.5"
                     >
                         Claim Summer Rate
