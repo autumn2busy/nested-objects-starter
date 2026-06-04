@@ -6,64 +6,59 @@ import { useAuth } from '@/components/auth-provider'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
+const tools = [
+    {
+        title: 'Clients and vendors',
+        description: 'Manage point of contacts, pay dates, and portal links for every firm you work with.',
+        href: '/tools/clients',
+        cta: 'Manage clients',
+    },
+    {
+        title: 'Company tracker',
+        description: 'Build your target list of firms and track your application status.',
+        href: '/tools/companies',
+        cta: 'Track companies',
+    },
+    {
+        title: 'Income calculator',
+        description: 'Visualize your potential earnings based on inspection volume and days worked.',
+        href: '/tools/income-calculator',
+        cta: 'Calculate income',
+    },
+    {
+        title: 'AI concierge',
+        description: 'Ask questions about firms, requirements, and inspection workflows in plain language.',
+        href: '/tools/ai-concierge',
+        cta: 'Open AI concierge',
+    },
+    {
+        title: 'AI resume builder',
+        description: 'Turn your experience, routes, and gear into a clean resume for field service firms.',
+        href: '/tools/ai-resume',
+        cta: 'Build my resume',
+    },
+    {
+        title: 'Job tracker',
+        description: 'Track applications, interviews, and offers in a simple pipeline.',
+        href: '/tools/job-tracker',
+        cta: 'Open job tracker',
+    },
+    {
+        title: 'Weather',
+        description: 'Plan around storms and daylight so your routes are safer and more profitable.',
+        href: '/tools/weather',
+        cta: 'Open weather tool',
+    },
+    {
+        title: 'Route planning',
+        description: 'Stack inspections into efficient routes so you burn less gas and make more per mile.',
+        href: '/tools/routing',
+        cta: 'Plan my routes',
+    },
+]
+
 export function ToolsView() {
     const { isAuthenticated } = useAuth()
-
-    const tools = [
-        {
-            title: '💼 Clients & vendors',
-            description: 'Manage point of contacts, pay dates, and portal links for every firm you work with.',
-            href: '/tools/clients',
-            cta: 'Manage clients →',
-        },
-        {
-            title: '🏢 Company tracker',
-            description: 'Build your target list of firms and track your application status.',
-            href: '/tools/companies',
-            cta: 'Track companies →',
-        },
-        {
-            title: '💰 Income calculator',
-            description: 'Visualize your potential earnings based on inspection volume and days worked.',
-            href: '/tools/income-calculator',
-            cta: 'Calculate income →',
-        },
-        {
-            title: '🤖 AI concierge',
-            description:
-                'Ask questions about firms, requirements, and inspection workflows in plain language.',
-            href: '/tools/ai-concierge',
-            cta: 'Open AI concierge →',
-        },
-        {
-            title: '📝 AI resume builder',
-            description:
-                'Turn your experience, routes, and gear into a clean resume for field service firms.',
-            href: '/tools/ai-resume',
-            cta: 'Build my resume →',
-        },
-        {
-            title: '📍 Job tracker',
-            description:
-                'Track applications, interviews, and offers in a simple pipeline.',
-            href: '/tools/job-tracker',
-            cta: 'Open job tracker →',
-        },
-        {
-            title: '🌤 Weather',
-            description:
-                'Plan around storms and daylight so your routes are safer and more profitable.',
-            href: '/tools/weather',
-            cta: 'Open weather tool →',
-        },
-        {
-            title: '🗺 Route planning',
-            description:
-                'Stack inspections into efficient routes so you burn less gas and make more per mile.',
-            href: '/tools/routing',
-            cta: 'Plan my routes →',
-        },
-    ]
 
     return (
         <main className="min-h-screen bg-brand-sand text-brand-dark">
@@ -79,6 +74,30 @@ export function ToolsView() {
                         AI-powered tools to help you plan routes, watch the weather, and present
                         yourself like the pro you are.
                     </p>
+                    <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:flex-wrap">
+                        <Link
+                            href={isAuthenticated ? '/inspector-dashboard' : '/membership-pricing'}
+                            className={buttonVariants({
+                                variant: 'primary',
+                                size: 'lg',
+                                shape: 'rounded',
+                                className: 'w-full sm:w-auto',
+                            })}
+                        >
+                            {isAuthenticated ? 'Open member hub' : 'Start free to unlock tools'}
+                        </Link>
+                        <Link
+                            href="/hiring-firms"
+                            className={buttonVariants({
+                                variant: 'secondary',
+                                size: 'lg',
+                                shape: 'rounded',
+                                className: 'w-full sm:w-auto',
+                            })}
+                        >
+                            Browse firms first
+                        </Link>
+                    </div>
                 </div>
             </section>
 
@@ -108,12 +127,13 @@ export function ToolsView() {
                                 <Link
                                     href={tool.href}
                                     className={buttonVariants({
-                                        variant: 'link',
+                                        variant: isAuthenticated ? 'primary' : 'secondary',
                                         size: 'sm',
-                                        className: 'text-sm font-semibold px-0',
+                                        shape: 'rounded',
+                                        className: 'w-full',
                                     })}
                                 >
-                                    {isAuthenticated ? tool.cta : 'Log in to access'}
+                                    {isAuthenticated ? tool.cta : 'Preview tool'}
                                 </Link>
                             </div>
                         </Card>
@@ -121,13 +141,14 @@ export function ToolsView() {
                 </div>
 
                 {!isAuthenticated && (
-                    <div className="mx-auto mb-12 flex max-w-md justify-center">
+                    <div className="mx-auto mb-12 flex max-w-md justify-center px-4 sm:px-0">
                         <Link
                             href="/membership-pricing"
                             className={buttonVariants({
                                 variant: 'primary',
                                 size: 'md',
-                                className: 'w-full shadow-lg border border-brand-copper/50'
+                                shape: 'rounded',
+                                className: 'w-full border border-brand-copper/50 shadow-lg',
                             })}
                         >
                             Join to unlock all tools
