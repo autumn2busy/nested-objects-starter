@@ -6,10 +6,10 @@ import Link from 'next/link'
 import {
   MapPin, Phone, Mail, Globe, ExternalLink, Users,
   DollarSign, Clock, FileText, ChevronRight, Star,
-  ShieldCheck, TrendingUp, CalendarDays
+  ShieldCheck, TrendingUp, CalendarDays, ClipboardCheck
 } from 'lucide-react'
 import { FirmServiceArea } from '@/components/FirmServiceArea'
-import { generatePageMetadata, getHiringFirmSchema, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
+import { generatePageMetadata, getHiringFirmSchema, getBreadcrumbSchema, getFAQPageSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmReviews } from '@/components/directory/FirmReviews'
 import { FirmGatedContent } from './FirmGatedContent'
@@ -160,6 +160,35 @@ function getFirmSeoTitle(name: string): string {
   return `${truncated || compactName.slice(0, 32).trim()}... Profile`
 }
 
+function getFirmProfileFaqs(firm: FirmRow, categories: string[], pay: string | null) {
+  const categoryText = categories.length > 0
+    ? categories.slice(0, 3).join(', ')
+    : firm.industry_focus || 'field services'
+  const coverageText = firm.geographic_coverage || 'the United States'
+  const payText = pay
+    ? `Nested Objects has pay context for ${firm.name}, but actual compensation can vary by route, order type, region, and contractor experience.`
+    : `Public pay details for ${firm.name} may vary by market, so applicants should confirm current rates, payment timing, and order expectations before accepting work.`
+
+  return [
+    {
+      question: `What type of work is ${firm.name} associated with?`,
+      answer: `${firm.name} is listed as a ${categoryText} firm. Use the profile to review its services, coverage notes, requirements, and available contractor intel before applying.`,
+    },
+    {
+      question: `Where does ${firm.name} operate?`,
+      answer: `${firm.name} is associated with coverage in ${coverageText}. Contractors should verify active service areas directly with the firm because route availability can change by county, state, and client demand.`,
+    },
+    {
+      question: `How should contractors evaluate ${firm.name}?`,
+      answer: `Compare ${firm.name} against other hiring firms by coverage, onboarding steps, equipment requirements, pay model, payment frequency, contractor feedback, and how well the assignments fit your route schedule.`,
+    },
+    {
+      question: `Does ${firm.name} list pay information?`,
+      answer: payText,
+    },
+  ]
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const firm = await getFirmBySlugCached(slug)
@@ -192,6 +221,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const similarFirms = await getSimilarFirmsCached(firm.id)
   const websiteHref = normalizeExternalHref(firm.url)
   const vendorPageHref = normalizeExternalHref(firm.vendor_page_url)
+  const firmFaqs = getFirmProfileFaqs(firm, categories, pay)
 
   const contactHref =
     vendorPageHref ||
@@ -216,6 +246,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     { name: 'Hiring Firms', url: `${SITE_URL}/hiring-firms` },
     { name: firm.name, url: `${SITE_URL}/firms/${firm.slug}` },
   ])
+  const faqLd = getFAQPageSchema(firmFaqs)
 
   /* Quick stats */
   const quickStats = [
@@ -237,6 +268,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
       <Script id="firm-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Script id="firm-bc-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <Script id="firm-faq-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <FirmViewTracker firmId={firm.id} firmSlug={firm.slug} firmName={firm.name} />
 
       {/* Breadcrumb */}
@@ -352,7 +384,42 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
         )}
       </section>
 
-      {/* ═══ Content grid — gated for non-members ═══ */}
+      <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+        <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Quick answers</p>
+          <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
+            What contractors should know about {firm.name}
+          </h2>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            {firmFaqs.map((item) => (
+              <div key={item.question} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h3 className="text-sm font-semibold leading-5 text-slate-950">{item.question}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <aside className="rounded-lg border border-brand-copper/25 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-copper/10 text-brand-copper">
+              <ClipboardCheck className="h-5 w-5" aria-hidden />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Before you apply</p>
+              <h2 className="mt-1 text-lg font-bold text-text-primary">Evaluation checklist</h2>
+            </div>
+          </div>
+          <ul className="mt-5 space-y-3 text-sm leading-6 text-slate-700">
+            <li>Confirm current coverage in your county or metro before planning a route.</li>
+            <li>Compare payment timing, revision expectations, and required equipment with similar firms.</li>
+            <li>Review contractor feedback and onboarding notes before submitting personal details.</li>
+            <li>Keep a shortlist of several firms so one slow pipeline does not stall your field work.</li>
+          </ul>
+        </aside>
+      </section>
+
+      {/* Content grid - gated for non-members */}
       <FirmGatedContent>
         <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
           {/* Main — tabs */}
