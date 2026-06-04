@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, ClipboardList, Search } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardList, LogIn, Mail, Search } from 'lucide-react'
+import { useAuth } from '@/components/auth-provider'
 import { trackSignupCompleted } from '@/lib/ac-events'
 
 type WelcomeActivationProps = {
@@ -81,6 +82,7 @@ async function readOutsetaUser(): Promise<OutsetaUser> {
 }
 
 export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
+  const { isAuthenticated, isLoading, login } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [isResolvingUser, setIsResolvingUser] = useState(true)
@@ -92,6 +94,21 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     let cancelled = false
     let attempts = 0
     const maxAttempts = 15
+
+    if (isLoading) {
+      return () => {
+        cancelled = true
+      }
+    }
+
+    if (!isAuthenticated) {
+      setIsResolvingUser(false)
+      return () => {
+        cancelled = true
+      }
+    }
+
+    setIsResolvingUser(true)
 
     const resolveUser = async () => {
       attempts += 1
@@ -124,10 +141,10 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isAuthenticated, isLoading])
 
   useEffect(() => {
-    if (!isNewUser || firedSignUpEvent.current) return
+    if (!isNewUser || isLoading || !isAuthenticated || firedSignUpEvent.current) return
 
     firedSignUpEvent.current = true
 
@@ -142,17 +159,17 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
       method: 'outseta',
       plan: 'free',
     })
-  }, [isNewUser])
+  }, [isAuthenticated, isLoading, isNewUser])
 
   useEffect(() => {
-    if (!isNewUser || isResolvingUser || firedSignupCompletedEvent.current) return
+    if (!isNewUser || isLoading || !isAuthenticated || isResolvingUser || firedSignupCompletedEvent.current) return
 
     firedSignupCompletedEvent.current = true
     trackSignupCompleted('free')
-  }, [isNewUser, isResolvingUser])
+  }, [isAuthenticated, isLoading, isNewUser, isResolvingUser])
 
   useEffect(() => {
-    if (!isNewUser || isResolvingUser || firedMemberActivatedTag.current) return
+    if (!isNewUser || isLoading || !isAuthenticated || isResolvingUser || firedMemberActivatedTag.current) return
 
     firedMemberActivatedTag.current = true
 
@@ -174,9 +191,51 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     }
 
     void applyMemberActivatedTag()
-  }, [isNewUser, isResolvingUser])
+  }, [isAuthenticated, isLoading, isNewUser, isResolvingUser])
 
   const greeting = name ? `Welcome, ${name}` : isNewUser ? 'Welcome to Nested Objects' : 'Welcome back'
+  const shouldShowPendingConfirmation = isNewUser && !isLoading && !isAuthenticated
+
+  if (shouldShowPendingConfirmation) {
+    return (
+      <section className="min-h-[calc(100vh-9rem)] bg-white">
+        <div className="mx-auto grid min-h-[calc(100vh-9rem)] w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:px-8 lg:py-16">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Account confirmation
+            </p>
+            <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
+              Check your email to finish setup
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-text-muted">
+              We sent a confirmation email for your Nested Objects account. Confirm your account and set your password, then log in to open your member hub.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={login}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus:outline-none focus:ring-2 focus:ring-brand-copper focus:ring-offset-2"
+              >
+                Open Login
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-copper/10 text-brand-copper">
+              <Mail className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <h2 className="mt-5 text-xl font-semibold text-text-primary">Confirmation required</h2>
+            <p className="mt-3 text-sm leading-6 text-text-muted">
+              Your account is reserved, but it is not active in the member hub until the confirmation and password step is complete.
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="min-h-[calc(100vh-9rem)] bg-white">

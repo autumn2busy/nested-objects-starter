@@ -92,6 +92,10 @@ addCheck('Shared event helpers include the Free-to-Pro event map', 'lib/ac-event
 ])
 
 addCheck('Welcome page preserves signup and completion tracking', 'app/welcome/WelcomeActivation.tsx', [
+  'useAuth',
+  'isAuthenticated',
+  'shouldShowPendingConfirmation',
+  'Check your email to finish setup',
   "window.gtag('event', 'sign_up'",
   "event: 'sign_up'",
   'trackSignupCompleted',
