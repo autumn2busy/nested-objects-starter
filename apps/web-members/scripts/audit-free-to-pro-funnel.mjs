@@ -173,6 +173,8 @@ addCheck('Outseta webhook emits paid transition events only on paid changes', 'a
 addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/active-campaign-deep-data.ts', [
   "tagsMap.set(String(t.id), t.tag)",
   "tagsMap.get(String(ct.tag))",
+  'shouldSyncPlanTag(profile)',
+  'Skipping plan tag sync because the Outseta payload has no concrete plan',
   "nameLower.startsWith('plan-')",
   'removeTagFromContact(ct.id, tagName, logs)',
   'await addTagToContact(contactId, expectedTierTag, logs)',
@@ -189,6 +191,8 @@ addCheck('ActiveCampaign sync treats recurring payments as membership source of 
   'billingInterval',
   'paymentAmount: getPlanAmount(profile)',
   'AC_MEMBERSHIP_RENEWAL_FIELD_ID',
+  'Number.parseInt(AC_CONNECTION_ID!, 10)',
+  'AC_CONNECTION_ID must be numeric',
 ])
 
 addCheck('Server event tracking exposes purchase helper', 'lib/ac-event-tracking.ts', [

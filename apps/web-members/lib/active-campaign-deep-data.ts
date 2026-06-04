@@ -19,6 +19,15 @@ function isPaidTier(profile: ProfileUpdateData) {
     return PAID_TIERS.has(profile.subscription_tier);
 }
 
+function hasConcretePlan(profile: ProfileUpdateData) {
+    const subscription = getOutsetaSubscription(profile);
+    return Boolean(profile.plan_uid || profile.plan_name || subscription?.Plan?.Uid || subscription?.Plan?.Name);
+}
+
+function shouldSyncPlanTag(profile: ProfileUpdateData) {
+    return profile.subscription_tier !== 'free' || hasConcretePlan(profile);
+}
+
 function getOutsetaSubscription(profile: ProfileUpdateData): any {
     const rawData = profile.outseta_data as any;
 
@@ -290,7 +299,7 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, logs: str
     // 1. Determine correct tags
     // For founders tier, use 'founder' to match AC tag 'plan-founder' exactly
     const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
-    const expectedTierTag = `plan-${tagTier}`;
+    const expectedTierTag = shouldSyncPlanTag(profile) ? `plan-${tagTier}` : null;
     const expectedStatusTag = profile.subscription_status ? `status-${profile.subscription_status}` : null;
 
     // 2. Fetch existing contact tags to remove conflicts
@@ -314,8 +323,10 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, logs: str
 
                 const nameLower = tagName.toLowerCase();
 
-                // If it's a plan tag but not the expected one, remove it
-                if (nameLower.startsWith('plan-') && nameLower !== expectedTierTag.toLowerCase()) {
+                // If it's a plan tag but not the expected one, remove it.
+                // Ambiguous person-only Outseta payloads do not carry plan data, so leave
+                // existing plan tags untouched until a concrete membership payload arrives.
+                if (nameLower.startsWith('plan-') && expectedTierTag && nameLower !== expectedTierTag.toLowerCase()) {
                     await removeTagFromContact(ct.id, tagName, logs);
                 }
 
@@ -330,7 +341,11 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, logs: str
     }
 
     // 3. Add expected tags
-    await addTagToContact(contactId, expectedTierTag, logs);
+    if (expectedTierTag) {
+        await addTagToContact(contactId, expectedTierTag, logs);
+    } else {
+        logs.push("[Tag] Skipping plan tag sync because the Outseta payload has no concrete plan");
+    }
 
     if (expectedStatusTag) {
         await addTagToContact(contactId, expectedStatusTag, logs);
@@ -558,10 +573,16 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     const storeRecurringPaymentId = getRecurringPaymentId(profile);
     const originOrderId = getOriginOrderId(profile);
     const planName = profile.plan_name || 'Membership';
+    const legacyConnectionId = Number.parseInt(AC_CONNECTION_ID!, 10);
+
+    if (!Number.isFinite(legacyConnectionId)) {
+        logs.push(`Skipping Recurring Payment sync: AC_CONNECTION_ID must be numeric, got '${AC_CONNECTION_ID}'`);
+        return false;
+    }
 
     const variables = {
         recurringPayments: [{
-            legacyConnectionId: parseInt(AC_CONNECTION_ID!, 10),
+            legacyConnectionId,
             storeRecurringPaymentId: storeRecurringPaymentId,
             storeCustomerId: profile.outseta_person_uid,
             email: profile.email,
