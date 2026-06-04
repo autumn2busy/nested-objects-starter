@@ -34,7 +34,7 @@ export function ToolLayout({
                 href={backHref}
                 className="inline-flex items-center text-sm font-semibold text-brand-copper transition hover:text-brand-copperDark"
               >
-                ← Back to tools
+                Back to tools
               </Link>
 
               <div className="space-y-2">
@@ -49,10 +49,9 @@ export function ToolLayout({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="inline-flex items-center gap-1 rounded-full border border-brand-copper/30 bg-white px-3 py-1.5 text-brand-copper transition hover:border-brand-copper hover:text-brand-copperDark"
+                  className="inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-lg border border-brand-copper/30 bg-white px-3 py-2 text-brand-copper transition hover:border-brand-copper hover:text-brand-copperDark sm:flex-none"
                 >
                   <span>{link.label}</span>
-                  <span aria-hidden="true">→</span>
                 </Link>
               ))}
             </nav>

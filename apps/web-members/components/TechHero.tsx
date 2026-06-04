@@ -73,11 +73,11 @@ export function TechHero() {
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4">
                     <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
                         <Link
                             href="/membership-pricing"
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] sm:w-auto"
+                            className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-4 text-base font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] sm:w-auto sm:text-lg"
                         >
                             Start free <ArrowRight className="w-5 h-5" />
                         </Link>
@@ -86,10 +86,10 @@ export function TechHero() {
 
                     <Link
                         href="/hiring-firms"
-                        className="hidden w-full items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all hover:bg-slate-800 sm:flex sm:w-auto"
+                        className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-slate-800 sm:w-auto sm:text-lg"
                     >
                         <Activity className="w-5 h-5 text-emerald-400" />
-                        View Live Directory
+                        Browse firms
                     </Link>
                 </div>
 

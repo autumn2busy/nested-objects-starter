@@ -41,16 +41,16 @@ export function RolePageLayout({
                         {heroSubhead}
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
                         <Link
                             href="/membership-pricing"
-                            className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-8 py-3 text-base font-semibold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-all"
+                            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-emerald-500 px-8 py-3 text-base font-semibold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 sm:w-auto"
                         >
                             Start Searching Now <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                         <Link
                             href="/hiring-firms"
-                            className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 px-8 py-3 text-base font-semibold text-white hover:bg-slate-800 transition-all"
+                            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-slate-700 bg-slate-800/50 px-8 py-3 text-base font-semibold text-white transition-all hover:bg-slate-800 sm:w-auto"
                         >
                             Browse Directory
                         </Link>
@@ -88,8 +88,8 @@ export function RolePageLayout({
                             <h2 className="text-2xl font-bold text-slate-900">Firms hiring now</h2>
                             <p className="text-slate-600 mt-2">A live look at who is looking for {roleTitle}s.</p>
                         </div>
-                        <Link href="/hiring-firms" className="text-emerald-700 font-semibold hover:underline">
-                            View all 200+ Firms →
+                        <Link href="/hiring-firms" className="inline-flex w-full items-center justify-center rounded-lg border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-500 hover:bg-emerald-50 md:w-auto md:border-0 md:bg-transparent md:px-0 md:py-0 md:hover:bg-transparent md:hover:underline">
+                            View all 200+ firms
                         </Link>
                     </div>
 
@@ -109,7 +109,7 @@ export function RolePageLayout({
                     </p>
                     <Link
                         href="/membership-pricing"
-                        className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-bold text-slate-900 hover:bg-slate-100 transition-colors"
+                        className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-white px-8 py-4 text-base font-bold text-slate-900 transition-colors hover:bg-slate-100 sm:w-auto sm:text-lg"
                     >
                         Get Started Free
                     </Link>

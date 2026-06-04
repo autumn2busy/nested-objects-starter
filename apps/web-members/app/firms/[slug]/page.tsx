@@ -326,14 +326,14 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             </div>
 
             {/* CTAs — guests get login prompt instead of real links */}
-            <div className="flex shrink-0 flex-col gap-2.5 sm:flex-row lg:flex-col lg:items-end">
+            <div className="flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row lg:flex-col lg:items-end">
               {contactHref && (
                 <AuthCTA>
                   <a
                     href={contactHref}
                     target={contactHref.startsWith('http') ? '_blank' : undefined}
                     rel={contactHref.startsWith('http') ? 'nofollow noopener noreferrer' : undefined}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white shadow-brand-soft transition hover:bg-brand-copperDark hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:w-auto"
                   >
                     <FileText className="h-4 w-4" /> Apply / Contact
                   </a>
@@ -342,7 +342,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
               {vendorPageHref && contactHref !== vendorPageHref && (
                 <AuthCTA>
                   <a href={vendorPageHref} target="_blank" rel="nofollow noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10">
+                    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10 sm:w-auto">
                     <ExternalLink className="h-3.5 w-3.5" /> Vendor portal
                   </a>
                 </AuthCTA>
@@ -504,7 +504,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                   ))}
                 </div>
                 <Link href="/hiring-firms" className="mt-3 block text-center text-xs font-semibold text-brand transition hover:text-brand-copperDark">
-                  View all firms →
+                  View all firms
                 </Link>
               </div>
             )}
