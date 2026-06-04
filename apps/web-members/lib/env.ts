@@ -35,6 +35,7 @@ export const env = {
     // AC Event Tracking (server-side only)
     acEventKey: process.env.AC_EVENT_KEY,
     acEventActId: process.env.AC_EVENT_ACTID,
+    acMembershipRenewalFieldId: process.env.AC_MEMBERSHIP_RENEWAL_FIELD_ID,
     // Optional
     newsApiKey: process.env.NEWSAPI_KEY,
 }
