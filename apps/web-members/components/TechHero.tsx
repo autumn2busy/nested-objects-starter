@@ -1,15 +1,7 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 // Icons
 import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
-
-const HeroMap = dynamic(() => import('./HeroMap').then((mod) => mod.HeroMap), {
-    ssr: false,
-    loading: () => <MapPlaceholder />,
-})
+import { HeroDesktopMap } from './HeroDesktopMap'
 
 // Dummy data for the ticker - in real app, fetch this from Supabase
 const TICKER_ITEMS = [
@@ -20,39 +12,6 @@ const TICKER_ITEMS = [
     "Inspector joining from Dallas, TX",
     "Live: 124 firms hiring now",
 ]
-
-/**
- * Hook to detect 'prefers-reduced-motion'
- */
-function useReducedMotion() {
-    const [matches, setMatches] = useState(false)
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-        setMatches(mediaQuery.matches)
-
-        const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches)
-        mediaQuery.addEventListener('change', handleChange)
-        return () => mediaQuery.removeEventListener('change', handleChange)
-    }, [])
-
-    return matches
-}
-
-function useDesktopViewport() {
-    const [matches, setMatches] = useState(false)
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(min-width: 768px)')
-        setMatches(mediaQuery.matches)
-
-        const handleChange = (e: MediaQueryListEvent) => setMatches(e.matches)
-        mediaQuery.addEventListener('change', handleChange)
-        return () => mediaQuery.removeEventListener('change', handleChange)
-    }, [])
-
-    return matches
-}
 
 function MapPlaceholder() {
     return (
@@ -67,20 +26,6 @@ function MapPlaceholder() {
 }
 
 export function TechHero() {
-    const [tickerIndex, setTickerIndex] = useState(0)
-    const prefersReducedMotion = useReducedMotion()
-    const isDesktopViewport = useDesktopViewport()
-
-    // Cycle ticker text only if motion is NOT reduced
-    useEffect(() => {
-        if (prefersReducedMotion) return
-
-        const interval = setInterval(() => {
-            setTickerIndex(prev => (prev + 1) % TICKER_ITEMS.length)
-        }, 4000)
-        return () => clearInterval(interval)
-    }, [prefersReducedMotion])
-
     return (
         <section className="relative flex min-h-[calc(100svh-10rem)] w-full flex-col overflow-hidden bg-slate-950 pt-8 sm:min-h-[90vh] sm:pt-20">
 
@@ -97,11 +42,12 @@ export function TechHero() {
 
                 {/* The D3 Map */}
                 <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0 motion-reduce:transform-none">
-                    {isDesktopViewport ? <HeroMap /> : <MapPlaceholder />}
+                    <MapPlaceholder />
+                    <HeroDesktopMap />
                 </div>
 
                 {/* Radial Gradient Vignette (Lighter) */}
-                <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/40 to-slate-950/80" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.8)_70%,rgba(2,6,23,1)_100%)]" />
             </div>
 
             {/* 2. Foreground Content */}
@@ -158,9 +104,8 @@ export function TechHero() {
                     <div className="h-4 w-px bg-slate-700 shrink-0" />
 
                     <div className="flex-1 relative overflow-hidden h-6">
-                        {/* Simple crossfade ticker */}
-                        <div key={tickerIndex} className="absolute inset-0 flex items-center animate-slide-up motion-reduce:animate-none">
-                            <span className="truncate">{TICKER_ITEMS[tickerIndex]}</span>
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="truncate">{TICKER_ITEMS[0]}</span>
                         </div>
                     </div>
 
@@ -170,20 +115,6 @@ export function TechHero() {
                     </div>
                 </div>
             </div>
-
-            {/* CSS for custom gradient blend if needed */}
-            <style jsx>{`
-        .bg-radial-gradient {
-          background-image: radial-gradient(circle at center, transparent 0%, rgba(2,6,23,0.8) 70%, rgba(2,6,23,1) 100%);
-        }
-        @keyframes slide-up {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slide-up {
-            animation: slide-up 0.5s ease-out forwards;
-        }
-      `}</style>
         </section>
     )
 }
