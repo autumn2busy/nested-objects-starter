@@ -170,6 +170,14 @@ addCheck('Outseta webhook emits paid transition events only on paid changes', 'a
   'no_subscription_event_needed',
 ])
 
+addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/active-campaign-deep-data.ts', [
+  "tagsMap.set(String(t.id), t.tag)",
+  "tagsMap.get(String(ct.tag))",
+  "nameLower.startsWith('plan-')",
+  'removeTagFromContact(ct.id, tagName, logs)',
+  'await addTagToContact(contactId, expectedTierTag, logs)',
+])
+
 addCheck('Server event tracking exposes purchase helper', 'lib/ac-event-tracking.ts', [
   'export async function trackPurchase',
   "event: 'purchase'",
