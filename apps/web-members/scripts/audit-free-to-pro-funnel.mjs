@@ -178,6 +178,19 @@ addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/acti
   'await addTagToContact(contactId, expectedTierTag, logs)',
 ])
 
+addCheck('ActiveCampaign sync treats recurring payments as membership source of truth', 'lib/active-campaign-deep-data.ts', [
+  'isPaidTier(profile)',
+  'await syncEcommerceOrder(profile, customerId!, logs)',
+  'const recurringPaymentSynced = await syncRecurringPayment(profile, customerId!, orderId, logs)',
+  'getRecurringPaymentId(profile)',
+  'getSubscriptionDates(profile)',
+  'storeRecurringPaymentId',
+  'nextPaymentDate',
+  'billingInterval',
+  'paymentAmount: getPlanAmount(profile)',
+  'AC_MEMBERSHIP_RENEWAL_FIELD_ID',
+])
+
 addCheck('Server event tracking exposes purchase helper', 'lib/ac-event-tracking.ts', [
   'export async function trackPurchase',
   "event: 'purchase'",

@@ -5,9 +5,105 @@ import { createServiceRoleClient } from '@/lib/supabase-admin';
 const AC_API_URL = env.acApiUrl;
 const AC_API_KEY = env.acApiKey;
 const AC_CONNECTION_ID = env.acConnectionId;
+const AC_MEMBERSHIP_RENEWAL_FIELD_ID = process.env.AC_MEMBERSHIP_RENEWAL_FIELD_ID;
 
 interface SyncResult {
     logs: string[];
+}
+
+type BillingInterval = 'MONTHLY' | 'YEARLY';
+
+const PAID_TIERS = new Set(['starter', 'founders', 'pro', 'elite', 'agency']);
+
+function isPaidTier(profile: ProfileUpdateData) {
+    return PAID_TIERS.has(profile.subscription_tier);
+}
+
+function getOutsetaSubscription(profile: ProfileUpdateData): any {
+    const rawData = profile.outseta_data as any;
+
+    if (rawData?.CurrentSubscription || rawData?.LatestSubscription) {
+        return rawData.CurrentSubscription || rawData.LatestSubscription;
+    }
+
+    const personAccount = rawData?.PersonAccount?.find((pa: any) => pa.IsPrimary)
+        || rawData?.PersonAccount?.[0];
+    const account = personAccount?.Account;
+
+    return account?.CurrentSubscription || account?.LatestSubscription || null;
+}
+
+function getRecurringPaymentId(profile: ProfileUpdateData) {
+    const subscription = getOutsetaSubscription(profile);
+    return subscription?.Uid || profile.outseta_account_id || profile.outseta_person_uid;
+}
+
+function getOriginOrderId(profile: ProfileUpdateData) {
+    return [profile.outseta_account_id || profile.outseta_person_uid, profile.plan_uid || profile.subscription_tier]
+        .filter(Boolean)
+        .join('-');
+}
+
+function getPlanAmount(profile: ProfileUpdateData) {
+    switch (profile.subscription_tier) {
+        case 'starter': return 99;
+        case 'founders': return 37;
+        case 'pro': return 49;
+        case 'elite': return 97;
+        case 'agency': return 297;
+        default: return 0;
+    }
+}
+
+function getBillingCadence(profile: ProfileUpdateData): { interval: BillingInterval; count: number } {
+    if (profile.subscription_tier === 'founders') {
+        return { interval: 'YEARLY', count: profile.billing_renewal_term || 1 };
+    }
+
+    if (profile.subscription_tier === 'starter') {
+        return { interval: 'MONTHLY', count: profile.billing_renewal_term || 3 };
+    }
+
+    return { interval: 'MONTHLY', count: profile.billing_renewal_term || 1 };
+}
+
+function addBillingInterval(startDate: string, cadence: { interval: BillingInterval; count: number }) {
+    const date = new Date(startDate);
+
+    if (cadence.interval === 'YEARLY') {
+        date.setFullYear(date.getFullYear() + cadence.count);
+    } else {
+        date.setMonth(date.getMonth() + cadence.count);
+    }
+
+    return date.toISOString();
+}
+
+function getSubscriptionDates(profile: ProfileUpdateData) {
+    const subscription = getOutsetaSubscription(profile);
+    const startDate = subscription?.StartDate || profile.subscription_start_date || new Date().toISOString();
+    const cadence = getBillingCadence(profile);
+    const nextPaymentDate =
+        subscription?.RenewalDate
+        || subscription?.EndDate
+        || profile.subscription_end_date
+        || addBillingInterval(startDate, cadence);
+
+    return { startDate, nextPaymentDate };
+}
+
+function getNormalizedRecurringStatus(profile: ProfileUpdateData) {
+    switch (profile.subscription_status) {
+        case 'canceled': return 'CANCELLED';
+        case 'past_due': return 'PAYMENT_FAILED';
+        case 'paused': return 'PAUSED';
+        case 'trialing': return 'ACTIVE';
+        default: return 'ACTIVE';
+    }
+}
+
+function formatAcDate(value: string) {
+    return new Date(value).toISOString().slice(0, 10);
 }
 
 /**
@@ -70,8 +166,8 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         // 3. Sync Tags
         await syncTags(contactId!, profile, logs);
 
-        // 4. Sync Order (If paid)
-        const isPaid = profile.subscription_tier !== 'free';
+        // 4. Sync Order purchase history (if paid). This powers AC ecommerce revenue history.
+        const isPaid = isPaidTier(profile);
         let orderId: string | null = null;
 
         if (isPaid && profile.plan_uid) {
@@ -80,9 +176,16 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
             logs.push("Skipping Order sync (Free plan or no plan UID)");
         }
 
-        // 5. Sync Recurring Payment (If paid & active & order created)
-        if (isPaid && profile.plan_uid && orderId) {
-            await syncRecurringPayment(profile, customerId!, orderId, contactId!, logs);
+        // 5. Sync Recurring Payment subscription state independently of the order result.
+        // Orders are purchase history; Recurring Payments are the membership source of truth.
+        if (isPaid && profile.plan_uid) {
+            const recurringPaymentSynced = await syncRecurringPayment(profile, customerId!, orderId, logs);
+            if (recurringPaymentSynced) {
+                const { nextPaymentDate } = getSubscriptionDates(profile);
+                await syncMembershipRenewalField(contactId!, nextPaymentDate, logs);
+            }
+        } else {
+            logs.push("Skipping Recurring Payment sync (Free plan or no plan UID)");
         }
 
         logs.push("Deep Data sync complete.");
@@ -372,14 +475,7 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
     const externalId = `${profile.outseta_account_id}-${profile.plan_uid}`;
 
     // Pricing Map
-    let price = 0;
-    switch (profile.subscription_tier) {
-        case 'pro': price = 4900; break;
-        case 'elite': price = 9900; break;
-        case 'agency': price = 29900; break;
-        case 'founders': price = 3700; break;
-        default: price = 0;
-    }
+    const price = getPlanAmount(profile) * 100;
 
     const payload = {
         ecomOrder: {
@@ -443,13 +539,9 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
     }
 }
 
-async function syncRecurringPayment(profile: ProfileUpdateData, customerId: string, orderId: string, contactId: string, logs: string[]) {
+async function syncRecurringPayment(profile: ProfileUpdateData, customerId: string, orderId: string | null, logs: string[]): Promise<boolean> {
     // ActiveCampaign E-Commerce GraphQL endpoint
     const gqlUrl = `${AC_API_URL}/api/3/ecom/graphql`;
-
-    // Use outseta_account_id as the unique storeRecurringPaymentId.
-    // This ensures the same subscription always maps to the same RP record.
-    const storeRecurringPaymentId = profile.outseta_account_id || profile.outseta_person_uid;
 
     // Mutation: bulkUpsertRecurringPayments takes [RecurringPaymentInput]
     // Discovered via schema introspection on the live AC GraphQL API.
@@ -461,33 +553,11 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
         }
     `;
 
-    // Map subscription status to RecurringPaymentStatus enum
-    let normalizedStatus = 'ACTIVE';
-    if (profile.subscription_status === 'canceled') normalizedStatus = 'CANCELLED';
-    else if (profile.subscription_status === 'past_due') normalizedStatus = 'PAYMENT_FAILED';
-    else if (profile.subscription_status === 'paused') normalizedStatus = 'PAUSED';
-
-    // Pricing in dollars (GraphQL paymentAmount uses whole dollars, not cents)
-    let amount = 0;
-    switch (profile.subscription_tier) {
-        case 'pro': amount = 49; break;
-        case 'elite': amount = 99; break;
-        case 'agency': amount = 299; break;
-        case 'founders': amount = 37; break;
-    }
-
+    const cadence = getBillingCadence(profile);
+    const { startDate, nextPaymentDate } = getSubscriptionDates(profile);
+    const storeRecurringPaymentId = getRecurringPaymentId(profile);
+    const originOrderId = getOriginOrderId(profile);
     const planName = profile.plan_name || 'Membership';
-
-    // Fallbacks to avoid GraphQL crashing over null required dates
-    const safeStartDate = profile.subscription_start_date || new Date().toISOString();
-
-    let safeEndDate = profile.subscription_end_date;
-    if (!safeEndDate) {
-        // Assume 1 month if Outseta was completely missing RenewalDate
-        const d = new Date(safeStartDate);
-        d.setMonth(d.getMonth() + 1);
-        safeEndDate = d.toISOString();
-    }
 
     const variables = {
         recurringPayments: [{
@@ -496,15 +566,15 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
             storeCustomerId: profile.outseta_person_uid,
             email: profile.email,
             name: planName,
-            normalizedStatus: normalizedStatus,
+            normalizedStatus: getNormalizedRecurringStatus(profile),
             storeStatus: profile.subscription_status || 'active',
-            originOrderId: `${profile.outseta_account_id}-${profile.plan_uid}`,
-            billingInterval: 'MONTHLY',
-            billingIntervalCount: profile.billing_renewal_term || 1,
-            paymentAmount: amount,
+            originOrderId,
+            billingInterval: cadence.interval,
+            billingIntervalCount: cadence.count,
+            paymentAmount: getPlanAmount(profile),
             currency: 'USD',
-            startDate: safeStartDate,
-            nextPaymentDate: safeEndDate,
+            startDate,
+            nextPaymentDate,
             lineItemNames: [planName],
             lineItemStorePrimaryIds: [profile.plan_uid],
         }]
@@ -513,6 +583,9 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     try {
         logs.push(`Syncing Recurring Payment (GraphQL) to ${gqlUrl}`);
         logs.push(`storeRecurringPaymentId: ${storeRecurringPaymentId}`);
+        if (orderId) {
+            logs.push(`Recurring Payment linked to ecomOrder ID: ${orderId}`);
+        }
         const res = await fetch(gqlUrl, {
             method: 'POST',
             headers: {
@@ -523,16 +596,91 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
         });
 
         const data = await res.json();
+        if (!res.ok) {
+            logs.push(`Recurring Payment HTTP ${res.status}: ${JSON.stringify(data)}`);
+            return false;
+        }
+
         if (data.errors && data.errors.length > 0) {
             logs.push(`GQL Errors: ${JSON.stringify(data.errors)}`);
+            return false;
         } else if (data.data?.bulkUpsertRecurringPayments?.recordId) {
             logs.push(`Recurring Payment bulk upsert submitted. Record ID: ${data.data.bulkUpsertRecurringPayments.recordId}`);
+            return true;
+        } else if (Array.isArray(data.data?.bulkUpsertRecurringPayments)) {
+            logs.push(`Recurring Payment bulk upsert submitted: ${JSON.stringify(data.data.bulkUpsertRecurringPayments)}`);
+            return true;
         } else {
             logs.push(`GQL Response: ${JSON.stringify(data)}`);
+            return Boolean(data.data?.bulkUpsertRecurringPayments);
         }
 
     } catch (e) {
         logs.push(`Error syncing Recurring Payment: ${e}`);
+        return false;
+    }
+}
+
+async function syncMembershipRenewalField(contactId: string, nextPaymentDate: string, logs: string[]) {
+    if (!AC_MEMBERSHIP_RENEWAL_FIELD_ID) {
+        logs.push("Skipping AC renewal date field sync (AC_MEMBERSHIP_RENEWAL_FIELD_ID not configured)");
+        return;
+    }
+
+    const fieldValue = formatAcDate(nextPaymentDate);
+
+    try {
+        const existingRes = await fetch(`${AC_API_URL}/api/3/contacts/${contactId}/fieldValues`, {
+            method: 'GET',
+            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
+        });
+        const existingData = await existingRes.json();
+        const existingFieldValue = existingData.fieldValues?.find(
+            (fv: any) => String(fv.field) === String(AC_MEMBERSHIP_RENEWAL_FIELD_ID)
+        );
+
+        if (existingFieldValue?.id) {
+            const updateRes = await fetch(`${AC_API_URL}/api/3/fieldValues/${existingFieldValue.id}`, {
+                method: 'PUT',
+                headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fieldValue: {
+                        contact: contactId,
+                        field: AC_MEMBERSHIP_RENEWAL_FIELD_ID,
+                        value: fieldValue,
+                    }
+                })
+            });
+            const updateData = await updateRes.json().catch(() => ({}));
+
+            if (updateRes.ok) {
+                logs.push(`Updated AC membership renewal date field to ${fieldValue}`);
+            } else {
+                logs.push(`Failed to update AC renewal date field: ${updateRes.status} ${JSON.stringify(updateData)}`);
+            }
+            return;
+        }
+
+        const createRes = await fetch(`${AC_API_URL}/api/3/fieldValues`, {
+            method: 'POST',
+            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fieldValue: {
+                    contact: contactId,
+                    field: AC_MEMBERSHIP_RENEWAL_FIELD_ID,
+                    value: fieldValue,
+                }
+            })
+        });
+        const createData = await createRes.json().catch(() => ({}));
+
+        if (createRes.ok || createRes.status === 201) {
+            logs.push(`Created AC membership renewal date field value ${fieldValue}`);
+        } else {
+            logs.push(`Failed to create AC renewal date field: ${createRes.status} ${JSON.stringify(createData)}`);
+        }
+    } catch (e) {
+        logs.push(`Error syncing AC membership renewal date field: ${e}`);
     }
 }
 
