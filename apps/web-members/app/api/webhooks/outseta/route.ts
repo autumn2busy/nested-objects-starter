@@ -77,9 +77,14 @@ interface ExistingProfileSnapshot {
   id: string;
   user_email: string;
   outseta_updated_at: string | null;
+  outseta_account_id: string | null;
   subscription_tier: ProfileUpdateData['subscription_tier'] | null;
+  subscription_status: ProfileUpdateData['subscription_status'] | null;
+  subscription_start_date: string | null;
+  subscription_end_date: string | null;
   plan_name: string | null;
   plan_uid: string | null;
+  billing_renewal_term: number | null;
 }
 
 // The webhook can send either type
@@ -166,6 +171,30 @@ function mapPlanToTier(planName?: string, planUid?: string): ProfileUpdateData['
   if (normalized.includes('founders')) return 'founders';
   if (normalized.includes('starter') || normalized.includes('directory')) return 'starter';
   return 'free';
+}
+
+function isPaidTier(tier?: ProfileUpdateData['subscription_tier'] | null) {
+  return !!tier && tier !== 'free';
+}
+
+function preserveStoredMembershipContext(
+  incoming: ProfileUpdateData,
+  existing: ExistingProfileSnapshot | null
+): ProfileUpdateData {
+  if (!existing || incoming.plan_uid || incoming.plan_name || !isPaidTier(existing.subscription_tier)) {
+    return incoming;
+  }
+
+  return {
+    ...incoming,
+    outseta_account_id: incoming.outseta_account_id || existing.outseta_account_id,
+    subscription_tier: existing.subscription_tier!,
+    subscription_start_date: incoming.subscription_start_date || existing.subscription_start_date,
+    subscription_end_date: incoming.subscription_end_date || existing.subscription_end_date,
+    plan_uid: existing.plan_uid,
+    plan_name: existing.plan_name,
+    billing_renewal_term: incoming.billing_renewal_term || existing.billing_renewal_term,
+  };
 }
 
 /**
@@ -301,7 +330,7 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] Payload type: ${payloadType}`);
 
     // Map to profile data
-    const profileData = mapOutsetaToProfile(payload);
+    let profileData = mapOutsetaToProfile(payload);
     console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
 
     const supabase = getSupabaseAdmin();
@@ -309,9 +338,11 @@ export async function POST(request: NextRequest) {
     // Check if profile exists
     const { data: existing } = await supabase
       .from('profiles')
-      .select('id, user_email, outseta_updated_at, subscription_tier, plan_name, plan_uid')
+      .select('id, user_email, outseta_updated_at, outseta_account_id, subscription_tier, subscription_status, subscription_start_date, subscription_end_date, plan_name, plan_uid, billing_renewal_term')
       .eq('user_email', profileData.user_email)
       .single() as { data: ExistingProfileSnapshot | null };
+
+    profileData = preserveStoredMembershipContext(profileData, existing);
 
     let result;
 
@@ -354,6 +385,7 @@ export async function POST(request: NextRequest) {
       if (profileData.plan_uid) updatePayload.plan_uid = profileData.plan_uid;
       if (profileData.plan_name) updatePayload.plan_name = profileData.plan_name;
       if (profileData.subscription_start_date) updatePayload.subscription_start_date = profileData.subscription_start_date;
+      if (profileData.subscription_end_date) updatePayload.subscription_end_date = profileData.subscription_end_date;
       if (profileData.billing_renewal_term) updatePayload.billing_renewal_term = profileData.billing_renewal_term;
       if (profileData.last_login_at) updatePayload.last_login_at = profileData.last_login_at;
 

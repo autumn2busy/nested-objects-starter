@@ -170,6 +170,9 @@ addCheck('Outseta webhook emits paid transition events only on paid changes', 'a
   'no_subscription_event_needed',
   'mapAccountStageToStatus(stage?: number, label?: string)',
   "normalizedLabel.includes('trial')",
+  "normalizedLabel.includes('cancel')",
+  'preserveStoredMembershipContext(profileData, existing)',
+  'subscription_end_date',
   'mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel)',
 ])
 
@@ -184,11 +187,14 @@ addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/acti
 ])
 
 addCheck('ActiveCampaign sync treats recurring payments as membership source of truth', 'lib/active-campaign-deep-data.ts', [
-  'isPaidTier(profile)',
-  'await syncEcommerceOrder(profile, customerId!, logs)',
-  'const recurringPaymentSynced = await syncRecurringPayment(profile, customerId!, orderId, logs)',
+  'isPaidTier(syncProfile)',
+  'await syncEcommerceOrder(syncProfile, customerId!, logs)',
+  'const recurringPaymentSynced = await syncRecurringPayment(syncProfile, customerId!, orderId, logs)',
+  'preserveStoredMembershipContext(profile, dbProfile, logs)',
+  'Preserving stored paid membership context for plan-light Outseta payload',
   'getRecurringPaymentId(profile)',
   'getSubscriptionDates(profile)',
+  'getCancellationDate(profile, nextPaymentDate)',
   'storeRecurringPaymentId',
   'subscription?.RenewalDate',
   'profile.subscription_end_date',
@@ -197,6 +203,9 @@ addCheck('ActiveCampaign sync treats recurring payments as membership source of 
   'anchorDate: startDate',
   'storeCreatedDate: startDate',
   'storeModifiedDate',
+  'cancelledDate: cancellationDate',
+  'cancelAtPeriodEnd',
+  "case 'canceled': return 'CANCELLED'",
   'billingInterval',
   'paymentAmount: getPlanAmount(profile)',
   'AC_MEMBERSHIP_RENEWAL_FIELD_ID',

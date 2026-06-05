@@ -13,10 +13,26 @@ interface SyncResult {
 
 type BillingInterval = 'MONTHLY' | 'YEARLY';
 
+interface StoredMembershipContext {
+    ac_contact_id?: string | null;
+    ac_customer_id?: string | null;
+    outseta_account_id?: string | null;
+    subscription_tier?: ProfileUpdateData['subscription_tier'] | null;
+    subscription_start_date?: string | null;
+    subscription_end_date?: string | null;
+    plan_uid?: string | null;
+    plan_name?: string | null;
+    billing_renewal_term?: number | null;
+}
+
 const PAID_TIERS = new Set(['starter', 'founders', 'pro', 'elite', 'agency']);
 
 function isPaidTier(profile: ProfileUpdateData) {
     return PAID_TIERS.has(profile.subscription_tier);
+}
+
+function isStoredPaidTier(tier?: ProfileUpdateData['subscription_tier'] | null) {
+    return !!tier && tier !== 'free';
 }
 
 function hasConcretePlan(profile: ProfileUpdateData) {
@@ -88,6 +104,29 @@ function addBillingInterval(startDate: string, cadence: { interval: BillingInter
     return date.toISOString();
 }
 
+function preserveStoredMembershipContext(
+    profile: ProfileUpdateData,
+    storedProfile: StoredMembershipContext | null | undefined,
+    logs: string[]
+): ProfileUpdateData {
+    if (!storedProfile || hasConcretePlan(profile) || !isStoredPaidTier(storedProfile.subscription_tier)) {
+        return profile;
+    }
+
+    logs.push("Preserving stored paid membership context for plan-light Outseta payload");
+
+    return {
+        ...profile,
+        outseta_account_id: profile.outseta_account_id || storedProfile.outseta_account_id || null,
+        subscription_tier: storedProfile.subscription_tier!,
+        subscription_start_date: profile.subscription_start_date || storedProfile.subscription_start_date || null,
+        subscription_end_date: profile.subscription_end_date || storedProfile.subscription_end_date || null,
+        plan_uid: storedProfile.plan_uid || null,
+        plan_name: storedProfile.plan_name || null,
+        billing_renewal_term: profile.billing_renewal_term || storedProfile.billing_renewal_term || null,
+    };
+}
+
 function getSubscriptionDates(profile: ProfileUpdateData) {
     const subscription = getOutsetaSubscription(profile);
     const startDate = subscription?.StartDate || profile.subscription_start_date || new Date().toISOString();
@@ -100,6 +139,22 @@ function getSubscriptionDates(profile: ProfileUpdateData) {
         || cadenceRenewalDate;
 
     return { startDate, nextPaymentDate };
+}
+
+function isFutureDate(value: string | null) {
+    if (!value) return false;
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) && time > Date.now();
+}
+
+function getCancellationDate(profile: ProfileUpdateData, nextPaymentDate: string) {
+    if (profile.subscription_status !== 'canceled') return null;
+
+    const subscription = getOutsetaSubscription(profile);
+    return subscription?.EndDate
+        || profile.subscription_end_date
+        || subscription?.RenewalDate
+        || nextPaymentDate;
 }
 
 function getNormalizedRecurringStatus(profile: ProfileUpdateData) {
@@ -132,9 +187,9 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         // 0. Fetch existing IDs from Supabase
         const { data: dbProfile, error: dbError } = await supabase
             .from('profiles')
-            .select('ac_contact_id, ac_customer_id')
+            .select('ac_contact_id, ac_customer_id, outseta_account_id, subscription_tier, subscription_start_date, subscription_end_date, plan_uid, plan_name, billing_renewal_term')
             .eq('user_email', profile.user_email)
-            .single();
+            .single() as { data: StoredMembershipContext | null; error: any };
 
         if (dbError && dbError.code !== 'PGRST116') {
             logs.push(`Error fetching profile from DB: ${dbError.message}`);
@@ -142,10 +197,11 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
 
         let contactId = dbProfile?.ac_contact_id;
         let customerId = dbProfile?.ac_customer_id;
+        const syncProfile = preserveStoredMembershipContext(profile, dbProfile, logs);
 
         // 1. Sync Contact (if missing ID or just to update)
         // We always sync to ensure fields are up to date
-        const syncedContactId = await syncContact(profile, logs);
+        const syncedContactId = await syncContact(syncProfile, logs);
         if (syncedContactId) {
             if (contactId !== syncedContactId) {
                 contactId = syncedContactId;
@@ -161,7 +217,7 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         await addContactToList(contactId!, 12, 1, logs);
 
         // 2. Sync Ecommerce Customer
-        const syncedCustomerId = await syncEcommerceCustomer(profile, logs);
+        const syncedCustomerId = await syncEcommerceCustomer(syncProfile, logs);
         if (syncedCustomerId) {
             if (customerId !== syncedCustomerId) {
                 customerId = syncedCustomerId;
@@ -174,24 +230,24 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         }
 
         // 3. Sync Tags
-        await syncTags(contactId!, profile, logs);
+        await syncTags(contactId!, syncProfile, logs);
 
         // 4. Sync Order purchase history (if paid). This powers AC ecommerce revenue history.
-        const isPaid = isPaidTier(profile);
+        const isPaid = isPaidTier(syncProfile);
         let orderId: string | null = null;
 
-        if (isPaid && profile.plan_uid) {
-            orderId = await syncEcommerceOrder(profile, customerId!, logs);
+        if (isPaid && syncProfile.plan_uid) {
+            orderId = await syncEcommerceOrder(syncProfile, customerId!, logs);
         } else {
             logs.push("Skipping Order sync (Free plan or no plan UID)");
         }
 
         // 5. Sync Recurring Payment subscription state independently of the order result.
         // Orders are purchase history; Recurring Payments are the membership source of truth.
-        if (isPaid && profile.plan_uid) {
-            const recurringPaymentSynced = await syncRecurringPayment(profile, customerId!, orderId, logs);
+        if (isPaid && syncProfile.plan_uid) {
+            const recurringPaymentSynced = await syncRecurringPayment(syncProfile, customerId!, orderId, logs);
             if (recurringPaymentSynced) {
-                const { nextPaymentDate } = getSubscriptionDates(profile);
+                const { nextPaymentDate } = getSubscriptionDates(syncProfile);
                 await syncMembershipRenewalField(contactId!, nextPaymentDate, logs);
             }
         } else {
@@ -571,6 +627,7 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
 
     const cadence = getBillingCadence(profile);
     const { startDate, nextPaymentDate } = getSubscriptionDates(profile);
+    const cancellationDate = getCancellationDate(profile, nextPaymentDate);
     const storeRecurringPaymentId = getRecurringPaymentId(profile);
     const originOrderId = getOriginOrderId(profile);
     const planName = profile.plan_name || 'Membership';
@@ -602,6 +659,8 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
             storeCreatedDate: startDate,
             storeModifiedDate: profile.outseta_updated_at || new Date().toISOString(),
             isTrial: profile.subscription_status === 'trialing',
+            cancelledDate: cancellationDate,
+            cancelAtPeriodEnd: profile.subscription_status === 'canceled' && isFutureDate(cancellationDate),
             suppressAutomations: false,
             lineItemNames: [planName],
             lineItemStorePrimaryIds: [profile.plan_uid],
