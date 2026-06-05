@@ -1,9 +1,7 @@
-'use client'
-
 import Link from 'next/link'
-import IncomeCalculator from '@/components/training/IncomeCalculator'
-import { Gate } from '@/components/Gate'
 import { ArrowLeft } from 'lucide-react'
+
+import { IncomeCalculatorGate } from './IncomeCalculatorGate'
 
 export default function IncomeCalculatorPage() {
     return (
@@ -22,9 +20,7 @@ export default function IncomeCalculatorPage() {
             </div>
 
             <div className="max-w-6xl mx-auto px-6 py-12">
-                <Gate>
-                    <IncomeCalculator />
-                </Gate>
+                <IncomeCalculatorGate />
             </div>
         </main>
     )

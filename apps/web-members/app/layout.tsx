@@ -152,7 +152,7 @@ export default function RootLayout({
                 __html: `
                   var o_options = {
                     domain: 'nested-objects.outseta.com',
-                    load: 'auth,customForm,emailList,leadCapture,nocode,profile,support',
+                    load: 'auth,profile',
                     tokenStorage: 'local'
                   };
                 `,
