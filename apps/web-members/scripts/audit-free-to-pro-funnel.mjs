@@ -168,6 +168,9 @@ addCheck('Outseta webhook emits paid transition events only on paid changes', 'a
   'lifecycleDecision.shouldTrack',
   'lifecycleDecision.purchasePayload',
   'no_subscription_event_needed',
+  'mapAccountStageToStatus(stage?: number, label?: string)',
+  "normalizedLabel.includes('trial')",
+  'mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel)',
 ])
 
 addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/active-campaign-deep-data.ts', [
@@ -187,7 +190,8 @@ addCheck('ActiveCampaign sync treats recurring payments as membership source of 
   'getRecurringPaymentId(profile)',
   'getSubscriptionDates(profile)',
   'storeRecurringPaymentId',
-  'isOnOrAfterDate(subscription?.RenewalDate, cadenceRenewalDate)',
+  'subscription?.RenewalDate',
+  'profile.subscription_end_date',
   'renewalDate: nextPaymentDate',
   'nextPaymentDate',
   'anchorDate: startDate',

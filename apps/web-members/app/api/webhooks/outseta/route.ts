@@ -135,10 +135,18 @@ function isPersonPayload(payload: OutsetaWebhookPayload): payload is OutsetaPers
   return 'Email' in payload && typeof payload.Email === 'string';
 }
 
-function mapAccountStageToStatus(stage?: number): ProfileUpdateData['subscription_status'] {
+function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateData['subscription_status'] {
+  const normalizedLabel = label?.toLowerCase() || '';
+
+  if (normalizedLabel.includes('trial')) return 'trialing';
+  if (normalizedLabel.includes('past due') || normalizedLabel.includes('past_due')) return 'past_due';
+  if (normalizedLabel.includes('cancel')) return 'canceled';
+  if (normalizedLabel.includes('pause')) return 'paused';
+  if (normalizedLabel.includes('active')) return 'active';
+
   switch (stage) {
     case 1: return 'trialing';
-    case 2: return 'active';
+    case 2: return 'trialing';
     case 3: return 'canceled';
     case 4: return 'canceled';
     case 5: return 'canceled';
@@ -195,7 +203,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
       phone: person.PhoneMobile || person.PhoneWork || null,
       subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
-      subscription_status: mapAccountStageToStatus(account?.AccountStage),
+      subscription_status: mapAccountStageToStatus(account?.AccountStage, account?.AccountStageLabel),
       subscription_start_date: subscription?.StartDate || null,
       subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
       plan_uid: plan?.Uid || null,
@@ -239,7 +247,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
     display_name: person.FullName || `${person.FirstName || ''} ${person.LastName || ''}`.trim() || null,
     phone: person.PhoneMobile || person.PhoneWork || null,
     subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
-    subscription_status: mapAccountStageToStatus(account.AccountStage),
+    subscription_status: mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel),
     subscription_start_date: subscription?.StartDate || null,
     subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
     plan_uid: plan?.Uid || null,
