@@ -88,15 +88,35 @@ function addBillingInterval(startDate: string, cadence: { interval: BillingInter
     return date.toISOString();
 }
 
+function isOnOrAfterDate(value: string | null | undefined, minimum: string) {
+    if (!value) return false;
+
+    const valueTime = new Date(value).getTime();
+    const minimumTime = new Date(minimum).getTime();
+
+    return Number.isFinite(valueTime) && Number.isFinite(minimumTime) && valueTime >= minimumTime;
+}
+
 function getSubscriptionDates(profile: ProfileUpdateData) {
     const subscription = getOutsetaSubscription(profile);
     const startDate = subscription?.StartDate || profile.subscription_start_date || new Date().toISOString();
     const cadence = getBillingCadence(profile);
-    const nextPaymentDate =
-        subscription?.RenewalDate
-        || subscription?.EndDate
-        || profile.subscription_end_date
-        || addBillingInterval(startDate, cadence);
+    const cadenceRenewalDate = addBillingInterval(startDate, cadence);
+    const isTerminalStatus = profile.subscription_status === 'canceled' || profile.subscription_status === 'paused';
+
+    if (isTerminalStatus) {
+        const terminalDate =
+            subscription?.RenewalDate
+            || subscription?.EndDate
+            || profile.subscription_end_date
+            || cadenceRenewalDate;
+
+        return { startDate, nextPaymentDate: terminalDate };
+    }
+
+    const nextPaymentDate = isOnOrAfterDate(subscription?.RenewalDate, cadenceRenewalDate)
+        ? subscription.RenewalDate
+        : cadenceRenewalDate;
 
     return { startDate, nextPaymentDate };
 }
@@ -595,7 +615,13 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
             paymentAmount: getPlanAmount(profile),
             currency: 'USD',
             startDate,
+            renewalDate: nextPaymentDate,
             nextPaymentDate,
+            anchorDate: startDate,
+            storeCreatedDate: startDate,
+            storeModifiedDate: profile.outseta_updated_at || new Date().toISOString(),
+            isTrial: profile.subscription_status === 'trialing',
+            suppressAutomations: false,
             lineItemNames: [planName],
             lineItemStorePrimaryIds: [profile.plan_uid],
         }]
