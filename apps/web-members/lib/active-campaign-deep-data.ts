@@ -88,35 +88,16 @@ function addBillingInterval(startDate: string, cadence: { interval: BillingInter
     return date.toISOString();
 }
 
-function isOnOrAfterDate(value: string | null | undefined, minimum: string) {
-    if (!value) return false;
-
-    const valueTime = new Date(value).getTime();
-    const minimumTime = new Date(minimum).getTime();
-
-    return Number.isFinite(valueTime) && Number.isFinite(minimumTime) && valueTime >= minimumTime;
-}
-
 function getSubscriptionDates(profile: ProfileUpdateData) {
     const subscription = getOutsetaSubscription(profile);
     const startDate = subscription?.StartDate || profile.subscription_start_date || new Date().toISOString();
     const cadence = getBillingCadence(profile);
     const cadenceRenewalDate = addBillingInterval(startDate, cadence);
-    const isTerminalStatus = profile.subscription_status === 'canceled' || profile.subscription_status === 'paused';
-
-    if (isTerminalStatus) {
-        const terminalDate =
-            subscription?.RenewalDate
-            || subscription?.EndDate
-            || profile.subscription_end_date
-            || cadenceRenewalDate;
-
-        return { startDate, nextPaymentDate: terminalDate };
-    }
-
-    const nextPaymentDate = isOnOrAfterDate(subscription?.RenewalDate, cadenceRenewalDate)
-        ? subscription.RenewalDate
-        : cadenceRenewalDate;
+    const nextPaymentDate =
+        subscription?.RenewalDate
+        || profile.subscription_end_date
+        || subscription?.EndDate
+        || cadenceRenewalDate;
 
     return { startDate, nextPaymentDate };
 }
