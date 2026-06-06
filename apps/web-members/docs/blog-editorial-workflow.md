@@ -25,6 +25,26 @@ Approved posts are included in:
 
 Draft, review, and archived posts are intentionally hidden from public routes and sitemap output.
 
+## Preview Route
+
+Use this route to review any non-archived post before publishing:
+
+`/blog/preview/[slug]`
+
+Example:
+
+`/blog/preview/how-field-inspectors-can-build-a-profitable-weekly-route`
+
+The preview route:
+
+- renders draft, review, and approved posts
+- uses the same article layout as the live post route
+- adds `noindex, nofollow` metadata
+- is excluded from sitemap output
+- shows a preview banner with the current post status
+
+It is not an authentication gate. Anyone with the exact preview URL could view the content, although search engines are instructed not to index it.
+
 ## Review Checklist
 
 Before setting a post to `approved`, confirm:

@@ -358,14 +358,32 @@ function isApprovedPost(post: BlogPost): boolean {
     return post.status === 'approved' && Boolean(post.review.approvedBy && post.review.approvedAt)
 }
 
+function isPreviewablePost(post: BlogPost): boolean {
+    return post.status !== 'archived'
+}
+
+export function getAllBlogPosts(): BlogPost[] {
+    return [...BLOG_POSTS].sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+    )
+}
+
 export function getApprovedBlogPosts(): BlogPost[] {
-    return BLOG_POSTS.filter(isApprovedPost).sort(
+    return getAllBlogPosts().filter(isApprovedPost).sort(
         (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     )
 }
 
 export function getApprovedBlogPostBySlug(slug: string): BlogPost | null {
     return getApprovedBlogPosts().find((post) => post.slug === slug) ?? null
+}
+
+export function getPreviewableBlogPosts(): BlogPost[] {
+    return getAllBlogPosts().filter(isPreviewablePost)
+}
+
+export function getPreviewableBlogPostBySlug(slug: string): BlogPost | null {
+    return getPreviewableBlogPosts().find((post) => post.slug === slug) ?? null
 }
 
 export function getApprovedBlogPostsByCategory(category: BlogCategorySlug): BlogPost[] {
