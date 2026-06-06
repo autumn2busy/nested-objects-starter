@@ -1,19 +1,15 @@
-'use client'
-
-import { Suspense, useEffect } from 'react'
-import { useAuth } from '@/components/auth-provider'
-import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
-import { PLAN_UIDS, PRO_OR_HIGHER } from '@/lib/plan-config'
-import {
-    trackJoinFreeClick,
-    trackOutsetaModalOpen,
-    trackPricingCtaClick,
-    trackPricingView,
-    trackStartTrial,
-    trackUpgradeStarted,
-} from '@/lib/ac-events'
+import { membershipPlans } from '@/lib/ai-datasets'
+import { PLAN_UIDS } from '@/lib/plan-config'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
 import { Ban, Clock, ShieldCheck, Star } from 'lucide-react'
+import {
+    CurrentPlanBadge,
+    PricingFinalCta,
+    PricingFinalCtaCopy,
+    PricingHeroAccountStatus,
+    PricingPlanButton,
+    PricingViewTracker,
+} from './PricingInteractions'
 
 const proBenefitHighlights = [
     {
@@ -37,154 +33,25 @@ const planDecisionPrompts = [
 ]
 
 function MembershipContent() {
-    const { isAuthenticated, planUid, isLoading } = useAuth()
-
-    const currentPlanName =
-        membershipPlans.find((p) => p.planUid === planUid)?.name || (isAuthenticated ? 'Member' : null)
-
-    const isProOrHigher = planUid && PRO_OR_HIGHER.includes(planUid)
-
     const proPlan = membershipPlans.find((p) => p.planUid === PLAN_UIDS.PRO)!
 
-    useEffect(() => {
-        if (isLoading) return
-
-        trackPricingView({
-            sourcePage: 'membership_pricing',
-            currentPlan: currentPlanName ?? 'anonymous',
-            planUid: planUid ?? null,
-            isAuthenticated,
-        })
-    }, [currentPlanName, isAuthenticated, isLoading, planUid])
-
-    const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
-        if (isCurrentPlan || plan.waitlist) return
-
-        if (typeof window === 'undefined') return
-
-        const Outseta = (window as any).Outseta
-        const targetPlan = plan.name
-        const targetPlanUid = plan.planUid
-
-        trackPricingCtaClick({
-            sourcePage: 'membership_pricing',
-            currentPlan: currentPlanName ?? 'anonymous',
-            targetPlan,
-            targetPlanUid,
-            isAuthenticated,
-        })
-
-        if (!isAuthenticated && targetPlan === 'Free') {
-            trackJoinFreeClick({
-                sourcePage: 'membership_pricing',
-                targetPlan,
-                targetPlanUid,
-            })
-        }
-
-        if (!isAuthenticated && targetPlan === 'Pro') {
-            trackStartTrial({
-                sourcePage: 'membership_pricing',
-                targetPlan,
-                targetPlanUid,
-                value: 0,
-                currency: 'USD',
-            })
-        }
-
-        if (isAuthenticated && targetPlan !== currentPlanName) {
-            trackUpgradeStarted({
-                sourcePage: 'membership_pricing',
-                fromPlan: currentPlanName ?? 'unknown',
-                targetPlan,
-                targetPlanUid,
-            })
-        }
-
-        // For authenticated users, open the profile widget's plan change tab.
-        // Outseta.auth.open only supports login/register - using it for
-        // subscription changes shows a blank login form.
-        if (isAuthenticated) {
-            trackOutsetaModalOpen({
-                sourcePage: 'membership_pricing',
-                mode: 'profile_plan_change',
-                targetPlan,
-                targetPlanUid,
-            })
-
-            if (Outseta?.profile?.open) {
-                Outseta.profile.open({ tab: 'planChange' })
-            } else {
-                window.location.href = 'https://nested-objects.outseta.com/profile#o-plan-change'
-            }
-            return
-        }
-
-        // For unauthenticated users, standard registration with plan pre-selected
-        const planPaymentTerm = plan.period === 'forever' ? undefined : plan.period.includes('month') ? 'month' : 'oneTime'
-
-        if (Outseta?.auth?.open) {
-            trackOutsetaModalOpen({
-                sourcePage: 'membership_pricing',
-                mode: 'register',
-                targetPlan,
-                targetPlanUid,
-                planPaymentTerm,
-            })
-
-            Outseta.auth.open({
-                widgetMode: 'register',
-                planUid: plan.planUid,
-                planPaymentTerm,
-                skipPlanOptions: true,
-            })
-            return
-        }
-
-        trackOutsetaModalOpen({
-            sourcePage: 'membership_pricing',
-            mode: 'register_redirect',
-            targetPlan,
-            targetPlanUid,
-            planPaymentTerm,
-        })
-
-        window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`
-    }
-
-    const openManageBilling = () => {
-        if (isAuthenticated) {
-            ; (window as any).Outseta?.profile?.open({ tab: 'billing' })
-        }
-    }
-
     return (
-        <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <main className="mx-auto w-screen max-w-none overflow-x-clip px-4 py-10 sm:w-full sm:px-6 lg:max-w-6xl lg:px-8 lg:py-16">
+            <PricingViewTracker />
             {/* Hero */}
-            <header className="mx-auto max-w-3xl text-center">
+            <header className="mx-auto w-full max-w-[calc(100vw-2rem)] text-center sm:max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
                     Membership
                 </p>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+                <h1 className="mx-auto mt-4 max-w-[calc(100vw-2rem)] text-balance text-2xl font-bold leading-tight tracking-tight text-slate-900 min-[380px]:max-w-[22rem] min-[380px]:text-3xl sm:max-w-none sm:text-4xl md:text-5xl">
                     Choose the hub that matches your lane in the field.
                 </h1>
-                <p className="mt-4 text-base text-slate-600 sm:text-lg">
+                <p className="mx-auto mt-4 max-w-[18rem] text-base text-slate-600 min-[380px]:max-w-[20rem] sm:max-w-none sm:text-lg">
                     Nested Objects is built for inspectors, notaries, real estate pros, and gig workers who
                     want clear intel on firms, gear, and routes before they hit the road.
                 </p>
 
-                {isAuthenticated && currentPlanName && (
-                    <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
-                        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                        Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
-                    </p>
-                )}
-
-                {!isAuthenticated && (
-                    <p className="mt-4 text-sm text-slate-500">
-                        Start Pro with $0 due today for 7 days, or create a Free account with no card required.
-                    </p>
-                )}
+                <PricingHeroAccountStatus />
             </header>
 
             <section className="mx-auto mt-8 grid max-w-4xl gap-3 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-4">
@@ -267,31 +134,7 @@ function MembershipContent() {
                         {membershipPlans
                             .filter((plan) => !plan.hidden)
                             .map((plan) => {
-                                const isCurrentPlan = planUid === plan.planUid
                                 const isPro = plan.planUid === PLAN_UIDS.PRO
-
-                                const buttonBase =
-                                    'inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/0 transition'
-
-                                let buttonClasses = ''
-                                if (isCurrentPlan) {
-                                    buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-100 text-slate-500`
-                                } else if (plan.waitlist) {
-                                    buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-50 text-slate-400 border border-slate-200`
-                                } else if (plan.highlight) {
-                                    buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
-                                } else {
-                                    buttonClasses = `${buttonBase} border border-brand-copper text-brand-copperDark hover:bg-brand-mist`
-                                }
-
-                                const label = (() => {
-                                    if (isCurrentPlan) return 'Current plan'
-                                    if (plan.waitlist) return 'Join Waitlist'
-                                    if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-                                    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Today'
-                                    if (isAuthenticated) return `Upgrade to ${plan.name}`
-                                    return 'Sign up'
-                                })()
 
                                 return (
                                     <article
@@ -314,11 +157,7 @@ function MembershipContent() {
                                             </div>
                                         )}
 
-                                        {isCurrentPlan && (
-                                            <div className="absolute -top-3 right-4 rounded-full bg-emerald-500 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-white">
-                                                Current
-                                            </div>
-                                        )}
+                                        <CurrentPlanBadge planUid={plan.planUid} />
 
                                         {plan.waitlist && (
                                             <div className="absolute top-4 right-4 rounded bg-slate-100 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
@@ -349,25 +188,7 @@ function MembershipContent() {
                                         </ul>
 
                                         <div className="mt-auto">
-                                            <button
-                                                type="button"
-                                                disabled={isCurrentPlan || plan.waitlist === true}
-                                                className={buttonClasses}
-                                                onClick={() => openPlanWidget(plan, isCurrentPlan)}
-                                            >
-                                                {label}
-                                            </button>
-
-                                            {plan.name === 'Free' && (
-                                                <p className="mt-2 text-center text-xs text-text-muted">
-                                                    No credit card required
-                                                </p>
-                                            )}
-                                            {isPro && (
-                                                <p className="mt-2 text-center text-xs text-brand-copper">
-                                                    7-day free trial. Cancel before paid billing begins.
-                                                </p>
-                                            )}
+                                            <PricingPlanButton plan={plan} />
                                         </div>
                                     </article>
                                 )
@@ -483,41 +304,9 @@ function MembershipContent() {
                 <h2 className="text-2xl font-semibold sm:text-3xl">
                     Ready to build routes that actually pay for your time?
                 </h2>
-                <p className="mx-auto mt-3 max-w-xl text-sm text-slate-200 sm:text-base">
-                    {isAuthenticated && planUid === PLAN_UIDS.PRO
-                        ? "Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews."
-                        : "Start Pro with $0 due today so you can see firms, intel, and tools in one place before paid billing begins."
-                    }
-                </p>
+                <PricingFinalCtaCopy />
 
-                {isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY) ? (
-                    <button
-                        type="button"
-                        onClick={openManageBilling}
-                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                    >
-                        Open manage plan &amp; billing
-                    </button>
-                ) : isAuthenticated && planUid === PLAN_UIDS.PRO ? (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            const elitePlan = membershipPlans.find(p => p.planUid === PLAN_UIDS.ELITE);
-                            if (elitePlan) openPlanWidget(elitePlan, false);
-                        }}
-                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                    >
-                        Upgrade to Elite
-                    </button>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => openPlanWidget(proPlan, false)}
-                        className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                    >
-                        {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Today'}
-                    </button>
-                )}
+                <PricingFinalCta proPlan={proPlan} />
 
                 <p className="mt-3 text-xs text-slate-300">
                     Prefer to ease in? Stay on Free and upgrade from your dashboard any time. Paid digital access is non-refundable.
@@ -529,29 +318,17 @@ function MembershipContent() {
             <TestimonialsSection variant="full" />
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
-                <Suspense>
-                    <a
-                        href="/"
-                        className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
-                    >
-                        Back to home
-                    </a>
-                </Suspense>
+                <a
+                    href="/"
+                    className="text-sm font-medium text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+                >
+                    Back to home
+                </a>
             </div>
         </main>
     )
 }
 
 export function MembershipView() {
-    return (
-        <Suspense
-            fallback={
-                <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-                    <p className="text-base text-slate-600">Loading membership options...</p>
-                </main>
-            }
-        >
-            <MembershipContent />
-        </Suspense>
-    )
+    return <MembershipContent />
 }

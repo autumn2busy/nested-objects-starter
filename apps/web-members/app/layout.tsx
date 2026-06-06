@@ -105,7 +105,7 @@ export default function RootLayout({
   const acActId = process.env.NEXT_PUBLIC_AC_ACTID
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="w-full overflow-x-clip" suppressHydrationWarning>
       <head>
         <Script
           id="gtm-script"
@@ -185,7 +185,7 @@ export default function RootLayout({
         )}
       </head>
 
-      <body className={cn(plusJakarta.variable, 'font-sans text-text-primary')}>
+      <body className={cn(plusJakarta.variable, 'w-full overflow-x-clip font-sans text-text-primary')}>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-5HPX4VTQ"
@@ -205,9 +205,9 @@ export default function RootLayout({
         <AuthProvider>
           <ActiveCampaignTracker />
           <PromoBanner />
-          <div className="flex min-h-screen flex-col pb-20 md:pb-0">
+          <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
-            <main id="main-content" className="flex-1">{children}</main>
+            <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
           <MobileActionBar />

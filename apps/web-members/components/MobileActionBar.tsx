@@ -23,9 +23,9 @@ export function MobileActionBar() {
   return (
     <nav
       aria-label="Mobile quick actions"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.12)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 w-[100dvw] overflow-x-clip border-t border-slate-200 bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.12)] backdrop-blur md:hidden"
     >
-      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+      <div className="mx-auto grid w-80 max-w-[calc(100dvw-1.5rem)] grid-cols-[repeat(3,minmax(0,1fr))] gap-2">
         {actions.map((action, index) => {
           const Icon = action.icon
           const isPrimary = index === 0
@@ -34,14 +34,14 @@ export function MobileActionBar() {
             <Link
               key={action.href}
               href={action.href}
-              className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition ${
+              className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold transition ${
                 isPrimary
                   ? 'border-brand-copper bg-brand-copper text-white shadow-sm'
                   : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-copper/50 hover:bg-white'
               }`}
             >
               <Icon className="h-4 w-4" aria-hidden />
-              <span>{action.label}</span>
+              <span className="max-w-full truncate">{action.label}</span>
             </Link>
           )
         })}

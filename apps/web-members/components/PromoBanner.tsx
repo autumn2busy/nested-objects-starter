@@ -165,7 +165,7 @@ export function PromoBanner() {
     }
 
     return (
-        <div className="relative isolate bg-slate-900 text-white">
+        <div className="relative isolate overflow-x-clip bg-slate-900 text-white">
             {/* Dismiss button */}
             <button
                 onClick={() => setDismissed(true)}
@@ -216,7 +216,7 @@ export function PromoBanner() {
                     {/* Right: CTA */}
                     <button
                         onClick={handlePromoClick}
-                        className="inline-flex min-h-10 w-full min-w-[10.5rem] items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:min-h-11 sm:py-2.5"
+                        className="inline-flex min-h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:min-h-11 sm:min-w-[10.5rem] sm:py-2.5"
                     >
                         Claim Summer Rate
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
