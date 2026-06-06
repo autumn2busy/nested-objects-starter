@@ -3,6 +3,7 @@ import path from 'path'
 import type { MetadataRoute } from 'next'
 
 import { SITE_URL } from '@/lib/seo'
+import { getApprovedBlogPosts, getBlogCategoryEntries } from '@/lib/blog'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { ALL_STATE_SLUGS } from './hiring-firms/state-data'
 
@@ -71,6 +72,8 @@ async function fetchDynamicSlugs() {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { firms, roles } = await fetchDynamicSlugs()
+  const blogPosts = getApprovedBlogPosts()
+  const blogCategories = getBlogCategoryEntries().filter((category) => category.posts.length > 0)
 
   const firmEntries = firms.map((firm) => ({
     url: `${SITE_URL}/firms/${firm.slug}`,
@@ -110,6 +113,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: getFileLastModified('hiring-firms/state-data.ts'),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
+  }))
+
+  const blogEntries = blogPosts.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+
+  const blogCategoryEntries = blogCategories.map((category) => ({
+    url: `${SITE_URL}/blog/category/${category.slug}`,
+    lastModified: getFileLastModified('../lib/blog.ts'),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
   }))
 
   return [
@@ -155,6 +172,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: getFileLastModified('guides/page.tsx'),
       changeFrequency: 'weekly',
       priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: getFileLastModified('blog/page.tsx'),
+      changeFrequency: 'weekly',
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/guides/how-to-become-a-field-inspector`,
@@ -226,5 +249,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...roleEntries,
     ...toolEntries,
     ...stateEntries,
+    ...blogCategoryEntries,
+    ...blogEntries,
   ]
 }

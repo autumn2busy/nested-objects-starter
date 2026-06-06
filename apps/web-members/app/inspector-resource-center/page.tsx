@@ -12,9 +12,16 @@ export const metadata: Metadata = generatePageMetadata({
 
 const resourceHighlights = [
   {
+    title: 'Nested Objects blog',
+    description:
+      'First-party field services strategy articles reviewed by the Nested Objects team, with categories, schema, and internal links.',
+    items: ['Route operations', 'Firm application strategy', 'Property preservation comparisons'],
+    cta: { label: 'Read the blog', href: '/blog' },
+  },
+  {
     title: 'Industry news',
     description:
-      'Stay current with mortgage market trends, regulatory updates, and field service industry news updated hourly from trusted sources.',
+      'Stay current with mortgage market trends, regulatory updates, and field service headlines from trusted RSS sources.',
     items: ['Mortgage market updates', 'Real estate trends', 'Regulatory changes'],
     cta: { label: 'Read latest news', href: '/inspector-resource-center/industry-news' },
   },
