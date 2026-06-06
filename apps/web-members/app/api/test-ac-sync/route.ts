@@ -1,10 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { syncFullProfileDeepData } from '@/lib/active-campaign-deep-data';
 import { ProfileUpdateData } from '../webhooks/outseta/route';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+    if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
     // Dummy profile for testing
     const dummyProfile: ProfileUpdateData = {
         outseta_person_uid: 'test-person-123',

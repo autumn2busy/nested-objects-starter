@@ -72,7 +72,7 @@ export function IndustryNews({ limit = 12, variant = 'full' }: IndustryNewsProps
                 <AlertCircle className="mx-auto h-8 w-8 text-amber-600" />
                 <p className="mt-2 text-sm font-medium text-amber-800">{error}</p>
                 <p className="mt-1 text-xs text-amber-600">
-                    Please check that the NEWSAPI_KEY environment variable is configured.
+                    Please check that the RSS news feed service is available.
                 </p>
             </div>
         )
