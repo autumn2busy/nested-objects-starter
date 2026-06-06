@@ -161,11 +161,11 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border-subtle bg-white/85 text-text-primary backdrop-blur-md shadow-sm">
-      <div className={containerClass + ' flex items-center justify-between py-3'}>
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3" aria-label="Nested Objects home">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft">
+    <header className="sticky top-0 z-30 overflow-x-clip border-b border-border-subtle bg-white/85 text-text-primary shadow-sm backdrop-blur-md">
+      <div className={containerClass + ' flex min-w-0 items-center justify-between gap-2 py-3'}>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-6">
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label="Nested Objects home">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft sm:h-11 sm:w-11">
               <Image
                 src="/logo.png"
                 alt="Nested Objects logo"
@@ -174,11 +174,11 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 priority
               />
             </div>
-            <div className="flex flex-col leading-tight">
-              <span className="text-base font-semibold tracking-tight text-text-primary">
+            <div className="hidden min-w-0 flex-col leading-tight min-[360px]:flex">
+              <span className="truncate text-sm font-semibold tracking-tight text-text-primary sm:text-base">
                 Nested Objects
               </span>
-              <span className="text-[11px] uppercase tracking-[0.2em] text-brand-copper">
+              <span className="truncate text-[10px] uppercase tracking-[0.18em] text-brand-copper sm:text-[11px] sm:tracking-[0.2em]">
                 Vendor hub
               </span>
             </div>
@@ -227,11 +227,11 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3 text-sm font-semibold">
+        <div className="flex shrink-0 items-center gap-2 text-sm font-semibold sm:gap-3">
           {isLoading ? (
-            <span className="text-xs text-text-secondary">Checking your hub…</span>
+            <span className="hidden text-xs text-text-secondary sm:inline">Checking your hub...</span>
           ) : isAuthenticated && user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Hidden file input for avatar upload */}
               <input
                 type="file"
@@ -241,13 +241,13 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 className="hidden"
               />
 
-              <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-white/90 px-3 py-2 shadow-brand-card">
+              <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-white/90 p-2 shadow-brand-card sm:gap-3 sm:px-3">
                 {/* Clickable Avatar */}
                 <button
                   type="button"
                   onClick={handleAvatarClick}
                   disabled={isUploadingAvatar}
-                  className="relative group"
+                  className="group relative shrink-0"
                   title="Click to change profile picture"
                 >
                   {isUploadingAvatar ? (
@@ -260,7 +260,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                       <img
                         src={avatarUrl}
                         alt={displayName}
-                        className="h-10 w-10 rounded-full object-cover shadow-sm"
+                        className="h-9 w-9 rounded-full object-cover shadow-sm sm:h-10 sm:w-10"
                       />
                       {/* Hover overlay */}
                       <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -268,7 +268,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
+                    <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark sm:h-10 sm:w-10">
                       {initials}
                       {/* Hover overlay */}
                       <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
