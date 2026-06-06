@@ -4,8 +4,10 @@ node_modules/
 out/
 dist/
 *.log
+*.tsbuildinfo
 .DS_Store
 **/.DS_Store
+supabase/.temp/
 # Env files
 # Ignore all .env files in all directories (root, apps, packages, etc.)
 **/.env*
