@@ -45,6 +45,23 @@ The preview route:
 
 It is not an authentication gate. Anyone with the exact preview URL could view the content, although search engines are instructed not to index it.
 
+## Review Dashboard
+
+Use this private dashboard to see the post queue:
+
+`/blog/review`
+
+The review dashboard:
+
+- is gated behind the member app login
+- allows users with admin claims, `ADMIN_OUTSETA_IDS`, `BLOG_REVIEWER_EMAILS`, or known owner emails
+- lists draft, review, approved, and archived posts
+- links to each post preview
+- links to the live article only when a post is approved
+- explains the manual approval fields to update in `apps/web-members/lib/blog.ts`
+
+This dashboard is currently read-only. It helps the owner review and approve posts, but it does not write approvals back to the repo or database.
+
 ## Review Checklist
 
 Before setting a post to `approved`, confirm:
