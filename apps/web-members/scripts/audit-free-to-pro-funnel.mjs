@@ -102,7 +102,7 @@ addCheck('Welcome page preserves signup and completion tracking', 'app/welcome/W
   "body: JSON.stringify({ tag: 'member-activated' })",
 ])
 
-addCheck('Pricing page tracks pricing intent and Outseta handoff', 'app/membership-pricing/MembershipView.tsx', [
+addCheck('Pricing page tracks pricing intent and Outseta handoff', 'app/membership-pricing/PricingInteractions.tsx', [
   'trackPricingView',
   'trackPricingCtaClick',
   'trackJoinFreeClick',
@@ -123,12 +123,12 @@ addCheck('Promo banner routes Free members through upgrade instead of signup', '
   "widgetMode: 'register'",
 ])
 
-addCheck('Directory client tracks paywall and upgrade behavior', 'app/hiring-firms/DirectoryView.tsx', [
+addCheck('Directory client tracks paywall and upgrade behavior', 'app/hiring-firms/DirectoryActions.tsx', [
   'trackDirectoryViewed',
   'trackPaywallHit',
   'trackUpgradeClicked',
-  "feature: isGuest ? 'directory_login_required' : 'directory_preview_limit'",
-  "trackUpgradeClicked('hiring_firms_blurred_teasers'",
+  "feature: accessLevel === 'guest' ? 'directory_login_required' : 'directory_preview_limit'",
+  "trackUpgradeClicked('hiring_firms_' + source",
 ])
 
 addCheck('Directory server enforces restricted preview payload', 'app/hiring-firms/page.tsx', [

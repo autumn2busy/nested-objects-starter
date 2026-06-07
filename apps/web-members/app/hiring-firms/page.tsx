@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DirectoryView } from './DirectoryView'
-import type { Firm } from './DirectoryView'
+import type { DirectoryAccess, DirectoryFilters, Firm } from './DirectoryView'
 import { generatePageMetadata } from '@/lib/seo'
 import { US_STATES } from './constants'
 import { ALL_STATE_SLUGS, STATE_MAP } from './state-data'
@@ -422,6 +422,21 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   ])
   const directoryFirms = isGuest ? [] : isFree ? sanitizeFreePreviewFirms(firms) : firms
   const stateIndex = getStateIndex()
+  const filters: DirectoryFilters = {
+    state: stateFilter,
+    search,
+    rating: ratingMin,
+    industry,
+    source,
+    pay,
+    sort,
+  }
+  const access: DirectoryAccess = {
+    isAuthenticated: !isGuest,
+    isFree,
+    isRestricted,
+    planUid,
+  }
 
   return (
     <>
@@ -434,6 +449,8 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         totalCount={totalCount}
         page={page}
         limit={limit}
+        filters={filters}
+        access={access}
       />
       <DirectoryCrawlIndex firms={firmIndex} states={stateIndex} />
     </>
