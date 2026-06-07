@@ -27,7 +27,7 @@ function MapPlaceholder() {
 
 export function TechHero() {
     return (
-        <section className="relative flex min-h-[calc(100svh-10rem)] w-full flex-col overflow-hidden bg-slate-950 pt-8 sm:min-h-[90vh] sm:pt-20">
+        <section className="relative flex min-h-[620px] w-full flex-col overflow-hidden bg-slate-950 pt-6 sm:min-h-[90vh] sm:pt-20">
 
             {/* 1. Background Grid & Map Layer */}
             <div className="absolute inset-0 z-0">

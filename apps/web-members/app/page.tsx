@@ -1,10 +1,11 @@
-import Script from 'next/script'
 import Link from 'next/link'
 import { Calculator, Search, Sparkles } from 'lucide-react'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection, TestimonialStrip } from '@/components/TestimonialsSection'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
+
+export const revalidate = 3600
 
 const aggregateRatingLd = {
   '@context': 'https://schema.org',
@@ -37,13 +38,13 @@ const aggregateRatingLd = {
 export default function HomePage() {
   return (
     <>
-      <Script
+      <script
         id="aggregate-rating-ld-json"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingLd) }}
       />
 
-      <Script
+      <script
         id="faq-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
