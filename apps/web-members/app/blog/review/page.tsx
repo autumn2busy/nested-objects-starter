@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CheckCircle2, Clock, Eye, FileText, Lock, PencilLine } from 'lucide-react'
+import { CheckCircle2, Clock, Eye, FileText, Lightbulb, Lock, PencilLine } from 'lucide-react'
 import { BlogApproveButton } from '@/components/blog/BlogApproveButton'
 import { BLOG_CATEGORIES, type BlogPost, getAllBlogPosts } from '@/lib/blog'
 import { getBlogReviewerSession } from '@/lib/blog-admin-auth'
+import seoOpportunitiesJson from '@/content/seo-content-opportunities.json'
+import aiAeoOpportunitiesJson from '@/content/ai-aeo-opportunities.json'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +32,59 @@ const STATUS_STYLES: Record<BlogPost['status'], string> = {
     archived: 'border-zinc-200 bg-zinc-50 text-zinc-500',
 }
 
+type SeoOpportunity = {
+    id: string
+    title: string
+    angle: string
+    category: keyof typeof BLOG_CATEGORIES
+    priority: 'high' | 'medium' | 'low'
+    score: number
+    recommendedSurface: string
+    workflowStatus: 'candidate'
+    targetKeywords: string[]
+    internalLinks: { label: string; href: string }[]
+    rationale: string
+    sourceSignals: string[]
+}
+
+type SeoOpportunityReport = {
+    generatedAt?: string | null
+    cadence?: string
+    workflowBoundary?: string
+    opportunities?: SeoOpportunity[]
+}
+
+const seoOpportunityReport = seoOpportunitiesJson as SeoOpportunityReport
+
+type AiAeoOpportunity = {
+    id: string
+    prompt: string
+    intent: string
+    priority: 'high' | 'medium' | 'low'
+    score: number
+    recommendedAction: string
+    targetPage: string
+    answerGap: string
+    recommendedAnswerElements: string[]
+    internalLinks: { label: string; href: string }[]
+    observedBrands: string[]
+    workflowStatus: 'candidate'
+}
+
+type AiAeoOpportunityReport = {
+    generatedAt?: string | null
+    cadence?: string
+    opportunities?: AiAeoOpportunity[]
+}
+
+const aiAeoOpportunityReport = aiAeoOpportunitiesJson as AiAeoOpportunityReport
+
+const PRIORITY_STYLES: Record<SeoOpportunity['priority'], string> = {
+    high: 'border-red-200 bg-red-50 text-red-800',
+    medium: 'border-amber-200 bg-amber-50 text-amber-800',
+    low: 'border-slate-200 bg-slate-50 text-slate-700',
+}
+
 function statusLabel(status: BlogPost['status']) {
     return status.charAt(0).toUpperCase() + status.slice(1)
 }
@@ -47,6 +102,19 @@ function sortWeight(status: BlogPost['status']) {
         default:
             return 4
     }
+}
+
+function formatGeneratedAt(value?: string | null) {
+    if (!value) return 'Waiting for first weekly run'
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+    }).format(new Date(value))
 }
 
 export default async function BlogReviewPage() {
@@ -69,6 +137,8 @@ export default async function BlogReviewPage() {
     const reviewCount = posts.filter((post) => post.status === 'review').length
     const draftCount = posts.filter((post) => post.status === 'draft').length
     const approvedCount = posts.filter((post) => post.status === 'approved').length
+    const seoOpportunities = (seoOpportunityReport.opportunities || []).slice(0, 6)
+    const aiAeoOpportunities = (aiAeoOpportunityReport.opportunities || []).slice(0, 4)
 
     return (
         <main className="min-h-screen bg-brand-sand text-slate-950">
@@ -108,6 +178,96 @@ export default async function BlogReviewPage() {
 
             <section className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8 lg:py-10">
                 <div className="space-y-4">
+                    <section className="rounded-2xl border border-brand/20 bg-white p-5 shadow-sm">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand">
+                                    <Lightbulb className="h-4 w-4" />
+                                    SEO Opportunity Queue
+                                </p>
+                                <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                                    Weekly content candidates
+                                </h2>
+                                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                                    These are recommendations only. Drafts still need to be written into the existing blog
+                                    registry, previewed, reviewed, and approved before anything reaches the public blog or sitemap.
+                                </p>
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                <p className="font-semibold text-slate-900">Last run</p>
+                                <p>{formatGeneratedAt(seoOpportunityReport.generatedAt)}</p>
+                                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
+                                    Cadence: {seoOpportunityReport.cadence || 'weekly'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {seoOpportunities.length === 0 ? (
+                            <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+                                No SEO opportunities have been generated yet. The weekly monitor will populate this queue after
+                                its first run, or it can be tested with the dry-run cron route.
+                            </div>
+                        ) : (
+                            <div className="mt-5 grid gap-4">
+                                {seoOpportunities.map((opportunity) => {
+                                    const category = BLOG_CATEGORIES[opportunity.category]
+
+                                    return (
+                                        <article key={opportunity.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                <div className="min-w-0">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${PRIORITY_STYLES[opportunity.priority]}`}>
+                                                            {opportunity.priority} priority
+                                                        </span>
+                                                        {category && (
+                                                            <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand">
+                                                                {category.label}
+                                                            </span>
+                                                        )}
+                                                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                                                            Score {opportunity.score}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="mt-3 text-lg font-bold leading-snug text-slate-950">
+                                                        {opportunity.title}
+                                                    </h3>
+                                                    <p className="mt-2 text-sm leading-6 text-slate-600">{opportunity.angle}</p>
+                                                    <p className="mt-2 text-xs leading-5 text-slate-500">{opportunity.rationale}</p>
+                                                </div>
+                                                <span className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                                    {opportunity.recommendedSurface.replace(/_/g, ' ')}
+                                                </span>
+                                            </div>
+
+                                            {opportunity.targetKeywords.length > 0 && (
+                                                <div className="mt-4 flex flex-wrap gap-2">
+                                                    {opportunity.targetKeywords.slice(0, 4).map((keyword) => (
+                                                        <span key={keyword} className="rounded-full bg-white px-3 py-1 text-xs text-slate-600">
+                                                            {keyword}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                {opportunity.internalLinks.slice(0, 3).map((link) => (
+                                                    <Link
+                                                        key={`${opportunity.id}-${link.href}`}
+                                                        href={link.href}
+                                                        className="text-xs font-semibold text-brand underline underline-offset-2"
+                                                    >
+                                                        {link.label}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </article>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </section>
+
                     {posts.map((post) => {
                         const category = BLOG_CATEGORIES[post.category]
                         const canOpenLive = post.status === 'approved'
@@ -190,6 +350,40 @@ export default async function BlogReviewPage() {
                             Approval writes require a server-only <span className="font-mono text-xs">BLOG_GITHUB_TOKEN</span>.
                             Without it, previews still work but approvals return a setup message.
                         </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-violet-200 bg-violet-50 p-5 text-violet-950 shadow-sm">
+                        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-violet-800">
+                            <Lightbulb className="h-4 w-4" />
+                            AI / AEO Queue
+                        </p>
+                        <p className="mt-3 text-sm leading-6">
+                            Last run: {formatGeneratedAt(aiAeoOpportunityReport.generatedAt)}
+                        </p>
+                        {aiAeoOpportunities.length === 0 ? (
+                            <p className="mt-3 text-sm leading-6">
+                                The weekly AEO monitor will populate prompt gaps after its first run.
+                            </p>
+                        ) : (
+                            <div className="mt-4 space-y-3">
+                                {aiAeoOpportunities.map((opportunity) => (
+                                    <div key={opportunity.id} className="rounded-xl border border-violet-200 bg-white/80 p-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${PRIORITY_STYLES[opportunity.priority]}`}>
+                                                {opportunity.priority}
+                                            </span>
+                                            <span className="text-[10px] font-semibold uppercase tracking-wide text-violet-700">
+                                                Score {opportunity.score}
+                                            </span>
+                                        </div>
+                                        <p className="mt-2 text-sm font-semibold leading-5">{opportunity.prompt}</p>
+                                        <Link href={opportunity.targetPage} className="mt-2 inline-flex text-xs font-semibold underline">
+                                            Target answer page
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">

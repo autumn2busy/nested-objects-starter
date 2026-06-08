@@ -1,0 +1,7 @@
+{
+  "generatedAt": null,
+  "cadence": "weekly",
+  "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
+  "dataSources": [],
+  "opportunities": []
+}

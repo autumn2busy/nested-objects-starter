@@ -3,6 +3,14 @@
         {
             "path": "/api/cron/sync-adzuna",
             "schedule": "0 2 * * *"
+        },
+        {
+            "path": "/api/cron/seo-content-monitor",
+            "schedule": "0 13 * * 1"
+        },
+        {
+            "path": "/api/cron/ai-aeo-monitor",
+            "schedule": "30 13 * * 1"
         }
     ]
 }

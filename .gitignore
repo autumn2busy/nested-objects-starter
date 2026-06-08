@@ -26,3 +26,5 @@ apps/web-members/reports/
 !.eslintrc.json
 !vercel.json
 !components.json
+!apps/web-members/content/seo-content-opportunities.json
+!apps/web-members/content/ai-aeo-opportunities.json
