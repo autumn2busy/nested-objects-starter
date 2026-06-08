@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { RolePageLayout } from '@/components/RolePageLayout'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 export const metadata: Metadata = {
   title: 'Real Estate Agent BPOs & Inspections',
@@ -8,8 +9,12 @@ export const metadata: Metadata = {
 }
 
 export default function RealtorRolePage() {
+  const roleAeo = roleAeoContent.realtor
+
   return (
-    <RolePageLayout
+    <>
+      <RoleAeoJsonLd content={roleAeo} />
+      <RolePageLayout
         roleTitle="Realtors"
         heroHeadline={
             <>
@@ -31,8 +36,9 @@ export default function RealtorRolePage() {
                 desc: "Working with asset management firms puts you first in line for REO listings when those properties eventually go to market."
             }
         ]}
-    >
-       {/* Optional specific content for Realtors */}
-    </RolePageLayout>
+      >
+        <RoleAeoSection content={roleAeo} />
+      </RolePageLayout>
+    </>
   )
 }

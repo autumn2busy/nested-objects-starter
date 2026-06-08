@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const comparisonPoints = [
   {
@@ -88,8 +89,11 @@ export const metadata: Metadata = {
 }
 
 export default function GigWorkerRolePage() {
+  const roleAeo = roleAeoContent['gig-worker']
+
   return (
     <main className="bg-white text-slate-900">
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-center">
           <div className="space-y-4">
@@ -199,6 +203,8 @@ export default function GigWorkerRolePage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-50 py-12 sm:py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
