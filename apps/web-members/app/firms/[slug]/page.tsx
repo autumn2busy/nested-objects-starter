@@ -6,7 +6,8 @@ import Link from 'next/link'
 import {
   MapPin, Phone, Mail, Globe, ExternalLink, Users,
   DollarSign, Clock, FileText, ChevronRight, Star,
-  ShieldCheck, TrendingUp, CalendarDays, ClipboardCheck
+  ShieldCheck, TrendingUp, CalendarDays, ClipboardCheck,
+  CheckCircle2, ArrowRight
 } from 'lucide-react'
 import { FirmServiceArea } from '@/components/FirmServiceArea'
 import { generatePageMetadata, getHiringFirmSchema, getBreadcrumbSchema, getFAQPageSchema, SITE_URL } from '@/lib/seo'
@@ -165,6 +166,7 @@ function getFirmProfileFaqs(firm: FirmRow, categories: string[], pay: string | n
     ? categories.slice(0, 3).join(', ')
     : firm.industry_focus || 'field services'
   const coverageText = firm.geographic_coverage || 'the United States'
+  const serviceText = firm.services || firm.specializations || categoryText
   const payText = pay
     ? `Nested Objects has pay context for ${firm.name}, but actual compensation can vary by route, order type, region, and contractor experience.`
     : `Public pay details for ${firm.name} may vary by market, so applicants should confirm current rates, payment timing, and order expectations before accepting work.`
@@ -186,6 +188,48 @@ function getFirmProfileFaqs(firm: FirmRow, categories: string[], pay: string | n
       question: `Does ${firm.name} list pay information?`,
       answer: payText,
     },
+    {
+      question: `Who is ${firm.name} best suited for?`,
+      answer: `${firm.name} may fit contractors who want ${serviceText} work in ${coverageText}. Before applying, contractors should compare the firm's coverage, onboarding requirements, equipment expectations, and order volume against their schedule and travel radius.`,
+    },
+    {
+      question: `What should contractors verify before applying to ${firm.name}?`,
+      answer: `Contractors should verify active service areas, assignment volume, pay model, payment timing, revision policies, background-check requirements, insurance expectations, and any required apps or equipment before submitting personal information.`,
+    },
+  ]
+}
+
+function getFirmFitSummary(firm: FirmRow, categories: string[]) {
+  const workType = firm.services || firm.specializations || categories.slice(0, 2).join(', ') || firm.industry_focus || 'field service assignments'
+  const coverage = firm.geographic_coverage || 'multiple markets'
+
+  return [
+    {
+      label: 'Best fit',
+      value: `Contractors comparing ${workType} opportunities in ${coverage}.`,
+    },
+    {
+      label: 'Decision point',
+      value: 'Use this profile to confirm coverage, requirements, assignment volume, and pay terms before applying.',
+    },
+    {
+      label: 'Next comparison',
+      value: 'Shortlist several firms so one slow response or low-volume route does not stall your pipeline.',
+    },
+  ]
+}
+
+function getFirmVerificationItems(firm: FirmRow) {
+  const coverage = firm.geographic_coverage
+    ? `Active counties or metros within ${firm.geographic_coverage}`
+    : 'Active counties, metros, or states currently accepting contractors'
+
+  return [
+    coverage,
+    'Required apps, portals, phone specs, and upload workflow',
+    'Camera, measuring tools, transportation, safety gear, and any firm-specific equipment',
+    'Pay model, trip fees, payment frequency, revision policy, and invoice timing',
+    'Background check, insurance, training, onboarding steps, and application response time',
   ]
 }
 
@@ -222,6 +266,8 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const websiteHref = normalizeExternalHref(firm.url)
   const vendorPageHref = normalizeExternalHref(firm.vendor_page_url)
   const firmFaqs = getFirmProfileFaqs(firm, categories, pay)
+  const firmFitSummary = getFirmFitSummary(firm, categories)
+  const verificationItems = getFirmVerificationItems(firm)
 
   const contactHref =
     vendorPageHref ||
@@ -417,6 +463,64 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             <li>Keep a shortlist of several firms so one slow pipeline does not stall your field work.</li>
           </ul>
         </aside>
+      </section>
+
+      <section
+        className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,1.05fr)]"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '560px' }}
+      >
+        <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Firm fit</p>
+          <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
+            Is {firm.name} a good fit for your route?
+          </h2>
+          <div className="mt-5 space-y-4">
+            {firmFitSummary.map((item) => (
+              <div key={item.label} className="border-t border-slate-100 pt-4 first:border-t-0 first:pt-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{item.label}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <Link
+              href="/hiring-firms"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
+            >
+              Compare firms
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link
+              href="/tools/income-calculator"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
+            >
+              Estimate income
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-5 shadow-sm sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700 shadow-sm">
+              <ShieldCheck className="h-5 w-5" aria-hidden />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Trust checks</p>
+              <h2 className="mt-1 text-lg font-bold text-text-primary">What to verify before sharing details</h2>
+            </div>
+          </div>
+          <ul className="mt-5 space-y-3">
+            {verificationItems.map((item) => (
+              <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 rounded-lg bg-white/80 p-3 text-sm leading-6 text-slate-700">
+            Nested Objects profiles are starting points for comparison. Contractors should confirm final terms directly with each firm before accepting assignments.
+          </p>
+        </div>
       </section>
 
       {/* Content grid - gated for non-members */}
