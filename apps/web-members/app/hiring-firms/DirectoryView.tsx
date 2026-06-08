@@ -64,6 +64,14 @@ const SORT_OPTIONS = [
   { value: 'pay_desc', label: 'Highest Pay' },
 ] as const
 
+const NOTARY_QUICK_FILTERS = [
+  { label: 'Signing services', href: '/hiring-firms?industry=Notary&search=signing' },
+  { label: 'Title vendors', href: '/hiring-firms?industry=Notary&search=title' },
+  { label: 'RON platforms', href: '/hiring-firms?industry=Notary&search=RON' },
+  { label: 'Apostille / courier', href: '/hiring-firms?industry=Notary&search=apostille' },
+  { label: 'Inspection add-ons', href: '/hiring-firms?industry=Notary&search=photo' },
+] as const
+
 export type Firm = {
   id: string
   slug: string | null
@@ -214,7 +222,7 @@ function FilterBar({
                   ? 'Login to search...'
                   : disabled
                     ? 'Search + filters available on paid plans'
-                    : 'Safeguard, mortgage, appraisal, BPO...'
+                    : 'Snapdocs, signing, RON, appraisal, BPO...'
               }
               className={disabled ? 'cursor-not-allowed' : undefined}
             />
@@ -309,6 +317,50 @@ function FilterBar({
         </div>
       </form>
     </Card>
+  )
+}
+
+function NotaryDirectoryPanel({ access }: { access: DirectoryAccess }) {
+  return (
+    <section className="mb-6 rounded-md border border-brand-copper/25 bg-brand-sand px-5 py-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase text-brand-copper">
+            Mobile notary and signing-agent search
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900">
+            Compare signing services, RON platforms, title vendors, and nearby field add-ons.
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-700">
+            Shortlist vendor programs before uploading credentials, then track the firms that fit your route and pay floor.
+          </p>
+        </div>
+        <Link
+          href="/tools/notary-route-calculator"
+          className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
+        >
+          Calculate route pay
+        </Link>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {NOTARY_QUICK_FILTERS.map((filter) => (
+          <Link
+            key={filter.label}
+            href={filter.href}
+            className="rounded-full border border-brand-copper/30 bg-white px-3 py-2 text-xs font-semibold text-slate-800 transition hover:border-brand-copper hover:text-brand-copper"
+          >
+            {filter.label}
+          </Link>
+        ))}
+      </div>
+
+      {access.isRestricted && (
+        <p className="mt-3 text-xs text-amber-800">
+          {access.isAuthenticated ? 'Upgrade' : 'Log in'} to use notary filters against the full directory.
+        </p>
+      )}
+    </section>
   )
 }
 
@@ -509,7 +561,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">DIRECTORY</p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-900 md:text-3xl">
-            Firms hiring field inspectors
+            Firms hiring inspectors, notaries, and route pros
           </h1>
         </div>
         <div className="flex flex-wrap gap-3 text-xs font-semibold tracking-[0.16em]">
@@ -526,6 +578,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
           </DirectoryUpgradeLink>
         </div>
       </header>
+
+      <NotaryDirectoryPanel access={access} />
 
       <FilterBar filters={filters} access={access} />
 

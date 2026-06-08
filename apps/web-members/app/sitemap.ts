@@ -37,7 +37,6 @@ const STATIC_ROLE_SLUGS = [
   'insurance-loss-control',
   'mobile-notary',
   'mortgage-field-inspector',
-  'notary',
   'realtor',
 ]
 
@@ -92,6 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static tool slugs — public tool pages
   const STATIC_TOOL_SLUGS = [
     'income-calculator',
+    'notary-route-calculator',
     'ai-resume',
     'ai-concierge',
     'weather',

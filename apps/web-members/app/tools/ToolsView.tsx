@@ -26,6 +26,12 @@ const tools = [
         cta: 'Calculate income',
     },
     {
+        title: 'Notary route calculator',
+        description: 'Estimate net signing-agent route pay after printing, scan-backs, mileage, and nearby field add-ons.',
+        href: '/tools/notary-route-calculator',
+        cta: 'Calculate route pay',
+    },
+    {
         title: 'AI concierge',
         description: 'Ask questions about firms, requirements, and inspection workflows in plain language.',
         href: '/tools/ai-concierge',
