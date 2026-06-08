@@ -1,4 +1,5 @@
 import { SITE_NAME, SITE_URL, DEFAULT_OG_IMAGE } from '@/lib/seo'
+import approvalOverridesJson from '@/content/blog-approvals.json'
 
 export type BlogCategorySlug =
     | 'field-inspection'
@@ -41,6 +42,18 @@ export type BlogPost = {
         answer: string
     }[]
     content: string
+}
+
+type BlogApprovalOverride = {
+    status?: BlogPostStatus
+    approvedBy?: string
+    approvedAt?: string
+    updatedAt?: string
+    notes?: string
+}
+
+type BlogApprovalOverridesFile = {
+    approvals: Record<string, BlogApprovalOverride>
 }
 
 export const BLOG_CATEGORIES: Record<BlogCategorySlug, { label: string; description: string }> = {
@@ -354,6 +367,25 @@ Choose field inspection companies by comparing territory fit, order type, pay cl
     },
 ]
 
+const approvalOverrides = approvalOverridesJson as BlogApprovalOverridesFile
+
+function applyApprovalOverride(post: BlogPost): BlogPost {
+    const override = approvalOverrides.approvals[post.slug]
+    if (!override) return post
+
+    return {
+        ...post,
+        status: override.status || post.status,
+        updatedAt: override.updatedAt || post.updatedAt,
+        review: {
+            ...post.review,
+            approvedBy: override.approvedBy || post.review.approvedBy,
+            approvedAt: override.approvedAt || post.review.approvedAt,
+            notes: override.notes || post.review.notes,
+        },
+    }
+}
+
 function isApprovedPost(post: BlogPost): boolean {
     return post.status === 'approved' && Boolean(post.review.approvedBy && post.review.approvedAt)
 }
@@ -363,7 +395,7 @@ function isPreviewablePost(post: BlogPost): boolean {
 }
 
 export function getAllBlogPosts(): BlogPost[] {
-    return [...BLOG_POSTS].sort(
+    return BLOG_POSTS.map(applyApprovalOverride).sort(
         (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     )
 }

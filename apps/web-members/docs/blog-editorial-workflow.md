@@ -58,13 +58,44 @@ The review dashboard:
 - lists draft, review, approved, and archived posts
 - links to each post preview
 - links to the live article only when a post is approved
-- explains the manual approval fields to update in `apps/web-members/lib/blog.ts`
+- lets a reviewer approve a draft or review post with a GitHub-backed commit
 
-This dashboard is currently read-only. It helps the owner review and approve posts, but it does not write approvals back to the repo or database.
+The dashboard does not rewrite article copy. Human edits to the title, body, links, FAQs, keywords, and first-party examples still happen in `apps/web-members/lib/blog.ts`.
+
+Approval metadata is stored in:
+
+`apps/web-members/content/blog-approvals.json`
+
+When a reviewer clicks Approve, the server route commits approval metadata to that JSON file:
+
+- `status: 'approved'`
+- `approvedBy`
+- `approvedAt`
+- `updatedAt`
+- `notes`
+
+The blog registry merges these approval overrides at runtime, so a generated draft can remain in `blog.ts` while approval state is tracked separately.
+
+## GitHub Approval Setup
+
+The approval button requires GitHub write access from a server-only environment variable. Do not expose this token to the client.
+
+Required:
+
+- `BLOG_GITHUB_TOKEN`: GitHub fine-grained token with repository Contents read/write permission
+
+Optional:
+
+- `BLOG_GITHUB_OWNER`: defaults to `autumn2busy`
+- `BLOG_GITHUB_REPO`: defaults to `nested-objects-starter`
+- `BLOG_GITHUB_BRANCH`: defaults to `VERCEL_GIT_COMMIT_REF`, then `main`
+- `BLOG_REVIEWER_EMAILS`: comma-separated reviewer emails
+
+For production, set `BLOG_GITHUB_BRANCH` to the production branch that Vercel deploys from. For preview testing, set it to the active preview branch.
 
 ## Review Checklist
 
-Before setting a post to `approved`, confirm:
+Before clicking Approve, confirm:
 
 - The post answers a real inspector/member search intent.
 - The article contains first-party Nested Objects context or operational judgment.
