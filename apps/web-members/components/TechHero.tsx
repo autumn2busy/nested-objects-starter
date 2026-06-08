@@ -1,7 +1,6 @@
 import Link from 'next/link'
 // Icons
 import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
-import { HeroDesktopMap } from './HeroDesktopMap'
 
 // Dummy data for the ticker - in real app, fetch this from Supabase
 const TICKER_ITEMS = [
@@ -27,48 +26,46 @@ function MapPlaceholder() {
 
 export function TechHero() {
     return (
-        <section className="relative flex min-h-[620px] w-full flex-col overflow-hidden bg-slate-950 pt-6 sm:min-h-[90vh] sm:pt-20">
+        <section className="relative flex min-h-[450px] w-full flex-col overflow-hidden bg-slate-950 pt-4 sm:min-h-[90vh] sm:pt-20">
 
             {/* 1. Background Grid & Map Layer */}
             <div className="absolute inset-0 z-0">
                 {/* Grid Pattern */}
                 <div
-                    className="absolute inset-0 opacity-[0.05]"
+                    className="absolute inset-0 hidden opacity-[0.05] md:block"
                     style={{
                         backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)',
                         backgroundSize: '40px 40px'
                     }}
                 />
 
-                {/* The D3 Map */}
-                <div className="absolute inset-0 flex items-center justify-center p-0 md:p-0 translate-y-10 md:translate-y-0 motion-reduce:transform-none">
+                {/* Static signal layer. Avoids shipping the D3 map on the homepage first load. */}
+                <div className="absolute inset-0 hidden translate-y-10 items-center justify-center p-0 md:flex md:translate-y-0">
                     <MapPlaceholder />
-                    <HeroDesktopMap />
                 </div>
 
                 {/* Radial Gradient Vignette (Lighter) */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.8)_70%,rgba(2,6,23,1)_100%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.96),rgba(2,6,23,1))] md:bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.8)_70%,rgba(2,6,23,1)_100%)]" />
             </div>
 
             {/* 2. Foreground Content */}
-            <div className="relative z-10 container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-8 text-center sm:px-6 sm:py-0 lg:px-8">
+            <div className="relative z-10 container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-6 text-center sm:px-6 sm:py-0 lg:px-8">
 
                 {/* Badge */}
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[0.65rem] font-mono text-emerald-400 backdrop-blur-md animate-fade-in-up motion-reduce:animate-none sm:mb-8 sm:text-xs">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[0.65rem] font-mono text-emerald-400 sm:mb-8 sm:text-xs">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:hidden"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     VERIFIED FIRMS: LIVE DIRECTORY
                 </div>
 
                 {/* Headline */}
-                <h1 className="mx-auto mb-4 max-w-4xl text-4xl font-bold tracking-tighter text-white drop-shadow-2xl sm:mb-6 sm:text-6xl md:text-7xl">
+                <h1 className="mx-auto mb-3 max-w-4xl text-3xl font-bold tracking-tight text-white sm:mb-6 sm:text-6xl md:text-7xl">
                     See Who Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Hiring Now</span> in <br className="hidden md:block" /> Your Area.
                 </h1>
 
                 {/* Subhead */}
-                <p className="mx-auto mb-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:mb-10 sm:text-xl">
+                <p className="mx-auto mb-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:mb-10 sm:text-xl">
                     Compare hiring firms, pay clues, route expectations, and starter tools before you spend hours applying to portals that may not fit your lane.
                 </p>
 
@@ -77,7 +74,7 @@ export function TechHero() {
                     <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
                         <Link
                             href="/membership-pricing"
-                            className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-4 text-base font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-400 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] sm:w-auto sm:text-lg"
+                            className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-3 text-base font-bold text-slate-950 transition-colors hover:bg-emerald-400 sm:w-auto sm:py-4 sm:text-lg sm:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                         >
                             Start free <ArrowRight className="w-5 h-5" />
                         </Link>
@@ -86,7 +83,7 @@ export function TechHero() {
 
                     <Link
                         href="/hiring-firms"
-                        className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/50 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-slate-800 sm:w-auto sm:text-lg"
+                        className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-slate-800 sm:w-auto sm:py-4 sm:text-lg"
                     >
                         <Activity className="w-5 h-5 text-emerald-400" />
                         Browse firms
@@ -96,7 +93,7 @@ export function TechHero() {
             </div>
 
             {/* 3. Bottom Ticker Bar */}
-            <div className="relative z-20 w-full bg-slate-900/80 border-t border-slate-800 backdrop-blur-md h-12 flex items-center overflow-hidden">
+            <div className="relative z-20 hidden h-12 w-full items-center overflow-hidden border-t border-slate-800 bg-slate-900/80 sm:flex">
                 <div className="container mx-auto px-4 flex items-center gap-6 text-xs sm:text-sm font-mono text-emerald-500/80">
                     <span className="font-bold text-emerald-500 shrink-0 flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4" /> VERIFIED SIGNAL
