@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CheckCircle2, Clock, Eye, FileText, Lock, PencilLine } from 'lucide-react'
+import { BlogApproveButton } from '@/components/blog/BlogApproveButton'
 import { BLOG_CATEGORIES, type BlogPost, getAllBlogPosts } from '@/lib/blog'
 import { getBlogReviewerSession } from '@/lib/blog-admin-auth'
 
@@ -83,8 +84,8 @@ export default async function BlogReviewPage() {
                                 Blog Review
                             </h1>
                             <p className="mt-4 text-base leading-7 text-slate-600">
-                                Review drafts visually, add human value in the content registry, then approve posts before
-                                they appear on the public blog and sitemap.
+                                Review drafts visually, add human value in the content registry, then approve posts with
+                                a GitHub-backed approval commit before they appear on the public blog and sitemap.
                             </p>
                         </div>
                         <div className="grid grid-cols-3 gap-3 text-center">
@@ -157,6 +158,9 @@ export default async function BlogReviewPage() {
                                                 Live
                                             </Link>
                                         )}
+                                        {!canOpenLive && post.status !== 'archived' && (
+                                            <BlogApproveButton slug={post.slug} />
+                                        )}
                                     </div>
                                 </div>
                             </article>
@@ -172,11 +176,20 @@ export default async function BlogReviewPage() {
                         </p>
                         <ol className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
                             <li>1. Open the preview route for the post.</li>
-                            <li>2. Edit the post in <span className="font-mono text-xs">apps/web-members/lib/blog.ts</span>.</li>
-                            <li>3. Add owner insight, field notes, examples, or corrections.</li>
-                            <li>4. Set <span className="font-mono text-xs">status: &apos;approved&apos;</span>.</li>
-                            <li>5. Add <span className="font-mono text-xs">approvedBy</span> and <span className="font-mono text-xs">approvedAt</span>.</li>
+                            <li>2. Edit the article text in <span className="font-mono text-xs">apps/web-members/lib/blog.ts</span> if it needs owner insight, field notes, examples, or corrections.</li>
+                            <li>3. Click Approve when the post is ready.</li>
+                            <li>4. The approval button commits <span className="font-mono text-xs">status</span>, <span className="font-mono text-xs">approvedBy</span>, and <span className="font-mono text-xs">approvedAt</span> to GitHub.</li>
                         </ol>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                            Required Config
+                        </p>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            Approval writes require a server-only <span className="font-mono text-xs">BLOG_GITHUB_TOKEN</span>.
+                            Without it, previews still work but approvals return a setup message.
+                        </p>
                     </div>
 
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
