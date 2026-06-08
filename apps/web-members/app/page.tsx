@@ -85,7 +85,7 @@ export default function HomePage() {
         {/* TECH HERO (Control Center) */}
         <TechHero />
 
-        <section className="border-b border-slate-200 bg-white">
+        <section className="border-b border-slate-200 bg-white [content-visibility:auto] [contain-intrinsic-size:0_180px]">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-5 sm:px-6 md:flex-row lg:px-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
@@ -99,7 +99,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-slate-200 bg-slate-50 md:hidden">
+        <section className="border-b border-slate-200 bg-slate-50 [content-visibility:auto] [contain-intrinsic-size:0_220px] md:hidden">
           <div className="mx-auto max-w-md px-4 py-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
               Start here
@@ -136,7 +136,7 @@ export default function HomePage() {
         </section>
 
         {/* ROLES CAROUSEL BAND . FULL-BLEED BG IMAGE + GRADIENT + ZOOM */}
-        <section className="relative border-b border-slate-200 overflow-hidden">
+        <section className="relative overflow-hidden border-b border-slate-200 [content-visibility:auto] [contain-intrinsic-size:0_760px]">
           {/* background image sits directly under the section. spans full width */}
           <div className="pointer-events-none absolute inset-0">
 
@@ -151,7 +151,7 @@ export default function HomePage() {
         </section>
 
         {/* subtle gray background for separation */}
-        <section className="border-b border-slate-200 bg-slate-50">
+        <section className="border-b border-slate-200 bg-slate-50 [content-visibility:auto] [contain-intrinsic-size:0_220px]">
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
             <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
               <p className="font-semibold text-slate-900">Who this hub serves</p>
@@ -166,7 +166,7 @@ export default function HomePage() {
         </section>
 
         {/* Feature pillars (Directory / Intel / AI tools) */}
-        <section className="border-b border-slate-200 bg-white">
+        <section className="border-b border-slate-200 bg-white [content-visibility:auto] [contain-intrinsic-size:0_720px]">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -241,7 +241,7 @@ export default function HomePage() {
         </section>
 
         {/* How it works timeline */}
-        <section className="border-b border-brand-copper/15 bg-brand-mist">
+        <section className="border-b border-brand-copper/15 bg-brand-mist [content-visibility:auto] [contain-intrinsic-size:0_620px]">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="max-w-3xl">
               <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -293,7 +293,7 @@ export default function HomePage() {
         </section>
 
         {/* TRUST SIGNALS: Real Results */}
-        <section className="border-b border-slate-200 bg-white">
+        <section className="border-b border-slate-200 bg-white [content-visibility:auto] [contain-intrinsic-size:0_720px]">
           <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -349,13 +349,13 @@ export default function HomePage() {
         </section>
 
         {/* INCOME TEASER: Earnings Calculator Hook */}
-        <section className="border-b border-slate-200 bg-slate-900 text-white overflow-hidden relative">
+        <section className="relative overflow-hidden border-b border-slate-200 bg-slate-900 text-white [content-visibility:auto] [contain-intrinsic-size:0_720px]">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
                   Updated 2025 Rates
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -408,7 +408,7 @@ export default function HomePage() {
         </section>
 
         {/* Split section */}
-        <section className="border-b border-slate-200 bg-slate-50">
+        <section className="border-b border-slate-200 bg-slate-50 [content-visibility:auto] [contain-intrinsic-size:0_620px]">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
             <div className="grid gap-8 md:grid-cols-2">
               <div className="rounded-2xl border border-brand-copper/20 bg-white p-6">
@@ -457,10 +457,12 @@ export default function HomePage() {
         </section>
 
         {/* ── Member testimonials ──────────────────────────── */}
-        <TestimonialsSection variant="full" />
+        <section className="[content-visibility:auto] [contain-intrinsic-size:0_1100px]">
+          <TestimonialsSection variant="full" />
+        </section>
 
         {/* Final CTA banner */}
-        <section className="bg-brand-dark">
+        <section className="bg-brand-dark [content-visibility:auto] [contain-intrinsic-size:0_360px]">
           <div className="mx-auto max-w-6xl px-4 py-10 text-center text-slate-50 sm:px-6 lg:px-8 lg:py-14">
             <h2 className="text-2xl font-semibold sm:text-3xl">
               Ready to stop guessing and start planning real routes.
