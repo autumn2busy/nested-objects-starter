@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { STATE_MAP, ALL_STATE_SLUGS, TOP_STATES } from '../state-data'
 
 export const revalidate = 3600
+export const dynamicParams = false
 
 
 /* ── Static params for all 50 states ─────────────────── */
@@ -52,10 +53,15 @@ type FirmPreview = {
     services: string | null
 }
 
-async function getFirmsByState(stateCode: string, stateLabel: string): Promise<FirmPreview[]> {
+type StateFirmPreviewResponse = {
+    firms: FirmPreview[]
+    totalCount: number
+}
+
+async function getFirmsByState(stateCode: string, stateLabel: string): Promise<StateFirmPreviewResponse> {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseUrl || !supabaseKey) return []
+    if (!supabaseUrl || !supabaseKey) return { firms: [], totalCount: 0 }
 
     try {
         const params = new URLSearchParams()
@@ -65,7 +71,7 @@ async function getFirmsByState(stateCode: string, stateLabel: string): Promise<F
         )
         params.set('is_published', 'eq.true')
         params.set('order', 'contractor_rating.desc.nullslast,name.asc')
-        params.set('limit', '24')
+        params.set('limit', '12')
 
         // Match state name, code, or national firms
         const orFilter = [
@@ -86,12 +92,18 @@ async function getFirmsByState(stateCode: string, stateLabel: string): Promise<F
             next: { tags: ['firms'] },
         })
 
-        if (!res.ok) return []
+        if (!res.ok) return { firms: [], totalCount: 0 }
         const contentRange = res.headers.get('content-range')
+        const totalCount = contentRange
+            ? Number.parseInt(contentRange.split('/')[1] ?? '', 10)
+            : Number.NaN
         const firms = (await res.json()) as FirmPreview[]
-        return firms
+        return {
+            firms,
+            totalCount: Number.isFinite(totalCount) ? totalCount : firms.length,
+        }
     } catch {
-        return []
+        return { firms: [], totalCount: 0 }
     }
 }
 
@@ -202,7 +214,7 @@ export default async function StateLandingPage({
     const stateInfo = STATE_MAP[stateSlug]
     if (!stateInfo) notFound()
 
-    const firms = await getFirmsByState(stateInfo.code, stateInfo.label)
+    const { firms, totalCount } = await getFirmsByState(stateInfo.code, stateInfo.label)
     const faqs = getStateFAQs(stateInfo.label)
     const quickAnswers = getQuickAnswers(stateInfo.label)
     const comparisonChecks = getComparisonChecks(stateInfo.label)
@@ -276,7 +288,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* Quick answers */}
-            <section className="border-b border-slate-200 bg-white py-10 sm:py-12">
+            <section className="border-b border-slate-200 bg-white py-10 [content-visibility:auto] [contain-intrinsic-size:0_560px] sm:py-12">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                     <div className="max-w-3xl">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
@@ -306,7 +318,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* ═══ Firm grid ═══ */}
-            <section className="py-10 sm:py-14">
+            <section className="py-10 [content-visibility:auto] [contain-intrinsic-size:0_720px] sm:py-14">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-6 flex items-center justify-between">
                         <h2 className="text-xl font-bold text-slate-900">
@@ -314,7 +326,7 @@ export default async function StateLandingPage({
                         </h2>
                         {firms.length > 0 && (
                             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                {firms.length} firm{firms.length !== 1 ? 's' : ''}
+                                {totalCount} firm{totalCount !== 1 ? 's' : ''}
                             </span>
                         )}
                     </div>
@@ -342,13 +354,13 @@ export default async function StateLandingPage({
                         </div>
                     )}
 
-                    {firms.length > 12 && (
+                    {totalCount > firms.length && (
                         <div className="mt-8 text-center">
                             <Link
                                 href={`/hiring-firms?state=${stateInfo.code}`}
                                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                             >
-                                See all {firms.length} firms in {stateInfo.label} <ArrowRight className="h-4 w-4" />
+                                See all {totalCount} firms in {stateInfo.label} <ArrowRight className="h-4 w-4" />
                             </Link>
                         </div>
                     )}
@@ -356,7 +368,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* Compare and qualify */}
-            <section className="border-y border-slate-200 bg-slate-50 py-10 sm:py-14">
+            <section className="border-y border-slate-200 bg-slate-50 py-10 [content-visibility:auto] [contain-intrinsic-size:0_620px] sm:py-14">
                 <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-8">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
@@ -400,7 +412,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* ═══ CTA Banner ═══ */}
-            <section className="border-y border-slate-200 bg-slate-900 py-10 sm:py-14">
+            <section className="border-y border-slate-200 bg-slate-900 py-10 [content-visibility:auto] [contain-intrinsic-size:0_420px] sm:py-14">
                 <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
                     <h2 className="text-2xl font-bold text-white sm:text-3xl">
                         Ready to start inspecting in {stateInfo.label}?
@@ -433,7 +445,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* ═══ FAQs ═══ */}
-            <section className="py-10 sm:py-14">
+            <section className="py-10 [content-visibility:auto] [contain-intrinsic-size:0_720px] sm:py-14">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                     <h2 className="text-xl font-bold text-slate-900">
                         Frequently asked questions about inspecting in {stateInfo.label}
@@ -450,7 +462,7 @@ export default async function StateLandingPage({
             </section>
 
             {/* ═══ Cross-links ═══ */}
-            <section className="border-t border-slate-200 bg-slate-50 py-10 sm:py-14">
+            <section className="border-t border-slate-200 bg-slate-50 py-10 [content-visibility:auto] [contain-intrinsic-size:0_460px] sm:py-14">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                     <h2 className="text-xl font-bold text-slate-900">
                         Also hiring field inspectors
