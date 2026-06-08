@@ -102,40 +102,40 @@ export const roleAeoContent = {
   'mobile-notary': {
     roleName: 'Mobile notary',
     path: '/roles/mobile-notary',
-    audience: 'notaries who travel to signings and want to add compatible inspection or lender support work',
-    primaryWork: 'loan signings, document handling, borrower communication, occupancy verification, and light property photo tasks',
+    audience: 'mobile notaries and signing agents comparing signing services, vendor programs, RON platforms, and adjacent route work',
+    primaryWork: 'loan signings, title and escrow assignments, RON or hybrid appointments, document handling, route planning, and compatible field photo tasks',
     quickAnswers: [
       {
-        title: 'Where inspection work overlaps',
-        body: 'Mobile notaries may find compatible work in lender signings, occupancy verification, document delivery, photo tasks, and appointment-based field assignments.',
-      },
-      {
-        title: 'What to protect',
-        body: 'Notaries should protect document accuracy, signer identity, appointment timing, privacy, and any state-specific notary requirements before adding inspection tasks.',
+        title: 'Where to find work',
+        body: 'Mobile notaries usually start with signing services, title and escrow vendors, RON platforms, and direct vendor programs before adding compatible field-service assignments.',
       },
       {
         title: 'What to compare',
-        body: 'Compare signing fees, travel distance, print requirements, photo requirements, scheduling windows, cancellation rules, and whether inspection tasks fit the appointment.',
+        body: 'Compare signing fees, print and scan-back requirements, travel distance, cancellation rules, credential requirements, pay timing, and whether the company has real work near your route.',
+      },
+      {
+        title: 'How to stack routes',
+        body: 'Inspection, photo, occupancy, and document delivery tasks can work well only when they do not interfere with state notary rules, signer privacy, appointment timing, or title instructions.',
       },
     ],
     fitChecks: [
-      'You already manage appointments, identity checks, and document accuracy.',
-      'You want to add route-compatible field work without disrupting signings.',
-      'You need clear scripts for borrowers, lenders, title partners, and occupants.',
-      'You want firm research before applying to notary or lender vendor programs.',
+      'You want to know which signing services and vendor programs are worth applying to.',
+      'You need to protect net pay after printing, fuel, scan-backs, and dead time.',
+      'You want to add route-compatible work without disrupting notary duties.',
+      'You want firm research, application links, and requirement clues before uploading credentials.',
     ],
     faqs: [
       {
-        question: 'Can mobile notaries do field inspection work?',
-        answer: 'Mobile notaries can often add compatible field work, but they should keep notary duties separate from any inspection task and follow state notary rules, privacy expectations, and firm instructions.',
+        question: 'How do mobile notaries find signing agent work?',
+        answer: 'Mobile notaries usually find work by applying to signing services, title or escrow vendor programs, RON platforms, and direct company onboarding pages. They should compare requirements, payout timing, service area fit, and assignment rules before applying broadly.',
       },
       {
-        question: 'What inspection assignments fit mobile notaries best?',
-        answer: 'Appointment-based assignments, occupancy verification, simple photo tasks, document delivery, and lender support work can fit notaries who already travel and communicate with borrowers.',
+        question: 'Can mobile notaries add field inspection work?',
+        answer: 'Mobile notaries can often add compatible field work such as occupancy verification, simple photo tasks, document delivery, or lender support, but notary duties should stay separate from inspection tasks and follow state notary rules, privacy expectations, and firm instructions.',
       },
       {
         question: 'How does Nested Objects help mobile notaries?',
-        answer: 'Nested Objects helps notaries compare firms, understand field-service opportunities, prepare for lender expectations, and decide which assignments fit their route and schedule.',
+        answer: 'Nested Objects helps notaries compare signing services, vendor programs, route-compatible field work, pay clues, requirements, and application paths before they spend time applying or accepting low-margin assignments.',
       },
     ],
   },

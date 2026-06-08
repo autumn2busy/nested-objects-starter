@@ -25,7 +25,7 @@ const roles = [
   {
     title: 'Mobile notary',
     slug: 'mobile-notary',
-    description: 'Signing prep, borrower communication, routing, and document handling workflows.',
+    description: 'Signing services, title/escrow vendors, RON platforms, route math, and adjacent field work.',
   },
   {
     title: 'Asset preservation',
@@ -41,11 +41,6 @@ const roles = [
     title: 'Inspector',
     slug: 'inspector',
     description: 'General inspection workflows, field readiness, and reporting fundamentals.',
-  },
-  {
-    title: 'Notary',
-    slug: 'notary',
-    description: 'Notary-adjacent inspection work, signing workflows, and field-service opportunities.',
   },
   {
     title: 'Realtor',

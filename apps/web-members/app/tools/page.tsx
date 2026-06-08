@@ -3,8 +3,8 @@ import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Field Tools | Income Calculator, Weather & Routing',
-  description: 'AI-powered tools for field inspectors: income calculator, route planner, weather alerts, and client management system.',
+  title: 'Field Tools | Income, Notary Route, Weather & Routing',
+  description: 'AI-powered tools for field inspectors and notaries: income calculators, route planning, weather alerts, and client management.',
   path: '/tools',
 })
 
