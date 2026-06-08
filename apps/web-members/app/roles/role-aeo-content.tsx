@@ -219,6 +219,126 @@ export const roleAeoContent = {
       },
     ],
   },
+  inspector: {
+    roleName: 'Inspector',
+    path: '/roles/inspector',
+    audience: 'home, property, and field inspectors who need clearer firm expectations before they accept route work',
+    primaryWork: 'property condition documentation, photo capture, report submission, safety notes, firm-specific checklists, and revision handling',
+    quickAnswers: [
+      {
+        title: 'What inspectors compare first',
+        body: 'Inspectors should compare assignment type, required photos, access rules, safety expectations, pay timing, revision policy, and whether the firm sends enough nearby work to justify the route.',
+      },
+      {
+        title: 'Best use of Nested Objects',
+        body: 'Use Nested Objects to research hiring firms, read requirement clues, prepare application notes, and keep common inspection workflows organized before you upload documents or accept assignments.',
+      },
+      {
+        title: 'What makes routes smoother',
+        body: 'Clear shot lists, realistic turnaround times, good portal instructions, predictable communication, and fewer avoidable revisions usually matter as much as the posted inspection fee.',
+      },
+    ],
+    fitChecks: [
+      'You want to compare firms before submitting personal details.',
+      'You need concise checklists for photos, access notes, gear, and report requirements.',
+      'You want to reduce revisions by understanding expectations before the visit.',
+      'You are evaluating inspection work across multiple service lanes or states.',
+    ],
+    faqs: [
+      {
+        question: 'What kinds of firms hire inspectors?',
+        answer: 'Inspectors may be hired by mortgage field service firms, insurance loss control companies, property preservation vendors, appraisal support firms, and local or national field-service networks.',
+      },
+      {
+        question: 'What should inspectors verify before applying?',
+        answer: 'Inspectors should verify coverage area, assignment type, pay structure, background check requirements, insurance expectations, equipment needs, payout timing, and how revisions are handled.',
+      },
+      {
+        question: 'How does Nested Objects help inspectors choose firms?',
+        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, and AI tools so inspectors can compare opportunities before spending time on vendor portals.',
+      },
+    ],
+  },
+  'gig-worker': {
+    roleName: 'Gig worker',
+    path: '/roles/gig-worker',
+    audience: 'gig workers, couriers, delivery drivers, and mobile operators who want to add route-compatible field work',
+    primaryWork: 'local route work, simple photo tasks, occupancy checks, document delivery, field support assignments, and flexible service-area planning',
+    quickAnswers: [
+      {
+        title: 'Best first field gigs',
+        body: 'Gig workers often start with simple photo assignments, occupancy checks, exterior condition notes, document delivery, or inspection-adjacent tasks that fit around routes they already drive.',
+      },
+      {
+        title: 'What to compare',
+        body: 'Compare travel distance, pay per stop, revision risk, required gear, deadline windows, onboarding speed, and whether the assignment fits your existing app-based schedule.',
+      },
+      {
+        title: 'How to protect net pay',
+        body: 'A higher posted fee can still lose money if stops are far apart, revisions are common, access is unclear, or the firm does not have consistent work in your service area.',
+      },
+    ],
+    fitChecks: [
+      'You already manage routes, apps, photos, deadlines, and customer notes.',
+      'You want to add inspection-style work without abandoning existing gig income.',
+      'You need to understand pay, distance, and assignment rules before accepting work.',
+      'You want firm research and application paths in one place.',
+    ],
+    faqs: [
+      {
+        question: 'Can gig workers become field inspectors?',
+        answer: 'Yes. Gig workers who already understand routing, deadlines, mobile apps, photos, and service-area planning can often transition into basic field inspection or field-support work with the right firm onboarding.',
+      },
+      {
+        question: 'What field work fits gig workers best?',
+        answer: 'Simple exterior photos, occupancy verification, document delivery, route-based condition checks, and inspection support tasks can fit gig workers when pay, distance, and deadlines make sense.',
+      },
+      {
+        question: 'How does Nested Objects help gig workers compare opportunities?',
+        answer: 'Nested Objects helps gig workers compare firm requirements, service areas, pay clues, route fit, and application notes before they commit time to a new vendor program.',
+      },
+    ],
+  },
+  realtor: {
+    roleName: 'Realtor',
+    path: '/roles/realtor',
+    audience: 'real estate agents and licensed professionals evaluating BPO, valuation, REO, and property condition work between closings',
+    primaryWork: 'broker price opinions, drive-by valuation support, property condition photos, REO documentation, occupancy checks, and lender-adjacent field assignments',
+    quickAnswers: [
+      {
+        title: 'Where realtors can add field work',
+        body: 'Realtors may find adjacent work through BPO companies, asset management vendors, valuation support firms, REO networks, and field-service firms that need local market knowledge.',
+      },
+      {
+        title: 'What to verify first',
+        body: 'Verify licensing requirements, assignment scope, photo standards, comparable-sales expectations, turnaround time, pay, portal rules, and whether the firm has active local volume.',
+      },
+      {
+        title: 'How to compare BPO work',
+        body: 'BPO and valuation assignments should be compared by net fee, research time, travel distance, revision risk, listing opportunity, and whether the work supports your broader real estate pipeline.',
+      },
+    ],
+    fitChecks: [
+      'You want to use local market knowledge between closings.',
+      'You are evaluating BPO, REO, valuation, or condition-report vendors.',
+      'You need to separate worthwhile vendor programs from low-margin busywork.',
+      'You want direct links, requirement clues, and firm comparisons before applying.',
+    ],
+    faqs: [
+      {
+        question: 'Can realtors get paid for BPOs and property inspections?',
+        answer: 'Yes. Some firms pay licensed agents for broker price opinions, valuation support, REO checks, occupancy photos, and property condition documentation, depending on local rules and firm requirements.',
+      },
+      {
+        question: 'What should realtors compare before accepting BPO work?',
+        answer: 'Realtors should compare fee, travel distance, comparable-sales research time, report complexity, turnaround requirements, revision policy, and whether the vendor may lead to future REO or valuation work.',
+      },
+      {
+        question: 'How does Nested Objects help realtors evaluate field-service firms?',
+        answer: 'Nested Objects helps realtors review firm profiles, service lanes, requirement clues, pay context, and application paths so they can choose vendor programs that fit their license and schedule.',
+      },
+    ],
+  },
 } satisfies Record<string, RoleAeoContent>
 
 export function RoleAeoJsonLd({ content }: { content: RoleAeoContent }) {

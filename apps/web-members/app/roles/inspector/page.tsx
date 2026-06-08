@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SITE_URL, getOccupationSchema } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
+import { RoleAeoJsonLd, RoleAeoSection, roleAeoContent } from '../role-aeo-content'
 
 const comparisonPoints = [
   {
@@ -90,6 +91,7 @@ export const metadata: Metadata = {
 }
 
 export default function InspectorRolePage() {
+  const roleAeo = roleAeoContent.inspector
   const occupationSchema = getOccupationSchema({
     name: 'Home and Property Inspector',
     description: 'Home and property inspectors balancing documentation, safety, and client comms.',
@@ -102,6 +104,7 @@ export default function InspectorRolePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(occupationSchema) }}
       />
+      <RoleAeoJsonLd content={roleAeo} />
       <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
         <Breadcrumbs
           items={[
@@ -222,6 +225,8 @@ export default function InspectorRolePage() {
           </div>
         </div>
       </section>
+
+      <RoleAeoSection content={roleAeo} />
 
       <section className="border-t border-slate-200 bg-slate-50 py-12 sm:py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
