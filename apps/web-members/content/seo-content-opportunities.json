@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T16:57:36.054Z",
+  "generatedAt": "2026-06-09T16:59:07.319Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -154,6 +154,48 @@
       "sourceSignals": [
         "role page exists",
         "insurance directory filter exists"
+      ]
+    },
+    {
+      "id": "psi-https-members-nestedobjects-com-hiring-firms",
+      "title": "Improve mobile answer experience for /hiring-firms",
+      "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
+      "category": "route-operations",
+      "priority": "high",
+      "score": 47,
+      "recommendedSurface": "role_page_refresh",
+      "workflowStatus": "candidate",
+      "targetKeywords": [],
+      "internalLinks": [
+        {
+          "label": "Affected page",
+          "href": "/hiring-firms"
+        }
+      ],
+      "rationale": "PageSpeed mobile score is 53. Top opportunities: Reduce unused JavaScript; Network dependency tree; First Contentful Paint.",
+      "sourceSignals": [
+        "PSI mobile: https://members.nestedobjects.com/hiring-firms"
+      ]
+    },
+    {
+      "id": "psi-https-members-nestedobjects-com-tools-income-calculator",
+      "title": "Improve mobile answer experience for /tools/income-calculator",
+      "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
+      "category": "route-operations",
+      "priority": "medium",
+      "score": 38,
+      "recommendedSurface": "role_page_refresh",
+      "workflowStatus": "candidate",
+      "targetKeywords": [],
+      "internalLinks": [
+        {
+          "label": "Affected page",
+          "href": "/tools/income-calculator"
+        }
+      ],
+      "rationale": "PageSpeed mobile score is 62. Top opportunities: First Contentful Paint; Time to Interactive; Max Potential First Input Delay.",
+      "sourceSignals": [
+        "PSI mobile: https://members.nestedobjects.com/tools/income-calculator"
       ]
     }
   ]
