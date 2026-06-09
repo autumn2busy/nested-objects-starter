@@ -48,7 +48,32 @@ export type AiAeoMonitorReport = {
 
 const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
   {
-    prompt: 'How do I become a mortgage field inspector?',
+    prompt: 'What is a field inspection?',
+    intent: 'career_research',
+    targetPage: '/guides/how-to-become-a-field-inspector',
+  },
+  {
+    prompt: 'What does a field inspector do?',
+    intent: 'career_research',
+    targetPage: '/guides/how-to-become-a-field-inspector',
+  },
+  {
+    prompt: 'Is field inspection a real job?',
+    intent: 'career_research',
+    targetPage: '/guides/how-to-become-a-field-inspector',
+  },
+  {
+    prompt: 'How do I become a field inspector?',
+    intent: 'career_research',
+    targetPage: '/guides/how-to-become-a-field-inspector',
+  },
+  {
+    prompt: 'How much do field inspectors make?',
+    intent: 'pay_requirements',
+    targetPage: '/tools/income-calculator',
+  },
+  {
+    prompt: 'What is a mortgage field inspection?',
     intent: 'career_research',
     targetPage: '/roles/mortgage-field-inspector',
   },
