@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T16:59:49.542Z",
+  "generatedAt": "2026-06-09T17:01:08.903Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -157,8 +157,8 @@
       ]
     },
     {
-      "id": "psi-https-members-nestedobjects-com-tools-income-calculator",
-      "title": "Improve mobile answer experience for /tools/income-calculator",
+      "id": "psi-https-members-nestedobjects-com-tools-notary-route-calculator",
+      "title": "Improve mobile answer experience for /tools/notary-route-calculator",
       "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
       "category": "route-operations",
       "priority": "medium",
@@ -169,12 +169,12 @@
       "internalLinks": [
         {
           "label": "Affected page",
-          "href": "/tools/income-calculator"
+          "href": "/tools/notary-route-calculator"
         }
       ],
-      "rationale": "PageSpeed mobile score is 64. Top opportunities: Largest Contentful Paint; Legacy JavaScript; Render-blocking requests.",
+      "rationale": "PageSpeed mobile score is 64. Top opportunities: Reduce unused JavaScript; Time to Interactive; Largest Contentful Paint.",
       "sourceSignals": [
-        "PSI mobile: https://members.nestedobjects.com/tools/income-calculator"
+        "PSI mobile: https://members.nestedobjects.com/tools/notary-route-calculator"
       ]
     }
   ]
