@@ -164,6 +164,18 @@ function normalizePrivateKey(value?: string) {
   return value?.replace(/\\n/g, '\n')
 }
 
+function hasOAuthCredentials() {
+  return Boolean(
+    process.env.GOOGLE_OAUTH_CLIENT_ID &&
+      process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+      process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
+  )
+}
+
+function hasServiceAccountCredentials() {
+  return Boolean(process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY)
+}
+
 function seconds(ms: number) {
   return Math.round(ms / 1000)
 }
@@ -218,7 +230,34 @@ async function withSourceTimeout<T>(
   }
 }
 
-async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
+async function getGoogleOAuthAccessToken(): Promise<string | null> {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+
+  if (!clientId || !clientSecret || !refreshToken) return null
+
+  const response = await fetchWithTimeout(
+    GOOGLE_TOKEN_ENDPOINT,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }),
+    },
+    GOOGLE_API_TIMEOUT_MS,
+  )
+
+  if (!response.ok) return null
+  const data = (await response.json()) as { access_token?: string }
+  return data.access_token ?? null
+}
+
+async function getGoogleServiceAccountAccessToken(scopes: string[]): Promise<string | null> {
   const email = process.env.GOOGLE_CLIENT_EMAIL
   const privateKey = normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY)
 
@@ -254,6 +293,25 @@ async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
   return data.access_token ?? null
 }
 
+async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
+  const oauthToken = await getGoogleOAuthAccessToken()
+  if (oauthToken) return oauthToken
+
+  return getGoogleServiceAccountAccessToken(scopes)
+}
+
+function googleAuthConfigDetail(sourceName: 'Google Search Console' | 'GA4') {
+  const oauthEnv =
+    'GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_OAUTH_REFRESH_TOKEN'
+  const serviceAccountEnv = 'GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY'
+
+  if (sourceName === 'GA4') {
+    return `Set GA4_PROPERTY_ID plus ${oauthEnv}. Service-account fallback uses ${serviceAccountEnv} if that account can be granted Analytics access.`
+  }
+
+  return `Set ${oauthEnv}. Service-account fallback uses ${serviceAccountEnv} if that account can be granted Search Console access.`
+}
+
 function getDateRange(days = 28) {
   const end = new Date()
   end.setUTCDate(end.getUTCDate() - 3)
@@ -269,13 +327,13 @@ function getDateRange(days = 28) {
 async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; source: SourceRun }> {
   const siteUrl = process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL || process.env.SEARCH_CONSOLE_SITE_URL || SITE_URL
 
-  if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+  if (!hasOAuthCredentials() && !hasServiceAccountCredentials()) {
     return {
       rows: [],
       source: {
         name: 'Google Search Console',
         status: 'missing_config',
-        detail: 'Set GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY to pull query/page data.',
+        detail: googleAuthConfigDetail('Google Search Console'),
       },
     }
   }
@@ -358,13 +416,13 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
 async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
   const propertyId = process.env.GA4_PROPERTY_ID || process.env.GOOGLE_ANALYTICS_PROPERTY_ID
 
-  if (!propertyId || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+  if (!propertyId || (!hasOAuthCredentials() && !hasServiceAccountCredentials())) {
     return {
       rows: [],
       source: {
         name: 'GA4',
         status: 'missing_config',
-        detail: 'Set GA4_PROPERTY_ID plus Google service account credentials to pull page/event demand.',
+        detail: googleAuthConfigDetail('GA4'),
       },
     }
   }
