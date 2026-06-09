@@ -151,17 +151,17 @@ function MembershipContent() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-slate-200 bg-slate-950 p-4 text-slate-50">
-                        <h3 className="text-sm font-semibold">Which plan should I pick?</h3>
-                        <ul className="mt-3 space-y-3 text-sm text-slate-200">
+                    <div className="rounded-lg border border-slate-700 bg-slate-950 p-4 text-white shadow-sm selection:bg-amber-200 selection:text-slate-950">
+                        <h3 className="text-sm font-semibold text-white">Which plan should I pick?</h3>
+                        <ul className="mt-3 space-y-3 text-sm text-slate-100">
                             {planDecisionPrompts.map((prompt) => (
                                 <li key={prompt} className="flex gap-2">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" aria-hidden />
+                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-300" aria-hidden />
                                     <span>{prompt}</span>
                                 </li>
                             ))}
                         </ul>
-                        <p className="mt-4 rounded-lg bg-white/10 px-3 py-2 text-xs text-slate-200">
+                        <p className="mt-4 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-white ring-1 ring-white/10">
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
                     </div>
@@ -336,15 +336,15 @@ function MembershipContent() {
             </section>
 
             {/* Final CTA */}
-            <section className="mt-16 rounded-2xl bg-slate-900 px-6 py-10 text-center text-slate-50 sm:px-10">
-                <h2 className="text-2xl font-semibold sm:text-3xl">
+            <section className="mt-16 rounded-2xl bg-slate-900 px-6 py-10 text-center text-white shadow-sm selection:bg-amber-200 selection:text-slate-950 sm:px-10">
+                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
                     Ready to build routes that actually pay for your time?
                 </h2>
                 <PricingFinalCtaCopy />
 
                 <PricingFinalCta proPlan={proPlan} />
 
-                <p className="mt-3 text-xs text-slate-300">
+                <p className="mt-3 text-xs leading-5 text-slate-100">
                     Prefer to ease in? Stay on Free and upgrade from your dashboard any time. Paid digital access is non-refundable.
                 </p>
 
