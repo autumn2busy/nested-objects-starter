@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T19:57:55.009Z",
+  "generatedAt": "2026-06-09T20:03:32.030Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -163,7 +163,7 @@
       "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
       "category": "route-operations",
       "priority": "medium",
-      "score": 37,
+      "score": 36,
       "recommendedSurface": "role_page_refresh",
       "workflowStatus": "candidate",
       "targetKeywords": [],
@@ -173,7 +173,7 @@
           "href": "/roles/mobile-notary"
         }
       ],
-      "rationale": "PageSpeed mobile score is 63. Top opportunities: Network dependency tree; Speed Index; Legacy JavaScript.",
+      "rationale": "PageSpeed mobile score is 64. Top opportunities: Font display; Render-blocking requests; Time to Interactive.",
       "sourceSignals": [
         "PSI mobile: https://members.nestedobjects.com/roles/mobile-notary"
       ]
