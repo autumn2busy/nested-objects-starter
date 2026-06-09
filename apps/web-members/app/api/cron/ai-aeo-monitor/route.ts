@@ -7,15 +7,20 @@ export const runtime = 'nodejs'
 
 const REPORT_PATH = 'apps/web-members/content/ai-aeo-opportunities.json'
 
+function getAllowedSecrets() {
+  return [process.env.SEO_MONITOR_CRON_SECRET, process.env.CRON_SECRET].filter(Boolean)
+}
+
 function isAuthorized(request: Request) {
   const authHeader = request.headers.get('Authorization')
   const url = new URL(request.url)
   const providedSecret = authHeader?.replace(/^Bearer\s+/i, '') || url.searchParams.get('secret')
+  const allowedSecrets = getAllowedSecrets()
 
   return (
     request.headers.get('x-vercel-cron') === '1' ||
     process.env.NODE_ENV === 'development' ||
-    Boolean(process.env.CRON_SECRET && providedSecret === process.env.CRON_SECRET)
+    Boolean(providedSecret && allowedSecrets.includes(providedSecret))
   )
 }
 
