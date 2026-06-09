@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T19:45:11.166Z",
+  "generatedAt": "2026-06-09T19:54:54.190Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
