@@ -1,12 +1,13 @@
 {
-  "generatedAt": "2026-06-09T19:08:13.971Z",
+  "generatedAt": "2026-06-09T19:14:19.536Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor identifies AI/AEO visibility gaps only. Supporting posts must use the existing blog draft, preview, review, approval, and sitemap workflow.",
   "dataSources": [
     {
       "name": "AI answer snapshot webhook",
-      "status": "error",
-      "detail": "Webhook returned 404."
+      "status": "configured",
+      "detail": "Pulled 0 external AI answer snapshots.",
+      "count": 0
     },
     {
       "name": "Owned prompt coverage model",
