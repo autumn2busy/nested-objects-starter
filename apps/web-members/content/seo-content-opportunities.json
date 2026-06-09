@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T17:01:08.903Z",
+  "generatedAt": "2026-06-09T17:01:09.886Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -161,8 +161,8 @@
       "title": "Improve mobile answer experience for /tools/notary-route-calculator",
       "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
       "category": "route-operations",
-      "priority": "medium",
-      "score": 36,
+      "priority": "high",
+      "score": 46,
       "recommendedSurface": "role_page_refresh",
       "workflowStatus": "candidate",
       "targetKeywords": [],
@@ -172,7 +172,7 @@
           "href": "/tools/notary-route-calculator"
         }
       ],
-      "rationale": "PageSpeed mobile score is 64. Top opportunities: Reduce unused JavaScript; Time to Interactive; Largest Contentful Paint.",
+      "rationale": "PageSpeed mobile score is 54. Top opportunities: Font display; Network dependency tree; Avoid large layout shifts.",
       "sourceSignals": [
         "PSI mobile: https://members.nestedobjects.com/tools/notary-route-calculator"
       ]
