@@ -53,6 +53,31 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
     targetPage: '/roles/mortgage-field-inspector',
   },
   {
+    prompt: 'What is a field inspection?',
+    intent: 'career_research',
+    targetPage: '/roles/mortgage-field-inspector',
+  },
+  {
+    prompt: 'What does a field inspector do?',
+    intent: 'career_research',
+    targetPage: '/roles/mortgage-field-inspector',
+  },
+  {
+    prompt: 'Is field inspection a real job?',
+    intent: 'career_research',
+    targetPage: '/roles/mortgage-field-inspector',
+  },
+  {
+    prompt: 'How do I become a field inspector?',
+    intent: 'career_research',
+    targetPage: '/roles/mortgage-field-inspector',
+  },
+  {
+    prompt: 'How much do field inspectors make?',
+    intent: 'pay_requirements',
+    targetPage: '/tools/income-calculator',
+  },
+  {
     prompt: 'What companies hire field inspectors near me?',
     intent: 'vendor_selection',
     targetPage: '/hiring-firms',

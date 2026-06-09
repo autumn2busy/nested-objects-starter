@@ -243,7 +243,7 @@ async function getGoogleErrorDetail(response: Response) {
       error?: string | { message?: string; status?: string }
       error_description?: string
     }
-    if (typeof data.error === 'string') return data.error_description || data.error
+    if (typeof data.error === 'string') return [data.error, data.error_description].filter(Boolean).join(' - ')
     return [data.error?.status, data.error?.message].filter(Boolean).join(': ')
   } catch {
     return text.slice(0, 240)
@@ -251,9 +251,9 @@ async function getGoogleErrorDetail(response: Response) {
 }
 
 async function getGoogleOAuthAccessToken(): Promise<GoogleAccessTokenResult> {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim()
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim()
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN?.trim()
 
   if (!clientId || !clientSecret || !refreshToken) {
     return { token: null, mode: 'oauth', error: 'OAuth credentials are not fully configured.' }
@@ -269,7 +269,7 @@ async function getGoogleOAuthAccessToken(): Promise<GoogleAccessTokenResult> {
         client_secret: clientSecret,
         refresh_token: refreshToken,
         grant_type: 'refresh_token',
-      }),
+      }).toString(),
     },
     GOOGLE_API_TIMEOUT_MS,
   )
