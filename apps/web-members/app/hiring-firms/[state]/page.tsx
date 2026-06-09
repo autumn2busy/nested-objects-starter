@@ -132,6 +132,14 @@ function getStateFAQs(stateLabel: string) {
             answer: `Compare the service area, assignment types, pay structure, onboarding requirements, revision policy, contractor reviews, and how often the firm appears to need vendors in your region. A higher rate is not always better if the route is sparse or the revision process is slow.`,
         },
         {
+            question: `What is the fastest way to find field inspection firms in ${stateLabel}?`,
+            answer: `The fastest path is to shortlist firms that mention ${stateLabel} or your nearest metro, add national firms with nationwide coverage, then remove any company that does not match your route radius, equipment, schedule, or pay requirements.`,
+        },
+        {
+            question: `How many firms should I apply to in ${stateLabel}?`,
+            answer: `Most contractors should compare several firms instead of relying on one application. A practical starting shortlist is five to ten firms across mortgage field inspections, loss control, preservation, notary, and appraisal support, then prioritize the ones with the clearest coverage and onboarding details.`,
+        },
+        {
             question: `What does Nested Objects Pro unlock for ${stateLabel} firm research?`,
             answer: `Pro helps you move beyond a simple list by organizing firm profiles, pay clues, route expectations, application notes, contractor feedback, and AI tools that help you choose which firms fit your schedule and service lanes.`,
         },
@@ -156,6 +164,36 @@ function getQuickAnswers(stateLabel: string) {
             title: 'How to use this page',
             body: `Use the ${stateLabel} list to shortlist firms, then open the full directory to filter by service area, rating, pay clues, and industry focus before you submit applications.`,
         },
+    ]
+}
+
+function getStateApplicationSteps(stateLabel: string) {
+    return [
+        {
+            title: 'Map your service lane',
+            body: `Start with the counties, suburbs, or metros in ${stateLabel} you can reach without turning each order into a low-margin trip.`,
+        },
+        {
+            title: 'Build a 5-10 firm shortlist',
+            body: 'Mix local, regional, and national firms so one slow vendor queue does not become your whole pipeline.',
+        },
+        {
+            title: 'Verify the real terms',
+            body: 'Check assignment type, payment timing, trip fees, revision rules, equipment, background checks, and onboarding response time.',
+        },
+        {
+            title: 'Apply in batches',
+            body: 'Submit clean applications in one focused session, then track follow-ups so you can compare response quality and assignment fit.',
+        },
+    ]
+}
+
+function getStateShortlistSignals(stateLabel: string) {
+    return [
+        `Coverage names ${stateLabel}, your metro, nearby counties, or national service areas that include your route.`,
+        'The firm explains assignment types clearly enough to know whether the work matches your skills.',
+        'The onboarding process is realistic for your background check, insurance, phone, camera, and transportation setup.',
+        'Payment timing, revision expectations, and communication patterns are clear enough to compare against other firms.',
     ]
 }
 
@@ -217,6 +255,8 @@ export default async function StateLandingPage({
     const { firms, totalCount } = await getFirmsByState(stateInfo.code, stateInfo.label)
     const faqs = getStateFAQs(stateInfo.label)
     const quickAnswers = getQuickAnswers(stateInfo.label)
+    const applicationSteps = getStateApplicationSteps(stateInfo.label)
+    const shortlistSignals = getStateShortlistSignals(stateInfo.label)
     const comparisonChecks = getComparisonChecks(stateInfo.label)
     const faqSchema = getFAQPageSchema(faqs)
     const collectionSchema = getStateCollectionSchema({
@@ -314,6 +354,63 @@ export default async function StateLandingPage({
                             </article>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Application path */}
+            <section className="border-b border-slate-200 bg-white py-10 [content-visibility:auto] [contain-intrinsic-size:0_620px] sm:py-12">
+                <div className="mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:px-8">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Best path
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            How to start applying in {stateInfo.label}
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            Treat firm research like route planning. The right shortlist should match your location,
+                            schedule, equipment, and tolerance for revisions before you spend time on vendor portals.
+                        </p>
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                            {applicationSteps.map((step, index) => (
+                                <article key={step.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                    <div className="flex items-start gap-3">
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+                                            {index + 1}
+                                        </span>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-900">{step.title}</h3>
+                                            <p className="mt-2 text-sm leading-6 text-slate-600">{step.body}</p>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+
+                    <aside className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm">
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700 shadow-sm">
+                                <ShieldCheck className="h-5 w-5" aria-hidden />
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                                    Shortlist signals
+                                </p>
+                                <h3 className="mt-1 text-lg font-bold text-slate-900">
+                                    What a strong firm match includes
+                                </h3>
+                            </div>
+                        </div>
+                        <ul className="mt-5 space-y-3">
+                            {shortlistSignals.map((signal) => (
+                                <li key={signal} className="flex gap-3 text-sm leading-6 text-slate-700">
+                                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden />
+                                    <span>{signal}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </aside>
                 </div>
             </section>
 
