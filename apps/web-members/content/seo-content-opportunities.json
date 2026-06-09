@@ -1,7 +1,160 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-06-09T16:57:36.054Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
-  "dataSources": [],
-  "opportunities": []
+  "dataSources": [
+    {
+      "name": "Google Search Console",
+      "status": "error",
+      "detail": "Search Console returned 403. Confirm property access for https://members.nestedobjects.com/."
+    },
+    {
+      "name": "GA4",
+      "status": "error",
+      "detail": "GA4 returned 403/403. Confirm property 492401542 access."
+    },
+    {
+      "name": "PageSpeed Insights",
+      "status": "configured",
+      "detail": "Pulled 8 PageSpeed checks for strategic URLs.",
+      "count": 8
+    },
+    {
+      "name": "Existing blog registry",
+      "status": "configured",
+      "detail": "Checked 3 registered posts to reduce duplicate recommendations.",
+      "count": 3
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "fallback-mobile-notary-signing-services",
+      "title": "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time",
+      "angle": "Explain how to compare signing services by territory fit, document package complexity, scan-back expectations, payment timing, and vendor portal friction.",
+      "category": "firm-growth",
+      "priority": "high",
+      "score": 83,
+      "recommendedSurface": "blog_supporting_article",
+      "workflowStatus": "candidate",
+      "targetKeywords": [
+        "mobile notary signing services",
+        "signing agent companies",
+        "notary vendor applications"
+      ],
+      "internalLinks": [
+        {
+          "label": "Mobile notary role page",
+          "href": "/roles/mobile-notary"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Notary"
+        },
+        {
+          "label": "Notary route calculator",
+          "href": "/tools/notary-route-calculator"
+        }
+      ],
+      "rationale": "The new notary pillar needs supporting content that answers vendor-selection questions without duplicating the pillar page.",
+      "sourceSignals": [
+        "notary pillar launched",
+        "directory has notary filters",
+        "calculator supports route economics"
+      ]
+    },
+    {
+      "id": "fallback-notary-inspection-route-stack",
+      "title": "How to Stack Notary Signings With Field Inspection and Photo Assignments",
+      "angle": "Show how notaries can add nearby inspection, photo, courier, and occupancy tasks without creating second trips or scope confusion.",
+      "category": "route-operations",
+      "priority": "high",
+      "score": 81,
+      "recommendedSurface": "blog_supporting_article",
+      "workflowStatus": "candidate",
+      "targetKeywords": [
+        "notary route income",
+        "notary and field inspection work",
+        "signing agent side work"
+      ],
+      "internalLinks": [
+        {
+          "label": "Notary route calculator",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Routing tool",
+          "href": "/tools/routing"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "rationale": "This bridges notary visibility with Nested Objects route economics and firm-intel positioning.",
+      "sourceSignals": [
+        "route calculator launched",
+        "field add-on directory filter exists"
+      ]
+    },
+    {
+      "id": "fallback-ron-platform-requirements",
+      "title": "RON Platform Requirements for Mobile Notaries and Signing Agents",
+      "angle": "Cover remote online notarization readiness, state-by-state caveats, ID verification, technology requirements, and when RON complements route work.",
+      "category": "field-inspection",
+      "priority": "medium",
+      "score": 76,
+      "recommendedSurface": "blog_supporting_article",
+      "workflowStatus": "candidate",
+      "targetKeywords": [
+        "RON platform requirements",
+        "remote online notarization platform",
+        "online notary requirements"
+      ],
+      "internalLinks": [
+        {
+          "label": "Mobile notary role page",
+          "href": "/roles/mobile-notary"
+        },
+        {
+          "label": "RON directory filter",
+          "href": "/hiring-firms?industry=Notary&search=RON"
+        }
+      ],
+      "rationale": "RON is a distinct notary research path and deserves supporting content that links back to the canonical notary page.",
+      "sourceSignals": [
+        "notary quick filter exists",
+        "RON is a notary-specific directory category"
+      ]
+    },
+    {
+      "id": "fallback-insurance-loss-control-requirements",
+      "title": "Insurance Loss Control Inspection Requirements: What New Contractors Should Know",
+      "angle": "Explain photos, safety observations, interview boundaries, commercial property expectations, and how loss-control differs from mortgage inspection.",
+      "category": "field-inspection",
+      "priority": "medium",
+      "score": 72,
+      "recommendedSurface": "blog_supporting_article",
+      "workflowStatus": "candidate",
+      "targetKeywords": [
+        "insurance loss control inspection requirements",
+        "loss control inspector contractor",
+        "insurance inspection jobs"
+      ],
+      "internalLinks": [
+        {
+          "label": "Insurance loss control role page",
+          "href": "/roles/insurance-loss-control"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Insurance"
+        }
+      ],
+      "rationale": "Insurance inspection questions are adjacent to the core field-inspection audience and can support the existing role page.",
+      "sourceSignals": [
+        "role page exists",
+        "insurance directory filter exists"
+      ]
+    }
+  ]
 }
