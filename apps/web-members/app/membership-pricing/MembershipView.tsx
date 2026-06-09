@@ -1,7 +1,7 @@
 import { membershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
-import { Ban, Clock, ShieldCheck, Star } from 'lucide-react'
+import { Ban, CheckCircle2, Clock, ShieldCheck, Star } from 'lucide-react'
 import {
     CurrentPlanBadge,
     PricingFinalCta,
@@ -30,6 +30,48 @@ const planDecisionPrompts = [
     'Start Free if you only need a low-pressure directory preview.',
     'Start Pro if you are ready to compare firms seriously this week.',
     'Upgrade later if you need Elite or Agency-level strategy support.',
+]
+
+const decisionConfidenceItems = [
+    {
+        title: 'Free is for browsing',
+        body: 'Use Free when you want to explore the hub, preview directory structure, and decide whether field work belongs in your plans.',
+    },
+    {
+        title: 'Pro is for deciding',
+        body: 'Use the trial when you are actively comparing firms, checking requirements, building a shortlist, or preparing applications.',
+    },
+    {
+        title: 'Paid access is instant',
+        body: 'After the trial, digital access continues automatically unless you cancel before billing. Paid memberships are non-refundable.',
+    },
+]
+
+export const pricingFaqs = [
+    {
+        question: 'Can I change plans or cancel anytime?',
+        answer: 'Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time. You keep access until the end of your billing period, and Pro includes a 7-day free trial before paid billing begins.',
+    },
+    {
+        question: 'What happens after the 7-day Pro trial?',
+        answer: 'Pro starts with $0 due today. If you do not cancel before the trial ends, the membership renews as paid digital access using the billing terms shown during checkout.',
+    },
+    {
+        question: 'Do you offer refunds?',
+        answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, templates, and AI tools is non-refundable. Use the 7-day Pro trial to make sure the hub fits before billing starts.',
+    },
+    {
+        question: 'Which plan should I choose first?',
+        answer: 'Choose Free if you only want a directory preview and no card on file. Choose Pro if you are ready to compare firms, requirements, pay clues, route fit, and tools during the next week.',
+    },
+    {
+        question: 'What payment methods do you accept?',
+        answer: 'All major credit cards are processed securely through Outseta and Stripe. Your billing details never touch the Nested Objects servers.',
+    },
+    {
+        question: 'Is there a free option while I am getting started?',
+        answer: 'Yes. The Free plan gives you ongoing access to the directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
+    },
 ]
 
 function MembershipContent() {
@@ -122,6 +164,33 @@ function MembershipContent() {
                         <p className="mt-4 rounded-lg bg-white/10 px-3 py-2 text-xs text-slate-200">
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="mx-auto mt-6 max-w-5xl rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-sm sm:p-6">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Decision confidence
+                        </p>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">
+                            Pick the plan by what you need to decide this week.
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            Browse for free, test Pro for seven days, or stay paid only when the firm intel
+                            and tools are worth it for your route.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        {decisionConfidenceItems.map((item) => (
+                            <article key={item.title} className="rounded-lg border border-slate-200 bg-white p-4">
+                                <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden />
+                                <h3 className="mt-3 text-sm font-semibold text-slate-950">{item.title}</h3>
+                                <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -255,47 +324,14 @@ function MembershipContent() {
                 <h2 className="text-center text-2xl font-semibold text-slate-900">Frequently asked questions</h2>
 
                 <div className="mx-auto mt-6 grid max-w-3xl gap-6 text-sm text-slate-700">
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                            Can I change plans or cancel anytime?
-                        </h3>
-                        <p className="mt-2">
-                            Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time.
-                            You keep access until the end of your billing period, and Pro includes a 7-day free trial
-                            before paid billing begins.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                            Do you offer refunds?
-                        </h3>
-                        <p className="mt-2">
-                            No. Nested Objects is a digital membership, so paid access to firm intel, templates,
-                            and AI tools is non-refundable. Use the 7-day Pro trial to make sure the hub fits
-                            before billing starts.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                            What payment methods do you accept?
-                        </h3>
-                        <p className="mt-2">
-                            All major credit cards are processed securely through Outseta and Stripe. Your billing
-                            details never touch the Nested Objects servers.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-900">
-                            Is there a free option while I am getting started?
-                        </h3>
-                        <p className="mt-2">
-                            Yes. The Free plan gives you ongoing access to the directory preview and core hub without a
-                            card on file. When you are ready for full listings and AI tools you can upgrade into Pro.
-                        </p>
-                    </div>
+                    {pricingFaqs.map((faq) => (
+                        <div key={faq.question}>
+                            <h3 className="text-base font-semibold text-slate-900">
+                                {faq.question}
+                            </h3>
+                            <p className="mt-2">{faq.answer}</p>
+                        </div>
+                    ))}
                 </div>
             </section>
 

@@ -206,7 +206,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     if (isCurrentPlan) return 'Current plan'
     if (plan.waitlist) return 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Today'
+    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Due Today'
     if (isAuthenticated) return `Upgrade to ${plan.name}`
     return 'Sign up'
   })()
@@ -277,7 +277,7 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
       onClick={() => openPlanWidget(proPlan, false)}
       className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
-      {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Today'}
+      {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Due Today'}
     </button>
   )
 }
