@@ -1,9 +1,299 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-06-09T16:55:52.712Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor identifies AI/AEO visibility gaps only. Supporting posts must use the existing blog draft, preview, review, approval, and sitemap workflow.",
-  "dataSources": [],
-  "promptSet": [],
+  "dataSources": [
+    {
+      "name": "AI answer snapshot webhook",
+      "status": "error",
+      "detail": "Webhook returned 404."
+    },
+    {
+      "name": "Owned prompt coverage model",
+      "status": "configured",
+      "detail": "Scored 8 contractor-facing prompts against Nested Objects answer requirements.",
+      "count": 8
+    }
+  ],
+  "promptSet": [
+    {
+      "prompt": "How do I become a mortgage field inspector?",
+      "intent": "career_research",
+      "targetPage": "/roles/mortgage-field-inspector"
+    },
+    {
+      "prompt": "What companies hire field inspectors near me?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
+    },
+    {
+      "prompt": "How much do field inspectors get paid per inspection?",
+      "intent": "pay_requirements",
+      "targetPage": "/tools/income-calculator"
+    },
+    {
+      "prompt": "What is the difference between mortgage field inspection and property preservation?",
+      "intent": "career_research",
+      "targetPage": "/blog/mortgage-field-inspection-vs-property-preservation"
+    },
+    {
+      "prompt": "How can a mobile notary find signing services and RON platforms?",
+      "intent": "notary_visibility",
+      "targetPage": "/roles/mobile-notary"
+    },
+    {
+      "prompt": "Can mobile notaries add field inspection or photo assignments to their route?",
+      "intent": "route_operations",
+      "targetPage": "/tools/notary-route-calculator"
+    },
+    {
+      "prompt": "What do insurance loss control inspectors do?",
+      "intent": "career_research",
+      "targetPage": "/roles/insurance-loss-control"
+    },
+    {
+      "prompt": "Which field inspection firms are reliable for new contractors?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
+    }
+  ],
   "answerSnapshots": [],
-  "opportunities": []
+  "opportunities": [
+    {
+      "id": "aeo-how-do-i-become-a-mortgage-field-inspector",
+      "prompt": "How do I become a mortgage field inspector?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/roles/mortgage-field-inspector",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/roles/mortgage-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-companies-hire-field-inspectors-near-me",
+      "prompt": "What companies hire field inspectors near me?",
+      "intent": "vendor_selection",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-how-much-do-field-inspectors-get-paid-per-inspection",
+      "prompt": "How much do field inspectors get paid per inspection?",
+      "intent": "pay_requirements",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/tools/income-calculator",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "fee range caveats",
+        "mileage and unpaid admin time",
+        "route density",
+        "calculator CTA",
+        "examples by assignment type"
+      ],
+      "internalLinks": [
+        {
+          "label": "Income calculator",
+          "href": "/tools/income-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-is-the-difference-between-mortgage-field-inspection-and-property-pr",
+      "prompt": "What is the difference between mortgage field inspection and property preservation?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/blog/mortgage-field-inspection-vs-property-preservation",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Property preservation comparison",
+          "href": "/blog/mortgage-field-inspection-vs-property-preservation"
+        },
+        {
+          "label": "Asset preservation role page",
+          "href": "/roles/asset-preservation"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-how-can-a-mobile-notary-find-signing-services-and-ron-platforms",
+      "prompt": "How can a mobile notary find signing services and RON platforms?",
+      "intent": "notary_visibility",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/roles/mobile-notary",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "signing services",
+        "title and escrow vendors",
+        "RON platforms",
+        "credential upload cautions",
+        "notary route calculator CTA"
+      ],
+      "internalLinks": [
+        {
+          "label": "Mobile notary role page",
+          "href": "/roles/mobile-notary"
+        },
+        {
+          "label": "Notary route calculator",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Notary directory filter",
+          "href": "/hiring-firms?industry=Notary"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-can-mobile-notaries-add-field-inspection-or-photo-assignments-to-their-r",
+      "prompt": "Can mobile notaries add field inspection or photo assignments to their route?",
+      "intent": "route_operations",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "supporting_blog_candidate",
+      "targetPage": "/tools/notary-route-calculator",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "route batching",
+        "second-trip avoidance",
+        "scope separation",
+        "calculator CTA",
+        "firm comparison CTA"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-do-insurance-loss-control-inspectors-do",
+      "prompt": "What do insurance loss control inspectors do?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/roles/insurance-loss-control",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Insurance loss control role page",
+          "href": "/roles/insurance-loss-control"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Insurance"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-which-field-inspection-firms-are-reliable-for-new-contractors",
+      "prompt": "Which field inspection firms are reliable for new contractors?",
+      "intent": "vendor_selection",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    }
+  ]
 }
