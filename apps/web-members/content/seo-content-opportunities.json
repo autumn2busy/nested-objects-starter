@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-09T19:34:47.635Z",
+  "generatedAt": "2026-06-09T19:45:11.166Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
     {
       "name": "Google Search Console",
       "status": "error",
-      "detail": "Search Console returned 403. Confirm property access for https://members.nestedobjects.com/."
+      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
     },
     {
       "name": "GA4",
       "status": "error",
-      "detail": "GA4 returned 403/403. Confirm property 492401542 access."
+      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
     },
     {
       "name": "PageSpeed Insights",
       "status": "configured",
-      "detail": "Pulled 0 of 6 PageSpeed checks for strategic URLs. 6 timed out or failed.",
-      "count": 0
+      "detail": "Pulled 1 of 6 PageSpeed checks for strategic URLs. 5 timed out or failed.",
+      "count": 1
     },
     {
       "name": "Existing blog registry",
