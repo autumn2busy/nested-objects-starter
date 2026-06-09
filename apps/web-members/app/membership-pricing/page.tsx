@@ -1,5 +1,5 @@
-import { MembershipView } from './MembershipView'
-import { generatePageMetadata, getProductSchema } from '@/lib/seo'
+import { MembershipView, pricingFaqs } from './MembershipView'
+import { generatePageMetadata, getFAQPageSchema, getProductSchema } from '@/lib/seo'
 import type { Metadata } from 'next'
 import { membershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
@@ -45,6 +45,8 @@ const aggregateRatingSchema = {
   },
 }
 
+const faqSchema = getFAQPageSchema(pricingFaqs)
+
 export default function MembershipPage() {
   return (
     <>
@@ -55,6 +57,10 @@ export default function MembershipPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <MembershipView />
     </>
