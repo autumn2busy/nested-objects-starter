@@ -61,8 +61,8 @@ const GA4_ENDPOINT = 'https://analyticsdata.googleapis.com/v1beta'
 const PAGE_SPEED_ENDPOINT = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed'
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 const GOOGLE_API_TIMEOUT_MS = 10_000
-const PAGE_SPEED_TIMEOUT_MS = 8_000
-const SOURCE_TIMEOUT_MS = 20_000
+const PAGE_SPEED_TIMEOUT_MS = 15_000
+const SOURCE_TIMEOUT_MS = 30_000
 const PAGE_SPEED_STRATEGIC_URL_LIMIT = 3
 
 const STRATEGIC_URLS = [
@@ -201,6 +201,10 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
 }
 
 type SourceResult<T> = { rows: T[]; source: SourceRun }
+type GoogleAuthMode = 'oauth' | 'service_account'
+type GoogleAccessTokenResult =
+  | { token: string; mode: GoogleAuthMode; error?: never }
+  | { token: null; mode: GoogleAuthMode | 'none'; error: string }
 
 async function withSourceTimeout<T>(
   sourceName: string,
@@ -230,12 +234,30 @@ async function withSourceTimeout<T>(
   }
 }
 
-async function getGoogleOAuthAccessToken(): Promise<string | null> {
+async function getGoogleErrorDetail(response: Response) {
+  const text = await response.text().catch(() => '')
+  if (!text) return ''
+
+  try {
+    const data = JSON.parse(text) as {
+      error?: string | { message?: string; status?: string }
+      error_description?: string
+    }
+    if (typeof data.error === 'string') return data.error_description || data.error
+    return [data.error?.status, data.error?.message].filter(Boolean).join(': ')
+  } catch {
+    return text.slice(0, 240)
+  }
+}
+
+async function getGoogleOAuthAccessToken(): Promise<GoogleAccessTokenResult> {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
   const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 
-  if (!clientId || !clientSecret || !refreshToken) return null
+  if (!clientId || !clientSecret || !refreshToken) {
+    return { token: null, mode: 'oauth', error: 'OAuth credentials are not fully configured.' }
+  }
 
   const response = await fetchWithTimeout(
     GOOGLE_TOKEN_ENDPOINT,
@@ -252,16 +274,27 @@ async function getGoogleOAuthAccessToken(): Promise<string | null> {
     GOOGLE_API_TIMEOUT_MS,
   )
 
-  if (!response.ok) return null
+  if (!response.ok) {
+    const detail = await getGoogleErrorDetail(response)
+    return {
+      token: null,
+      mode: 'oauth',
+      error: `OAuth token exchange returned ${response.status}${detail ? `: ${detail}` : ''}.`,
+    }
+  }
   const data = (await response.json()) as { access_token?: string }
-  return data.access_token ?? null
+  if (!data.access_token) return { token: null, mode: 'oauth', error: 'OAuth token response did not include access_token.' }
+
+  return { token: data.access_token, mode: 'oauth' }
 }
 
-async function getGoogleServiceAccountAccessToken(scopes: string[]): Promise<string | null> {
+async function getGoogleServiceAccountAccessToken(scopes: string[]): Promise<GoogleAccessTokenResult> {
   const email = process.env.GOOGLE_CLIENT_EMAIL
   const privateKey = normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY)
 
-  if (!email || !privateKey) return null
+  if (!email || !privateKey) {
+    return { token: null, mode: 'service_account', error: 'Service-account credentials are not fully configured.' }
+  }
 
   const key = await importPKCS8(privateKey, 'RS256')
   const now = Math.floor(Date.now() / 1000)
@@ -288,16 +321,32 @@ async function getGoogleServiceAccountAccessToken(scopes: string[]): Promise<str
     GOOGLE_API_TIMEOUT_MS,
   )
 
-  if (!response.ok) return null
+  if (!response.ok) {
+    const detail = await getGoogleErrorDetail(response)
+    return {
+      token: null,
+      mode: 'service_account',
+      error: `Service-account token exchange returned ${response.status}${detail ? `: ${detail}` : ''}.`,
+    }
+  }
   const data = (await response.json()) as { access_token?: string }
-  return data.access_token ?? null
+  if (!data.access_token) {
+    return { token: null, mode: 'service_account', error: 'Service-account token response did not include access_token.' }
+  }
+
+  return { token: data.access_token, mode: 'service_account' }
 }
 
-async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
-  const oauthToken = await getGoogleOAuthAccessToken()
-  if (oauthToken) return oauthToken
+async function getGoogleAccessToken(scopes: string[]): Promise<GoogleAccessTokenResult> {
+  if (hasOAuthCredentials()) {
+    return getGoogleOAuthAccessToken()
+  }
 
-  return getGoogleServiceAccountAccessToken(scopes)
+  if (hasServiceAccountCredentials()) {
+    return getGoogleServiceAccountAccessToken(scopes)
+  }
+
+  return { token: null, mode: 'none', error: 'No Google OAuth or service-account credentials are configured.' }
 }
 
 function googleAuthConfigDetail(sourceName: 'Google Search Console' | 'GA4') {
@@ -339,11 +388,15 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
   }
 
   try {
-    const token = await getGoogleAccessToken(['https://www.googleapis.com/auth/webmasters.readonly'])
-    if (!token) {
+    const auth = await getGoogleAccessToken(['https://www.googleapis.com/auth/webmasters.readonly'])
+    if (!auth.token) {
       return {
         rows: [],
-        source: { name: 'Google Search Console', status: 'error', detail: 'Could not obtain Google access token.' },
+        source: {
+          name: 'Google Search Console',
+          status: 'error',
+          detail: `Could not obtain Google access token using ${auth.mode} auth: ${auth.error}`,
+        },
       }
     }
 
@@ -353,7 +406,7 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -368,12 +421,13 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
     )
 
     if (!response.ok) {
+      const detail = await getGoogleErrorDetail(response)
       return {
         rows: [],
         source: {
           name: 'Google Search Console',
           status: 'error',
-          detail: `Search Console returned ${response.status}. Confirm property access for ${siteUrl}.`,
+          detail: `Search Console returned ${response.status} using ${auth.mode} auth for ${siteUrl}.${detail ? ` Google said: ${detail}` : ''}`,
         },
       }
     }
@@ -397,7 +451,7 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
       source: {
         name: 'Google Search Console',
         status: 'configured',
-        detail: `Pulled ${rows.length} query/page rows for ${startDate} to ${endDate}.`,
+        detail: `Pulled ${rows.length} query/page rows for ${startDate} to ${endDate} using ${auth.mode} auth.`,
         count: rows.length,
       },
     }
@@ -428,11 +482,15 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
   }
 
   try {
-    const token = await getGoogleAccessToken(['https://www.googleapis.com/auth/analytics.readonly'])
-    if (!token) {
+    const auth = await getGoogleAccessToken(['https://www.googleapis.com/auth/analytics.readonly'])
+    if (!auth.token) {
       return {
         rows: [],
-        source: { name: 'GA4', status: 'error', detail: 'Could not obtain Google access token.' },
+        source: {
+          name: 'GA4',
+          status: 'error',
+          detail: `Could not obtain Google access token using ${auth.mode} auth: ${auth.error}`,
+        },
       }
     }
 
@@ -441,7 +499,7 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
       fetchWithTimeout(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -455,7 +513,7 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
       fetchWithTimeout(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -469,12 +527,15 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
     ])
 
     if (!pagesResponse.ok || !eventsResponse.ok) {
+      const pageDetail = pagesResponse.ok ? '' : await getGoogleErrorDetail(pagesResponse)
+      const eventDetail = eventsResponse.ok ? '' : await getGoogleErrorDetail(eventsResponse)
+      const detail = [pageDetail, eventDetail].filter(Boolean).join(' | ')
       return {
         rows: [],
         source: {
           name: 'GA4',
           status: 'error',
-          detail: `GA4 returned ${pagesResponse.status}/${eventsResponse.status}. Confirm property ${propertyId} access.`,
+          detail: `GA4 returned ${pagesResponse.status}/${eventsResponse.status} using ${auth.mode} auth for property ${propertyId}.${detail ? ` Google said: ${detail}` : ''}`,
         },
       }
     }
@@ -499,7 +560,7 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
       source: {
         name: 'GA4',
         status: 'configured',
-        detail: `Pulled ${rows.length} page/event rows for ${startDate} to ${endDate}.`,
+        detail: `Pulled ${rows.length} page/event rows for ${startDate} to ${endDate} using ${auth.mode} auth.`,
         count: rows.length,
       },
     }
