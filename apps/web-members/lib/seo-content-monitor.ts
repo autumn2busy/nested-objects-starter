@@ -60,6 +60,10 @@ const SEARCH_CONSOLE_ENDPOINT = 'https://searchconsole.googleapis.com/webmasters
 const GA4_ENDPOINT = 'https://analyticsdata.googleapis.com/v1beta'
 const PAGE_SPEED_ENDPOINT = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed'
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
+const GOOGLE_API_TIMEOUT_MS = 10_000
+const PAGE_SPEED_TIMEOUT_MS = 8_000
+const SOURCE_TIMEOUT_MS = 20_000
+const PAGE_SPEED_STRATEGIC_URL_LIMIT = 3
 
 const STRATEGIC_URLS = [
   '/roles/mobile-notary',
@@ -160,6 +164,60 @@ function normalizePrivateKey(value?: string) {
   return value?.replace(/\\n/g, '\n')
 }
 
+function seconds(ms: number) {
+  return Math.round(ms / 1000)
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof Error && (error.name === 'AbortError' || error.message.toLowerCase().includes('aborted'))
+}
+
+function describeFetchError(error: unknown, sourceName: string, timeoutMs: number) {
+  if (isAbortError(error)) return `${sourceName} timed out after ${seconds(timeoutMs)} seconds.`
+  return error instanceof Error ? error.message : `Unknown ${sourceName} error.`
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = GOOGLE_API_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+type SourceResult<T> = { rows: T[]; source: SourceRun }
+
+async function withSourceTimeout<T>(
+  sourceName: string,
+  run: () => Promise<SourceResult<T>>,
+  timeoutMs = SOURCE_TIMEOUT_MS,
+): Promise<SourceResult<T>> {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+
+  try {
+    return await Promise.race([
+      run(),
+      new Promise<SourceResult<T>>((resolve) => {
+        timeout = setTimeout(() => {
+          resolve({
+            rows: [],
+            source: {
+              name: sourceName,
+              status: 'error',
+              detail: `${sourceName} exceeded ${seconds(timeoutMs)} seconds; returning a partial monitor report.`,
+            },
+          })
+        }, timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeout) clearTimeout(timeout)
+  }
+}
+
 async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
   const email = process.env.GOOGLE_CLIENT_EMAIL
   const privateKey = normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY)
@@ -178,14 +236,18 @@ async function getGoogleAccessToken(scopes: string[]): Promise<string | null> {
     .setExpirationTime(now + 3600)
     .sign(key)
 
-  const response = await fetch(GOOGLE_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt,
-    }),
-  })
+  const response = await fetchWithTimeout(
+    GOOGLE_TOKEN_ENDPOINT,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt,
+      }),
+    },
+    GOOGLE_API_TIMEOUT_MS,
+  )
 
   if (!response.ok) return null
   const data = (await response.json()) as { access_token?: string }
@@ -228,20 +290,24 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
     }
 
     const { startDate, endDate } = getDateRange()
-    const response = await fetch(`${SEARCH_CONSOLE_ENDPOINT}/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await fetchWithTimeout(
+      `${SEARCH_CONSOLE_ENDPOINT}/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+          dimensions: ['query', 'page'],
+          rowLimit: 250,
+        }),
+        cache: 'no-store',
       },
-      body: JSON.stringify({
-        startDate,
-        endDate,
-        dimensions: ['query', 'page'],
-        rowLimit: 250,
-      }),
-      cache: 'no-store',
-    })
+      GOOGLE_API_TIMEOUT_MS,
+    )
 
     if (!response.ok) {
       return {
@@ -283,7 +349,7 @@ async function fetchSearchConsoleRows(): Promise<{ rows: SearchConsoleRow[]; sou
       source: {
         name: 'Google Search Console',
         status: 'error',
-        detail: error instanceof Error ? error.message : 'Unknown Search Console error.',
+        detail: describeFetchError(error, 'Search Console', GOOGLE_API_TIMEOUT_MS),
       },
     }
   }
@@ -314,7 +380,7 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
 
     const { startDate, endDate } = getDateRange()
     const [pagesResponse, eventsResponse] = await Promise.all([
-      fetch(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
+      fetchWithTimeout(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -328,7 +394,7 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
         }),
         cache: 'no-store',
       }),
-      fetch(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
+      fetchWithTimeout(`${GA4_ENDPOINT}/properties/${propertyId}:runReport`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -385,10 +451,45 @@ async function fetchGa4Rows(): Promise<{ rows: Ga4Row[]; source: SourceRun }> {
       source: {
         name: 'GA4',
         status: 'error',
-        detail: error instanceof Error ? error.message : 'Unknown GA4 error.',
+        detail: describeFetchError(error, 'GA4', GOOGLE_API_TIMEOUT_MS),
       },
     }
   }
+}
+
+async function fetchPageSpeedItem(item: { url: string; strategy: 'mobile' | 'desktop' }) {
+  const apiKey = process.env.PAGESPEED_API_KEY || process.env.GOOGLE_PAGESPEED_API_KEY
+  if (!apiKey) return null
+
+  const params = new URLSearchParams({
+    url: item.url,
+    strategy: item.strategy,
+    key: apiKey,
+  })
+  const response = await fetchWithTimeout(`${PAGE_SPEED_ENDPOINT}?${params.toString()}`, { cache: 'no-store' }, PAGE_SPEED_TIMEOUT_MS)
+  if (!response.ok) return null
+
+  const data = (await response.json()) as {
+    lighthouseResult?: {
+      categories?: { performance?: { score?: number } }
+      audits?: Record<string, { title?: string; score?: number | null }>
+    }
+  }
+  const audits = data.lighthouseResult?.audits || {}
+  const opportunities = Object.values(audits)
+    .filter((audit) => audit.score != null && audit.score < 0.9 && audit.title)
+    .slice(0, 3)
+    .map((audit) => audit.title as string)
+
+  return {
+    url: item.url,
+    strategy: item.strategy,
+    performanceScore:
+      typeof data.lighthouseResult?.categories?.performance?.score === 'number'
+        ? Math.round(data.lighthouseResult.categories.performance.score * 100)
+        : null,
+    opportunities,
+  } satisfies PageSpeedRow
 }
 
 async function fetchPageSpeedRows(): Promise<{ rows: PageSpeedRow[]; source: SourceRun }> {
@@ -405,49 +506,23 @@ async function fetchPageSpeedRows(): Promise<{ rows: PageSpeedRow[]; source: Sou
   }
 
   try {
-    const urls = STRATEGIC_URLS.slice(0, 4).flatMap((path) =>
+    const urls = STRATEGIC_URLS.slice(0, PAGE_SPEED_STRATEGIC_URL_LIMIT).flatMap((path) =>
       (['mobile', 'desktop'] as const).map((strategy) => ({ url: `${SITE_URL}${path}`, strategy })),
     )
 
-    const rows: PageSpeedRow[] = []
-    for (const item of urls) {
-      const params = new URLSearchParams({
-        url: item.url,
-        strategy: item.strategy,
-        key: apiKey,
-      })
-      const response = await fetch(`${PAGE_SPEED_ENDPOINT}?${params.toString()}`, { cache: 'no-store' })
-      if (!response.ok) continue
-
-      const data = (await response.json()) as {
-        lighthouseResult?: {
-          categories?: { performance?: { score?: number } }
-          audits?: Record<string, { title?: string; score?: number | null }>
-        }
-      }
-      const audits = data.lighthouseResult?.audits || {}
-      const opportunities = Object.values(audits)
-        .filter((audit) => audit.score != null && audit.score < 0.9 && audit.title)
-        .slice(0, 3)
-        .map((audit) => audit.title as string)
-
-      rows.push({
-        url: item.url,
-        strategy: item.strategy,
-        performanceScore:
-          typeof data.lighthouseResult?.categories?.performance?.score === 'number'
-            ? Math.round(data.lighthouseResult.categories.performance.score * 100)
-            : null,
-        opportunities,
-      })
-    }
+    const results = await Promise.allSettled(urls.map((item) => fetchPageSpeedItem(item)))
+    const rows = results
+      .filter((result): result is PromiseFulfilledResult<PageSpeedRow | null> => result.status === 'fulfilled')
+      .map((result) => result.value)
+      .filter((row): row is PageSpeedRow => Boolean(row))
+    const failedCount = results.length - rows.length
 
     return {
       rows,
       source: {
         name: 'PageSpeed Insights',
         status: 'configured',
-        detail: `Pulled ${rows.length} PageSpeed checks for strategic URLs.`,
+        detail: `Pulled ${rows.length} of ${urls.length} PageSpeed checks for strategic URLs.${failedCount ? ` ${failedCount} timed out or failed.` : ''}`,
         count: rows.length,
       },
     }
@@ -457,7 +532,7 @@ async function fetchPageSpeedRows(): Promise<{ rows: PageSpeedRow[]; source: Sou
       source: {
         name: 'PageSpeed Insights',
         status: 'error',
-        detail: error instanceof Error ? error.message : 'Unknown PageSpeed error.',
+        detail: describeFetchError(error, 'PageSpeed Insights', PAGE_SPEED_TIMEOUT_MS),
       },
     }
   }
@@ -633,9 +708,9 @@ function mergeOpportunities(opportunities: SeoContentOpportunity[]) {
 
 export async function runSeoContentMonitor(): Promise<SeoContentMonitorReport> {
   const [searchConsole, ga4, pageSpeed] = await Promise.all([
-    fetchSearchConsoleRows(),
-    fetchGa4Rows(),
-    fetchPageSpeedRows(),
+    withSourceTimeout('Google Search Console', fetchSearchConsoleRows),
+    withSourceTimeout('GA4', fetchGa4Rows),
+    withSourceTimeout('PageSpeed Insights', fetchPageSpeedRows),
   ])
 
   const searchOpportunities = searchConsole.rows
