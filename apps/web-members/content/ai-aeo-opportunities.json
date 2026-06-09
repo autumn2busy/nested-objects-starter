@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-09T19:14:19.536Z",
+  "generatedAt": "2026-06-09T23:15:30.290Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor identifies AI/AEO visibility gaps only. Supporting posts must use the existing blog draft, preview, review, approval, and sitemap workflow.",
   "dataSources": [
@@ -12,13 +12,38 @@
     {
       "name": "Owned prompt coverage model",
       "status": "configured",
-      "detail": "Scored 8 contractor-facing prompts against Nested Objects answer requirements.",
-      "count": 8
+      "detail": "Scored 13 contractor-facing prompts against Nested Objects answer requirements.",
+      "count": 13
     }
   ],
   "promptSet": [
     {
-      "prompt": "How do I become a mortgage field inspector?",
+      "prompt": "What is a field inspection?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
+    },
+    {
+      "prompt": "What does a field inspector do?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
+    },
+    {
+      "prompt": "Is field inspection a real job?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
+    },
+    {
+      "prompt": "How do I become a field inspector?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
+    },
+    {
+      "prompt": "How much do field inspectors make?",
+      "intent": "pay_requirements",
+      "targetPage": "/tools/income-calculator"
+    },
+    {
+      "prompt": "What is a mortgage field inspection?",
       "intent": "career_research",
       "targetPage": "/roles/mortgage-field-inspector"
     },
@@ -61,8 +86,153 @@
   "answerSnapshots": [],
   "opportunities": [
     {
-      "id": "aeo-how-do-i-become-a-mortgage-field-inspector",
-      "prompt": "How do I become a mortgage field inspector?",
+      "id": "aeo-what-is-a-field-inspection",
+      "prompt": "What is a field inspection?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-does-a-field-inspector-do",
+      "prompt": "What does a field inspector do?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-is-field-inspection-a-real-job",
+      "prompt": "Is field inspection a real job?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-how-do-i-become-a-field-inspector",
+      "prompt": "How do I become a field inspector?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-how-much-do-field-inspectors-make",
+      "prompt": "How much do field inspectors make?",
+      "intent": "pay_requirements",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/tools/income-calculator",
+      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "recommendedAnswerElements": [
+        "fee range caveats",
+        "mileage and unpaid admin time",
+        "route density",
+        "calculator CTA",
+        "examples by assignment type"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/tools/income-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-is-a-mortgage-field-inspection",
+      "prompt": "What is a mortgage field inspection?",
       "intent": "career_research",
       "priority": "high",
       "score": 95,
@@ -262,35 +432,6 @@
         {
           "label": "Hiring firm directory",
           "href": "/hiring-firms?industry=Insurance"
-        }
-      ],
-      "observedBrands": [],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-which-field-inspection-firms-are-reliable-for-new-contractors",
-      "prompt": "Which field inspection firms are reliable for new contractors?",
-      "intent": "vendor_selection",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "directory_language_update",
-      "targetPage": "/hiring-firms",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
-      "recommendedAnswerElements": [
-        "territory fit",
-        "pay and volume signals",
-        "application readiness",
-        "directory/filter CTA",
-        "save or track firms workflow"
-      ],
-      "internalLinks": [
-        {
-          "label": "Target answer page",
-          "href": "/hiring-firms"
-        },
-        {
-          "label": "Hiring firm directory",
-          "href": "/hiring-firms"
         }
       ],
       "observedBrands": [],
