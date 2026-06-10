@@ -23,6 +23,18 @@ function getPlanPaymentTerm(plan: MembershipPlan) {
   return plan.period.includes('month') ? 'month' : 'oneTime'
 }
 
+function scheduleIdleWork(callback: () => void) {
+  if (typeof window === 'undefined') return () => {}
+
+  if ('requestIdleCallback' in window) {
+    const idleId = window.requestIdleCallback(callback, { timeout: 2500 })
+    return () => window.cancelIdleCallback(idleId)
+  }
+
+  const timeoutId = globalThis.setTimeout(callback, 2000)
+  return () => globalThis.clearTimeout(timeoutId)
+}
+
 function usePricingActions() {
   const { isAuthenticated, planUid, isLoading } = useAuth()
   const currentPlanName = getCurrentPlanName(planUid, isAuthenticated)
@@ -138,11 +150,13 @@ export function PricingViewTracker() {
   useEffect(() => {
     if (isLoading) return
 
-    trackPricingView({
-      sourcePage: 'membership_pricing',
-      currentPlan: currentPlanName ?? 'anonymous',
-      planUid: planUid ?? null,
-      isAuthenticated,
+    return scheduleIdleWork(() => {
+      trackPricingView({
+        sourcePage: 'membership_pricing',
+        currentPlan: currentPlanName ?? 'anonymous',
+        planUid: planUid ?? null,
+        isAuthenticated,
+      })
     })
   }, [currentPlanName, isAuthenticated, isLoading, planUid])
 

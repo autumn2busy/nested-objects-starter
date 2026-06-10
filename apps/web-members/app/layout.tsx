@@ -140,6 +140,8 @@ export default function RootLayout({
 
         {/* Preconnect to external CDNs */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="preconnect" href="https://cdn.outseta.com" />
+        <link rel="preconnect" href="https://nested-objects.outseta.com" />
 
         {/* Outseta install snippet. Only load in production or if explicitly enabled */}
         {shouldLoadOutseta && (
@@ -158,11 +160,11 @@ export default function RootLayout({
                 `,
               }}
             />
-            {/* Load Outseta library synchronously to strictly follow config */}
+            {/* Keep config early, but load the widget after first paint work. Auth fallbacks handle early clicks. */}
             <Script
               id="outseta-loader"
               src="https://cdn.outseta.com/outseta.min.js"
-              strategy="beforeInteractive"
+              strategy="afterInteractive"
               data-options="o_options"
             />
           </>
