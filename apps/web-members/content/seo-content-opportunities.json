@@ -1,23 +1,25 @@
 {
-  "generatedAt": "2026-06-09T23:15:38.091Z",
+  "generatedAt": "2026-06-10T16:15:12.325Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
     {
       "name": "Google Search Console",
-      "status": "error",
-      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
+      "status": "configured",
+      "detail": "Pulled 11 query/page rows for 2026-05-10 to 2026-06-07 using oauth auth.",
+      "count": 11
     },
     {
       "name": "GA4",
-      "status": "error",
-      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
+      "status": "configured",
+      "detail": "Pulled 4 page/event rows for 2026-05-10 to 2026-06-07 using oauth auth.",
+      "count": 4
     },
     {
       "name": "PageSpeed Insights",
       "status": "configured",
-      "detail": "Pulled 2 of 6 PageSpeed checks for strategic URLs. 4 timed out or failed.",
-      "count": 2
+      "detail": "Pulled 0 of 6 PageSpeed checks for strategic URLs. 6 timed out or failed.",
+      "count": 0
     },
     {
       "name": "Existing blog registry",
