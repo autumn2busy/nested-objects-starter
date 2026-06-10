@@ -1,6 +1,6 @@
 import { membershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
-import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { TestimonialStrip } from '@/components/TestimonialsSection'
 import { Ban, CheckCircle2, Clock, ShieldCheck, Star } from 'lucide-react'
 import {
     CurrentPlanBadge,
@@ -351,7 +351,17 @@ function MembershipContent() {
             </section>
 
             {/* Social proof */}
-            <TestimonialsSection variant="full" />
+            <section className="mx-auto mt-12 max-w-3xl rounded-lg border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
+                    Member proof
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-900">
+                    Real members use Nested Objects to compare firms and routes.
+                </h2>
+                <div className="mt-5 flex justify-center">
+                    <TestimonialStrip />
+                </div>
+            </section>
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
                 <a
