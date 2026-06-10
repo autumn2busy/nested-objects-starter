@@ -59,6 +59,7 @@ The review dashboard:
 - links to each post preview
 - links to the live article only when a post is approved
 - lets a reviewer approve a draft or review post with a GitHub-backed commit
+- displays SEO, AEO, and content brief queues as planning inputs only
 
 The dashboard does not rewrite article copy. Human edits to the title, body, links, FAQs, keywords, and first-party examples still happen in `apps/web-members/lib/blog.ts`.
 
@@ -75,6 +76,30 @@ When a reviewer clicks Approve, the server route commits approval metadata to th
 - `notes`
 
 The blog registry merges these approval overrides at runtime, so a generated draft can remain in `blog.ts` while approval state is tracked separately.
+
+## Content Brief Generator
+
+The content brief generator creates planning briefs from the SEO and AI/AEO monitors. It does not publish, approve, or add posts to the sitemap.
+
+Cron route:
+
+`/api/cron/content-brief-generator`
+
+Output file:
+
+`apps/web-members/content/content-briefs.json`
+
+The route reads:
+
+- `apps/web-members/content/seo-content-opportunities.json`
+- `apps/web-members/content/ai-aeo-opportunities.json`
+
+It deduplicates related topics, then creates paired candidates for:
+
+- blog articles
+- YouTube scripts
+
+Manual route runs are dry-run by default. Add `commit=1` only when you intentionally want the generated brief queue committed to GitHub. Vercel cron runs commit automatically after the weekly SEO and AEO monitors refresh.
 
 ## GitHub Approval Setup
 
