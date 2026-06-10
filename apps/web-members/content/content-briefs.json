@@ -1,0 +1,7 @@
+{
+  "generatedAt": null,
+  "cadence": "weekly",
+  "workflowBoundary": "This generator creates blog and YouTube brief candidates only. Blog posts still require human drafting in the existing blog registry, /blog/review approval, and sitemap gating. YouTube scripts require human review before recording or upload.",
+  "dataSources": [],
+  "briefs": []
+}

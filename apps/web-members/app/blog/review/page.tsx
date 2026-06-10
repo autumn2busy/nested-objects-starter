@@ -7,6 +7,7 @@ import { BLOG_CATEGORIES, type BlogPost, getAllBlogPosts } from '@/lib/blog'
 import { getBlogReviewerSession } from '@/lib/blog-admin-auth'
 import seoOpportunitiesJson from '@/content/seo-content-opportunities.json'
 import aiAeoOpportunitiesJson from '@/content/ai-aeo-opportunities.json'
+import contentBriefsJson from '@/content/content-briefs.json'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,6 +80,41 @@ type AiAeoOpportunityReport = {
 
 const aiAeoOpportunityReport = aiAeoOpportunitiesJson as AiAeoOpportunityReport
 
+type ContentBrief = {
+    id: string
+    sourceOpportunityIds: string[]
+    contentType: 'blog_article' | 'youtube_script'
+    status: 'candidate'
+    priority: 'high' | 'medium' | 'low'
+    score: number
+    title: string
+    slug: string
+    audience: string
+    intent: string
+    angle: string
+    targetPage: string
+    targetKeywords: string[]
+    internalLinks: { label: string; href: string }[]
+    outline: string[]
+    aeoAnswerBlock: string
+    youtube?: {
+        hook: string
+        titleIdeas: string[]
+        chapters: string[]
+        descriptionSeed: string
+    }
+    reviewChecklist: string[]
+    sourceSignals: string[]
+}
+
+type ContentBriefReport = {
+    generatedAt?: string | null
+    cadence?: string
+    briefs?: ContentBrief[]
+}
+
+const contentBriefReport = contentBriefsJson as ContentBriefReport
+
 const PRIORITY_STYLES: Record<SeoOpportunity['priority'], string> = {
     high: 'border-red-200 bg-red-50 text-red-800',
     medium: 'border-amber-200 bg-amber-50 text-amber-800',
@@ -139,6 +175,7 @@ export default async function BlogReviewPage() {
     const approvedCount = posts.filter((post) => post.status === 'approved').length
     const seoOpportunities = (seoOpportunityReport.opportunities || []).slice(0, 6)
     const aiAeoOpportunities = (aiAeoOpportunityReport.opportunities || []).slice(0, 4)
+    const contentBriefs = (contentBriefReport.briefs || []).slice(0, 8)
 
     return (
         <main className="min-h-screen bg-brand-sand text-slate-950">
@@ -264,6 +301,101 @@ export default async function BlogReviewPage() {
                                         </article>
                                     )
                                 })}
+                            </div>
+                        )}
+                    </section>
+
+                    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-brand">
+                                    <PencilLine className="h-4 w-4" />
+                                    Content Brief Queue
+                                </p>
+                                <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                                    Blog and YouTube candidates
+                                </h2>
+                                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                                    These briefs are generated from the SEO and AEO monitors. They are planning artifacts only:
+                                    blog posts still need to be written into the registry and approved, and YouTube scripts still
+                                    need human review before recording.
+                                </p>
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                <p className="font-semibold text-slate-900">Last brief run</p>
+                                <p>{formatGeneratedAt(contentBriefReport.generatedAt)}</p>
+                                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
+                                    Cadence: {contentBriefReport.cadence || 'weekly'}
+                                </p>
+                            </div>
+                        </div>
+
+                        {contentBriefs.length === 0 ? (
+                            <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+                                No content briefs have been generated yet. Run the content brief generator after the SEO and AEO
+                                monitors have populated their weekly opportunity queues.
+                            </div>
+                        ) : (
+                            <div className="mt-5 grid gap-4">
+                                {contentBriefs.map((brief) => (
+                                    <article key={brief.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${PRIORITY_STYLES[brief.priority]}`}>
+                                                        {brief.priority} priority
+                                                    </span>
+                                                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                                        {brief.contentType.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                                                        Score {brief.score}
+                                                    </span>
+                                                </div>
+                                                <h3 className="mt-3 text-lg font-bold leading-snug text-slate-950">
+                                                    {brief.title}
+                                                </h3>
+                                                <p className="mt-2 text-sm leading-6 text-slate-600">{brief.angle}</p>
+                                                <p className="mt-2 text-xs leading-5 text-slate-500">
+                                                    Audience: {brief.audience}
+                                                </p>
+                                            </div>
+                                            <Link
+                                                href={brief.targetPage}
+                                                className="shrink-0 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100"
+                                            >
+                                                Target page
+                                            </Link>
+                                        </div>
+
+                                        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                                            <div className="rounded-lg bg-white p-3">
+                                                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Outline</p>
+                                                <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-600">
+                                                    {brief.outline.slice(0, 4).map((item) => (
+                                                        <li key={`${brief.id}-${item}`}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div className="rounded-lg bg-white p-3">
+                                                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                                                    {brief.youtube ? 'Video hook' : 'AEO answer block'}
+                                                </p>
+                                                <p className="mt-2 text-xs leading-5 text-slate-600">
+                                                    {brief.youtube?.hook || brief.aeoAnswerBlock}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {brief.targetKeywords.slice(0, 4).map((keyword) => (
+                                                <span key={`${brief.id}-${keyword}`} className="rounded-full bg-white px-3 py-1 text-xs text-slate-600">
+                                                    {keyword}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </article>
+                                ))}
                             </div>
                         )}
                     </section>
