@@ -295,8 +295,17 @@ function buildBlogBrief(seed: TopicSeed & { sourceOpportunityIds: string[] }): C
   }
 }
 
+function isQuestionTitle(value: string) {
+  return /^(can|could|do|does|how|is|should|what|when|where|which|who|why)\b/i.test(value)
+}
+
+function formatYoutubeTitle(value: string) {
+  if (value.endsWith('?')) return value
+  return isQuestionTitle(value) ? `${value}?` : value
+}
+
 function buildYoutubeBrief(seed: TopicSeed & { sourceOpportunityIds: string[] }): ContentBrief {
-  const title = seed.title.endsWith('?') ? seed.title : `${seed.title}?`
+  const title = formatYoutubeTitle(seed.title)
   const slug = slugify(`youtube-${seed.title}`)
 
   return {

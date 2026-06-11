@@ -189,6 +189,18 @@ function slugify(value: string) {
     .slice(0, 72)
 }
 
+function hasNestedObjectsEvidence(snapshot: Partial<AnswerSnapshot>) {
+  const evidence = [
+    snapshot.answerSummary,
+    ...(Array.isArray(snapshot.citedBrands) ? snapshot.citedBrands : []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  return evidence.includes('nested objects') || evidence.includes('nestedobjects.com')
+}
+
 async function fetchAnswerSnapshotsFromWebhook(): Promise<{ snapshots: AnswerSnapshot[]; source: SourceRun }> {
   const webhookUrl = process.env.AEO_MONITOR_WEBHOOK_URL || process.env.AI_AEO_MONITOR_WEBHOOK_URL
 
@@ -233,7 +245,7 @@ async function fetchAnswerSnapshotsFromWebhook(): Promise<{ snapshots: AnswerSna
         answerSummary: snapshot.answerSummary || '',
         citedBrands: Array.isArray(snapshot.citedBrands) ? snapshot.citedBrands.filter(Boolean) : [],
         citedTopics: Array.isArray(snapshot.citedTopics) ? snapshot.citedTopics.filter(Boolean) : [],
-        nestedObjectsMentioned: Boolean(snapshot.nestedObjectsMentioned),
+        nestedObjectsMentioned: hasNestedObjectsEvidence(snapshot),
       }))
       .filter((snapshot) => snapshot.prompt)
 
