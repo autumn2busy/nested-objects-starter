@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-10T16:07:33.339Z",
+  "generatedAt": "2026-06-11T16:12:38.132Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor identifies AI/AEO visibility gaps only. Supporting posts must use the existing blog draft, preview, review, approval, and sitemap workflow.",
   "dataSources": [
@@ -48,29 +48,29 @@
       "targetPage": "/roles/mortgage-field-inspector"
     },
     {
-      "prompt": "What is a field inspection?",
-      "intent": "career_research",
-      "targetPage": "/roles/mortgage-field-inspector"
+      "prompt": "What tools help field inspectors find companies hiring near them?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
     },
     {
-      "prompt": "What does a field inspector do?",
-      "intent": "career_research",
-      "targetPage": "/roles/mortgage-field-inspector"
+      "prompt": "What is the best directory for field inspection companies?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
     },
     {
-      "prompt": "Is field inspection a real job?",
-      "intent": "career_research",
-      "targetPage": "/roles/mortgage-field-inspector"
+      "prompt": "How do field inspectors compare vendor pay and route fit?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
     },
     {
-      "prompt": "How do I become a field inspector?",
-      "intent": "career_research",
-      "targetPage": "/roles/mortgage-field-inspector"
+      "prompt": "What tools help mobile notaries add field inspection assignments?",
+      "intent": "notary_visibility",
+      "targetPage": "/tools/notary-route-calculator"
     },
     {
-      "prompt": "How much do field inspectors make?",
-      "intent": "pay_requirements",
-      "targetPage": "/tools/income-calculator"
+      "prompt": "How do I find field inspection work with no experience?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
     },
     {
       "prompt": "What companies hire field inspectors near me?",
@@ -111,209 +111,214 @@
   "answerSnapshots": [
     {
       "prompt": "What is a field inspection?",
-      "answerSummary": "A field inspection is the process of examining and evaluating the condition of a property, equipment, or system on-site to ensure compliance with regulations, standards, or specifications. Field inspectors may work for government agencies, insurance companies, or private firms, and use various tools and technologies, such as drones or thermal imaging cameras, to conduct their assessments.",
+      "answerSummary": "A field inspection is the process of examining and evaluating the condition, quality, or performance of assets, equipment, or properties at their location, often conducted by a field inspector. This can involve checking for compliance with regulations, identifying defects or issues, and gathering data for maintenance, repair, or improvement purposes.",
       "citedBrands": [],
       "citedTopics": [
-        "compliance",
-        "regulations",
-        "property inspection",
-        "equipment inspection"
+        "field inspection",
+        "asset management",
+        "compliance"
       ],
       "nestedObjectsMentioned": false
     },
     {
       "prompt": "What does a field inspector do?",
-      "answerSummary": "A field inspector is responsible for conducting on-site inspections of properties, equipment, or systems to assess their condition, identify potential issues, and ensure compliance with regulations and standards. They may work for insurance companies, government agencies, or private firms, and their duties can include taking photos, notes, and measurements, as well as interviewing property owners or occupants.",
+      "answerSummary": "A field inspector is responsible for conducting on-site inspections of properties, equipment, or infrastructure to assess condition, identify defects, and ensure compliance with regulations and standards.",
       "citedBrands": [],
       "citedTopics": [
         "property inspection",
-        "compliance",
-        "regulations"
+        "infrastructure assessment",
+        "regulatory compliance"
       ],
       "nestedObjectsMentioned": false
     },
     {
       "prompt": "Is field inspection a real job?",
-      "answerSummary": "Yes, field inspection is a real job that involves evaluating and reporting on the condition of properties, equipment, or other assets in various industries such as construction, oil and gas, and insurance.",
-      "citedBrands": [
-        "Home Depot",
-        "GE Appliances"
-      ],
+      "answerSummary": "Yes, field inspection is a real job that involves evaluating and reporting on the condition of properties, equipment, or infrastructure in various industries such as construction, oil and gas, and insurance.",
+      "citedBrands": [],
       "citedTopics": [
         "construction",
         "oil and gas",
-        "insurance"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
-      "prompt": "How do I become a field inspector?",
-      "answerSummary": "To become a field inspector, you typically need a combination of education, training, and experience in a specific industry such as construction, engineering, or environmental science. Many field inspectors start their careers by earning a degree in a relevant field and gaining experience through internships or entry-level positions. They may also obtain certifications or licenses, such as those offered by the International Code Council (ICC) or the National Association of Home Builders (NAHB). Additionally, proficiency in software and technology, such as mobile apps and data analysis tools, is often required.",
-      "citedBrands": [
-        "International Code Council (ICC)",
-        "National Association of Home Builders (NAHB)"
-      ],
-      "citedTopics": [
-        "construction",
-        "engineering",
-        "environmental science",
-        "certifications",
-        "licenses"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
-      "prompt": "How much do field inspectors make?",
-      "answerSummary": "Field inspectors' salaries vary by location, industry, and experience. On average, they can earn between $40,000 and $80,000 per year. Companies like Home Depot and Lowe's often hire field inspectors for construction and property assessment.",
-      "citedBrands": [
-        "Home Depot",
-        "Lowe's"
-      ],
-      "citedTopics": [
-        "construction",
-        "property assessment",
-        "salary"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
-      "prompt": "What is a mortgage field inspection?",
-      "answerSummary": "A mortgage field inspection is a process where a field inspector visits a property to verify its condition, occupancy, and value, typically for mortgage lending purposes.",
-      "citedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
-      "citedTopics": [
-        "mortgage lending",
-        "property inspection",
-        "field services"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
-      "prompt": "What is a field inspection?",
-      "answerSummary": "A field inspection is the process of visually examining and evaluating a property's condition, often for mortgage lending or insurance purposes. It involves assessing the property's exterior and interior, including its overall condition, any damage, and compliance with local regulations.",
-      "citedBrands": [],
-      "citedTopics": [
-        "mortgage lending",
-        "property inspection",
-        "field services"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
-      "prompt": "What does a field inspector do?",
-      "answerSummary": "A field inspector, also known as a mortgage field inspector, is responsible for visiting and evaluating properties to determine their condition, value, and potential risks for mortgage lenders and other financial institutions.",
-      "citedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
-      "citedTopics": [
-        "property evaluation",
-        "mortgage lending",
+        "insurance",
         "field inspection"
       ],
       "nestedObjectsMentioned": false
     },
     {
-      "prompt": "Is field inspection a real job?",
-      "answerSummary": "Yes, field inspection is a real job, often involving on-site evaluation of properties for mortgage lending purposes, with companies like CoreLogic and HouseCanary offering such services.",
-      "citedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
-      "citedTopics": [
-        "mortgage field inspection",
-        "property evaluation",
-        "lending"
-      ],
-      "nestedObjectsMentioned": false
-    },
-    {
       "prompt": "How do I become a field inspector?",
-      "answerSummary": "To become a field inspector, typically in the mortgage or real estate industry, one needs to gain relevant experience, possibly through working with companies like CoreLogic or HouseCanary, and obtain necessary certifications or licenses. The role involves inspecting properties to assess their condition and value.",
+      "answerSummary": "To become a field inspector, you typically need a combination of education, training, and experience in a relevant field such as construction, engineering, or architecture. Many field inspectors start out as technicians or assistants and work their way up to inspector roles. Certifications from organizations like the International Association of Certified Home Inspectors (InterNACHI) or the American Society of Home Inspectors (ASHI) can also be beneficial.",
       "citedBrands": [
-        "CoreLogic",
-        "HouseCanary"
+        "InterNACHI",
+        "ASHI"
       ],
       "citedTopics": [
-        "mortgage industry",
-        "real estate",
-        "property inspection",
-        "certifications"
+        "construction",
+        "engineering",
+        "architecture",
+        "certification"
       ],
       "nestedObjectsMentioned": false
     },
     {
       "prompt": "How much do field inspectors make?",
-      "answerSummary": "Field inspectors' salaries vary based on location, industry, and experience. On average, they can earn between $40,000 and $80,000 per year. Companies like Home Depot, Lowe's, and government agencies often hire field inspectors for construction and infrastructure projects.",
+      "answerSummary": "Field inspectors' salaries vary based on location, industry, and experience. On average, they can earn between $40,000 and $80,000 per year. Companies like Home Depot and Lowe's often hire field inspectors for construction and property inspection services.",
       "citedBrands": [
         "Home Depot",
         "Lowe's"
       ],
       "citedTopics": [
         "construction",
-        "infrastructure",
-        "salary"
+        "property inspection",
+        "salary ranges"
       ],
       "nestedObjectsMentioned": false
     },
     {
-      "prompt": "What companies hire field inspectors near me?",
-      "answerSummary": "Several companies hire field inspectors, including government agencies, construction firms, and insurance companies. Some notable companies in this space include engineering and architecture firms. You can search for job openings on websites like Indeed or LinkedIn, or check the career pages of local companies in your area.",
+      "prompt": "What is a mortgage field inspection?",
+      "answerSummary": "A mortgage field inspection is a process where a professional inspector visits a property to assess its condition, value, and occupancy status, typically for mortgage lending purposes.",
       "citedBrands": [
-        "Indeed",
-        "LinkedIn"
+        "CoreLogic",
+        "HouseCanary"
       ],
       "citedTopics": [
-        "construction",
-        "insurance",
-        "engineering",
-        "architecture"
+        "mortgage lending",
+        "property inspection",
+        "field services"
       ],
       "nestedObjectsMentioned": false
     },
     {
-      "prompt": "How much do field inspectors get paid per inspection?",
-      "answerSummary": "Field inspectors' pay per inspection varies based on factors like location, industry, and employer. On average, they can earn between $25 to $100 per inspection, with some companies like Home Depot or Lowe's potentially offering higher rates for specific services.",
+      "prompt": "What tools help field inspectors find companies hiring near them?",
+      "answerSummary": "Field inspectors can utilize online job boards, industry-specific platforms, and professional networks to find companies hiring near them. Websites like Indeed, LinkedIn, and Glassdoor often have job listings for field inspection positions. Additionally, industry-specific platforms like Field Nation or WorkMarket can connect inspectors with companies in need of their services.",
+      "citedBrands": [
+        "Indeed",
+        "LinkedIn",
+        "Glassdoor",
+        "Field Nation",
+        "WorkMarket"
+      ],
+      "citedTopics": [
+        "job boards",
+        "industry-specific platforms",
+        "professional networks",
+        "field inspection"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What is the best directory for field inspection companies?",
+      "answerSummary": "The best directory for field inspection companies can vary depending on specific needs, but popular options include the National Association of Home Inspectors (NAHI) and the American Society of Home Inspectors (ASHI). Online directories like Angie's List, HomeAdvisor, and the Better Business Bureau can also be useful.",
+      "citedBrands": [
+        "Angie's List",
+        "HomeAdvisor",
+        "Better Business Bureau"
+      ],
+      "citedTopics": [
+        "National Association of Home Inspectors",
+        "American Society of Home Inspectors",
+        "field inspection companies"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How do field inspectors compare vendor pay and route fit?",
+      "answerSummary": "Field inspectors compare vendor pay and route fit by evaluating factors such as compensation rates, route density, and territorial coverage. They may use software like WorkMax or ServiceMax to optimize routes and analyze vendor performance. Inspectors also consider vendor reputation, reliability, and customer satisfaction when making comparisons.",
+      "citedBrands": [
+        "WorkMax",
+        "ServiceMax"
+      ],
+      "citedTopics": [
+        "vendor management",
+        "route optimization",
+        "field service management"
+      ],
+      "nestedObjectsMentioned": true
+    },
+    {
+      "prompt": "What tools help mobile notaries add field inspection assignments?",
+      "answerSummary": "Mobile notaries can utilize route optimization tools, such as those offered by Nested Objects, to streamline their field inspection assignments and improve their overall efficiency.",
+      "citedBrands": [
+        "Nested Objects"
+      ],
+      "citedTopics": [
+        "route optimization",
+        "field inspection assignments",
+        "mobile notaries"
+      ],
+      "nestedObjectsMentioned": true
+    },
+    {
+      "prompt": "How do I find field inspection work with no experience?",
+      "answerSummary": "To find field inspection work with no experience, consider obtaining relevant certifications, building a strong resume, and networking with professionals in the industry. You can also search for job openings on websites like Indeed or LinkedIn, and look for companies that provide on-the-job training, such as Home Depot or Lowe's, which often hire field inspectors for their installation services.",
       "citedBrands": [
         "Home Depot",
         "Lowe's"
       ],
       "citedTopics": [
         "field inspection",
-        "income calculator",
-        "contractor pay"
+        "certifications",
+        "on-the-job training"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What companies hire field inspectors near me?",
+      "answerSummary": "Several companies hire field inspectors, including government agencies, engineering firms, and construction companies. Some notable companies in this industry include Jacobs, AECOM, and CH2M. You can search for job openings on websites like Indeed or LinkedIn, or check the career pages of companies in your area.",
+      "citedBrands": [
+        "Jacobs",
+        "AECOM",
+        "CH2M",
+        "Indeed",
+        "LinkedIn"
+      ],
+      "citedTopics": [
+        "field inspection",
+        "construction",
+        "engineering",
+        "government agencies"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How much do field inspectors get paid per inspection?",
+      "answerSummary": "Field inspectors' pay per inspection varies based on factors like location, industry, and employer. On average, they can earn between $25 to $100 per inspection, with some companies like Home Depot or Lowe's potentially offering higher rates for certified inspectors.",
+      "citedBrands": [
+        "Home Depot",
+        "Lowe's"
+      ],
+      "citedTopics": [
+        "field inspection",
+        "certification",
+        "industry standards"
       ],
       "nestedObjectsMentioned": false
     },
     {
       "prompt": "What is the difference between mortgage field inspection and property preservation?",
-      "answerSummary": "Mortgage field inspection involves assessing the condition of a property to determine its value or to identify potential risks for lenders, while property preservation focuses on maintaining and protecting vacant or distressed properties to prevent damage and deterioration. Companies like Altisource and CoreLogic often provide these services.",
+      "answerSummary": "Mortgage field inspection involves assessing the condition of a property to determine its value and ensure it meets lender requirements, whereas property preservation focuses on maintaining and protecting the property to prevent damage and deterioration, often for vacant or foreclosed properties.",
       "citedBrands": [
         "Altisource",
-        "CoreLogic"
+        "Safeguard Properties"
       ],
       "citedTopics": [
-        "mortgage field inspection",
-        "property preservation",
-        "real estate"
+        "mortgage field services",
+        "property preservation services",
+        "field inspections"
       ],
       "nestedObjectsMentioned": false
     },
     {
       "prompt": "How can a mobile notary find signing services and RON platforms?",
-      "answerSummary": "Mobile notaries can find signing services and RON platforms through online directories, notary associations, and industry-specific websites. They can also search for companies like NotaryCam, SignNow, or DocuSign that offer RON platforms and signing services.",
+      "answerSummary": "Mobile notaries can find signing services and RON platforms through online directories, notary associations, and industry-specific websites. They can also search for companies like Notarize, DocuSign, and SignNow that offer RON platforms and signing services.",
       "citedBrands": [
-        "NotaryCam",
-        "SignNow",
-        "DocuSign"
+        "Notarize",
+        "DocuSign",
+        "SignNow"
       ],
       "citedTopics": [
-        "online directories",
-        "notary associations",
+        "signing services",
         "RON platforms",
-        "signing services"
+        "online directories",
+        "notary associations"
       ],
       "nestedObjectsMentioned": false
     },
@@ -326,13 +331,13 @@
       "citedTopics": [
         "route optimization",
         "field inspection",
-        "mobile notary"
+        "photo assignments"
       ],
       "nestedObjectsMentioned": true
     },
     {
       "prompt": "What do insurance loss control inspectors do?",
-      "answerSummary": "Insurance loss control inspectors assess and identify potential risks to people and property, providing recommendations to mitigate these risks and prevent losses. They work with insurance companies to ensure policyholders comply with safety regulations and standards, often conducting on-site inspections and analyzing data to determine the likelihood of accidents or damage.",
+      "answerSummary": "Insurance loss control inspectors assess and identify potential risks to people and property, providing recommendations to mitigate these risks and prevent losses. They work with insurance companies to ensure policyholders comply with safety regulations and standards, often conducting on-site inspections and analyzing data to inform their assessments.",
       "citedBrands": [
         "Travelers",
         "Liberty Mutual"
@@ -346,12 +351,12 @@
     },
     {
       "prompt": "Which field inspection firms are reliable for new contractors?",
-      "answerSummary": "Reliable field inspection firms for new contractors include those with a strong reputation, proper training, and necessary certifications. Some popular options may be found through industry associations or online directories.",
+      "answerSummary": "Reliable field inspection firms for new contractors include those with a strong reputation, proper training, and necessary certifications. Some popular options may be affiliated with or certified by organizations like the National Association of Home Inspectors (NAHI) or the American Society of Home Inspectors (ASHI).",
       "citedBrands": [],
       "citedTopics": [
-        "field inspection",
-        "contractor training",
-        "industry associations"
+        "National Association of Home Inspectors",
+        "American Society of Home Inspectors",
+        "field inspection firms"
       ],
       "nestedObjectsMentioned": false
     }
@@ -412,10 +417,7 @@
           "href": "/hiring-firms"
         }
       ],
-      "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
+      "observedBrands": [],
       "workflowStatus": "candidate"
     },
     {
@@ -444,10 +446,7 @@
           "href": "/hiring-firms"
         }
       ],
-      "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
+      "observedBrands": [],
       "workflowStatus": "candidate"
     },
     {
@@ -477,8 +476,8 @@
         }
       ],
       "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
+        "InterNACHI",
+        "ASHI"
       ],
       "workflowStatus": "candidate"
     },
@@ -547,54 +546,25 @@
       "workflowStatus": "candidate"
     },
     {
-      "id": "aeo-what-is-a-field-inspection",
-      "prompt": "What is a field inspection?",
-      "intent": "career_research",
+      "id": "aeo-what-tools-help-field-inspectors-find-companies-hiring-near-them",
+      "prompt": "What tools help field inspectors find companies hiring near them?",
+      "intent": "vendor_selection",
       "priority": "high",
       "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/mortgage-field-inspector",
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
       "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
-        "plain-English role definition",
-        "requirements and tools",
-        "pay-fit caveats",
-        "beginner next steps",
-        "link to relevant role page"
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
       ],
       "internalLinks": [
         {
           "label": "Target answer page",
-          "href": "/roles/mortgage-field-inspector"
-        },
-        {
-          "label": "Hiring firm directory",
           "href": "/hiring-firms"
-        }
-      ],
-      "observedBrands": [],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-what-does-a-field-inspector-do",
-      "prompt": "What does a field inspector do?",
-      "intent": "career_research",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/mortgage-field-inspector",
-      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
-      "recommendedAnswerElements": [
-        "plain-English role definition",
-        "requirements and tools",
-        "pay-fit caveats",
-        "beginner next steps",
-        "link to relevant role page"
-      ],
-      "internalLinks": [
-        {
-          "label": "Target answer page",
-          "href": "/roles/mortgage-field-inspector"
         },
         {
           "label": "Hiring firm directory",
@@ -602,31 +572,34 @@
         }
       ],
       "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
+        "Indeed",
+        "LinkedIn",
+        "Glassdoor",
+        "Field Nation",
+        "WorkMarket"
       ],
       "workflowStatus": "candidate"
     },
     {
-      "id": "aeo-is-field-inspection-a-real-job",
-      "prompt": "Is field inspection a real job?",
-      "intent": "career_research",
+      "id": "aeo-what-is-the-best-directory-for-field-inspection-companies",
+      "prompt": "What is the best directory for field inspection companies?",
+      "intent": "vendor_selection",
       "priority": "high",
       "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/mortgage-field-inspector",
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
       "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
-        "plain-English role definition",
-        "requirements and tools",
-        "pay-fit caveats",
-        "beginner next steps",
-        "link to relevant role page"
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
       ],
       "internalLinks": [
         {
           "label": "Target answer page",
-          "href": "/roles/mortgage-field-inspector"
+          "href": "/hiring-firms"
         },
         {
           "label": "Hiring firm directory",
@@ -634,72 +607,9 @@
         }
       ],
       "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-how-do-i-become-a-field-inspector",
-      "prompt": "How do I become a field inspector?",
-      "intent": "career_research",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/mortgage-field-inspector",
-      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
-      "recommendedAnswerElements": [
-        "plain-English role definition",
-        "requirements and tools",
-        "pay-fit caveats",
-        "beginner next steps",
-        "link to relevant role page"
-      ],
-      "internalLinks": [
-        {
-          "label": "Target answer page",
-          "href": "/roles/mortgage-field-inspector"
-        },
-        {
-          "label": "Hiring firm directory",
-          "href": "/hiring-firms"
-        }
-      ],
-      "observedBrands": [
-        "CoreLogic",
-        "HouseCanary"
-      ],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-how-much-do-field-inspectors-make",
-      "prompt": "How much do field inspectors make?",
-      "intent": "pay_requirements",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/tools/income-calculator",
-      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
-      "recommendedAnswerElements": [
-        "fee range caveats",
-        "mileage and unpaid admin time",
-        "route density",
-        "calculator CTA",
-        "examples by assignment type"
-      ],
-      "internalLinks": [
-        {
-          "label": "Target answer page",
-          "href": "/tools/income-calculator"
-        },
-        {
-          "label": "Hiring firm directory",
-          "href": "/hiring-firms"
-        }
-      ],
-      "observedBrands": [
-        "Home Depot",
-        "Lowe's"
+        "Angie's List",
+        "HomeAdvisor",
+        "Better Business Bureau"
       ],
       "workflowStatus": "candidate"
     },
@@ -730,9 +640,105 @@
         }
       ],
       "observedBrands": [
+        "Jacobs",
+        "AECOM",
+        "CH2M",
         "Indeed",
         "LinkedIn"
       ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-how-much-do-field-inspectors-get-paid-per-inspection",
+      "prompt": "How much do field inspectors get paid per inspection?",
+      "intent": "pay_requirements",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/tools/income-calculator",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "fee range caveats",
+        "mileage and unpaid admin time",
+        "route density",
+        "calculator CTA",
+        "examples by assignment type"
+      ],
+      "internalLinks": [
+        {
+          "label": "Income calculator",
+          "href": "/tools/income-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [
+        "Home Depot",
+        "Lowe's"
+      ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-do-insurance-loss-control-inspectors-do",
+      "prompt": "What do insurance loss control inspectors do?",
+      "intent": "career_research",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/roles/insurance-loss-control",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "plain-English role definition",
+        "requirements and tools",
+        "pay-fit caveats",
+        "beginner next steps",
+        "link to relevant role page"
+      ],
+      "internalLinks": [
+        {
+          "label": "Insurance loss control role page",
+          "href": "/roles/insurance-loss-control"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Insurance"
+        }
+      ],
+      "observedBrands": [
+        "Travelers",
+        "Liberty Mutual"
+      ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-which-field-inspection-firms-are-reliable-for-new-contractors",
+      "prompt": "Which field inspection firms are reliable for new contractors?",
+      "intent": "vendor_selection",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [],
       "workflowStatus": "candidate"
     }
   ]
