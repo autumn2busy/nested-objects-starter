@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T16:12:13.142Z",
+  "generatedAt": "2026-06-11T16:12:27.635Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -18,8 +18,8 @@
     {
       "name": "PageSpeed Insights",
       "status": "configured",
-      "detail": "Pulled 3 of 6 PageSpeed checks for strategic URLs. 3 timed out or failed.",
-      "count": 3
+      "detail": "Pulled 4 of 6 PageSpeed checks for strategic URLs. 2 timed out or failed.",
+      "count": 4
     },
     {
       "name": "Existing blog registry",
@@ -156,6 +156,27 @@
       "sourceSignals": [
         "role page exists",
         "insurance directory filter exists"
+      ]
+    },
+    {
+      "id": "psi-https-members-nestedobjects-com-tools-notary-route-calculator",
+      "title": "Improve mobile answer experience for /tools/notary-route-calculator",
+      "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
+      "category": "route-operations",
+      "priority": "high",
+      "score": 62,
+      "recommendedSurface": "role_page_refresh",
+      "workflowStatus": "candidate",
+      "targetKeywords": [],
+      "internalLinks": [
+        {
+          "label": "Affected page",
+          "href": "/tools/notary-route-calculator"
+        }
+      ],
+      "rationale": "PageSpeed mobile score is 38. Top opportunities: Legacy JavaScript; Speed Index; Avoid large layout shifts.",
+      "sourceSignals": [
+        "PSI mobile: https://members.nestedobjects.com/tools/notary-route-calculator"
       ]
     }
   ]
