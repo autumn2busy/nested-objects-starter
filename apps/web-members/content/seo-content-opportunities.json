@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T16:12:09.586Z",
+  "generatedAt": "2026-06-11T16:12:13.142Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
@@ -18,8 +18,8 @@
     {
       "name": "PageSpeed Insights",
       "status": "configured",
-      "detail": "Pulled 4 of 6 PageSpeed checks for strategic URLs. 2 timed out or failed.",
-      "count": 4
+      "detail": "Pulled 3 of 6 PageSpeed checks for strategic URLs. 3 timed out or failed.",
+      "count": 3
     },
     {
       "name": "Existing blog registry",
