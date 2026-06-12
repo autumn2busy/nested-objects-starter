@@ -506,9 +506,14 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
 
   // Open Outseta profile modal
   const openOutsetaProfile = () => {
-    if (typeof window !== 'undefined' && (window as any).Outseta?.profile?.open) {
+    if (typeof window === 'undefined') return
+
+    if ((window as any).Outseta?.profile?.open) {
       (window as any).Outseta.profile.open()
+      return
     }
+
+    window.location.href = 'https://nested-objects.outseta.com/profile'
   }
 
   // Computed values
