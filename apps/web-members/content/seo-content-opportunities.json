@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-06-11T16:12:27.635Z",
+  "generatedAt": "2026-06-15T00:23:12.974Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
     {
       "name": "Google Search Console",
       "status": "configured",
-      "detail": "Pulled 14 query/page rows for 2026-05-11 to 2026-06-08 using oauth auth.",
-      "count": 14
+      "detail": "Pulled 20 query/page rows for 2026-05-15 to 2026-06-12 using oauth auth.",
+      "count": 20
     },
     {
       "name": "GA4",
       "status": "configured",
-      "detail": "Pulled 4 page/event rows for 2026-05-11 to 2026-06-08 using oauth auth.",
+      "detail": "Pulled 4 page/event rows for 2026-05-15 to 2026-06-12 using oauth auth.",
       "count": 4
     },
     {
       "name": "PageSpeed Insights",
       "status": "configured",
-      "detail": "Pulled 4 of 6 PageSpeed checks for strategic URLs. 2 timed out or failed.",
-      "count": 4
+      "detail": "Pulled 2 of 6 PageSpeed checks for strategic URLs. 4 timed out or failed.",
+      "count": 2
     },
     {
       "name": "Existing blog registry",
@@ -163,8 +163,8 @@
       "title": "Improve mobile answer experience for /tools/notary-route-calculator",
       "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
       "category": "route-operations",
-      "priority": "high",
-      "score": 62,
+      "priority": "medium",
+      "score": 35,
       "recommendedSurface": "role_page_refresh",
       "workflowStatus": "candidate",
       "targetKeywords": [],
@@ -174,7 +174,7 @@
           "href": "/tools/notary-route-calculator"
         }
       ],
-      "rationale": "PageSpeed mobile score is 38. Top opportunities: Legacy JavaScript; Speed Index; Avoid large layout shifts.",
+      "rationale": "PageSpeed mobile score is 65. Top opportunities: Reduce unused JavaScript; Time to Interactive; Speed Index.",
       "sourceSignals": [
         "PSI mobile: https://members.nestedobjects.com/tools/notary-route-calculator"
       ]
