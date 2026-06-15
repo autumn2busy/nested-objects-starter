@@ -308,12 +308,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Outseta fires 'o-authenticated' when login/signup completes in the widget
     window.addEventListener('o-authenticated', handleOutsetaAuth)
 
-    // Also handle the case where Outseta already has a token on page load
-    // (e.g. returning user with tokenStorage: 'local') but our httpOnly cookie is missing
-    const checkExistingOutsetaToken = async () => {
-      // Wait for Outseta to initialize
-      await new Promise((r) => setTimeout(r, 1500))
-
+    const syncExistingOutsetaToken = async () => {
       if (!isAuthenticated && window.Outseta?.getAccessToken) {
         const existingToken = window.Outseta.getAccessToken()
         if (existingToken) {
@@ -334,13 +329,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // Also handle the case where Outseta already has a token on page load
+    // (e.g. returning user with tokenStorage: 'local') but our httpOnly cookie is missing
+    const checkExistingOutsetaToken = async () => {
+      // Wait briefly for immediate widget routes, then listen for deferred public-page loads.
+      await new Promise((r) => setTimeout(r, 1500))
+      await syncExistingOutsetaToken()
+    }
+
+    const handleOutsetaReady = () => {
+      void syncExistingOutsetaToken()
+    }
+
     checkExistingOutsetaToken()
+    window.addEventListener('outseta-ready', handleOutsetaReady)
 
     return () => {
       window.removeEventListener('o-authenticated', handleOutsetaAuth)
+      window.removeEventListener('outseta-ready', handleOutsetaReady)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadUser])
+  }, [isAuthenticated, loadUser])
 
   const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return

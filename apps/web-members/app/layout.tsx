@@ -8,6 +8,7 @@ import { SiteFooter } from '@/components/SiteFooter'
 import { PromoBanner } from '@/components/PromoBanner'
 import { MobileActionBar } from '@/components/MobileActionBar'
 import { DeferredGoogleTagManager } from '@/components/DeferredGoogleTagManager'
+import { DeferredOutsetaLoader } from '@/components/DeferredOutsetaLoader'
 import { cn } from '@/lib/utils'
 import {
   DEFAULT_OG_IMAGE,
@@ -99,10 +100,6 @@ export default function RootLayout({
   })
   const homeBreadcrumbSchema = getBreadcrumbSchema([{ name: 'Home', url: SITE_URL }])
 
-  const shouldLoadOutseta =
-    process.env.NODE_ENV === 'production' ||
-    process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
-
   const acActId = process.env.NEXT_PUBLIC_AC_ACTID
 
   return (
@@ -128,35 +125,6 @@ export default function RootLayout({
 
         {/* Preconnect to external CDNs */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-        <link rel="preconnect" href="https://cdn.outseta.com" />
-        <link rel="preconnect" href="https://nested-objects.outseta.com" />
-
-        {/* Outseta install snippet. Only load in production or if explicitly enabled */}
-        {shouldLoadOutseta && (
-          <>
-            {/* Configuration must be set before the Outseta script executes */}
-            <Script
-              id="outseta-options"
-              strategy="beforeInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  var o_options = {
-                    domain: 'nested-objects.outseta.com',
-                    load: 'auth',
-                    tokenStorage: 'local'
-                  };
-                `,
-              }}
-            />
-            {/* Keep config early, but load the widget after first paint work. Auth fallbacks handle early clicks. */}
-            <Script
-              id="outseta-loader"
-              src="https://cdn.outseta.com/outseta.min.js"
-              strategy="afterInteractive"
-              data-options="o_options"
-            />
-          </>
-        )}
 
         {/* ActiveCampaign Site Tracking — only load if ACTID is configured */}
         {acActId && (
@@ -193,6 +161,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
+          <DeferredOutsetaLoader />
           <DeferredGoogleTagManager />
           <ActiveCampaignTracker />
           <PromoBanner />
