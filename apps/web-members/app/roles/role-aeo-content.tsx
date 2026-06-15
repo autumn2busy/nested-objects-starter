@@ -18,6 +18,25 @@ type RoleAeoContent = {
   }[]
 }
 
+const comparisonRows = [
+  {
+    label: 'Best for',
+    detail: 'People whose schedule, equipment, and service area already match the assignment type.',
+  },
+  {
+    label: 'Compare against',
+    detail: 'Similar firms, adjacent roles, route distance, revision risk, pay timing, and onboarding friction.',
+  },
+  {
+    label: 'Ask before applying',
+    detail: 'Which counties are active, what proof is required, how payment works, and how revisions are handled.',
+  },
+  {
+    label: 'Avoid when',
+    detail: 'The route is too sparse, requirements are unclear, or the firm asks for sensitive details before explaining the work.',
+  },
+]
+
 export const roleAeoContent = {
   'mortgage-field-inspector': {
     roleName: 'Mortgage field inspector',
@@ -366,7 +385,7 @@ export function RoleAeoJsonLd({ content }: { content: RoleAeoContent }) {
 
 export function RoleAeoSection({ content }: { content: RoleAeoContent }) {
   return (
-    <section className="border-t border-slate-200 bg-white py-10 sm:py-14">
+    <section className="border-t border-slate-200 bg-white py-10 [content-visibility:auto] [contain-intrinsic-size:0_940px] sm:py-14">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
@@ -387,6 +406,28 @@ export function RoleAeoSection({ content }: { content: RoleAeoContent }) {
               <p className="mt-2 text-sm leading-6 text-slate-700">{answer.body}</p>
             </article>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Role comparison
+            </p>
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              How to decide if {content.roleName.toLowerCase()} work is worth pursuing
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              Use this comparison before you apply to firms, upload credentials, or accept assignment terms.
+            </p>
+          </div>
+          <dl className="grid divide-y divide-slate-200 md:grid-cols-2 md:divide-x md:divide-y-0">
+            {comparisonRows.map((row) => (
+              <div key={row.label} className="p-4 sm:p-5">
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{row.label}</dt>
+                <dd className="mt-2 text-sm leading-6 text-slate-700">{row.detail}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">

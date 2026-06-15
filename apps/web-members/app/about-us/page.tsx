@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { TESTIMONIALS } from '@/lib/testimonials'
 
 const serviceHighlights = [
   {
@@ -56,6 +57,33 @@ const teamHighlights = [
   },
 ]
 
+const trustStandards = [
+  {
+    title: 'Firm intel review',
+    copy: 'Profiles combine public firm details, service-area clues, contractor feedback, and update logs so members can compare options before submitting personal information.',
+  },
+  {
+    title: 'Human support path',
+    copy: 'Members can reach support at support@nestedobjects.com for billing, access, account, privacy, and firm-data questions. Complex issues are routed for manual review.',
+  },
+  {
+    title: 'Security and privacy baseline',
+    copy: 'Authentication, billing, and member data are handled through dedicated vendors with role-based access, encrypted transport, and documented privacy terms.',
+  },
+  {
+    title: 'Payment clarity',
+    copy: 'Pricing pages explain trial timing, cancellation, and digital-access refund rules before checkout so members understand the commitment.',
+  },
+]
+
+const supportExpectations = [
+  'Account, billing, and access questions are the first priority.',
+  'Firm-data corrections are reviewed against source material before publication.',
+  'Privacy and deletion requests are routed through support@nestedobjects.com.',
+  'Product feedback is tracked against roadmap, conversion, and member-safety impact.',
+]
+
+const aboutTestimonials = TESTIMONIALS.slice(0, 3)
 
 const faqItems = [
   {
@@ -114,6 +142,27 @@ export default function AboutPage() {
     logo: 'https://members.nestedobjects.com/logo-light.svg',
     description:
       'AI-powered member hub for home inspectors, notaries, realtors, and coordinators seeking verified intel and modern workflows.',
+    founder: {
+      '@type': 'Person',
+      name: 'Autumn Williams',
+    },
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        email: 'support@nestedobjects.com',
+        areaServed: 'US',
+        availableLanguage: 'English',
+      },
+    ],
+    knowsAbout: [
+      'Mortgage field inspection',
+      'Property preservation',
+      'Mobile notary work',
+      'Insurance loss control',
+      'Independent contractor routing',
+      'Vendor onboarding',
+    ],
     sameAs: ['https://members.nestedobjects.com/about-us', 'https://members.nestedobjects.com/contact-us'],
   }
 
@@ -314,6 +363,74 @@ export default function AboutPage() {
                   <p className="mt-2 text-sm text-brand-slate">{member.focus}</p>
                 </article>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-brand-mist bg-brand-sand">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-copper">Trust and support</p>
+              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Built for careful decisions before contractors apply.</h2>
+              <p className="mt-3 text-base text-brand-slate">
+                Nested Objects does not replace direct firm verification. It gives members a cleaner starting point: transparent
+                profile notes, support access, privacy guidance, and clear billing expectations before they make a vendor decision.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {trustStandards.map((item) => (
+                <article key={item.title} className="border border-brand-mist bg-white px-4 py-5 shadow-sm sm:px-5">
+                  <h3 className="text-base font-semibold text-brand-dark">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-brand-slate">{item.copy}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div className="border border-brand-mist bg-white p-5 shadow-sm sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-steel">Support expectations</p>
+                <h3 className="mt-2 text-lg font-bold text-brand-dark">What members can ask for</h3>
+                <ul className="mt-4 space-y-3">
+                  {supportExpectations.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm leading-6 text-brand-slate">
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" aria-hidden="true" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <Link
+                    href="/contact-us"
+                    className="inline-flex w-full items-center justify-center border border-brand-dark bg-brand-dark px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-slate sm:w-auto"
+                  >
+                    Contact support
+                  </Link>
+                  <Link
+                    href="/privacy"
+                    className="inline-flex w-full items-center justify-center border border-brand-mist bg-white px-4 py-3 text-sm font-semibold text-brand-dark transition hover:bg-brand-sand sm:w-auto"
+                  >
+                    Privacy details
+                  </Link>
+                  <Link
+                    href="/refund-policy"
+                    className="inline-flex w-full items-center justify-center border border-brand-mist bg-white px-4 py-3 text-sm font-semibold text-brand-dark transition hover:bg-brand-sand sm:w-auto"
+                  >
+                    Billing policy
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1">
+                {aboutTestimonials.map((testimonial) => (
+                  <figure key={`${testimonial.name}-${testimonial.date}`} className="border border-brand-mist bg-white p-5 shadow-sm">
+                    <blockquote className="text-sm leading-6 text-brand-slate">&quot;{testimonial.quote}&quot;</blockquote>
+                    <figcaption className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-steel">
+                      {testimonial.name} - {testimonial.role}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
             </div>
           </div>
         </section>
