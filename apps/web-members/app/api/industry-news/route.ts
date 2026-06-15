@@ -11,6 +11,7 @@ type FeedSource = {
     url: string
     name: string
     categories: string[]
+    fallbackImage: string
 }
 
 const RSS_FEEDS: FeedSource[] = [
@@ -19,38 +20,41 @@ const RSS_FEEDS: FeedSource[] = [
         url: 'https://www.housingwire.com/feed/',
         name: 'HousingWire',
         categories: ['mortgage', 'real-estate'],
+        fallbackImage: '/mortgage-field-inspector.webp',
     },
     {
         url: 'https://www.inman.com/feed/',
         name: 'Inman',
         categories: ['real-estate'],
+        fallbackImage: '/hiring-firms-map.jpg',
     },
     {
         url: 'https://www.mpamag.com/us/rss',
         name: 'Mortgage Professional America',
         categories: ['mortgage'],
+        fallbackImage: '/mortgage-field-inspector.webp',
     },
     {
         url: 'https://themortgagereports.com/feed',
         name: 'The Mortgage Reports',
         categories: ['mortgage'],
+        fallbackImage: '/mortgage-field-inspector.webp',
     },
     {
         url: 'https://www.scotsmanguide.com/feed/',
         name: 'Scotsman Guide',
         categories: ['mortgage', 'real-estate'],
+        fallbackImage: '/mortgage-field-inspector.webp',
     },
 
     // ── Notary / Signing Agent ─────────────────────────────────────
-    {
-        url: 'https://www.notarystars.com/rss',
-        name: 'Notary Stars',
-        categories: ['notary'],
-    },
+    // Notary Stars removed from the main feed because it frequently publishes
+    // notary spotlights/testimonials instead of inspection-adjacent industry news.
     {
         url: 'https://loansigningsystem.com/blog/feed/',
         name: 'Loan Signing System',
         categories: ['notary', 'mortgage'],
+        fallbackImage: '/mobile-notary.webp',
     },
     // notary2pro.com — removed: returns malformed XML that breaks parser
 
@@ -59,11 +63,13 @@ const RSS_FEEDS: FeedSource[] = [
         url: 'https://dronelife.com/feed/',
         name: 'DroneLife',
         categories: ['drone'],
+        fallbackImage: '/gig-pro-inspector.webp',
     },
     {
         url: 'https://suasnews.com/feed/',
         name: 'sUAS News',
         categories: ['drone'],
+        fallbackImage: '/gig-pro-inspector.webp',
     },
 
     // ── HUD / Government Housing ───────────────────────────────────
@@ -72,6 +78,7 @@ const RSS_FEEDS: FeedSource[] = [
         url: 'https://www.huduser.gov/rss/pub.xml',
         name: 'HUD Research',
         categories: ['hud', 'government'],
+        fallbackImage: '/asset-preservation.webp',
     },
 
     // ── FEMA / Disaster & Field Response ───────────────────────────
@@ -79,6 +86,7 @@ const RSS_FEEDS: FeedSource[] = [
         url: 'https://www.fema.gov/news/disasters_rss.fema',
         name: 'FEMA Disasters',
         categories: ['fema', 'government'],
+        fallbackImage: '/asset-preservation.webp',
     },
 
     // ── Gig Economy / Field Services ───────────────────────────────
@@ -88,11 +96,13 @@ const RSS_FEEDS: FeedSource[] = [
         url: 'https://www.sidehustlenation.com/feed/',
         name: 'Side Hustle Nation',
         categories: ['gig-economy'],
+        fallbackImage: '/gig-pro-inspector.webp',
     },
     {
         url: 'https://www.propertywire.com/feed/',
         name: 'PropertyWire',
         categories: ['real-estate', 'inspections'],
+        fallbackImage: '/insurance-loss-control.webp',
     },
 ]
 
@@ -103,8 +113,10 @@ interface FeedItem {
     content?: string
     pubDate?: string
     isoDate?: string
-    enclosure?: { url?: string }
+    enclosure?: { url?: string; type?: string }
     'media:content'?: { $?: { url?: string } }
+    'media:thumbnail'?: { $?: { url?: string } }
+    'content:encoded'?: string
 }
 
 interface ParsedArticle {
@@ -115,6 +127,31 @@ interface ParsedArticle {
     image: string | null
     publishedAt: string
     categories: string[]
+}
+
+function isLikelyImageUrl(value?: string | null) {
+    if (!value) return false
+    return /\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i.test(value) || value.includes('images')
+}
+
+function extractImageFromHtml(value?: string) {
+    if (!value) return null
+
+    const match = value.match(/<img[^>]+src=["']([^"']+)["']/i)
+    return match?.[1] || null
+}
+
+function extractFeedImage(item: FeedItem, fallbackImage: string) {
+    const enclosureUrl = item.enclosure?.type?.startsWith('image/') ? item.enclosure.url : null
+    const candidates = [
+        enclosureUrl,
+        item['media:content']?.$?.url,
+        item['media:thumbnail']?.$?.url,
+        extractImageFromHtml(item['content:encoded']),
+        extractImageFromHtml(item.content),
+    ]
+
+    return candidates.find(isLikelyImageUrl) || fallbackImage
 }
 
 export async function GET(request: Request) {
@@ -132,7 +169,9 @@ export async function GET(request: Request) {
         customFields: {
             item: [
                 ['media:content', 'media:content'],
+                ['media:thumbnail', 'media:thumbnail'],
                 ['enclosure', 'enclosure'],
+                ['content:encoded', 'content:encoded'],
             ],
         },
         timeout: 12000, // 12 seconds for slow gov feeds
@@ -154,10 +193,7 @@ export async function GET(request: Request) {
                         item.content?.replace(/<[^>]+>/g, '').slice(0, 200) ||
                         null,
                     url: item.link || '',
-                    image:
-                        item.enclosure?.url ||
-                        item['media:content']?.$?.url ||
-                        null,
+                    image: extractFeedImage(item, feed.fallbackImage),
                     publishedAt:
                         item.isoDate || item.pubDate || new Date().toISOString(),
                     categories: feed.categories,
