@@ -233,6 +233,32 @@ function getFirmVerificationItems(firm: FirmRow) {
   ]
 }
 
+function getFirmComparisonRows(firm: FirmRow, categories: string[], pay: string | null) {
+  const categoryText = categories.length > 0 ? categories.slice(0, 2).join(', ') : firm.industry_focus || 'field-service'
+  const coverage = firm.geographic_coverage || 'your target market'
+
+  return [
+    {
+      label: 'Best for',
+      value: `${categoryText} contractors who can serve ${coverage} and want a firm profile to compare before applying.`,
+    },
+    {
+      label: 'Compare against',
+      value: 'At least three similar firms by service area, pay model, assignment type, onboarding speed, and revision policy.',
+    },
+    {
+      label: 'Pay question',
+      value: pay
+        ? `Confirm whether ${pay} reflects your exact order type, distance, route density, and contractor status.`
+        : 'Ask for current pay, trip-fee, rush-fee, and payment-frequency details before accepting assignments.',
+    },
+    {
+      label: 'Trust question',
+      value: 'Verify active coverage, required credentials, portal access, support response, and whether contractor feedback matches the published terms.',
+    },
+  ]
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const firm = await getFirmBySlugCached(slug)
@@ -268,6 +294,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const firmFaqs = getFirmProfileFaqs(firm, categories, pay)
   const firmFitSummary = getFirmFitSummary(firm, categories)
   const verificationItems = getFirmVerificationItems(firm)
+  const firmComparisonRows = getFirmComparisonRows(firm, categories, pay)
 
   const contactHref =
     vendorPageHref ||
@@ -521,6 +548,29 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             Nested Objects profiles are starting points for comparison. Contractors should confirm final terms directly with each firm before accepting assignments.
           </p>
         </div>
+      </section>
+
+      <section
+        className="mb-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '520px' }}
+      >
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Firm comparison</p>
+          <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
+            How to compare {firm.name} against similar firms
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Use this profile as a starting point, then confirm current terms directly with the firm before sharing sensitive details or accepting work.
+          </p>
+        </div>
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+          {firmComparisonRows.map((row) => (
+            <div key={row.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{row.label}</dt>
+              <dd className="mt-2 text-sm leading-6 text-slate-700">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* Content grid - gated for non-members */}

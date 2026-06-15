@@ -207,6 +207,35 @@ function getComparisonChecks(stateLabel: string) {
     ]
 }
 
+function getStateOpportunityMatrix(stateLabel: string) {
+    return [
+        {
+            role: 'Mortgage field inspector',
+            href: '/roles/mortgage-field-inspector',
+            bestFor: `Route-based occupancy checks, exterior photos, and lender status work in ${stateLabel}.`,
+            verify: 'County coverage, order volume, trip fees, revision rules, and photo standards.',
+        },
+        {
+            role: 'Insurance loss control inspector',
+            href: '/roles/insurance-loss-control',
+            bestFor: 'Inspectors comfortable with appointments, measurements, hazard notes, and underwriting reports.',
+            verify: 'Residential versus commercial mix, report length, appointment expectations, and pay per survey.',
+        },
+        {
+            role: 'Mobile notary',
+            href: '/roles/mobile-notary',
+            bestFor: 'Commissioned notaries comparing signing services, RON platforms, and route-compatible add-ons.',
+            verify: 'State notary rules, credential requirements, scan-backs, cancellation policy, and net travel pay.',
+        },
+        {
+            role: 'Property preservation vendor',
+            href: '/roles/asset-preservation',
+            bestFor: 'Vendors who can document condition, access, debris, securing, winterization, or REO support.',
+            verify: 'Materials reimbursement, safety expectations, before/after photo proof, and payment timing.',
+        },
+    ]
+}
+
 function getStateCollectionSchema({
     stateLabel,
     stateSlug,
@@ -258,6 +287,7 @@ export default async function StateLandingPage({
     const applicationSteps = getStateApplicationSteps(stateInfo.label)
     const shortlistSignals = getStateShortlistSignals(stateInfo.label)
     const comparisonChecks = getComparisonChecks(stateInfo.label)
+    const opportunityMatrix = getStateOpportunityMatrix(stateInfo.label)
     const faqSchema = getFAQPageSchema(faqs)
     const collectionSchema = getStateCollectionSchema({
         stateLabel: stateInfo.label,
@@ -350,6 +380,48 @@ export default async function StateLandingPage({
                                         <h3 className="text-sm font-semibold text-slate-900">{answer.title}</h3>
                                         <p className="mt-2 text-sm leading-6 text-slate-600">{answer.body}</p>
                                     </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* State opportunity matrix */}
+            <section className="border-b border-slate-200 bg-slate-50 py-10 [content-visibility:auto] [contain-intrinsic-size:0_760px] sm:py-12">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Best-fit paths
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            Which field-service path fits {stateInfo.label} contractors?
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                            Use this comparison to decide which role pages and firm profiles to review before you apply.
+                            The right path depends on your credentials, route density, equipment, and tolerance for appointments.
+                        </p>
+                    </div>
+                    <div className="mt-7 grid gap-4 md:grid-cols-2">
+                        {opportunityMatrix.map((item) => (
+                            <article key={item.role} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-base font-semibold text-slate-900">{item.role}</h3>
+                                        <p className="mt-2 text-sm leading-6 text-slate-600">{item.bestFor}</p>
+                                    </div>
+                                    <Link
+                                        href={item.href}
+                                        className="shrink-0 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+                                    >
+                                        Guide
+                                    </Link>
+                                </div>
+                                <div className="mt-4 rounded-md bg-slate-50 p-3">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                        Verify first
+                                    </p>
+                                    <p className="mt-1 text-sm leading-6 text-slate-700">{item.verify}</p>
                                 </div>
                             </article>
                         ))}
