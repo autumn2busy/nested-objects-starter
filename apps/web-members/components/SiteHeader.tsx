@@ -26,6 +26,8 @@ const navLinks = [
   { href: '/profile', label: 'Profile' },
 ]
 
+const authSlotClass = 'flex h-12 w-[9.75rem] shrink-0 items-center justify-end gap-2 text-sm font-semibold sm:w-[20rem] sm:gap-3'
+
 export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const pathname = usePathname()
   const {
@@ -161,8 +163,8 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 overflow-x-clip border-b border-border-subtle bg-white/85 text-text-primary shadow-sm backdrop-blur-md">
-      <div className={containerClass + ' flex min-w-0 items-center justify-between gap-2 py-3'}>
+    <header className="sticky top-0 z-30 min-h-[4.5rem] overflow-x-clip border-b border-border-subtle bg-white/85 text-text-primary shadow-sm backdrop-blur-md">
+      <div className={containerClass + ' flex min-h-[4.5rem] min-w-0 items-center justify-between gap-2 py-3'}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-6">
           <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label="Nested Objects home">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-strong/70 bg-brand-sand shadow-brand-soft sm:h-11 sm:w-11">
@@ -227,11 +229,14 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 text-sm font-semibold sm:gap-3">
+        <div className={authSlotClass}>
           {isLoading ? (
-            <span className="hidden text-xs text-text-secondary sm:inline">Checking your hub...</span>
+            <div className="flex w-full items-center justify-end gap-2" aria-hidden="true">
+              <span className="h-9 w-14 rounded-lg border border-border-strong bg-surface-muted sm:w-20" />
+              <span className="h-9 w-20 rounded-lg bg-brand-copper/90 sm:w-24" />
+            </div>
           ) : isAuthenticated && user ? (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex w-full items-center justify-end gap-2 sm:gap-3">
               {/* Hidden file input for avatar upload */}
               <input
                 type="file"
@@ -241,7 +246,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 className="hidden"
               />
 
-              <div className="flex items-center gap-2 rounded-xl border border-border-subtle bg-white/90 p-2 shadow-brand-card sm:gap-3 sm:px-3">
+              <div className="flex h-12 items-center gap-2 rounded-xl border border-border-subtle bg-white/90 p-2 shadow-brand-card sm:gap-3 sm:px-3">
                 {/* Clickable Avatar */}
                 <button
                   type="button"
@@ -260,7 +265,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                       <img
                         src={avatarUrl}
                         alt={displayName}
-                        className="h-9 w-9 rounded-full object-cover shadow-sm sm:h-10 sm:w-10"
+                        className="h-10 w-10 rounded-full object-cover shadow-sm"
                       />
                       {/* Hover overlay */}
                       <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -268,7 +273,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark sm:h-10 sm:w-10">
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand-copper/15 text-sm font-semibold text-brand-copperDark">
                       {initials}
                       {/* Hover overlay */}
                       <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -294,13 +299,13 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-end gap-2">
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
                 className={buttonVariants({
                   variant: 'secondary',
                   size: 'sm',
-                  className: 'bg-white/80 backdrop-blur',
+                  className: 'w-14 bg-white/80 backdrop-blur sm:w-auto',
                 })}
               >
                 Login
@@ -310,6 +315,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
                 className={buttonVariants({
                   variant: 'primary',
                   size: 'sm',
+                  className: 'w-20 sm:w-auto',
                 })}
               >
                 Join free
