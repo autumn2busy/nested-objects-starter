@@ -10,6 +10,7 @@ import { trackOutsetaModalOpen, trackStartTrial, trackUpgradeStarted } from '@/l
 // The banner auto-hides after this date — no code change needed.
 const PROMO_END = new Date('2026-06-19T23:59:59-05:00') // June 19, 2026
 const PROMO_CODE = 'SUMMER2026'
+const bannerShellClass = 'relative isolate min-h-[9.75rem] overflow-x-clip bg-slate-950 text-white sm:min-h-[5.5rem]'
 // ────────────────────────────────────────────────────────────────────
 
 const registrationDefaults = {
@@ -54,8 +55,12 @@ export function PromoBanner() {
         return () => clearInterval(interval)
     }, [])
 
-    // Don't render if auth is loading, promo expired, user dismissed, or if authenticated paid user
-    if (isLoading) return null
+    // Reserve first-load space while auth resolves so public pages do not shift after hydration.
+    if (isLoading) {
+        return <div className={bannerShellClass} aria-hidden="true" />
+    }
+
+    // Don't render if promo expired, user dismissed, or if authenticated paid user
     if (isAuthenticated && planUid && planUid !== PLAN_UIDS.FREE) return null
     if (!timeLeft || dismissed) return null
 
@@ -165,7 +170,7 @@ export function PromoBanner() {
     }
 
     return (
-        <div className="relative isolate overflow-x-clip bg-slate-900 text-white">
+        <div className={bannerShellClass}>
             {/* Dismiss button */}
             <button
                 onClick={() => setDismissed(true)}
@@ -182,12 +187,12 @@ export function PromoBanner() {
                 <div className="grid w-full items-center gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_10.5rem] sm:gap-4">
                     {/* Left: Message */}
                     <div className="min-w-0 text-center sm:text-left">
-                        <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-amber-400 sm:text-sm">
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-amber-300 sm:text-sm">
                             Summer Ramp Special
                         </p>
                         <p className="mt-0.5 text-xs font-bold leading-snug text-white sm:mt-1 sm:truncate sm:text-base">
-                            First month of Pro for <span className="text-amber-400">$29</span> with code{' '}
-                            <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-amber-300">{PROMO_CODE}</span>
+                            First month of Pro for <span className="text-amber-300">$29</span> with code{' '}
+                            <span className="rounded bg-amber-200 px-1.5 py-0.5 font-mono text-slate-950">{PROMO_CODE}</span>
                             <span className="hidden text-slate-100 lg:inline">. Full directory + AI tools.</span>
                         </p>
                         <p className="mt-0.5 text-[0.68rem] text-slate-400 sm:hidden">
@@ -199,24 +204,24 @@ export function PromoBanner() {
                     <div className="mx-auto grid w-36 grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center sm:w-full" aria-label="Time remaining">
                         <div className="flex w-10 flex-col justify-self-center">
                             <span className="text-lg font-bold tabular-nums text-white sm:text-xl">{timeLeft.days}</span>
-                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">days</span>
+                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-300">days</span>
                         </div>
-                        <span className="text-lg font-light text-slate-500">:</span>
+                        <span className="text-lg font-light text-slate-300">:</span>
                         <div className="flex w-10 flex-col justify-self-center">
                             <span className="text-lg font-bold tabular-nums text-white sm:text-xl">{String(timeLeft.hours).padStart(2, '0')}</span>
-                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">hrs</span>
+                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-300">hrs</span>
                         </div>
-                        <span className="text-lg font-light text-slate-500">:</span>
+                        <span className="text-lg font-light text-slate-300">:</span>
                         <div className="flex w-10 flex-col justify-self-center">
                             <span className="text-lg font-bold tabular-nums text-white sm:text-xl">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-400">min</span>
+                            <span className="text-[0.6rem] uppercase tracking-wide text-slate-300">min</span>
                         </div>
                     </div>
 
                     {/* Right: CTA */}
                     <button
                         onClick={handlePromoClick}
-                        className="inline-flex min-h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:min-h-11 sm:min-w-[10.5rem] sm:py-2.5"
+                        className="inline-flex min-h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:min-h-11 sm:min-w-[10.5rem] sm:py-2.5"
                     >
                         Claim Summer Rate
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
