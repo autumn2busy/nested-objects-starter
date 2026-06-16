@@ -5,7 +5,6 @@ import { AuthProvider } from '@/components/auth-provider'
 import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
-import { PromoBanner } from '@/components/PromoBanner'
 import { MobileActionBar } from '@/components/MobileActionBar'
 import { DeferredGoogleTagManager } from '@/components/DeferredGoogleTagManager'
 import { DeferredOutsetaLoader } from '@/components/DeferredOutsetaLoader'
@@ -164,7 +163,6 @@ export default function RootLayout({
           <DeferredOutsetaLoader />
           <DeferredGoogleTagManager />
           <ActiveCampaignTracker />
-          <PromoBanner />
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>
