@@ -10,7 +10,7 @@ Log in to your Outseta dashboard (`Billing > Plans`) and create/update the follo
 *   **Name**: Free
 *   **Price**: $0
 *   **Billing Term**: One-time / Forever
-*   **Description**: "Directory preview (max 5 listings). Access to selected resources."
+*   **Description**: "Directory preview (max 3 firms). Access to selected resources."
 
 ### **Plan 2: Starter** (formerly Directory)
 *   **Name**: Starter
