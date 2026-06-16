@@ -63,7 +63,7 @@ const trustAssuranceItems = [
     },
     {
         title: 'Refund expectations',
-        body: 'Standard Pro trials bill after day 7. Promo checkouts charge the discounted first month today. Paid digital access is non-refundable.',
+        body: 'Pro trials bill after day 7 unless canceled. Paid digital access is non-refundable once membership access begins.',
         href: '/refund-policy',
         label: 'Refund policy',
     },
@@ -77,10 +77,6 @@ export const pricingFaqs = [
     {
         question: 'What happens after the 7-day Pro trial?',
         answer: 'Pro starts with $0 due today. If you do not cancel before the trial ends, the membership renews as paid digital access using the billing terms shown during checkout.',
-    },
-    {
-        question: 'Can I use a Summer promo with the 7-day trial?',
-        answer: 'No. The Summer promo replaces the 7-day trial. The promo checkout charges the discounted first month today, then renews at the regular monthly Pro rate unless you cancel.',
     },
     {
         question: 'Do you offer refunds?',
@@ -191,7 +187,7 @@ function MembershipContent() {
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
                         <p className="mt-3 text-xs leading-5 text-slate-300">
-                            Promo codes are separate offers. A first-month discount replaces the trial checkout.
+                            Use the trial window to inspect firm profiles, tools, and route-fit resources before billing starts.
                         </p>
                     </div>
                 </div>
@@ -235,7 +231,7 @@ function MembershipContent() {
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
                             The membership is designed to be easy to test and easy to cancel. Review the
-                            support and policy links before paid access starts or before using a promo.
+                            support and policy links before paid access starts.
                         </p>
                     </div>
 
@@ -369,9 +365,8 @@ function MembershipContent() {
                                 Billing clarity
                             </h2>
                             <p className="mt-3">
-                                Standard Pro starts with $0 due today for the 7-day trial. Summer promo
-                                checkouts replace the trial with a discounted first month due today. After
-                                billing starts, paid digital memberships, firm intel, templates, and AI tools
+                                Pro starts with $0 due today for the 7-day trial. After billing starts,
+                                paid digital memberships, firm intel, templates, and AI tools
                                 are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">
