@@ -1,6 +1,7 @@
 import { membershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { TestimonialStrip } from '@/components/TestimonialsSection'
+import Link from 'next/link'
 import { Ban, CheckCircle2, Clock, ShieldCheck, Star } from 'lucide-react'
 import {
     CurrentPlanBadge,
@@ -44,6 +45,27 @@ const decisionConfidenceItems = [
     {
         title: 'Paid access is instant',
         body: 'After the trial, digital access continues automatically unless you cancel before billing. Paid memberships are non-refundable.',
+    },
+]
+
+const trustAssuranceItems = [
+    {
+        title: 'Secure checkout',
+        body: 'Payments are handled through Outseta and Stripe. Card details are processed by the billing provider, not stored by Nested Objects.',
+        href: '/privacy',
+        label: 'Privacy terms',
+    },
+    {
+        title: 'Clear support path',
+        body: 'Billing, account, and plan questions can go through support@nestedobjects.com or the contact page before you upgrade.',
+        href: '/contact-us',
+        label: 'Contact support',
+    },
+    {
+        title: 'Refund expectations',
+        body: 'Standard Pro trials bill after day 7. Promo checkouts charge the discounted first month today. Paid digital access is non-refundable.',
+        href: '/refund-policy',
+        label: 'Refund policy',
     },
 ]
 
@@ -196,6 +218,39 @@ function MembershipContent() {
                                 <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden />
                                 <h3 className="mt-3 text-sm font-semibold text-slate-950">{item.title}</h3>
                                 <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="mx-auto mt-8 max-w-5xl rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Trust and billing
+                        </p>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">
+                            Know how checkout, support, and access work before you choose.
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            The membership is designed to be easy to test and easy to cancel. Review the
+                            support and policy links before paid access starts or before using a promo.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        {trustAssuranceItems.map((item) => (
+                            <article key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <ShieldCheck className="h-5 w-5 text-emerald-600" aria-hidden />
+                                <h3 className="mt-3 text-sm font-semibold text-slate-950">{item.title}</h3>
+                                <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                                <Link
+                                    href={item.href}
+                                    className="mt-3 inline-flex text-xs font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+                                >
+                                    {item.label}
+                                </Link>
                             </article>
                         ))}
                     </div>
