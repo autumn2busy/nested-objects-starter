@@ -27,7 +27,7 @@ const processSteps = [
   {
     label: 'Cancellation timing',
     description:
-      'Cancel before your renewal date to avoid the next charge. Your access continues through the end of the paid term with no prorated refunds.',
+      'Cancel before your renewal date to avoid the next charge. Standard Pro trials should be canceled before day 7. Promo checkouts are paid today at the discounted first-month rate.',
   },
   {
     label: 'Chargebacks',
@@ -136,10 +136,10 @@ export default function RefundPolicyPage() {
           <h2 className="text-2xl font-semibold text-brand-dark">Key reminders</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-brand-copper/20 bg-white p-4 shadow-sm">
-              <p className="text-sm font-semibold text-brand-dark">No trial reversals</p>
+              <p className="text-sm font-semibold text-brand-dark">Trial and promo billing</p>
               <p className="mt-2 text-sm text-brand-slate">
-                If a trial converts to paid, the charge is non-refundable. Disable auto-renew before the trial ends to avoid
-                billing.
+                If a standard trial converts to paid, the charge is non-refundable. If you use a first-month promo, the
+                discounted month is charged at checkout and replaces the 7-day trial.
               </p>
             </div>
             <div className="rounded-2xl border border-brand-copper/20 bg-white p-4 shadow-sm">
