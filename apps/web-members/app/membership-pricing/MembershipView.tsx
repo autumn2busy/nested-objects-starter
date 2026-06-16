@@ -27,7 +27,7 @@ const proBenefitHighlights = [
 ]
 
 const planDecisionPrompts = [
-    'Start Free if you only need a low-pressure directory preview.',
+    'Start Free if you only need a 3-firm directory preview.',
     'Start Pro if you are ready to compare firms seriously this week.',
     'Upgrade later if you need Elite or Agency-level strategy support.',
 ]
@@ -35,7 +35,7 @@ const planDecisionPrompts = [
 const decisionConfidenceItems = [
     {
         title: 'Free is for browsing',
-        body: 'Use Free when you want to explore the hub, preview directory structure, and decide whether field work belongs in your plans.',
+        body: 'Use Free when you want to explore the hub, preview 3 firms, and decide whether field work belongs in your plans.',
     },
     {
         title: 'Pro is for deciding',
@@ -57,6 +57,10 @@ export const pricingFaqs = [
         answer: 'Pro starts with $0 due today. If you do not cancel before the trial ends, the membership renews as paid digital access using the billing terms shown during checkout.',
     },
     {
+        question: 'Can I use a Summer promo with the 7-day trial?',
+        answer: 'No. The Summer promo replaces the 7-day trial. The promo checkout charges the discounted first month today, then renews at the regular monthly Pro rate unless you cancel.',
+    },
+    {
         question: 'Do you offer refunds?',
         answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, templates, and AI tools is non-refundable. Use the 7-day Pro trial to make sure the hub fits before billing starts.',
     },
@@ -70,7 +74,7 @@ export const pricingFaqs = [
     },
     {
         question: 'Is there a free option while I am getting started?',
-        answer: 'Yes. The Free plan gives you ongoing access to the directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
+        answer: 'Yes. The Free plan gives you ongoing access to a 3-firm directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
     },
 ]
 
@@ -164,6 +168,9 @@ function MembershipContent() {
                         <p className="mt-4 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-white ring-1 ring-white/10">
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
+                        <p className="mt-3 text-xs leading-5 text-slate-300">
+                            Promo codes are separate offers. A first-month discount replaces the trial checkout.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -178,7 +185,7 @@ function MembershipContent() {
                             Pick the plan by what you need to decide this week.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            Browse for free, test Pro for seven days, or stay paid only when the firm intel
+                            Preview 3 firms for free, test Pro for seven days, or stay paid only when the firm intel
                             and tools are worth it for your route.
                         </p>
                     </div>
@@ -307,9 +314,10 @@ function MembershipContent() {
                                 Billing clarity
                             </h2>
                             <p className="mt-3">
-                                Pro starts with $0 due today for the 7-day trial. After the trial, paid digital
-                                memberships, firm intel, templates, and AI tools are non-refundable because
-                                access is delivered instantly.
+                                Standard Pro starts with $0 due today for the 7-day trial. Summer promo
+                                checkouts replace the trial with a discounted first month due today. After
+                                billing starts, paid digital memberships, firm intel, templates, and AI tools
+                                are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">
                                 You can cancel anytime before renewal from your billing settings.

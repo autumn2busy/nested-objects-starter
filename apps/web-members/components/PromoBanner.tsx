@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { useAuth } from '@/components/auth-provider'
-import { trackOutsetaModalOpen, trackStartTrial, trackUpgradeStarted } from '@/lib/ac-events'
+import { trackOutsetaModalOpen, trackUpgradeStarted } from '@/lib/ac-events'
 
 // ─── SET YOUR PROMO END DATE HERE ───────────────────────────────────
 // Change this to whatever date you want the promo to expire.
 // The banner auto-hides after this date — no code change needed.
 const PROMO_END = new Date('2026-06-19T23:59:59-05:00') // June 19, 2026
 const PROMO_CODE = 'SUMMER2026'
-const bannerShellClass = 'relative isolate min-h-[9.75rem] overflow-x-clip bg-slate-950 text-white sm:min-h-[5.5rem]'
+const bannerShellClass = 'relative isolate min-h-[10.75rem] overflow-x-clip bg-slate-950 text-white sm:min-h-[6.25rem]'
 // ────────────────────────────────────────────────────────────────────
 
 const registrationDefaults = {
@@ -114,12 +114,13 @@ export function PromoBanner() {
                 return
             }
 
-            trackStartTrial({
+            trackUpgradeStarted({
                 sourcePage: 'promo_banner',
+                fromPlan: 'anonymous',
                 targetPlan: 'Pro',
                 targetPlanUid: PLAN_UIDS.PRO,
                 promoCode: PROMO_CODE,
-                value: 0,
+                value: 29,
                 currency: 'USD',
             })
 
@@ -141,12 +142,13 @@ export function PromoBanner() {
         } else if (isAuthenticated) {
             redirectToPlanChange()
         } else {
-            trackStartTrial({
+            trackUpgradeStarted({
                 sourcePage: 'promo_banner',
+                fromPlan: 'anonymous',
                 targetPlan: 'Pro',
                 targetPlanUid: PLAN_UIDS.PRO,
                 promoCode: PROMO_CODE,
-                value: 0,
+                value: 29,
                 currency: 'USD',
             })
 
@@ -191,12 +193,12 @@ export function PromoBanner() {
                             Summer Ramp Special
                         </p>
                         <p className="mt-0.5 text-xs font-bold leading-snug text-white sm:mt-1 sm:truncate sm:text-base">
-                            First month of Pro for <span className="text-amber-300">$29</span> with code{' '}
+                            First month of Pro for <span className="text-amber-300">$29 today</span> with code{' '}
                             <span className="rounded bg-amber-200 px-1.5 py-0.5 font-mono text-slate-950">{PROMO_CODE}</span>
                             <span className="hidden text-slate-100 lg:inline">. Full directory + AI tools.</span>
                         </p>
-                        <p className="mt-0.5 text-[0.68rem] text-slate-400 sm:hidden">
-                            Full directory + AI tools.
+                        <p className="mt-0.5 text-[0.68rem] leading-snug text-slate-300 sm:text-[0.7rem]">
+                            Promo replaces the 7-day trial. Renews at $49/mo unless canceled.
                         </p>
                     </div>
 
