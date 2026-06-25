@@ -35,6 +35,39 @@ const aggregateRatingLd = {
   })),
 }
 
+const popularSearchLinks = [
+  {
+    href: '/hiring-firms',
+    label: 'Field inspection companies hiring',
+    detail: 'Compare firms, service areas, pay clues, and onboarding expectations.',
+  },
+  {
+    href: '/hiring-firms/texas',
+    label: 'Texas field inspection firms',
+    detail: 'Browse firms serving Texas inspectors, notaries, and preservation vendors.',
+  },
+  {
+    href: '/hiring-firms/florida',
+    label: 'Florida field inspection firms',
+    detail: 'Find companies with Florida coverage and route-compatible field work.',
+  },
+  {
+    href: '/roles/mortgage-field-inspector',
+    label: 'Mortgage field inspector guide',
+    detail: 'Learn requirements, assignment types, pay questions, and firm-fit checks.',
+  },
+  {
+    href: '/roles/insurance-loss-control',
+    label: 'Insurance loss control work',
+    detail: 'Compare underwriting surveys, appointment expectations, and report complexity.',
+  },
+  {
+    href: '/tools/income-calculator',
+    label: 'Field inspection income calculator',
+    detail: 'Estimate route income before applying to multiple vendor programs.',
+  },
+]
+
 export default function HomePage() {
   return (
     <>
@@ -132,6 +165,37 @@ export default function HomePage() {
             <p className="mt-3 text-xs leading-relaxed text-slate-500">
               Pro includes a 7-day free trial. Paid digital memberships are non-refundable after billing begins.
             </p>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-white [content-visibility:auto] [contain-intrinsic-size:0_620px]">
+          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
+                Popular searches
+              </p>
+              <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                Start with the pages inspectors search for most.
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Use these hubs to compare companies hiring field inspectors, choose a role path,
+                and estimate whether a route is worth applying for before you share personal details.
+              </p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {popularSearchLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-brand-copper/60 hover:bg-white hover:shadow-sm"
+                >
+                  <h3 className="text-sm font-semibold text-slate-950 group-hover:text-brand-copper">
+                    {item.label}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

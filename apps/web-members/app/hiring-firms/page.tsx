@@ -2,18 +2,98 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DirectoryView } from './DirectoryView'
 import type { DirectoryAccess, DirectoryFilters, Firm } from './DirectoryView'
-import { generatePageMetadata } from '@/lib/seo'
+import { generatePageMetadata, getFAQPageSchema } from '@/lib/seo'
 import { US_STATES } from './constants'
-import { ALL_STATE_SLUGS, STATE_MAP } from './state-data'
+import { ALL_STATE_SLUGS, STATE_MAP, TOP_STATES } from './state-data'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 import { getCurrentUser } from '@/lib/auth-server'
 import { PLAN_UIDS } from '@/lib/plan-config'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Firm Directory | Field Inspection & Notary Vendors',
-  description: 'Browse verified firms hiring field inspectors, notaries, and appraisal professionals across the US.',
+  title: 'Field Inspection Companies Hiring | Firm Directory',
+  description: 'Compare field inspection companies, mortgage field service firms, mobile notary vendors, and property preservation firms hiring independent contractors across the US.',
   path: '/hiring-firms',
 })
+
+const directoryFaqs = [
+  {
+    question: 'What companies hire field inspectors?',
+    answer:
+      'Mortgage field service companies, insurance loss control firms, property preservation vendors, appraisal support companies, signing services, and national vendor networks hire field inspectors and mobile contractors. Nested Objects helps compare those firms by service area, role fit, pay clues, and onboarding expectations.',
+  },
+  {
+    question: 'How do I find field inspection companies hiring near me?',
+    answer:
+      'Start with your state directory, then compare national firms that list nationwide or all-50-state coverage. Shortlist companies that match your counties, assignment type, equipment, schedule, and comfort with appointments or route-based work.',
+  },
+  {
+    question: 'Which field inspection firms are best for beginners?',
+    answer:
+      'Beginner-friendly firms usually explain onboarding steps clearly, offer simple exterior or occupancy assignments, provide realistic photo standards, and do not require specialized equipment before the work is explained. Always verify pay timing, revision rules, and active local volume before applying.',
+  },
+  {
+    question: 'How many inspection firms should I apply to?',
+    answer:
+      'Most independent contractors should compare several firms instead of relying on one portal. A practical starting shortlist is five to ten companies across mortgage field inspection, loss control, preservation, notary, and appraisal support lanes.',
+  },
+  {
+    question: 'What should I compare before applying to a firm?',
+    answer:
+      'Compare service area, order type, pay structure, trip fees, revision policy, equipment requirements, background checks, payment timing, contractor feedback, and whether the firm has enough work near your route to justify onboarding.',
+  },
+]
+
+const directoryAnswerBlocks = [
+  {
+    title: 'Best first step',
+    body: 'Choose your state, then build a shortlist of firms that cover your counties plus national companies with verified nationwide coverage.',
+  },
+  {
+    title: 'Best firms for beginners',
+    body: 'Look for clear onboarding, simple photo assignments, realistic turnaround times, and low-friction requirements before taking specialty or appointment-heavy work.',
+  },
+  {
+    title: 'Best route-fit signal',
+    body: 'A good firm match names your service area, explains assignment types, and gives enough pay or revision detail to estimate whether the route is worth driving.',
+  },
+  {
+    title: 'Best way to compare pay',
+    body: 'Do not compare only the posted fee. Net pay depends on distance, density, trip fees, photo requirements, revision risk, and payment timing.',
+  },
+]
+
+const directoryWorkTypes = [
+  {
+    title: 'Mortgage field inspection companies',
+    href: '/roles/mortgage-field-inspector',
+    body: 'Best for occupancy checks, exterior photos, property condition notes, lender status checks, and route-based mortgage field service work.',
+  },
+  {
+    title: 'Insurance loss control firms',
+    href: '/roles/insurance-loss-control',
+    body: 'Best for underwriting surveys, appointment-based visits, measurements, hazard notes, and residential or commercial risk documentation.',
+  },
+  {
+    title: 'Mobile notary and signing vendors',
+    href: '/roles/mobile-notary',
+    body: 'Best for commissioned notaries comparing signing services, title vendors, RON platforms, scan-back rules, and route-compatible add-ons.',
+  },
+  {
+    title: 'Property preservation vendors',
+    href: '/roles/asset-preservation',
+    body: 'Best for vacant property checks, preservation documentation, before-and-after photos, securing notes, debris, and REO support lanes.',
+  },
+]
+
+const directoryComparisonChecks = [
+  'Does the firm cover your state, metro, counties, or route radius right now?',
+  'Are assignment types clear: occupancy, exterior photos, loss control, notary, preservation, appraisal support, or specialty surveys?',
+  'Can you estimate net pay after mileage, print costs, gear, appointment windows, and revision risk?',
+  'Are onboarding requirements reasonable before you upload personal documents or sensitive credentials?',
+  'Do contractor notes, reviews, or profile details suggest fair communication and predictable payment timing?',
+]
+
+const directoryFaqSchema = getFAQPageSchema(directoryFaqs)
 
 const aggregateRatingSchema = {
   '@context': 'https://schema.org',
@@ -322,6 +402,125 @@ function getStateIndex(): StateIndexEntry[] {
     .map((state) => ({ slug: state.slug, label: state.label }))
 }
 
+function DirectoryRankingHub({ states }: { states: StateIndexEntry[] }) {
+  const topStateLinks = TOP_STATES
+    .map((slug) => STATE_MAP[slug])
+    .filter(Boolean)
+    .slice(0, 10)
+
+  return (
+    <section className="border-y border-slate-200 bg-slate-50 px-4 py-10 [content-visibility:auto] [contain-intrinsic-size:0_980px] sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Field inspection companies
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Compare firms before you apply, upload documents, or accept route work.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+              Nested Objects organizes mortgage field service companies, insurance loss control firms,
+              mobile notary vendors, property preservation networks, and appraisal support firms so
+              contractors can compare the real fit before spending time in vendor portals.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                href="/tools/income-calculator"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+              >
+                Estimate route income
+              </Link>
+              <Link
+                href="/inspector-resource-center/firm-intel"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+              >
+                Learn how firm intel works
+              </Link>
+              <Link
+                href="/membership-pricing"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+              >
+                Compare Free vs Pro
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {directoryAnswerBlocks.map((item) => (
+              <article key={item.title} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <h3 className="text-sm font-semibold text-slate-950">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {directoryWorkTypes.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-copper/60 hover:shadow-md"
+            >
+              <h3 className="text-sm font-semibold text-slate-950 group-hover:text-brand-copper">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
+              <span className="mt-3 inline-flex text-xs font-semibold text-brand-copper">
+                Read role guide
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Compare before applying
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-slate-950">
+              Five checks every contractor should run on a firm profile
+            </h3>
+            <ul className="mt-5 space-y-3">
+              {directoryComparisonChecks.map((check) => (
+                <li key={check} className="flex gap-3 text-sm leading-6 text-slate-700">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" aria-hidden />
+                  <span>{check}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Popular state searches
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-slate-950">
+              Start with states where field-service demand is easier to compare.
+            </h3>
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {topStateLinks.map((state) => (
+                <Link
+                  key={state.slug}
+                  href={`/hiring-firms/${state.slug}`}
+                  className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+                >
+                  {state.label}
+                </Link>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-slate-500">
+              The full index includes {states.length} state pages for field inspection, notary,
+              loss control, preservation, and appraisal support research.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function DirectoryCrawlIndex({
   firms,
   states,
@@ -446,6 +645,10 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(directoryFaqSchema) }}
+      />
       <DirectoryView
         initialFirms={directoryFirms}
         totalCount={totalCount}
@@ -454,6 +657,7 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         filters={filters}
         access={access}
       />
+      <DirectoryRankingHub states={stateIndex} />
       <DirectoryCrawlIndex firms={firmIndex} states={stateIndex} />
     </>
   )
