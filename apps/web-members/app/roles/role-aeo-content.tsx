@@ -16,6 +16,19 @@ type RoleAeoContent = {
     question: string
     answer: string
   }[]
+  decisionGuide?: {
+    bestFor: string[]
+    watchouts: string[]
+    compareBy: {
+      label: string
+      detail: string
+    }[]
+    nextLinks?: {
+      label: string
+      href: string
+      detail: string
+    }[]
+  }
 }
 
 const comparisonRows = [
@@ -36,6 +49,35 @@ const comparisonRows = [
     detail: 'The route is too sparse, requirements are unclear, or the firm asks for sensitive details before explaining the work.',
   },
 ]
+
+function getDecisionGuide(content: RoleAeoContent) {
+  return content.decisionGuide ?? {
+    bestFor: content.fitChecks.slice(0, 3),
+    watchouts: [
+      'The company does not explain active service areas or assignment expectations.',
+      'The posted fee ignores route distance, revision risk, or equipment costs.',
+      'The onboarding path asks for sensitive details before explaining the work.',
+    ],
+    compareBy: comparisonRows.slice(0, 3),
+    nextLinks: [
+      {
+        label: 'Hiring firms',
+        href: '/hiring-firms',
+        detail: 'Compare firms, service areas, reviews, and requirement clues.',
+      },
+      {
+        label: 'Income calculator',
+        href: '/tools/income-calculator',
+        detail: 'Estimate route pay before accepting scattered assignments.',
+      },
+      {
+        label: 'Membership plans',
+        href: '/membership-pricing',
+        detail: 'Use Pro when you are ready to compare firms seriously.',
+      },
+    ],
+  }
+}
 
 export const roleAeoContent = {
   'mortgage-field-inspector': {
@@ -77,6 +119,49 @@ export const roleAeoContent = {
         answer: 'Nested Objects helps inspectors compare firms, understand assignment types, review pay clues, prepare application notes, and use tools that make route planning and firm research easier.',
       },
     ],
+    decisionGuide: {
+      bestFor: [
+        'Inspectors who can build repeatable county routes for occupancy checks, exterior photos, and condition reports.',
+        'People who want beginner-friendly field work before moving into specialty inspections or appointment-heavy assignments.',
+        'Contractors who need to compare mortgage field service firms by coverage, pay timing, revision rules, and portal expectations.',
+      ],
+      watchouts: [
+        'The firm lists broad national coverage but does not confirm active work in your counties.',
+        'The per-order fee looks good until travel distance, access issues, and photo revisions are included.',
+        'The vendor portal or onboarding path asks for documents before explaining assignment type, pay, or payment timing.',
+      ],
+      compareBy: [
+        {
+          label: 'Route density',
+          detail: 'Look for firms with enough nearby occupancy checks, exterior photos, or condition reports to make trips efficient.',
+        },
+        {
+          label: 'Revision policy',
+          detail: 'Check whether the firm explains photo standards, resubmission windows, and who absorbs unpaid return visits.',
+        },
+        {
+          label: 'Payment terms',
+          detail: 'Compare per-order fees, trip fees, payout timing, and whether rush or interior work pays differently.',
+        },
+      ],
+      nextLinks: [
+        {
+          label: 'Mortgage-friendly firms',
+          href: '/hiring-firms?industry=Mortgage',
+          detail: 'Find field service companies and lender-adjacent firms to compare.',
+        },
+        {
+          label: 'State directories',
+          href: '/hiring-firms/texas',
+          detail: 'Start with a state page, then compare firms serving nearby counties.',
+        },
+        {
+          label: 'Income calculator',
+          href: '/tools/income-calculator',
+          detail: 'Estimate net route value before accepting scattered assignments.',
+        },
+      ],
+    },
   },
   'insurance-loss-control': {
     roleName: 'Insurance loss control inspector',
@@ -117,6 +202,49 @@ export const roleAeoContent = {
         answer: 'Confirm the property type, appointment expectations, photo list, report length, measuring requirements, pay, revision process, and whether the territory has enough nearby work.',
       },
     ],
+    decisionGuide: {
+      bestFor: [
+        'Inspectors who are comfortable scheduling appointments and explaining the visit to occupants or business contacts.',
+        'Contractors who can document hazards, measurements, protection systems, and underwriting details clearly.',
+        'People who want more detailed survey work than basic mortgage field inspections and can handle longer reports.',
+      ],
+      watchouts: [
+        'The assignment does not clarify residential versus commercial scope, report length, or appointment expectations.',
+        'The pay does not account for interview time, measuring, interior access, or detailed underwriting notes.',
+        'The firm gives carrier-specific requirements only after you have already accepted the survey.',
+      ],
+      compareBy: [
+        {
+          label: 'Survey complexity',
+          detail: 'Compare residential, small commercial, and commercial surveys by appointment time, report length, and photo requirements.',
+        },
+        {
+          label: 'Access expectations',
+          detail: 'Confirm who schedules the visit, what to say on arrival, and how denied access or no-shows are handled.',
+        },
+        {
+          label: 'Carrier standards',
+          detail: 'Look for clear instructions on hazards, life-safety items, measurements, diagrams, and revision handling.',
+        },
+      ],
+      nextLinks: [
+        {
+          label: 'Loss-control firms',
+          href: '/hiring-firms?industry=Insurance',
+          detail: 'Compare companies with insurance, underwriting, or loss-control lanes.',
+        },
+        {
+          label: 'Resource center',
+          href: '/inspector-resource-center',
+          detail: 'Review readiness guides, safety notes, and firm-intel resources.',
+        },
+        {
+          label: 'Firm directory',
+          href: '/hiring-firms',
+          detail: 'Shortlist firms before uploading credentials or accepting surveys.',
+        },
+      ],
+    },
   },
   'mobile-notary': {
     roleName: 'Mobile notary',
@@ -157,6 +285,49 @@ export const roleAeoContent = {
         answer: 'Nested Objects helps notaries compare signing services, vendor programs, route-compatible field work, pay clues, requirements, and application paths before they spend time applying or accepting low-margin assignments.',
       },
     ],
+    decisionGuide: {
+      bestFor: [
+        'Mobile notaries who want to compare signing services, title vendors, RON platforms, and adjacent route work.',
+        'Signing agents who need to protect net pay after printing, scan-backs, cancellations, mileage, and dead time.',
+        'Notaries looking for field inspection add-ons that do not interfere with notary laws, signer privacy, or title instructions.',
+      ],
+      watchouts: [
+        'The signing service does not explain scan-back rules, cancellation policy, credential requirements, or pay timing.',
+        'The route fee ignores print costs, appointment gaps, parking, tolls, or last-minute document changes.',
+        'Inspection add-ons blur notary duties, privacy expectations, or state-specific notary requirements.',
+      ],
+      compareBy: [
+        {
+          label: 'Net signing value',
+          detail: 'Compare fee, print costs, scan-backs, distance, cancellation risk, and payment timing before accepting.',
+        },
+        {
+          label: 'Credential fit',
+          detail: 'Check commission, bond, E&O, NNA certification, background screening, and RON requirements.',
+        },
+        {
+          label: 'Route compatibility',
+          detail: 'Only add field photo or delivery tasks when deadlines and privacy rules fit around signing appointments.',
+        },
+      ],
+      nextLinks: [
+        {
+          label: 'Notary-friendly firms',
+          href: '/hiring-firms?industry=Notary',
+          detail: 'Find signing services, vendor programs, and notary-adjacent firms.',
+        },
+        {
+          label: 'Notary calculator',
+          href: '/tools/notary-route-calculator',
+          detail: 'Check whether a signing route is still profitable after costs.',
+        },
+        {
+          label: 'Company tracker',
+          href: '/tools/companies',
+          detail: 'Track saved firms, requirements, and application follow-ups.',
+        },
+      ],
+    },
   },
   'asset-preservation': {
     roleName: 'Asset preservation specialist',
@@ -197,6 +368,49 @@ export const roleAeoContent = {
         answer: 'Nested Objects helps vendors research firms, compare service lanes, review pay clues, organize application notes, and prepare for documentation requirements.',
       },
     ],
+    decisionGuide: {
+      bestFor: [
+        'Inspectors or vendors who can document vacant, distressed, REO, or preservation-related properties carefully.',
+        'Contractors who understand safety, access, before-and-after photos, materials, and condition reporting.',
+        'People comparing preservation networks by scope, reimbursement, photo proof, and local work volume.',
+      ],
+      watchouts: [
+        'The scope blends inspection, maintenance, securing, debris, or winterization without clear pay and proof rules.',
+        'The firm does not explain reimbursement timing, material approval, safety expectations, or access limits.',
+        'The route includes distressed properties without enough local volume or clear escalation instructions.',
+      ],
+      compareBy: [
+        {
+          label: 'Scope boundaries',
+          detail: 'Separate simple inspections from maintenance, securing, debris, winterization, and crew-coordination work.',
+        },
+        {
+          label: 'Proof requirements',
+          detail: 'Check before-and-after photo standards, timestamp rules, portal uploads, and unpaid revision risk.',
+        },
+        {
+          label: 'Cost recovery',
+          detail: 'Compare trip fees, material reimbursement, approval process, payment timing, and safety expectations.',
+        },
+      ],
+      nextLinks: [
+        {
+          label: 'Preservation firms',
+          href: '/hiring-firms?industry=Property%20Preservation',
+          detail: 'Compare preservation, REO, and field-service vendor networks.',
+        },
+        {
+          label: 'State directories',
+          href: '/hiring-firms/florida',
+          detail: 'Use state pages to check local route and vendor-market signals.',
+        },
+        {
+          label: 'Tools hub',
+          href: '/tools',
+          detail: 'Use calculators and templates before accepting route work.',
+        },
+      ],
+    },
   },
   'gig-pro-inspector': {
     roleName: 'Gig pro inspector',
@@ -237,6 +451,49 @@ export const roleAeoContent = {
         answer: 'Compare travel distance, pay per order, revision risk, route density, equipment needs, onboarding speed, and whether each firm has consistent work near your normal service area.',
       },
     ],
+    decisionGuide: {
+      bestFor: [
+        'Gig workers who already manage routes, apps, photos, deadlines, and customer communication.',
+        'Mobile operators who want to layer inspection, notary-adjacent, delivery, and local field-service work.',
+        'Contractors who need to compare route density and net pay instead of chasing the highest posted fee.',
+      ],
+      watchouts: [
+        'The opportunity looks flexible but has strict turnaround, revision, or access requirements that clash with other gigs.',
+        'The route is too spread out to stack with delivery, notary, or inspection work already on your calendar.',
+        'The company does not explain equipment, background checks, portal steps, or payment timing upfront.',
+      ],
+      compareBy: [
+        {
+          label: 'Route stacking',
+          detail: 'Compare whether assignments fit around existing gigs, appointment windows, and realistic travel time.',
+        },
+        {
+          label: 'Mobile workflow',
+          detail: 'Check app requirements, photo rules, upload deadlines, access notes, and revision expectations.',
+        },
+        {
+          label: 'Net weekly value',
+          detail: 'Estimate mileage, dead time, cancellations, payout timing, and repeat volume before committing.',
+        },
+      ],
+      nextLinks: [
+        {
+          label: 'Firm directory',
+          href: '/hiring-firms',
+          detail: 'Compare field-service firms by work type, route fit, and requirements.',
+        },
+        {
+          label: 'Income calculator',
+          href: '/tools/income-calculator',
+          detail: 'Model whether stacked assignments improve weekly net pay.',
+        },
+        {
+          label: 'Resource center',
+          href: '/inspector-resource-center',
+          detail: 'Use readiness guides and templates before applying broadly.',
+        },
+      ],
+    },
   },
   inspector: {
     roleName: 'Inspector',
@@ -384,8 +641,10 @@ export function RoleAeoJsonLd({ content }: { content: RoleAeoContent }) {
 }
 
 export function RoleAeoSection({ content }: { content: RoleAeoContent }) {
+  const decisionGuide = getDecisionGuide(content)
+
   return (
-    <section className="border-t border-slate-200 bg-white py-10 [content-visibility:auto] [contain-intrinsic-size:0_940px] sm:py-14">
+    <section className="border-t border-slate-200 bg-white py-10 [content-visibility:auto] [contain-intrinsic-size:0_1280px] sm:py-14">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
@@ -406,6 +665,61 @@ export function RoleAeoSection({ content }: { content: RoleAeoContent }) {
               <p className="mt-2 text-sm leading-6 text-slate-700">{answer.body}</p>
             </article>
           ))}
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Best-fit summary
+            </p>
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              Who should pursue {content.roleName.toLowerCase()} work?
+            </h3>
+            <ul className="mt-4 space-y-3">
+              {decisionGuide.bestFor.map((item) => (
+                <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Slow down if
+            </p>
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              Warning signs before applying
+            </h3>
+            <ul className="mt-4 space-y-3">
+              {decisionGuide.watchouts.map((item) => (
+                <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Firm comparison checklist
+            </p>
+            <h3 className="mt-2 text-lg font-bold text-slate-900">
+              Compare {content.roleName.toLowerCase()} companies by the things that affect net value
+            </h3>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            {decisionGuide.compareBy.map((item) => (
+              <article key={item.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <h4 className="text-sm font-semibold text-slate-900">{item.label}</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.detail}</p>
+              </article>
+            ))}
+          </div>
         </div>
 
         <div className="mt-8 rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -455,6 +769,26 @@ export function RoleAeoSection({ content }: { content: RoleAeoContent }) {
             </div>
           </div>
         </div>
+
+        {decisionGuide.nextLinks && decisionGuide.nextLinks.length > 0 ? (
+          <div className="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+              Next pages to use
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {decisionGuide.nextLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-brand-copper hover:shadow-sm"
+                >
+                  <span className="text-sm font-semibold text-slate-900">{link.label}</span>
+                  <span className="mt-2 block text-sm leading-6 text-slate-700">{link.detail}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
