@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
 import {
@@ -17,6 +17,8 @@ import { FirmGatedContent } from './FirmGatedContent'
 import { AuthCTA } from './AuthCTA'
 import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
+import { getCurrentUser } from '@/lib/auth-server'
+import { PAID_PLANS } from '@/lib/plan-config'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -333,14 +335,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const firm = await getFirmBySlugCached(slug)
   if (!firm) return {}
-  const pay = formatPay(firm)
-  const desc = firm.description
-    ? firm.description.slice(0, 155).replace(/\n/g, ' ')
-    : `${firm.name} hiring profile — coverage: ${firm.geographic_coverage || 'National'}${pay ? `, pay: ${pay}` : ''}. Requirements, onboarding, and apply info.`
-
   return generatePageMetadata({
     title: getFirmSeoTitle(firm.name),
-    description: desc,
+    description: `Member-only hiring profile for ${firm.name}. Log in to Nested Objects to view verified firm intelligence.`,
     path: `/firms/${firm.slug}`,
     type: 'profile',
     image: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : undefined,
@@ -351,6 +348,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function FirmDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const user = await getCurrentUser()
+  const planUid = user?.['outseta:planUid']
+
+  // Security boundary: firm intelligence must never enter the rendered HTML
+  // until the server has verified an authenticated paid membership.
+  if (!user) {
+    redirect('/membership-pricing?source=firm-profile&reason=login-required')
+  }
+
+  if (!planUid || !PAID_PLANS.includes(planUid)) {
+    redirect('/membership-pricing?source=firm-profile&reason=upgrade-required')
+  }
+
   const firm = await getFirmBySlugCached(slug)
   if (!firm) notFound()
 

@@ -617,10 +617,17 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const source = isRestricted ? 'ALL' : params?.source ?? 'ALL'
   const pay = isRestricted ? 'ALL' : params?.pay ?? 'ALL'
   const sort = isRestricted ? 'rating_desc' : params?.sort ?? 'rating_desc'
-  const [{ firms, totalCount }, firmIndex] = await Promise.all([
-    getFirms(page, limit, stateFilter, search, ratingMin, industry, source, pay, sort),
-    getFirmIndex(),
-  ])
+  const { firms, totalCount } = await getFirms(
+    page,
+    limit,
+    stateFilter,
+    search,
+    ratingMin,
+    industry,
+    source,
+    pay,
+    sort,
+  )
   const directoryFirms = isGuest ? [] : isFree ? sanitizeFreePreviewFirms(firms) : firms
   const stateIndex = getStateIndex()
   const filters: DirectoryFilters = {
@@ -658,7 +665,6 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
         access={access}
       />
       <DirectoryRankingHub states={stateIndex} />
-      <DirectoryCrawlIndex firms={firmIndex} states={stateIndex} />
     </>
   )
 }
