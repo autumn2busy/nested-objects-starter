@@ -17,6 +17,7 @@ import { Select } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Gate } from '@/components/Gate'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
+import { trackProfileCompleted } from '@/lib/ac-events'
 
 // --- Types ---
 
@@ -482,6 +483,19 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
         trustTier: data.profile.trust_tier,
         trustScoreBreakdown: data.profile.trust_score_breakdown
       } : null)
+      const completionFields = [
+        formData.headline,
+        formData.bio,
+        formData.city,
+        formData.state,
+        formData.primary_services,
+        formData.experience_level,
+        formData.service_areas.length > 0 ? 'service-area' : '',
+      ]
+      const completeness = Math.round(
+        (completionFields.filter((value) => Boolean(value)).length / completionFields.length) * 100,
+      )
+      trackProfileCompleted(completeness)
       setSuccess('Profile saved successfully!')
 
       // Clear success message after 3 seconds

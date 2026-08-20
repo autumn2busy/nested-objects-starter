@@ -2,8 +2,8 @@
  * ActiveCampaign and GA4 client-side event tracking.
  *
  * GA4/GTM events fire for anonymous and authenticated visitors.
- * ActiveCampaign events are forwarded through /api/ac/track-event and are
- * attributed when the visitor has an authenticated member session.
+ * Events are persisted through /api/conversion-events. Authenticated member
+ * events are also forwarded to ActiveCampaign from that server route.
  */
 
 declare global {
@@ -15,6 +15,54 @@ declare global {
 }
 
 type EventData = Record<string, any>
+
+const ANONYMOUS_ID_KEY = 'nested_objects_anonymous_id'
+const SESSION_ID_KEY = 'nested_objects_conversion_session_id'
+
+function createClientId(prefix: string): string {
+    const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    return `${prefix}:${randomPart}`
+}
+
+function getStoredId(storage: Storage, key: string, prefix: string): string {
+    try {
+        const existing = storage.getItem(key)
+        if (existing) return existing
+
+        const created = createClientId(prefix)
+        storage.setItem(key, created)
+        return created
+    } catch {
+        return createClientId(prefix)
+    }
+}
+
+function getAttributionContext(): EventData {
+    if (typeof window === 'undefined') return {}
+
+    const query = new URLSearchParams(window.location.search)
+    const context: EventData = {
+        sourcePage: window.location.pathname,
+    }
+
+    for (const key of ['source', 'reason', 'utm_source', 'utm_medium', 'utm_campaign']) {
+        const value = query.get(key)
+        if (value) context[key] = value
+    }
+
+    try {
+        const firstTouch = sessionStorage.getItem('ac_utm_first_touch')
+        const lastTouch = localStorage.getItem('ac_utm_last_touch')
+        const stored = firstTouch || lastTouch
+        if (stored) Object.assign(context, JSON.parse(stored))
+    } catch {
+        // Corrupt or unavailable browser storage should not interrupt tracking.
+    }
+
+    return context
+}
 
 /**
  * Identify the current visitor by email.
@@ -31,18 +79,28 @@ export function identifyVisitor(email: string): void {
 export function trackEvent(eventName: string, eventData?: EventData): void {
     if (typeof window === 'undefined') return
 
-    const payload = cleanEventData(eventData)
+    const payload = cleanEventData({
+        ...getAttributionContext(),
+        ...eventData,
+    })
+    const anonymousId = getStoredId(window.localStorage, ANONYMOUS_ID_KEY, 'anon')
+    const sessionId = getStoredId(window.sessionStorage, SESSION_ID_KEY, 'session')
+    const occurredAt = new Date().toISOString()
+    const clientEventId = createClientId('event')
 
     trackGa4Event(eventName, payload)
 
-    if (window.vgo) {
-        window.vgo('setEmail', undefined)
-    }
-
-    fetch('/api/ac/track-event', {
+    fetch('/api/conversion-events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: eventName, eventData: payload }),
+        body: JSON.stringify({
+            event: eventName,
+            eventData: payload,
+            anonymousId,
+            sessionId,
+            occurredAt,
+            clientEventId,
+        }),
         credentials: 'same-origin',
         keepalive: true,
     }).catch(() => {
