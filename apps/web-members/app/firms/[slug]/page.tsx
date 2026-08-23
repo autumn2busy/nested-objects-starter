@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Script from 'next/script'
 import Link from 'next/link'
 import {
@@ -17,6 +17,8 @@ import { FirmGatedContent } from './FirmGatedContent'
 import { AuthCTA } from './AuthCTA'
 import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
+import { getCurrentUser } from '@/lib/auth-server'
+import { PAID_PLANS } from '@/lib/plan-config'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -233,18 +235,109 @@ function getFirmVerificationItems(firm: FirmRow) {
   ]
 }
 
+function getFirmComparisonRows(firm: FirmRow, categories: string[], pay: string | null) {
+  const categoryText = categories.length > 0 ? categories.slice(0, 2).join(', ') : firm.industry_focus || 'field-service'
+  const coverage = firm.geographic_coverage || 'your target market'
+
+  return [
+    {
+      label: 'Best for',
+      value: `${categoryText} contractors who can serve ${coverage} and want a firm profile to compare before applying.`,
+    },
+    {
+      label: 'Compare against',
+      value: 'At least three similar firms by service area, pay model, assignment type, onboarding speed, and revision policy.',
+    },
+    {
+      label: 'Pay question',
+      value: pay
+        ? `Confirm whether ${pay} reflects your exact order type, distance, route density, and contractor status.`
+        : 'Ask for current pay, trip-fee, rush-fee, and payment-frequency details before accepting assignments.',
+    },
+    {
+      label: 'Trust question',
+      value: 'Verify active coverage, required credentials, portal access, support response, and whether contractor feedback matches the published terms.',
+    },
+  ]
+}
+
+function getFirmTrustSignals(firm: FirmRow, websiteHref: string | null, vendorPageHref: string | null) {
+  const hasRequirementDetails = !!(
+    firm.qualifications ||
+    firm.required_technology ||
+    firm.equipment_requirements ||
+    firm.equipment_provision ||
+    firm.training_provided ||
+    firm.onboarding_process
+  )
+  const hasReputationDetails = !!(firm.contractor_rating || firm.bbb_status || firm.industry_recognition || firm.client_reviews)
+  const contactPath = vendorPageHref
+    ? 'Vendor or application page found'
+    : firm.email || firm.phone
+      ? 'Direct contact path listed'
+      : websiteHref
+        ? 'Website listed for follow-up'
+        : 'Contact path needs verification'
+
+  return [
+    {
+      label: 'Profile status',
+      value: firm.vendor_verified
+        ? 'Vendor-verified profile'
+        : 'Directory profile; confirm current details before applying',
+    },
+    {
+      label: 'Application path',
+      value: contactPath,
+    },
+    {
+      label: 'Requirement clarity',
+      value: hasRequirementDetails
+        ? 'Requirements, tools, training, or onboarding notes are available'
+        : 'Requirements should be confirmed directly with the firm',
+    },
+    {
+      label: 'Reputation context',
+      value: hasReputationDetails
+        ? 'Profile includes contractor, review, BBB, or recognition signals'
+        : 'Public reputation signals are limited; compare with similar firms',
+    },
+  ]
+}
+
+function getFirmApplicationPlan(firm: FirmRow, categories: string[], pay: string | null) {
+  const categoryText = categories.length > 0 ? categories.slice(0, 2).join(' or ') : firm.industry_focus || 'field-service'
+  const coverage = firm.geographic_coverage || 'your target counties'
+
+  return [
+    {
+      title: 'Confirm route fit',
+      body: `Check whether ${firm.name} has active ${categoryText} work in ${coverage}, not just broad national coverage.`,
+    },
+    {
+      title: 'Compare requirements',
+      body: 'Review background checks, insurance, apps, photos, equipment, training, and onboarding steps before submitting personal details.',
+    },
+    {
+      title: 'Verify pay terms',
+      body: pay
+        ? `Treat ${pay} as a starting clue. Confirm actual order type, trip fees, payout timing, and revision rules.`
+        : 'Ask for current pay, trip fees, payment frequency, invoice timing, and whether revisions or return visits are paid.',
+    },
+    {
+      title: 'Track the application',
+      body: 'Save the date applied, portal link, contact person, requested documents, counties offered, and follow-up date.',
+    },
+  ]
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const firm = await getFirmBySlugCached(slug)
   if (!firm) return {}
-  const pay = formatPay(firm)
-  const desc = firm.description
-    ? firm.description.slice(0, 155).replace(/\n/g, ' ')
-    : `${firm.name} hiring profile — coverage: ${firm.geographic_coverage || 'National'}${pay ? `, pay: ${pay}` : ''}. Requirements, onboarding, and apply info.`
-
   return generatePageMetadata({
     title: getFirmSeoTitle(firm.name),
-    description: desc,
+    description: `Member-only hiring profile for ${firm.name}. Log in to Nested Objects to view verified firm intelligence.`,
     path: `/firms/${firm.slug}`,
     type: 'profile',
     image: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : undefined,
@@ -255,6 +348,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function FirmDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const user = await getCurrentUser()
+  const planUid = user?.['outseta:planUid']
+
+  // Security boundary: firm intelligence must never enter the rendered HTML
+  // until the server has verified an authenticated paid membership.
+  if (!user) {
+    redirect('/membership-pricing?source=firm-profile&reason=login-required')
+  }
+
+  if (!planUid || !PAID_PLANS.includes(planUid)) {
+    redirect('/membership-pricing?source=firm-profile&reason=upgrade-required')
+  }
+
   const firm = await getFirmBySlugCached(slug)
   if (!firm) notFound()
 
@@ -268,6 +374,9 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const firmFaqs = getFirmProfileFaqs(firm, categories, pay)
   const firmFitSummary = getFirmFitSummary(firm, categories)
   const verificationItems = getFirmVerificationItems(firm)
+  const firmComparisonRows = getFirmComparisonRows(firm, categories, pay)
+  const firmTrustSignals = getFirmTrustSignals(firm, websiteHref, vendorPageHref)
+  const applicationPlan = getFirmApplicationPlan(firm, categories, pay)
 
   const contactHref =
     vendorPageHref ||
@@ -430,6 +539,26 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
         )}
       </section>
 
+      <section className="mb-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Profile confidence</p>
+          <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
+            How much contractor decision context is visible for {firm.name}?
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Use these signals to decide whether this profile has enough information for a shortlist, or whether you should verify details directly before applying.
+          </p>
+        </div>
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {firmTrustSignals.map((signal) => (
+            <div key={signal.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{signal.label}</dt>
+              <dd className="mt-2 text-sm leading-6 text-slate-700">{signal.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
       <section className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
         <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-sm sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Quick answers</p>
@@ -463,6 +592,34 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             <li>Keep a shortlist of several firms so one slow pipeline does not stall your field work.</li>
           </ul>
         </aside>
+      </section>
+
+      <section
+        className="mb-8 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-sm sm:p-6"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '520px' }}
+      >
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Application plan</p>
+          <h2 className="mt-2 text-xl font-bold sm:text-2xl">
+            A safer way to evaluate {firm.name} before you apply
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            Do not treat any single firm profile as a final answer. Use this sequence to protect time, privacy, and route economics.
+          </p>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {applicationPlan.map((step, index) => (
+            <article key={step.title} className="rounded-lg border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-copper text-sm font-bold text-white">
+                  {index + 1}
+                </span>
+                <h3 className="text-sm font-semibold text-white">{step.title}</h3>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-300">{step.body}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section
@@ -521,6 +678,29 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             Nested Objects profiles are starting points for comparison. Contractors should confirm final terms directly with each firm before accepting assignments.
           </p>
         </div>
+      </section>
+
+      <section
+        className="mb-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        style={{ contentVisibility: 'auto', containIntrinsicSize: '520px' }}
+      >
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">Firm comparison</p>
+          <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
+            How to compare {firm.name} against similar firms
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Use this profile as a starting point, then confirm current terms directly with the firm before sharing sensitive details or accepting work.
+          </p>
+        </div>
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+          {firmComparisonRows.map((row) => (
+            <div key={row.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{row.label}</dt>
+              <dd className="mt-2 text-sm leading-6 text-slate-700">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* Content grid - gated for non-members */}

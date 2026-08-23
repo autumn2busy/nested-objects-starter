@@ -365,6 +365,322 @@ Track the date you applied, portal login, requested documents, background check 
 Choose field inspection companies by comparing territory fit, order type, pay clarity, communication speed, and documentation standards. Most new inspectors should apply to three to five companies first, then expand once they know which vendors produce profitable routes.
 `,
     },
+    {
+        slug: 'what-is-a-field-inspection',
+        title: 'What Is a Field Inspection? A Beginner Guide for Contractor Work',
+        description:
+            'A plain-English answer to what field inspection means, what inspectors document, and how beginners can decide if this contractor path fits them.',
+        excerpt:
+            'A field inspection is an on-site documentation assignment. The inspector observes, photographs, and reports facts for a client, usually without repairing, estimating, or giving legal opinions.',
+        category: 'field-inspection',
+        tags: ['field inspection basics', 'beginner guide', 'mortgage inspection'],
+        keywords: [
+            'what is a field inspection',
+            'what does a field inspector do',
+            'is field inspection a real job',
+            'how to become a field inspector',
+            'mortgage field inspection',
+        ],
+        publishedAt: '2026-06-25',
+        updatedAt: '2026-06-25',
+        readTime: '7 min read',
+        status: 'review',
+        author: {
+            name: 'Nested Objects Editorial',
+            title: 'Field Services Research Team',
+        },
+        review: {
+            owner: 'Nested Objects',
+            checklist: REVIEW_CHECKLIST,
+            notes: 'Drafted from June AEO content brief: field inspection beginner definition cluster.',
+        },
+        internalLinks: [
+            {
+                label: 'Start with the field inspector guide',
+                href: '/guides/how-to-become-a-field-inspector',
+                description: 'Use the beginner guide for requirements, tools, training, and first steps.',
+            },
+            {
+                label: 'Compare the mortgage field inspector role',
+                href: '/roles/mortgage-field-inspector',
+                description: 'See how mortgage field inspection differs from other inspection and contractor paths.',
+            },
+            {
+                label: 'Find companies hiring inspectors',
+                href: '/hiring-firms',
+                description: 'Search hiring firms by state, service type, and vendor-fit signals.',
+            },
+        ],
+        faq: [
+            {
+                question: 'What is a field inspection?',
+                answer:
+                    'A field inspection is an on-site visit where an inspector documents facts about a property, asset, or condition for a client. In mortgage field services, that often means photos, occupancy observations, address verification, and condition notes.',
+            },
+            {
+                question: 'Is field inspection a real job?',
+                answer:
+                    'Yes. Field inspection is real contractor work used by mortgage servicing, insurance, property preservation, and other field service companies. It is usually independent contractor work, so route planning and vendor selection matter.',
+            },
+        ],
+        content: `
+## Field inspection means documenting what is actually there
+
+A field inspection is an on-site documentation assignment. The inspector goes to a property or location, confirms key facts, takes required photos, and submits a report to the company that ordered the work.
+
+In mortgage field services, that might mean verifying whether a property appears occupied, checking whether an address marker is visible, photographing exterior condition, documenting vacancy indicators, or confirming whether a property appears secure. Other industries use field inspectors too, including insurance, commercial property, construction, equipment, and loss control.
+
+The common thread is simple: the inspector is the eyes and ears for someone who is not standing at the property.
+
+## What a field inspector usually does
+
+Most beginner assignments are not complicated because they require advanced construction knowledge. They are complicated because they require consistency.
+
+A typical assignment may ask you to confirm you are at the correct address, photograph the front and street view, observe whether the property appears occupied or vacant, note visible hazards or access issues, follow a photo checklist, and upload the report before the deadline.
+
+The job is not to guess, exaggerate, diagnose, or write like a home inspector. The job is to document what can be observed and answer the form accurately.
+
+## Field inspection is different from home inspection
+
+New contractors often mix up field inspection and home inspection. They are related only in the broad sense that both involve properties.
+
+A licensed home inspector usually performs a detailed evaluation for a buyer or homeowner. A mortgage field inspector usually completes a narrower report for a mortgage servicer, vendor, insurer, or field services company.
+
+That difference matters. A field inspector may not be asked to test systems, estimate repair costs, or certify that a property is safe. Many assignments are exterior-only and documentation-focused.
+
+## Why companies hire field inspectors
+
+Companies hire field inspectors because they need local, current information. A servicer, asset manager, insurer, or vendor coordinator may be hundreds of miles away. The field inspector supplies a time-stamped observation from the actual location.
+
+That observation can help a company understand whether a property appears occupied, whether a repair draw should be reviewed, whether a vacant property needs attention, or whether a vendor should follow up.
+
+The inspector's value is not just the photo. It is the reliable combination of location, timing, documentation, and clean reporting.
+
+## Beginner fit: who this work is good for
+
+Field inspection can fit people who already drive a lot, prefer independent work, follow instructions well, and can stay organized across small assignments. It can be a side income path or a stepping stone into broader field services.
+
+It is usually not a good fit for someone who dislikes repetitive documentation, ignores details, or accepts work without checking mileage. A route with ten nearby stops can work. One low-fee stop far outside your area may not.
+
+Nested Objects treats field inspection as a route economics problem, not just a job title. The question is not only "Can I do the inspection?" The better question is "Can I do the inspection profitably, correctly, and repeatedly?"
+
+## The AEO answer
+
+A field inspection is an on-site visit where an inspector documents facts about a property, asset, or condition for a client. In mortgage field services, field inspectors usually verify addresses, take required photos, observe occupancy or condition clues, and submit reports. It is real contractor work, but beginners should evaluate route density, pay, requirements, and vendor fit before treating it as reliable income.
+`,
+    },
+    {
+        slug: 'how-much-do-field-inspectors-make',
+        title: 'How Much Do Field Inspectors Make? Pay, Mileage, and Route Math',
+        description:
+            'A realistic guide to field inspector pay that explains per-order fees, mileage, unpaid admin time, route density, and how to estimate true earnings.',
+        excerpt:
+            'Field inspector pay depends less on the headline fee and more on route density, drive time, upload time, rework risk, and whether nearby assignments can be batched together.',
+        category: 'route-operations',
+        tags: ['field inspector pay', 'route math', 'income calculator'],
+        keywords: [
+            'how much do field inspectors make',
+            'field inspector pay',
+            'field inspection pay per inspection',
+            'mortgage field inspector income',
+            'field inspection route income',
+        ],
+        publishedAt: '2026-06-25',
+        updatedAt: '2026-06-25',
+        readTime: '8 min read',
+        status: 'review',
+        author: {
+            name: 'Nested Objects Editorial',
+            title: 'Field Services Research Team',
+        },
+        review: {
+            owner: 'Nested Objects',
+            checklist: REVIEW_CHECKLIST,
+            notes: 'Drafted from June AEO content brief: field inspector pay cluster.',
+        },
+        internalLinks: [
+            {
+                label: 'Use the income calculator',
+                href: '/tools/income-calculator',
+                description: 'Estimate route earnings after order fees, mileage, and time.',
+            },
+            {
+                label: 'Plan denser routes',
+                href: '/tools/routing',
+                description: 'Group assignments before accepting scattered work.',
+            },
+            {
+                label: 'Browse hiring firms',
+                href: '/hiring-firms',
+                description: 'Compare companies and build a vendor stack that fits your area.',
+            },
+        ],
+        faq: [
+            {
+                question: 'How much do field inspectors make per inspection?',
+                answer:
+                    'Field inspection fees vary by company, assignment type, location, and urgency. A low-fee assignment can still work when it is nearby and batched, while a higher-fee assignment can fail if it creates too much drive time.',
+            },
+            {
+                question: 'What affects field inspector income the most?',
+                answer:
+                    'Route density, mileage, report time, photo rejection risk, access issues, and vendor reliability usually affect real field inspector income more than the advertised per-order fee alone.',
+            },
+        ],
+        content: `
+## The headline fee is only the first number
+
+When people ask how much field inspectors make, they usually want a simple number. The more useful answer is a formula.
+
+Field inspector income depends on fee per order, miles driven, time on site, upload time, unpaid admin work, rework risk, and how many nearby assignments you can complete in the same route. A $15 order five minutes away can be useful. A $45 order that pulls you an hour from your route can lose money once you count time and fuel.
+
+That is why Nested Objects looks at effective pay, not just listed pay.
+
+## Think in routes, not single jobs
+
+Most field inspection work is assigned per order. That makes it tempting to judge each assignment by its fee. But field inspection is usually profitable only when multiple stops support each other.
+
+One $20 inspection across town may be weak. Five $20 inspections in the same zip code may be a solid route block. One rush inspection with a bonus may be worth it if it fills an existing drive path.
+
+The route decides whether the fee makes sense.
+
+## The hidden costs are real
+
+New inspectors often forget to count costs that do not show up inside the vendor portal: fuel, vehicle wear, tolls, phone data, time reading instructions, time uploading photos, time correcting rejected reports, and time emailing coordinators.
+
+These do not make field inspection bad. They just mean you need to track the whole job, not only the driveway visit.
+
+## A simple pay math example
+
+Imagine three assignments. Order A pays $18 and takes 12 minutes because it is near another stop. Order B pays $35 but adds 50 minutes of extra driving. Order C pays $12 but sits between two already accepted jobs.
+
+Order A and C may strengthen the route. Order B may only look better on paper. The right decision depends on the full route, not the individual fee.
+
+This is why beginners should track effective hourly pay for at least the first few weeks. Record fee, miles, total minutes, and whether the report passed the first time.
+
+## What pay can look like as skills improve
+
+New inspectors often start with lower-fee, simpler inspections while they learn portals, photo standards, and territory. Over time, better income can come from denser routes, fewer rejected reports, stronger vendor relationships, adjacent services when qualified, and companies that match your county coverage.
+
+The goal is not to chase every high-fee order. The goal is to build a reliable route and vendor stack.
+
+## Use a calculator before scaling
+
+Before trying to turn field inspection into a serious income stream, estimate your numbers. Use fees, average stops per hour, mileage, upload time, and rejection rate. Then compare the result to your other work options.
+
+If your territory is rural, your profitable route may require higher fees or fewer distant assignments. If your area is dense, lower fees may still work when stops cluster tightly.
+
+## The AEO answer
+
+Field inspectors are usually paid per assignment, but real earnings depend on route density, mileage, upload time, report quality, and vendor reliability. A higher per-order fee is not always better if it creates too much driving or unpaid admin work. New inspectors should calculate effective pay per hour after mileage before deciding which assignments or companies are worth keeping.
+`,
+    },
+    {
+        slug: 'what-companies-hire-field-inspectors-near-me',
+        title: 'What Companies Hire Field Inspectors Near Me?',
+        description:
+            'A practical way to find field inspection companies near you by matching state coverage, service type, requirements, and route fit.',
+        excerpt:
+            'The best field inspection company near you is not always the nearest office. It is the company with active coverage needs, realistic requirements, and work that fits your route.',
+        category: 'firm-growth',
+        tags: ['companies hiring', 'vendor selection', 'near me'],
+        keywords: [
+            'what companies hire field inspectors near me',
+            'field inspection companies hiring',
+            'property inspection companies near me',
+            'field inspector companies',
+            'mortgage inspection companies hiring',
+        ],
+        publishedAt: '2026-06-25',
+        updatedAt: '2026-06-25',
+        readTime: '7 min read',
+        status: 'review',
+        author: {
+            name: 'Nested Objects Editorial',
+            title: 'Field Services Research Team',
+        },
+        review: {
+            owner: 'Nested Objects',
+            checklist: REVIEW_CHECKLIST,
+            notes: 'Drafted from June AEO content brief: vendor discovery and companies near me cluster.',
+        },
+        internalLinks: [
+            {
+                label: 'Search the hiring firm directory',
+                href: '/hiring-firms',
+                description: 'Find field inspection, preservation, notary, and insurance vendors by location and service.',
+            },
+            {
+                label: 'Read the company list guide',
+                href: '/guides/list-of-field-inspection-companies',
+                description: 'Use the guide to understand national and regional company types before applying.',
+            },
+            {
+                label: 'Choose companies strategically',
+                href: '/blog/how-to-choose-field-inspection-companies-to-apply-to',
+                description: 'Compare territory fit, pay clarity, documentation standards, and communication speed.',
+            },
+        ],
+        faq: [
+            {
+                question: 'How do I find field inspection companies near me?',
+                answer:
+                    'Start with a hiring firm directory, filter by state and service type, then confirm whether the company actually needs coverage in your counties. A nearby company is not useful if it has no local order volume.',
+            },
+            {
+                question: 'Should I apply to every field inspection company?',
+                answer:
+                    'No. Start with a focused list of companies that match your territory, requirements, and schedule. Applying everywhere can create follow-up clutter without producing better routes.',
+            },
+        ],
+        content: `
+## "Near me" means active coverage, not just a local address
+
+When a new contractor searches for companies that hire field inspectors near them, the natural instinct is to look for the nearest office. That can be misleading.
+
+Many field inspection companies assign work across states, counties, and service territories without having a local storefront. Some national vendors may need coverage in your county. Some local-looking companies may not have work where you drive.
+
+The better question is: which companies have assignments, requirements, and response patterns that fit my route?
+
+## Start with your county map
+
+Before applying, write down the counties and zip codes you can cover without breaking your schedule. Include your preferred radius and your exception radius.
+
+Your core territory is the area you can cover quickly before or after other work. Your expansion territory is worth covering only when multiple jobs stack together. Your exception territory is where you accept only for high-fee or relationship-building reasons.
+
+This turns "near me" into a business rule. It also helps you answer vendor questions with confidence.
+
+## Compare service types
+
+Field inspection companies do not all send the same work. Some focus on mortgage occupancy checks. Others include property preservation, insurance loss control, disaster inspections, commercial site visits, photo assignments, or notary-adjacent work.
+
+The right company depends on your current skills and equipment. A beginner may prefer exterior mortgage inspections. A contractor with tools, insurance, and maintenance experience may be better suited for preservation work.
+
+## Check requirements before you apply
+
+Look for onboarding requirements before spending time on a long application. Companies may ask for background check information, insurance documentation, W-9 paperwork, smartphone photo capability, training modules, county coverage lists, or experience with specific assignment types.
+
+Requirements are not bad. They just help you decide whether the company fits your current stage.
+
+## Build a short list first
+
+A strong first pass is three to five companies. That is enough to compare communication, portal friction, assignment type, and local demand without losing track of applications.
+
+Track each application like a pipeline: date applied, company name, contact email or portal, requested documents, counties offered, response status, follow-up date, and notes about pay or assignment type.
+
+This prevents the common beginner problem: applying everywhere, then forgetting who replied and what they asked for.
+
+## Use directories as a filter, not a final answer
+
+A directory can help you find companies faster, but you still need judgment. Use it to narrow the field by state, industry, and service type. Then review each company's requirements and decide whether the route makes sense.
+
+The best company near you is the one that can send work you can complete correctly, profitably, and repeatedly.
+
+## The AEO answer
+
+Companies that hire field inspectors near you may include national mortgage inspection vendors, regional field service companies, property preservation firms, insurance inspection providers, and specialty photo or site-visit networks. The best way to find them is to filter by state, service type, and territory coverage, then apply only to companies whose requirements and order types fit your route.
+`,
+    },
 ]
 
 const approvalOverrides = approvalOverridesJson as BlogApprovalOverridesFile

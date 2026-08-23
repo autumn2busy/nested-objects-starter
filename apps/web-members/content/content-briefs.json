@@ -1,0 +1,695 @@
+{
+  "generatedAt": "2026-06-10T17:15:08.531Z",
+  "cadence": "weekly",
+  "workflowBoundary": "This generator creates blog and YouTube brief candidates only. Blog posts still require human drafting in the existing blog registry, /blog/review approval, and sitemap gating. YouTube scripts require human review before recording or upload.",
+  "dataSources": [
+    {
+      "name": "SEO content opportunity monitor",
+      "status": "configured",
+      "detail": "Read 4 SEO opportunities generated at 2026-06-10T16:15:12.325Z.",
+      "count": 4
+    },
+    {
+      "name": "AI/AEO opportunity monitor",
+      "status": "configured",
+      "detail": "Read 12 AEO opportunities generated at 2026-06-10T16:07:33.339Z.",
+      "count": 12
+    }
+  ],
+  "briefs": [
+    {
+      "id": "blog-field-inspection-beginner",
+      "sourceOpportunityIds": [
+        "aeo-what-is-a-field-inspection",
+        "aeo-what-does-a-field-inspector-do",
+        "aeo-is-field-inspection-a-real-job",
+        "aeo-how-do-i-become-a-field-inspector",
+        "aeo-what-is-a-mortgage-field-inspection"
+      ],
+      "contentType": "blog_article",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "What is a field inspection",
+      "slug": "what-is-a-field-inspection",
+      "audience": "beginners researching field inspection as a legitimate contractor path",
+      "intent": "career_research",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "targetKeywords": [
+        "What is a field inspection?",
+        "What does a field inspector do?",
+        "Is field inspection a real job?",
+        "How do I become a field inspector?",
+        "What is a mortgage field inspection?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Target answer page",
+          "href": "/roles/mortgage-field-inspector"
+        }
+      ],
+      "outline": [
+        "Open with the specific question: What is a field inspection",
+        "Give the plain-English answer for beginners researching field inspection as a legitimate contractor path",
+        "Cover plain-English role definition",
+        "Cover requirements and tools",
+        "Cover pay-fit caveats",
+        "Cover beginner next steps",
+        "Add a Nested Objects example, workflow, or decision rule",
+        "Point readers to /guides/how-to-become-a-field-inspector"
+      ],
+      "aeoAnswerBlock": "What is a field inspection: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for beginners researching field inspection as a legitimate contractor path. It should name the tradeoffs, explain what to check before acting, and point readers toward /guides/how-to-become-a-field-inspector for the next step.",
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: What is a field inspection?",
+        "AEO prompt: What does a field inspector do?",
+        "Observed brand: CoreLogic",
+        "Observed brand: HouseCanary",
+        "AEO prompt: Is field inspection a real job?",
+        "AEO prompt: How do I become a field inspector?",
+        "AEO prompt: What is a mortgage field inspection?"
+      ]
+    },
+    {
+      "id": "youtube-field-inspection-beginner",
+      "sourceOpportunityIds": [
+        "aeo-what-is-a-field-inspection",
+        "aeo-what-does-a-field-inspector-do",
+        "aeo-is-field-inspection-a-real-job",
+        "aeo-how-do-i-become-a-field-inspector",
+        "aeo-what-is-a-mortgage-field-inspection"
+      ],
+      "contentType": "youtube_script",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "What is a field inspection?",
+      "slug": "youtube-what-is-a-field-inspection",
+      "audience": "beginners researching field inspection as a legitimate contractor path",
+      "intent": "career_research",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/guides/how-to-become-a-field-inspector",
+      "targetKeywords": [
+        "What is a field inspection?",
+        "What does a field inspector do?",
+        "Is field inspection a real job?",
+        "How do I become a field inspector?",
+        "What is a mortgage field inspection?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/guides/how-to-become-a-field-inspector"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Target answer page",
+          "href": "/roles/mortgage-field-inspector"
+        }
+      ],
+      "outline": [
+        "Hook: state the misconception or costly mistake in the first 10 seconds",
+        "Define the viewer problem without overexplaining the industry",
+        "Give the plain-English answer for beginners researching field inspection as a legitimate contractor path",
+        "Cover plain-English role definition",
+        "Cover requirements and tools",
+        "Cover pay-fit caveats",
+        "Close with one practical next step inside Nested Objects"
+      ],
+      "aeoAnswerBlock": "What is a field inspection: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for beginners researching field inspection as a legitimate contractor path. It should name the tradeoffs, explain what to check before acting, and point readers toward /guides/how-to-become-a-field-inspector for the next step.",
+      "youtube": {
+        "hook": "Most people ask \"What is a field inspection?\" but miss the route, pay, or vendor-fit detail that decides whether it is actually worth doing.",
+        "titleIdeas": [
+          "What is a field inspection?",
+          "What is a field inspection: What Beginners Should Know",
+          "What is a field inspection: Pay, Fit, and Next Steps"
+        ],
+        "chapters": [
+          "0:00 The real question",
+          "0:45 What it means",
+          "2:00 Pay and fit caveats",
+          "4:00 Tools and next steps"
+        ],
+        "descriptionSeed": "A practical Nested Objects walkthrough for beginners researching field inspection as a legitimate contractor path. Includes links to /guides/how-to-become-a-field-inspector and related member-side tools."
+      },
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: What is a field inspection?",
+        "AEO prompt: What does a field inspector do?",
+        "Observed brand: CoreLogic",
+        "Observed brand: HouseCanary",
+        "AEO prompt: Is field inspection a real job?",
+        "AEO prompt: How do I become a field inspector?",
+        "AEO prompt: What is a mortgage field inspection?"
+      ]
+    },
+    {
+      "id": "blog-field-inspector-pay",
+      "sourceOpportunityIds": [
+        "aeo-how-much-do-field-inspectors-make"
+      ],
+      "contentType": "blog_article",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "How much do field inspectors make",
+      "slug": "how-much-do-field-inspectors-make",
+      "audience": "new inspectors evaluating realistic pay after mileage and admin time",
+      "intent": "pay_requirements",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/tools/income-calculator",
+      "targetKeywords": [
+        "How much do field inspectors make?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/tools/income-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Open with the specific question: How much do field inspectors make",
+        "Give the plain-English answer for new inspectors evaluating realistic pay after mileage and admin time",
+        "Cover fee range caveats",
+        "Cover mileage and unpaid admin time",
+        "Cover route density",
+        "Cover calculator CTA",
+        "Add a Nested Objects example, workflow, or decision rule",
+        "Point readers to /tools/income-calculator"
+      ],
+      "aeoAnswerBlock": "How much do field inspectors make: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for new inspectors evaluating realistic pay after mileage and admin time. It should name the tradeoffs, explain what to check before acting, and point readers toward /tools/income-calculator for the next step.",
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: How much do field inspectors make?",
+        "Observed brand: Home Depot",
+        "Observed brand: Lowe's"
+      ]
+    },
+    {
+      "id": "youtube-field-inspector-pay",
+      "sourceOpportunityIds": [
+        "aeo-how-much-do-field-inspectors-make"
+      ],
+      "contentType": "youtube_script",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "How much do field inspectors make?",
+      "slug": "youtube-how-much-do-field-inspectors-make",
+      "audience": "new inspectors evaluating realistic pay after mileage and admin time",
+      "intent": "pay_requirements",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/tools/income-calculator",
+      "targetKeywords": [
+        "How much do field inspectors make?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/tools/income-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Hook: state the misconception or costly mistake in the first 10 seconds",
+        "Define the viewer problem without overexplaining the industry",
+        "Give the plain-English answer for new inspectors evaluating realistic pay after mileage and admin time",
+        "Cover fee range caveats",
+        "Cover mileage and unpaid admin time",
+        "Cover route density",
+        "Close with one practical next step inside Nested Objects"
+      ],
+      "aeoAnswerBlock": "How much do field inspectors make: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for new inspectors evaluating realistic pay after mileage and admin time. It should name the tradeoffs, explain what to check before acting, and point readers toward /tools/income-calculator for the next step.",
+      "youtube": {
+        "hook": "Most people ask \"How much do field inspectors make?\" but miss the route, pay, or vendor-fit detail that decides whether it is actually worth doing.",
+        "titleIdeas": [
+          "How much do field inspectors make?",
+          "How much do field inspectors make: What Beginners Should Know",
+          "How much do field inspectors make: Pay, Fit, and Next Steps"
+        ],
+        "chapters": [
+          "0:00 The real question",
+          "0:45 What it means",
+          "2:00 Pay and fit caveats",
+          "4:00 Tools and next steps"
+        ],
+        "descriptionSeed": "A practical Nested Objects walkthrough for new inspectors evaluating realistic pay after mileage and admin time. Includes links to /tools/income-calculator and related member-side tools."
+      },
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: How much do field inspectors make?",
+        "Observed brand: Home Depot",
+        "Observed brand: Lowe's"
+      ]
+    },
+    {
+      "id": "blog-hiring-firm-selection",
+      "sourceOpportunityIds": [
+        "aeo-what-companies-hire-field-inspectors-near-me"
+      ],
+      "contentType": "blog_article",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "What companies hire field inspectors near me",
+      "slug": "what-companies-hire-field-inspectors-near-me",
+      "audience": "inspectors trying to find reputable hiring firms and vendor portals",
+      "intent": "vendor_selection",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/hiring-firms",
+      "targetKeywords": [
+        "What companies hire field inspectors near me?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Open with the specific question: What companies hire field inspectors near me",
+        "Give the plain-English answer for inspectors trying to find reputable hiring firms and vendor portals",
+        "Cover territory fit",
+        "Cover pay and volume signals",
+        "Cover application readiness",
+        "Cover directory/filter CTA",
+        "Add a Nested Objects example, workflow, or decision rule",
+        "Point readers to /hiring-firms"
+      ],
+      "aeoAnswerBlock": "What companies hire field inspectors near me: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for inspectors trying to find reputable hiring firms and vendor portals. It should name the tradeoffs, explain what to check before acting, and point readers toward /hiring-firms for the next step.",
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: What companies hire field inspectors near me?",
+        "Observed brand: Indeed",
+        "Observed brand: LinkedIn"
+      ]
+    },
+    {
+      "id": "youtube-hiring-firm-selection",
+      "sourceOpportunityIds": [
+        "aeo-what-companies-hire-field-inspectors-near-me"
+      ],
+      "contentType": "youtube_script",
+      "status": "candidate",
+      "priority": "high",
+      "score": 95,
+      "title": "What companies hire field inspectors near me?",
+      "slug": "youtube-what-companies-hire-field-inspectors-near-me",
+      "audience": "inspectors trying to find reputable hiring firms and vendor portals",
+      "intent": "vendor_selection",
+      "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "targetPage": "/hiring-firms",
+      "targetKeywords": [
+        "What companies hire field inspectors near me?"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Hook: state the misconception or costly mistake in the first 10 seconds",
+        "Define the viewer problem without overexplaining the industry",
+        "Give the plain-English answer for inspectors trying to find reputable hiring firms and vendor portals",
+        "Cover territory fit",
+        "Cover pay and volume signals",
+        "Cover application readiness",
+        "Close with one practical next step inside Nested Objects"
+      ],
+      "aeoAnswerBlock": "What companies hire field inspectors near me: External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations. The answer should be direct, conservative, and useful for inspectors trying to find reputable hiring firms and vendor portals. It should name the tradeoffs, explain what to check before acting, and point readers toward /hiring-firms for the next step.",
+      "youtube": {
+        "hook": "Most people ask \"What companies hire field inspectors near me?\" but miss the route, pay, or vendor-fit detail that decides whether it is actually worth doing.",
+        "titleIdeas": [
+          "What companies hire field inspectors near me?",
+          "What companies hire field inspectors near me: What Beginners Should Know",
+          "What companies hire field inspectors near me: Pay, Fit, and Next Steps"
+        ],
+        "chapters": [
+          "0:00 The real question",
+          "0:45 What it means",
+          "2:00 Pay and fit caveats",
+          "4:00 Tools and next steps"
+        ],
+        "descriptionSeed": "A practical Nested Objects walkthrough for inspectors trying to find reputable hiring firms and vendor portals. Includes links to /hiring-firms and related member-side tools."
+      },
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "AEO prompt: What companies hire field inspectors near me?",
+        "Observed brand: Indeed",
+        "Observed brand: LinkedIn"
+      ]
+    },
+    {
+      "id": "blog-mobile-notary",
+      "sourceOpportunityIds": [
+        "fallback-mobile-notary-signing-services",
+        "fallback-notary-inspection-route-stack",
+        "fallback-ron-platform-requirements"
+      ],
+      "contentType": "blog_article",
+      "status": "candidate",
+      "priority": "high",
+      "score": 83,
+      "title": "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time",
+      "slug": "how-mobile-notaries-can-choose-signing-services-without-wasting-upload-time",
+      "audience": "mobile notaries and signing agents looking for adjacent route income",
+      "intent": "firm-growth",
+      "angle": "Explain how to compare signing services by territory fit, document package complexity, scan-back expectations, payment timing, and vendor portal friction.",
+      "targetPage": "/roles/mobile-notary",
+      "targetKeywords": [
+        "mobile notary signing services",
+        "signing agent companies",
+        "notary vendor applications",
+        "notary route income",
+        "notary and field inspection work",
+        "signing agent side work",
+        "RON platform requirements",
+        "remote online notarization platform"
+      ],
+      "internalLinks": [
+        {
+          "label": "Mobile notary role page",
+          "href": "/roles/mobile-notary"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Notary"
+        },
+        {
+          "label": "Notary route calculator",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Routing tool",
+          "href": "/tools/routing"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Open with the specific question: How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time",
+        "Give the plain-English answer for mobile notaries and signing agents looking for adjacent route income",
+        "Cover direct answer",
+        "Cover requirements",
+        "Cover pay or fit caveats",
+        "Cover Nested Objects next step",
+        "Add a Nested Objects example, workflow, or decision rule",
+        "Point readers to /roles/mobile-notary"
+      ],
+      "aeoAnswerBlock": "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time: Explain how to compare signing services by territory fit, document package complexity, scan-back expectations, payment timing, and vendor portal friction. The answer should be direct, conservative, and useful for mobile notaries and signing agents looking for adjacent route income. It should name the tradeoffs, explain what to check before acting, and point readers toward /roles/mobile-notary for the next step.",
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "notary pillar launched",
+        "directory has notary filters",
+        "calculator supports route economics",
+        "route calculator launched",
+        "field add-on directory filter exists",
+        "notary quick filter exists",
+        "RON is a notary-specific directory category"
+      ]
+    },
+    {
+      "id": "youtube-mobile-notary",
+      "sourceOpportunityIds": [
+        "fallback-mobile-notary-signing-services",
+        "fallback-notary-inspection-route-stack",
+        "fallback-ron-platform-requirements"
+      ],
+      "contentType": "youtube_script",
+      "status": "candidate",
+      "priority": "high",
+      "score": 83,
+      "title": "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time?",
+      "slug": "youtube-how-mobile-notaries-can-choose-signing-services-without-wasting-upload-t",
+      "audience": "mobile notaries and signing agents looking for adjacent route income",
+      "intent": "firm-growth",
+      "angle": "Explain how to compare signing services by territory fit, document package complexity, scan-back expectations, payment timing, and vendor portal friction.",
+      "targetPage": "/roles/mobile-notary",
+      "targetKeywords": [
+        "mobile notary signing services",
+        "signing agent companies",
+        "notary vendor applications",
+        "notary route income",
+        "notary and field inspection work",
+        "signing agent side work",
+        "RON platform requirements",
+        "remote online notarization platform"
+      ],
+      "internalLinks": [
+        {
+          "label": "Mobile notary role page",
+          "href": "/roles/mobile-notary"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Notary"
+        },
+        {
+          "label": "Notary route calculator",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Routing tool",
+          "href": "/tools/routing"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "outline": [
+        "Hook: state the misconception or costly mistake in the first 10 seconds",
+        "Define the viewer problem without overexplaining the industry",
+        "Give the plain-English answer for mobile notaries and signing agents looking for adjacent route income",
+        "Cover direct answer",
+        "Cover requirements",
+        "Cover pay or fit caveats",
+        "Close with one practical next step inside Nested Objects"
+      ],
+      "aeoAnswerBlock": "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time: Explain how to compare signing services by territory fit, document package complexity, scan-back expectations, payment timing, and vendor portal friction. The answer should be direct, conservative, and useful for mobile notaries and signing agents looking for adjacent route income. It should name the tradeoffs, explain what to check before acting, and point readers toward /roles/mobile-notary for the next step.",
+      "youtube": {
+        "hook": "Most people ask \"How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time?\" but miss the route, pay, or vendor-fit detail that decides whether it is actually worth doing.",
+        "titleIdeas": [
+          "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time?",
+          "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time: What Beginners Should Know",
+          "How Mobile Notaries Can Choose Signing Services Without Wasting Upload Time: Pay, Fit, and Next Steps"
+        ],
+        "chapters": [
+          "0:00 The real question",
+          "0:45 What it means",
+          "2:00 Pay and fit caveats",
+          "4:00 Tools and next steps"
+        ],
+        "descriptionSeed": "A practical Nested Objects walkthrough for mobile notaries and signing agents looking for adjacent route income. Includes links to /roles/mobile-notary and related member-side tools."
+      },
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "notary pillar launched",
+        "directory has notary filters",
+        "calculator supports route economics",
+        "route calculator launched",
+        "field add-on directory filter exists",
+        "notary quick filter exists",
+        "RON is a notary-specific directory category"
+      ]
+    },
+    {
+      "id": "blog-insurance-loss-control",
+      "sourceOpportunityIds": [
+        "fallback-insurance-loss-control-requirements"
+      ],
+      "contentType": "blog_article",
+      "status": "candidate",
+      "priority": "medium",
+      "score": 72,
+      "title": "Insurance Loss Control Inspection Requirements: What New Contractors Should Know",
+      "slug": "insurance-loss-control-inspection-requirements-what-new-contractors-should-know",
+      "audience": "contractors comparing insurance inspection and loss-control work",
+      "intent": "field-inspection",
+      "angle": "Explain photos, safety observations, interview boundaries, commercial property expectations, and how loss-control differs from mortgage inspection.",
+      "targetPage": "/roles/insurance-loss-control",
+      "targetKeywords": [
+        "insurance loss control inspection requirements",
+        "loss control inspector contractor",
+        "insurance inspection jobs"
+      ],
+      "internalLinks": [
+        {
+          "label": "Insurance loss control role page",
+          "href": "/roles/insurance-loss-control"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Insurance"
+        }
+      ],
+      "outline": [
+        "Open with the specific question: Insurance Loss Control Inspection Requirements: What New Contractors Should Know",
+        "Give the plain-English answer for contractors comparing insurance inspection and loss-control work",
+        "Cover direct answer",
+        "Cover requirements",
+        "Cover pay or fit caveats",
+        "Cover Nested Objects next step",
+        "Add a Nested Objects example, workflow, or decision rule",
+        "Point readers to /roles/insurance-loss-control"
+      ],
+      "aeoAnswerBlock": "Insurance Loss Control Inspection Requirements: What New Contractors Should Know: Explain photos, safety observations, interview boundaries, commercial property expectations, and how loss-control differs from mortgage inspection. The answer should be direct, conservative, and useful for contractors comparing insurance inspection and loss-control work. It should name the tradeoffs, explain what to check before acting, and point readers toward /roles/insurance-loss-control for the next step.",
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "role page exists",
+        "insurance directory filter exists"
+      ]
+    },
+    {
+      "id": "youtube-insurance-loss-control",
+      "sourceOpportunityIds": [
+        "fallback-insurance-loss-control-requirements"
+      ],
+      "contentType": "youtube_script",
+      "status": "candidate",
+      "priority": "medium",
+      "score": 72,
+      "title": "Insurance Loss Control Inspection Requirements: What New Contractors Should Know?",
+      "slug": "youtube-insurance-loss-control-inspection-requirements-what-new-contractors-shou",
+      "audience": "contractors comparing insurance inspection and loss-control work",
+      "intent": "field-inspection",
+      "angle": "Explain photos, safety observations, interview boundaries, commercial property expectations, and how loss-control differs from mortgage inspection.",
+      "targetPage": "/roles/insurance-loss-control",
+      "targetKeywords": [
+        "insurance loss control inspection requirements",
+        "loss control inspector contractor",
+        "insurance inspection jobs"
+      ],
+      "internalLinks": [
+        {
+          "label": "Insurance loss control role page",
+          "href": "/roles/insurance-loss-control"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms?industry=Insurance"
+        }
+      ],
+      "outline": [
+        "Hook: state the misconception or costly mistake in the first 10 seconds",
+        "Define the viewer problem without overexplaining the industry",
+        "Give the plain-English answer for contractors comparing insurance inspection and loss-control work",
+        "Cover direct answer",
+        "Cover requirements",
+        "Cover pay or fit caveats",
+        "Close with one practical next step inside Nested Objects"
+      ],
+      "aeoAnswerBlock": "Insurance Loss Control Inspection Requirements: What New Contractors Should Know: Explain photos, safety observations, interview boundaries, commercial property expectations, and how loss-control differs from mortgage inspection. The answer should be direct, conservative, and useful for contractors comparing insurance inspection and loss-control work. It should name the tradeoffs, explain what to check before acting, and point readers toward /roles/insurance-loss-control for the next step.",
+      "youtube": {
+        "hook": "Most people ask \"Insurance Loss Control Inspection Requirements: What New Contractors Should Know?\" but miss the route, pay, or vendor-fit detail that decides whether it is actually worth doing.",
+        "titleIdeas": [
+          "Insurance Loss Control Inspection Requirements: What New Contractors Should Know?",
+          "Insurance Loss Control Inspection Requirements: What New Contractors Should Know: What Beginners Should Know",
+          "Insurance Loss Control Inspection Requirements: What New Contractors Should Know: Pay, Fit, and Next Steps"
+        ],
+        "chapters": [
+          "0:00 The real question",
+          "0:45 What it means",
+          "2:00 Pay and fit caveats",
+          "4:00 Tools and next steps"
+        ],
+        "descriptionSeed": "A practical Nested Objects walkthrough for contractors comparing insurance inspection and loss-control work. Includes links to /roles/insurance-loss-control and related member-side tools."
+      },
+      "reviewChecklist": [
+        "Human reviewer adds first-party Nested Objects examples or field judgment",
+        "Claims about pay, vendors, compliance, or state rules are verified before publication",
+        "Blog drafts stay inside the existing /blog/review approval workflow",
+        "YouTube scripts are reviewed before recording or uploading",
+        "Internal links point to member-side role, tool, guide, or directory pages"
+      ],
+      "sourceSignals": [
+        "role page exists",
+        "insurance directory filter exists"
+      ]
+    }
+  ]
+}

@@ -58,6 +58,7 @@ export function BlurGate({
             <div
                 className="pointer-events-none select-none blur-sm opacity-50"
                 aria-hidden="true"
+                inert
             >
                 {children}
             </div>

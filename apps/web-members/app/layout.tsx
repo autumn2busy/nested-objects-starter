@@ -5,8 +5,9 @@ import { AuthProvider } from '@/components/auth-provider'
 import { ActiveCampaignTracker } from '@/components/ActiveCampaignTracker'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
-import { PromoBanner } from '@/components/PromoBanner'
 import { MobileActionBar } from '@/components/MobileActionBar'
+import { DeferredGoogleTagManager } from '@/components/DeferredGoogleTagManager'
+import { DeferredOutsetaLoader } from '@/components/DeferredOutsetaLoader'
 import { cn } from '@/lib/utils'
 import {
   DEFAULT_OG_IMAGE,
@@ -98,28 +99,11 @@ export default function RootLayout({
   })
   const homeBreadcrumbSchema = getBreadcrumbSchema([{ name: 'Home', url: SITE_URL }])
 
-  const shouldLoadOutseta =
-    process.env.NODE_ENV === 'production' ||
-    process.env.NEXT_PUBLIC_ENABLE_OUTSETA === 'true'
-
   const acActId = process.env.NEXT_PUBLIC_AC_ACTID
 
   return (
     <html lang="en" className="w-full overflow-x-clip" suppressHydrationWarning>
       <head>
-        <Script
-          id="gtm-script"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-5HPX4VTQ');
-            `,
-          }}
-        />
         {/* Global Structured Data */}
         <script
           type="application/ld+json"
@@ -140,33 +124,6 @@ export default function RootLayout({
 
         {/* Preconnect to external CDNs */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-
-        {/* Outseta install snippet. Only load in production or if explicitly enabled */}
-        {shouldLoadOutseta && (
-          <>
-            {/* Configuration must be set before the Outseta script executes */}
-            <Script
-              id="outseta-options"
-              strategy="beforeInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  var o_options = {
-                    domain: 'nested-objects.outseta.com',
-                    load: 'auth,profile',
-                    tokenStorage: 'local'
-                  };
-                `,
-              }}
-            />
-            {/* Load Outseta library synchronously to strictly follow config */}
-            <Script
-              id="outseta-loader"
-              src="https://cdn.outseta.com/outseta.min.js"
-              strategy="beforeInteractive"
-              data-options="o_options"
-            />
-          </>
-        )}
 
         {/* ActiveCampaign Site Tracking — only load if ACTID is configured */}
         {acActId && (
@@ -203,8 +160,9 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
+          <DeferredOutsetaLoader />
+          <DeferredGoogleTagManager />
           <ActiveCampaignTracker />
-          <PromoBanner />
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>

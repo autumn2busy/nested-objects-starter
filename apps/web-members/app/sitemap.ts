@@ -245,7 +245,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
 
     // --- Dynamic entries ---
-    ...firmEntries,
+    // Firm detail routes are intentionally excluded. They contain member-only
+    // intelligence and must not be advertised to anonymous crawlers.
     ...roleEntries,
     ...toolEntries,
     ...stateEntries,

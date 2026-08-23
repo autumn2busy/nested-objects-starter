@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-06-09T23:15:30.290Z",
+  "generatedAt": "2026-06-15T00:23:09.021Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor identifies AI/AEO visibility gaps only. Supporting posts must use the existing blog draft, preview, review, approval, and sitemap workflow.",
   "dataSources": [
     {
       "name": "AI answer snapshot webhook",
       "status": "configured",
-      "detail": "Pulled 0 external AI answer snapshots.",
-      "count": 0
+      "detail": "Pulled 18 external AI answer snapshots.",
+      "count": 18
     },
     {
       "name": "Owned prompt coverage model",
       "status": "configured",
-      "detail": "Scored 13 contractor-facing prompts against Nested Objects answer requirements.",
-      "count": 13
+      "detail": "Scored 18 contractor-facing prompts against Nested Objects answer requirements.",
+      "count": 18
     }
   ],
   "promptSet": [
@@ -46,6 +46,31 @@
       "prompt": "What is a mortgage field inspection?",
       "intent": "career_research",
       "targetPage": "/roles/mortgage-field-inspector"
+    },
+    {
+      "prompt": "What tools help field inspectors find companies hiring near them?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
+    },
+    {
+      "prompt": "What is the best directory for field inspection companies?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
+    },
+    {
+      "prompt": "How do field inspectors compare vendor pay and route fit?",
+      "intent": "vendor_selection",
+      "targetPage": "/hiring-firms"
+    },
+    {
+      "prompt": "What tools help mobile notaries add field inspection assignments?",
+      "intent": "notary_visibility",
+      "targetPage": "/tools/notary-route-calculator"
+    },
+    {
+      "prompt": "How do I find field inspection work with no experience?",
+      "intent": "career_research",
+      "targetPage": "/guides/how-to-become-a-field-inspector"
     },
     {
       "prompt": "What companies hire field inspectors near me?",
@@ -83,7 +108,254 @@
       "targetPage": "/hiring-firms"
     }
   ],
-  "answerSnapshots": [],
+  "answerSnapshots": [
+    {
+      "prompt": "What is a field inspection?",
+      "answerSummary": "A field inspection is the process of examining and evaluating the condition of properties, equipment, or assets at their location to gather data, identify potential issues, and ensure compliance with regulations or standards.",
+      "citedBrands": [],
+      "citedTopics": [
+        "property inspection",
+        "equipment inspection",
+        "compliance"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What does a field inspector do?",
+      "answerSummary": "A field inspector is responsible for conducting on-site inspections of properties, equipment, or infrastructure to assess condition, identify defects, and ensure compliance with regulations and standards.",
+      "citedBrands": [],
+      "citedTopics": [
+        "construction",
+        "infrastructure",
+        "compliance"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "Is field inspection a real job?",
+      "answerSummary": "Yes, field inspection is a real job that involves evaluating and reporting on the condition of properties, equipment, or other assets in various industries such as construction, oil and gas, and insurance.",
+      "citedBrands": [],
+      "citedTopics": [
+        "construction",
+        "oil and gas",
+        "insurance",
+        "field inspection"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How do I become a field inspector?",
+      "answerSummary": "To become a field inspector, you typically need a combination of education, training, and experience in a relevant field such as construction, engineering, or architecture. Many field inspectors start their careers as construction workers, engineers, or architects and then move into inspection roles. Obtaining certifications from organizations like the International Code Council (ICC) or the National Association of Home Builders (NAHB) can also be beneficial.",
+      "citedBrands": [],
+      "citedTopics": [
+        "construction",
+        "engineering",
+        "architecture",
+        "certifications"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How much do field inspectors make?",
+      "answerSummary": "Field inspectors' salaries vary based on location, industry, and experience. On average, they can earn between $40,000 and $80,000 per year. Companies like Home Depot and Lowe's often hire field inspectors for construction and property assessment.",
+      "citedBrands": [
+        "Home Depot",
+        "Lowe's"
+      ],
+      "citedTopics": [
+        "construction",
+        "property assessment",
+        "salary"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What is a mortgage field inspection?",
+      "answerSummary": "A mortgage field inspection is a process where a professional inspector visits a property to verify its condition, occupancy, and value, typically for mortgage lending purposes.",
+      "citedBrands": [],
+      "citedTopics": [
+        "mortgage lending",
+        "property inspection",
+        "field services"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What tools help field inspectors find companies hiring near them?",
+      "answerSummary": "Field inspectors can utilize online job boards, industry-specific platforms, and professional networks to find companies hiring near them. Websites like Indeed, LinkedIn, and Glassdoor often have job listings for field inspection positions. Additionally, industry-specific platforms like Field Nation or WorkMarket can connect inspectors with companies in need of their services.",
+      "citedBrands": [
+        "Indeed",
+        "LinkedIn",
+        "Glassdoor",
+        "Field Nation",
+        "WorkMarket"
+      ],
+      "citedTopics": [
+        "job boards",
+        "industry-specific platforms",
+        "professional networks",
+        "field inspection"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What is the best directory for field inspection companies?",
+      "answerSummary": "The best directory for field inspection companies can vary depending on specific needs, but popular options include the National Association of Home Inspectors and online review sites like Angie's List or HomeAdvisor.",
+      "citedBrands": [
+        "Angie's List",
+        "HomeAdvisor"
+      ],
+      "citedTopics": [
+        "field inspection",
+        "home inspection",
+        "vendor selection"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How do field inspectors compare vendor pay and route fit?",
+      "answerSummary": "Field inspectors compare vendor pay and route fit by evaluating factors such as compensation rates, route density, and geographic location. They may use software like WorkMax or ServiceMax to optimize routes and manage vendor relationships.",
+      "citedBrands": [
+        "WorkMax",
+        "ServiceMax"
+      ],
+      "citedTopics": [
+        "vendor management",
+        "route optimization",
+        "field service management"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What tools help mobile notaries add field inspection assignments?",
+      "answerSummary": "Mobile notaries can utilize route optimization software and mobile apps to add field inspection assignments, streamlining their workflow and increasing efficiency.",
+      "citedBrands": [
+        "Google Maps",
+        "RouteXL"
+      ],
+      "citedTopics": [
+        "route optimization",
+        "field inspection management",
+        "mobile notary services"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How do I find field inspection work with no experience?",
+      "answerSummary": "To find field inspection work with no experience, consider obtaining relevant certifications, building a strong resume, and networking within the industry. Many companies, such as Home Depot or Lowe's, often hire field inspectors for various roles. You can also search for job openings on websites like Indeed or LinkedIn.",
+      "citedBrands": [
+        "Home Depot",
+        "Lowe's",
+        "Indeed",
+        "LinkedIn"
+      ],
+      "citedTopics": [
+        "field inspection",
+        "certifications",
+        "resume building",
+        "networking"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What companies hire field inspectors near me?",
+      "answerSummary": "Several companies hire field inspectors, including government agencies, construction firms, and insurance companies. Some notable companies in this industry include engineering and architecture firms. You can search for job openings on websites like Indeed or LinkedIn, or check the career pages of local companies in your area.",
+      "citedBrands": [
+        "Indeed",
+        "LinkedIn"
+      ],
+      "citedTopics": [
+        "construction",
+        "insurance",
+        "engineering",
+        "architecture"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "Field inspector pay per inspection",
+      "answerSummary": "Field inspectors' pay per inspection varies based on factors like location, industry, and employer. On average, they can earn between $50 to $200 per inspection, with some companies like Home Depot or Lowe's potentially offering higher rates for specialized inspections.",
+      "citedBrands": [
+        "Home Depot",
+        "Lowe's"
+      ],
+      "citedTopics": [
+        "field inspection",
+        "income calculator",
+        "construction industry"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "What is the difference between mortgage field inspection and property preservation?",
+      "answerSummary": "Mortgage field inspection and property preservation are two related but distinct services in the real estate industry. Mortgage field inspection involves assessing the condition of a property to determine its value and identify potential risks for lenders, often conducted by companies like Altisource or CoreLogic. Property preservation, on the other hand, focuses on maintaining and protecting vacant or distressed properties to prevent damage and deterioration, which can be facilitated by brands such as Safeguard Properties. The key difference lies in their objectives: inspection aims to evaluate, while preservation aims to maintain.",
+      "citedBrands": [
+        "Altisource",
+        "CoreLogic",
+        "Safeguard Properties"
+      ],
+      "citedTopics": [
+        "mortgage field inspection",
+        "property preservation",
+        "real estate"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "How can a mobile notary find signing services and RON platforms?",
+      "answerSummary": "Mobile notaries can find signing services and RON platforms through online directories, notary associations, and industry-specific websites. They can also search for companies like Notarize, DocuSign, and SignNow that offer remote notarization services.",
+      "citedBrands": [
+        "Notarize",
+        "DocuSign",
+        "SignNow"
+      ],
+      "citedTopics": [
+        "online directories",
+        "notary associations",
+        "industry-specific websites",
+        "remote notarization services"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "Can mobile notaries add field inspection or photo assignments to their route?",
+      "answerSummary": "Yes, mobile notaries can add field inspection or photo assignments to their route using route optimization tools like those found on the Nested Objects platform or other similar services.",
+      "citedBrands": [
+        "Nested Objects"
+      ],
+      "citedTopics": [
+        "route optimization",
+        "field inspection",
+        "mobile notaries"
+      ],
+      "nestedObjectsMentioned": true
+    },
+    {
+      "prompt": "What do insurance loss control inspectors do?",
+      "answerSummary": "Insurance loss control inspectors assess and identify potential risks to people and property, providing recommendations to mitigate these risks and prevent losses. They work with insurance companies to ensure policyholders comply with safety regulations and standards, often conducting on-site inspections and analyzing data to determine risk levels.",
+      "citedBrands": [
+        "Travelers",
+        "Liberty Mutual"
+      ],
+      "citedTopics": [
+        "risk assessment",
+        "safety regulations",
+        "insurance underwriting"
+      ],
+      "nestedObjectsMentioned": false
+    },
+    {
+      "prompt": "Which field inspection firms are reliable for new contractors?",
+      "answerSummary": "Reliable field inspection firms for new contractors include those with a strong reputation, proper training, and necessary certifications. Some popular options may be found through industry associations or online directories.",
+      "citedBrands": [],
+      "citedTopics": [
+        "field inspection",
+        "contractor training",
+        "industry associations"
+      ],
+      "nestedObjectsMentioned": false
+    }
+  ],
   "opportunities": [
     {
       "id": "aeo-what-is-a-field-inspection",
@@ -93,7 +365,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/guides/how-to-become-a-field-inspector",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -122,7 +394,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/guides/how-to-become-a-field-inspector",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -151,7 +423,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/guides/how-to-become-a-field-inspector",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -180,7 +452,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/guides/how-to-become-a-field-inspector",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -209,7 +481,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/tools/income-calculator",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "fee range caveats",
         "mileage and unpaid admin time",
@@ -227,7 +499,10 @@
           "href": "/hiring-firms"
         }
       ],
-      "observedBrands": [],
+      "observedBrands": [
+        "Home Depot",
+        "Lowe's"
+      ],
       "workflowStatus": "candidate"
     },
     {
@@ -238,7 +513,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/roles/mortgage-field-inspector",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -260,14 +535,14 @@
       "workflowStatus": "candidate"
     },
     {
-      "id": "aeo-what-companies-hire-field-inspectors-near-me",
-      "prompt": "What companies hire field inspectors near me?",
+      "id": "aeo-what-tools-help-field-inspectors-find-companies-hiring-near-them",
+      "prompt": "What tools help field inspectors find companies hiring near them?",
       "intent": "vendor_selection",
       "priority": "high",
       "score": 95,
       "recommendedAction": "directory_language_update",
       "targetPage": "/hiring-firms",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "territory fit",
         "pay and volume signals",
@@ -285,7 +560,109 @@
           "href": "/hiring-firms"
         }
       ],
-      "observedBrands": [],
+      "observedBrands": [
+        "Indeed",
+        "LinkedIn",
+        "Glassdoor",
+        "Field Nation",
+        "WorkMarket"
+      ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-is-the-best-directory-for-field-inspection-companies",
+      "prompt": "What is the best directory for field inspection companies?",
+      "intent": "vendor_selection",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [
+        "Angie's List",
+        "HomeAdvisor"
+      ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-tools-help-mobile-notaries-add-field-inspection-assignments",
+      "prompt": "What tools help mobile notaries add field inspection assignments?",
+      "intent": "notary_visibility",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "owned_answer_refresh",
+      "targetPage": "/tools/notary-route-calculator",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "signing services",
+        "title and escrow vendors",
+        "RON platforms",
+        "credential upload cautions",
+        "notary route calculator CTA"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/tools/notary-route-calculator"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [
+        "Google Maps",
+        "RouteXL"
+      ],
+      "workflowStatus": "candidate"
+    },
+    {
+      "id": "aeo-what-companies-hire-field-inspectors-near-me",
+      "prompt": "What companies hire field inspectors near me?",
+      "intent": "vendor_selection",
+      "priority": "high",
+      "score": 95,
+      "recommendedAction": "directory_language_update",
+      "targetPage": "/hiring-firms",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
+      "recommendedAnswerElements": [
+        "territory fit",
+        "pay and volume signals",
+        "application readiness",
+        "directory/filter CTA",
+        "save or track firms workflow"
+      ],
+      "internalLinks": [
+        {
+          "label": "Target answer page",
+          "href": "/hiring-firms"
+        },
+        {
+          "label": "Hiring firm directory",
+          "href": "/hiring-firms"
+        }
+      ],
+      "observedBrands": [
+        "Indeed",
+        "LinkedIn"
+      ],
       "workflowStatus": "candidate"
     },
     {
@@ -325,7 +702,7 @@
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
       "targetPage": "/blog/mortgage-field-inspection-vs-property-preservation",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
+      "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "plain-English role definition",
         "requirements and tools",
@@ -343,98 +720,11 @@
           "href": "/roles/asset-preservation"
         }
       ],
-      "observedBrands": [],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-how-can-a-mobile-notary-find-signing-services-and-ron-platforms",
-      "prompt": "How can a mobile notary find signing services and RON platforms?",
-      "intent": "notary_visibility",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/mobile-notary",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
-      "recommendedAnswerElements": [
-        "signing services",
-        "title and escrow vendors",
-        "RON platforms",
-        "credential upload cautions",
-        "notary route calculator CTA"
+      "observedBrands": [
+        "Altisource",
+        "CoreLogic",
+        "Safeguard Properties"
       ],
-      "internalLinks": [
-        {
-          "label": "Mobile notary role page",
-          "href": "/roles/mobile-notary"
-        },
-        {
-          "label": "Notary route calculator",
-          "href": "/tools/notary-route-calculator"
-        },
-        {
-          "label": "Notary directory filter",
-          "href": "/hiring-firms?industry=Notary"
-        }
-      ],
-      "observedBrands": [],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-can-mobile-notaries-add-field-inspection-or-photo-assignments-to-their-r",
-      "prompt": "Can mobile notaries add field inspection or photo assignments to their route?",
-      "intent": "route_operations",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "supporting_blog_candidate",
-      "targetPage": "/tools/notary-route-calculator",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
-      "recommendedAnswerElements": [
-        "route batching",
-        "second-trip avoidance",
-        "scope separation",
-        "calculator CTA",
-        "firm comparison CTA"
-      ],
-      "internalLinks": [
-        {
-          "label": "Target answer page",
-          "href": "/tools/notary-route-calculator"
-        },
-        {
-          "label": "Hiring firm directory",
-          "href": "/hiring-firms"
-        }
-      ],
-      "observedBrands": [],
-      "workflowStatus": "candidate"
-    },
-    {
-      "id": "aeo-what-do-insurance-loss-control-inspectors-do",
-      "prompt": "What do insurance loss control inspectors do?",
-      "intent": "career_research",
-      "priority": "high",
-      "score": 95,
-      "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/roles/insurance-loss-control",
-      "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
-      "recommendedAnswerElements": [
-        "plain-English role definition",
-        "requirements and tools",
-        "pay-fit caveats",
-        "beginner next steps",
-        "link to relevant role page"
-      ],
-      "internalLinks": [
-        {
-          "label": "Insurance loss control role page",
-          "href": "/roles/insurance-loss-control"
-        },
-        {
-          "label": "Hiring firm directory",
-          "href": "/hiring-firms?industry=Insurance"
-        }
-      ],
-      "observedBrands": [],
       "workflowStatus": "candidate"
     }
   ]

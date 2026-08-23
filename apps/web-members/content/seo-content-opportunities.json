@@ -1,17 +1,19 @@
 {
-  "generatedAt": "2026-06-09T23:15:38.091Z",
+  "generatedAt": "2026-06-15T00:23:12.974Z",
   "cadence": "weekly",
   "workflowBoundary": "This monitor only creates topic candidates. Posts must still be drafted, reviewed at /blog/review, approved, and allowed into sitemap through the existing blog workflow.",
   "dataSources": [
     {
       "name": "Google Search Console",
-      "status": "error",
-      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
+      "status": "configured",
+      "detail": "Pulled 20 query/page rows for 2026-05-15 to 2026-06-12 using oauth auth.",
+      "count": 20
     },
     {
       "name": "GA4",
-      "status": "error",
-      "detail": "Could not obtain Google access token using oauth auth: OAuth token exchange returned 401: Unauthorized."
+      "status": "configured",
+      "detail": "Pulled 4 page/event rows for 2026-05-15 to 2026-06-12 using oauth auth.",
+      "count": 4
     },
     {
       "name": "PageSpeed Insights",
@@ -154,6 +156,27 @@
       "sourceSignals": [
         "role page exists",
         "insurance directory filter exists"
+      ]
+    },
+    {
+      "id": "psi-https-members-nestedobjects-com-tools-notary-route-calculator",
+      "title": "Improve mobile answer experience for /tools/notary-route-calculator",
+      "angle": "Treat this as a content UX opportunity: keep the primary answer, CTA, and internal links visible quickly on mobile before adding more supporting content.",
+      "category": "route-operations",
+      "priority": "medium",
+      "score": 35,
+      "recommendedSurface": "role_page_refresh",
+      "workflowStatus": "candidate",
+      "targetKeywords": [],
+      "internalLinks": [
+        {
+          "label": "Affected page",
+          "href": "/tools/notary-route-calculator"
+        }
+      ],
+      "rationale": "PageSpeed mobile score is 65. Top opportunities: Reduce unused JavaScript; Time to Interactive; Speed Index.",
+      "sourceSignals": [
+        "PSI mobile: https://members.nestedobjects.com/tools/notary-route-calculator"
       ]
     }
   ]

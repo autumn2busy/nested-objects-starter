@@ -58,6 +58,85 @@ type StateFirmPreviewResponse = {
     totalCount: number
 }
 
+type StateMarketProfile = {
+    metroExamples: string[]
+    demandDrivers: string[]
+    beginnerLanes: string[]
+    routeWarnings: string[]
+}
+
+const STATE_MARKET_PROFILES: Record<string, StateMarketProfile> = {
+    texas: {
+        metroExamples: ['Dallas-Fort Worth', 'Houston', 'Austin', 'San Antonio'],
+        demandDrivers: ['large metro spread', 'suburban growth', 'mortgage servicing volume', 'property preservation coverage'],
+        beginnerLanes: ['occupancy checks', 'exterior photo inspections', 'property condition reports', 'mobile notary add-ons'],
+        routeWarnings: ['long county-to-county drives', 'heat and weather delays', 'rush requests outside dense metros'],
+    },
+    florida: {
+        metroExamples: ['Tampa Bay', 'Orlando', 'Miami-Fort Lauderdale', 'Jacksonville'],
+        demandDrivers: ['coastal property volume', 'insurance documentation', 'vacant property checks', 'seasonal migration'],
+        beginnerLanes: ['drive-by photos', 'occupancy verification', 'insurance surveys', 'notary-compatible route work'],
+        routeWarnings: ['toll and bridge costs', 'storm-season scheduling', 'high-traffic appointment windows'],
+    },
+    california: {
+        metroExamples: ['Los Angeles', 'San Diego', 'Bay Area', 'Sacramento'],
+        demandDrivers: ['high property values', 'large urban markets', 'insurance and lender documentation', 'regional vendor coverage'],
+        beginnerLanes: ['exterior inspections', 'condition photos', 'loss control surveys', 'appraisal support tasks'],
+        routeWarnings: ['traffic drag on net pay', 'parking and access rules', 'wide metro-to-metro distance'],
+    },
+    'new-york': {
+        metroExamples: ['New York City', 'Long Island', 'Hudson Valley', 'Buffalo'],
+        demandDrivers: ['dense urban assignments', 'suburban lender checks', 'notary demand', 'mixed residential and commercial surveys'],
+        beginnerLanes: ['exterior photo sets', 'occupancy checks', 'mobile notary appointments', 'basic loss control'],
+        routeWarnings: ['parking and building access', 'appointment coordination', 'different economics upstate versus downstate'],
+    },
+    georgia: {
+        metroExamples: ['Atlanta', 'Savannah', 'Augusta', 'Macon'],
+        demandDrivers: ['Atlanta metro growth', 'regional vendor coverage', 'suburban route work', 'preservation demand'],
+        beginnerLanes: ['occupancy verification', 'exterior photos', 'property condition reports', 'drive-by valuation support'],
+        routeWarnings: ['metro traffic', 'rural route spacing', 'county coverage claims that need verification'],
+    },
+    'north-carolina': {
+        metroExamples: ['Charlotte', 'Raleigh-Durham', 'Greensboro', 'Wilmington'],
+        demandDrivers: ['housing growth', 'metro-to-rural coverage mix', 'insurance surveys', 'lender documentation'],
+        beginnerLanes: ['exterior inspections', 'occupancy checks', 'loss control surveys', 'notary-compatible work'],
+        routeWarnings: ['mountain/coastal distance', 'appointment windows', 'sparse vendor volume outside metros'],
+    },
+    ohio: {
+        metroExamples: ['Columbus', 'Cleveland', 'Cincinnati', 'Dayton'],
+        demandDrivers: ['multi-metro coverage', 'mortgage servicing volume', 'preservation work', 'insurance surveys'],
+        beginnerLanes: ['occupancy checks', 'drive-by photos', 'property condition reports', 'preservation inspections'],
+        routeWarnings: ['winter access issues', 'route density by county', 'revision-heavy photo standards'],
+    },
+    pennsylvania: {
+        metroExamples: ['Philadelphia', 'Pittsburgh', 'Lehigh Valley', 'Harrisburg'],
+        demandDrivers: ['older housing stock', 'urban and rural mix', 'lender checks', 'insurance documentation'],
+        beginnerLanes: ['exterior photos', 'occupancy verification', 'loss control surveys', 'notary assignments'],
+        routeWarnings: ['turnpike costs', 'city access constraints', 'wide rural coverage areas'],
+    },
+    illinois: {
+        metroExamples: ['Chicago', 'Aurora-Naperville', 'Rockford', 'Springfield'],
+        demandDrivers: ['Chicago-area volume', 'suburban lender work', 'commercial loss control', 'preservation checks'],
+        beginnerLanes: ['occupancy checks', 'exterior photo inspections', 'insurance surveys', 'route-based property checks'],
+        routeWarnings: ['traffic and parking costs', 'winter timing', 'statewide coverage that may not mean local volume'],
+    },
+    virginia: {
+        metroExamples: ['Northern Virginia', 'Richmond', 'Hampton Roads', 'Roanoke'],
+        demandDrivers: ['federal-adjacent housing markets', 'suburban growth', 'coastal coverage', 'notary and lender tasks'],
+        beginnerLanes: ['property condition photos', 'occupancy checks', 'mobile notary work', 'basic loss control'],
+        routeWarnings: ['metro congestion', 'tunnel and bridge timing', 'rural route spacing'],
+    },
+}
+
+function getStateMarketProfile(stateSlug: string, stateLabel: string): StateMarketProfile {
+    return STATE_MARKET_PROFILES[stateSlug] ?? {
+        metroExamples: [`major ${stateLabel} metros`, 'nearby suburbs', 'county seats', 'regional service areas'],
+        demandDrivers: ['mortgage servicing coverage', 'insurance documentation', 'property preservation needs', 'local vendor gaps'],
+        beginnerLanes: ['occupancy checks', 'exterior photo inspections', 'property condition reports', 'simple loss control surveys'],
+        routeWarnings: ['long rural drives', 'unclear county coverage', 'revision-heavy assignments', 'low-density order volume'],
+    }
+}
+
 async function getFirmsByState(stateCode: string, stateLabel: string): Promise<StateFirmPreviewResponse> {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -136,6 +215,10 @@ function getStateFAQs(stateLabel: string) {
             answer: `The fastest path is to shortlist firms that mention ${stateLabel} or your nearest metro, add national firms with nationwide coverage, then remove any company that does not match your route radius, equipment, schedule, or pay requirements.`,
         },
         {
+            question: `Which field inspection companies hire near me in ${stateLabel}?`,
+            answer: `Look for firms that list ${stateLabel}, your nearest metro, nearby counties, or nationwide coverage. Then confirm the actual service lane, assignment volume, onboarding requirements, and travel expectations before assuming a company has active work near you.`,
+        },
+        {
             question: `How many firms should I apply to in ${stateLabel}?`,
             answer: `Most contractors should compare several firms instead of relying on one application. A practical starting shortlist is five to ten firms across mortgage field inspections, loss control, preservation, notary, and appraisal support, then prioritize the ones with the clearest coverage and onboarding details.`,
         },
@@ -207,6 +290,35 @@ function getComparisonChecks(stateLabel: string) {
     ]
 }
 
+function getStateOpportunityMatrix(stateLabel: string) {
+    return [
+        {
+            role: 'Mortgage field inspector',
+            href: '/roles/mortgage-field-inspector',
+            bestFor: `Route-based occupancy checks, exterior photos, and lender status work in ${stateLabel}.`,
+            verify: 'County coverage, order volume, trip fees, revision rules, and photo standards.',
+        },
+        {
+            role: 'Insurance loss control inspector',
+            href: '/roles/insurance-loss-control',
+            bestFor: 'Inspectors comfortable with appointments, measurements, hazard notes, and underwriting reports.',
+            verify: 'Residential versus commercial mix, report length, appointment expectations, and pay per survey.',
+        },
+        {
+            role: 'Mobile notary',
+            href: '/roles/mobile-notary',
+            bestFor: 'Commissioned notaries comparing signing services, RON platforms, and route-compatible add-ons.',
+            verify: 'State notary rules, credential requirements, scan-backs, cancellation policy, and net travel pay.',
+        },
+        {
+            role: 'Property preservation vendor',
+            href: '/roles/asset-preservation',
+            bestFor: 'Vendors who can document condition, access, debris, securing, winterization, or REO support.',
+            verify: 'Materials reimbursement, safety expectations, before/after photo proof, and payment timing.',
+        },
+    ]
+}
+
 function getStateCollectionSchema({
     stateLabel,
     stateSlug,
@@ -258,6 +370,8 @@ export default async function StateLandingPage({
     const applicationSteps = getStateApplicationSteps(stateInfo.label)
     const shortlistSignals = getStateShortlistSignals(stateInfo.label)
     const comparisonChecks = getComparisonChecks(stateInfo.label)
+    const opportunityMatrix = getStateOpportunityMatrix(stateInfo.label)
+    const marketProfile = getStateMarketProfile(stateSlug, stateInfo.label)
     const faqSchema = getFAQPageSchema(faqs)
     const collectionSchema = getStateCollectionSchema({
         stateLabel: stateInfo.label,
@@ -350,6 +464,128 @@ export default async function StateLandingPage({
                                         <h3 className="text-sm font-semibold text-slate-900">{answer.title}</h3>
                                         <p className="mt-2 text-sm leading-6 text-slate-600">{answer.body}</p>
                                     </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Local market signals */}
+            <section className="border-b border-slate-200 bg-slate-50 py-10 [content-visibility:auto] [contain-intrinsic-size:0_720px] sm:py-12">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Local search map
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            Where to look for field inspection work in {stateInfo.label}
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                            Search results for &ldquo;field inspection companies near me&rdquo; can be noisy. Use these
+                            state-specific signals to decide which metros, firm types, and route risks deserve attention first.
+                        </p>
+                    </div>
+
+                    <div className="mt-7 grid gap-4 lg:grid-cols-3">
+                        <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                            <h3 className="text-sm font-semibold text-slate-950">Start with these service areas</h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Firms often describe coverage by metro, county, or broad region. Search these areas first, then
+                                confirm that the firm has current work near your actual route.
+                            </p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {marketProfile.metroExamples.map((metro) => (
+                                    <span key={metro} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                                        {metro}
+                                    </span>
+                                ))}
+                            </div>
+                        </article>
+
+                        <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                            <h3 className="text-sm font-semibold text-slate-950">Beginner-friendly lanes to compare</h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                New contractors usually need simple scopes, clear photo rules, and predictable turnaround before
+                                moving into specialty or appointment-heavy assignments.
+                            </p>
+                            <ul className="mt-4 space-y-2">
+                                {marketProfile.beginnerLanes.map((lane) => (
+                                    <li key={lane} className="flex gap-2 text-sm leading-6 text-slate-700">
+                                        <CheckCircle className="mt-1 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                                        <span>{lane}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </article>
+
+                        <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                            <h3 className="text-sm font-semibold text-slate-950">Route risks to price in</h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                A firm can look attractive on paper and still be a weak fit if the route is sparse, delayed, or
+                                expensive to drive.
+                            </p>
+                            <ul className="mt-4 space-y-2">
+                                {marketProfile.routeWarnings.map((warning) => (
+                                    <li key={warning} className="flex gap-2 text-sm leading-6 text-slate-700">
+                                        <ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-brand-copper" aria-hidden />
+                                        <span>{warning}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </article>
+                    </div>
+
+                    <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            Demand clues to watch in {stateInfo.label}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {marketProfile.demandDrivers.map((driver) => (
+                                <span key={driver} className="rounded-full bg-brand-mist px-3 py-1.5 text-xs font-semibold text-brand-dark">
+                                    {driver}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* State opportunity matrix */}
+            <section className="border-b border-slate-200 bg-slate-50 py-10 [content-visibility:auto] [contain-intrinsic-size:0_760px] sm:py-12">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Best-fit paths
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+                            Which field-service path fits {stateInfo.label} contractors?
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                            Use this comparison to decide which role pages and firm profiles to review before you apply.
+                            The right path depends on your credentials, route density, equipment, and tolerance for appointments.
+                        </p>
+                    </div>
+                    <div className="mt-7 grid gap-4 md:grid-cols-2">
+                        {opportunityMatrix.map((item) => (
+                            <article key={item.role} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-base font-semibold text-slate-900">{item.role}</h3>
+                                        <p className="mt-2 text-sm leading-6 text-slate-600">{item.bestFor}</p>
+                                    </div>
+                                    <Link
+                                        href={item.href}
+                                        className="shrink-0 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
+                                    >
+                                        Guide
+                                    </Link>
+                                </div>
+                                <div className="mt-4 rounded-md bg-slate-50 p-3">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                                        Verify first
+                                    </p>
+                                    <p className="mt-1 text-sm leading-6 text-slate-700">{item.verify}</p>
                                 </div>
                             </article>
                         ))}

@@ -57,6 +57,8 @@ export function IndustryNews({ limit = 12, variant = 'full' }: IndustryNewsProps
         })
     }
 
+    const isLocalImage = (src: string) => src.startsWith('/')
+
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -119,13 +121,24 @@ export function IndustryNews({ limit = 12, variant = 'full' }: IndustryNewsProps
                     {/* Image */}
                     <div className="relative h-40 w-full bg-slate-100">
                         {article.image ? (
-                            <Image
-                                src={article.image}
-                                alt={article.title}
-                                fill
-                                className="object-cover"
-                                unoptimized // External images from news sources
-                            />
+                            isLocalImage(article.image) ? (
+                                <Image
+                                    src={article.image}
+                                    alt={article.title}
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                // RSS feeds can point to many third-party CDNs, so use a plain image for remote article art.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={article.image}
+                                    alt={article.title}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer"
+                                />
+                            )
                         ) : (
                             <div className="flex h-full items-center justify-center">
                                 <Newspaper className="h-10 w-10 text-slate-300" />

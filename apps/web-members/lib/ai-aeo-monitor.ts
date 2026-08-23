@@ -78,29 +78,29 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
     targetPage: '/roles/mortgage-field-inspector',
   },
   {
-    prompt: 'What is a field inspection?',
-    intent: 'career_research',
-    targetPage: '/roles/mortgage-field-inspector',
+    prompt: 'What tools help field inspectors find companies hiring near them?',
+    intent: 'vendor_selection',
+    targetPage: '/hiring-firms',
   },
   {
-    prompt: 'What does a field inspector do?',
-    intent: 'career_research',
-    targetPage: '/roles/mortgage-field-inspector',
+    prompt: 'What is the best directory for field inspection companies?',
+    intent: 'vendor_selection',
+    targetPage: '/hiring-firms',
   },
   {
-    prompt: 'Is field inspection a real job?',
-    intent: 'career_research',
-    targetPage: '/roles/mortgage-field-inspector',
+    prompt: 'How do field inspectors compare vendor pay and route fit?',
+    intent: 'vendor_selection',
+    targetPage: '/hiring-firms',
   },
   {
-    prompt: 'How do I become a field inspector?',
-    intent: 'career_research',
-    targetPage: '/roles/mortgage-field-inspector',
+    prompt: 'What tools help mobile notaries add field inspection assignments?',
+    intent: 'notary_visibility',
+    targetPage: '/tools/notary-route-calculator',
   },
   {
-    prompt: 'How much do field inspectors make?',
-    intent: 'pay_requirements',
-    targetPage: '/tools/income-calculator',
+    prompt: 'How do I find field inspection work with no experience?',
+    intent: 'career_research',
+    targetPage: '/guides/how-to-become-a-field-inspector',
   },
   {
     prompt: 'What companies hire field inspectors near me?',
@@ -189,6 +189,18 @@ function slugify(value: string) {
     .slice(0, 72)
 }
 
+function hasNestedObjectsEvidence(snapshot: Partial<AnswerSnapshot>) {
+  const evidence = [
+    snapshot.answerSummary,
+    ...(Array.isArray(snapshot.citedBrands) ? snapshot.citedBrands : []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  return evidence.includes('nested objects') || evidence.includes('nestedobjects.com')
+}
+
 async function fetchAnswerSnapshotsFromWebhook(): Promise<{ snapshots: AnswerSnapshot[]; source: SourceRun }> {
   const webhookUrl = process.env.AEO_MONITOR_WEBHOOK_URL || process.env.AI_AEO_MONITOR_WEBHOOK_URL
 
@@ -233,7 +245,7 @@ async function fetchAnswerSnapshotsFromWebhook(): Promise<{ snapshots: AnswerSna
         answerSummary: snapshot.answerSummary || '',
         citedBrands: Array.isArray(snapshot.citedBrands) ? snapshot.citedBrands.filter(Boolean) : [],
         citedTopics: Array.isArray(snapshot.citedTopics) ? snapshot.citedTopics.filter(Boolean) : [],
-        nestedObjectsMentioned: Boolean(snapshot.nestedObjectsMentioned),
+        nestedObjectsMentioned: hasNestedObjectsEvidence(snapshot),
       }))
       .filter((snapshot) => snapshot.prompt)
 

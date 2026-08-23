@@ -1,6 +1,7 @@
 import { membershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
-import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { TestimonialStrip } from '@/components/TestimonialsSection'
+import Link from 'next/link'
 import { Ban, CheckCircle2, Clock, ShieldCheck, Star } from 'lucide-react'
 import {
     CurrentPlanBadge,
@@ -27,7 +28,7 @@ const proBenefitHighlights = [
 ]
 
 const planDecisionPrompts = [
-    'Start Free if you only need a low-pressure directory preview.',
+    'Start Free if you only need a 3-firm directory preview.',
     'Start Pro if you are ready to compare firms seriously this week.',
     'Upgrade later if you need Elite or Agency-level strategy support.',
 ]
@@ -35,7 +36,7 @@ const planDecisionPrompts = [
 const decisionConfidenceItems = [
     {
         title: 'Free is for browsing',
-        body: 'Use Free when you want to explore the hub, preview directory structure, and decide whether field work belongs in your plans.',
+        body: 'Use Free when you want to explore the hub, preview 3 firms, and decide whether field work belongs in your plans.',
     },
     {
         title: 'Pro is for deciding',
@@ -44,6 +45,27 @@ const decisionConfidenceItems = [
     {
         title: 'Paid access is instant',
         body: 'After the trial, digital access continues automatically unless you cancel before billing. Paid memberships are non-refundable.',
+    },
+]
+
+const trustAssuranceItems = [
+    {
+        title: 'Secure checkout',
+        body: 'Payments are handled through Outseta and Stripe. Card details are processed by the billing provider, not stored by Nested Objects.',
+        href: '/privacy',
+        label: 'Privacy terms',
+    },
+    {
+        title: 'Clear support path',
+        body: 'Billing, account, and plan questions can go through support@nestedobjects.com or the contact page before you upgrade.',
+        href: '/contact-us',
+        label: 'Contact support',
+    },
+    {
+        title: 'Refund expectations',
+        body: 'Pro trials bill after day 7 unless canceled. Paid digital access is non-refundable once membership access begins.',
+        href: '/refund-policy',
+        label: 'Refund policy',
     },
 ]
 
@@ -70,7 +92,7 @@ export const pricingFaqs = [
     },
     {
         question: 'Is there a free option while I am getting started?',
-        answer: 'Yes. The Free plan gives you ongoing access to the directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
+        answer: 'Yes. The Free plan gives you ongoing access to a 3-firm directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
     },
 ]
 
@@ -164,6 +186,9 @@ function MembershipContent() {
                         <p className="mt-4 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-white ring-1 ring-white/10">
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
+                        <p className="mt-3 text-xs leading-5 text-slate-300">
+                            Use the trial window to inspect firm profiles, tools, and route-fit resources before billing starts.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -178,7 +203,7 @@ function MembershipContent() {
                             Pick the plan by what you need to decide this week.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            Browse for free, test Pro for seven days, or stay paid only when the firm intel
+                            Preview 3 firms for free, test Pro for seven days, or stay paid only when the firm intel
                             and tools are worth it for your route.
                         </p>
                     </div>
@@ -189,6 +214,39 @@ function MembershipContent() {
                                 <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden />
                                 <h3 className="mt-3 text-sm font-semibold text-slate-950">{item.title}</h3>
                                 <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="mx-auto mt-8 max-w-5xl rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
+                            Trust and billing
+                        </p>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">
+                            Know how checkout, support, and access work before you choose.
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                            The membership is designed to be easy to test and easy to cancel. Review the
+                            support and policy links before paid access starts.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        {trustAssuranceItems.map((item) => (
+                            <article key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <ShieldCheck className="h-5 w-5 text-emerald-600" aria-hidden />
+                                <h3 className="mt-3 text-sm font-semibold text-slate-950">{item.title}</h3>
+                                <p className="mt-2 text-xs leading-5 text-slate-600">{item.body}</p>
+                                <Link
+                                    href={item.href}
+                                    className="mt-3 inline-flex text-xs font-semibold text-brand-copper underline underline-offset-4 hover:text-brand-copperDark"
+                                >
+                                    {item.label}
+                                </Link>
                             </article>
                         ))}
                     </div>
@@ -307,9 +365,9 @@ function MembershipContent() {
                                 Billing clarity
                             </h2>
                             <p className="mt-3">
-                                Pro starts with $0 due today for the 7-day trial. After the trial, paid digital
-                                memberships, firm intel, templates, and AI tools are non-refundable because
-                                access is delivered instantly.
+                                Pro starts with $0 due today for the 7-day trial. After billing starts,
+                                paid digital memberships, firm intel, templates, and AI tools
+                                are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">
                                 You can cancel anytime before renewal from your billing settings.
@@ -351,7 +409,17 @@ function MembershipContent() {
             </section>
 
             {/* Social proof */}
-            <TestimonialsSection variant="full" />
+            <section className="mx-auto mt-12 max-w-3xl rounded-lg border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-copper">
+                    Member proof
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-900">
+                    Real members use Nested Objects to compare firms and routes.
+                </h2>
+                <div className="mt-5 flex justify-center">
+                    <TestimonialStrip />
+                </div>
+            </section>
 
             <div className="mt-10 border-t border-slate-200 pt-4 text-center">
                 <a

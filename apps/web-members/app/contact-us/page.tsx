@@ -32,6 +32,19 @@ const contactChannels = [
   },
 ]
 
+const supportPrepItems = [
+  'Account email and current plan',
+  'Firm, state, or tool page URL if the issue is content-related',
+  'Receipt date or billing profile detail for payment questions',
+  'Screenshots or device details for login and mobile issues',
+]
+
+const trustResourceLinks = [
+  { href: '/privacy', label: 'Privacy and data handling' },
+  { href: '/refund-policy', label: 'Refund and billing policy' },
+  { href: '/terms-conditions', label: 'Terms of use' },
+]
+
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-brand-sand text-brand-dark">
@@ -100,6 +113,30 @@ export default function ContactPage() {
                   <p className="mt-1 text-xs text-brand-steel">{channel.response}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="rounded-3xl border border-brand-copper/20 bg-white p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Faster support</p>
+              <h2 className="mt-2 text-xl font-semibold text-brand-dark">Include the details that help us route your request.</h2>
+              <ul className="mt-4 grid gap-2 text-sm text-brand-slate sm:grid-cols-2">
+                {supportPrepItems.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" aria-hidden />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {trustResourceLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-full border border-brand-copper/25 bg-brand-mist px-3 py-1.5 text-xs font-semibold text-brand-dark transition hover:border-brand-copper/50 hover:bg-white"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Plan-aware concierge section (client component) */}
