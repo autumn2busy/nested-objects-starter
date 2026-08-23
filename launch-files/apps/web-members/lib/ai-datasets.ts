@@ -24,7 +24,7 @@ export const membershipPlans: MembershipPlan[] = [
       'Perfect for checking out the ecosystem before you subscribe. You get limited directory visibility and a preview of the training and resources.',
     highlight: false,
     features: [
-      'Preview up to 5 directory listings',
+      'Preview up to 3 free firms',
       'Training preview access',
       'Resources and readiness guides',
       'Upgrade any time',
