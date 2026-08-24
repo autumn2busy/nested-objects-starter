@@ -9,6 +9,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
 import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
+import { recordConversionEvent } from '@/lib/conversion-events';
 
 // =================================================================
 // TYPES
@@ -147,6 +148,7 @@ function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateD
   if (normalizedLabel.includes('past due') || normalizedLabel.includes('past_due')) return 'past_due';
   if (normalizedLabel.includes('cancel')) return 'canceled';
   if (normalizedLabel.includes('pause')) return 'paused';
+  if (normalizedLabel.includes('subscrib')) return 'active';
   if (normalizedLabel.includes('active')) return 'active';
 
   switch (stage) {
@@ -234,7 +236,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
       subscription_status: mapAccountStageToStatus(account?.AccountStage, account?.AccountStageLabel),
       subscription_start_date: subscription?.StartDate || null,
-      subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
+      subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
       plan_uid: plan?.Uid || null,
       plan_name: plan?.Name || null,
       billing_renewal_term: subscription?.BillingRenewalTerm || null,
@@ -278,7 +280,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
     subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
     subscription_status: mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel),
     subscription_start_date: subscription?.StartDate || null,
-    subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
+    subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
     plan_uid: plan?.Uid || null,
     plan_name: plan?.Name || null,
     billing_renewal_term: subscription?.BillingRenewalTerm || null,
@@ -420,6 +422,30 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime;
     console.log(`[${requestId}] ${result.operation.toUpperCase()} complete in ${duration}ms`);
 
+    // The webhook is the authoritative fallback for account creation. Client-side
+    // signup tracking is still useful for attribution, while this guarantees the
+    // cohort denominator exists even when a browser event is blocked.
+    if (result.operation === 'insert') {
+      try {
+        await recordConversionEvent(supabase, {
+          eventName: 'signup_completed',
+          clientEventId: `outseta-signup:${profileData.outseta_person_uid}`,
+          memberUid: profileData.outseta_person_uid,
+          memberEmail: profileData.email,
+          planUid: profileData.plan_uid,
+          planName: profileData.plan_name || profileData.subscription_tier,
+          eventData: {
+            sourcePage: 'outseta_webhook',
+            source: 'outseta',
+            plan: profileData.subscription_tier,
+          },
+          occurredAt: profileData.outseta_created_at,
+        });
+      } catch (conversionError) {
+        console.error(`[${requestId}] Signup conversion event failed:`, conversionError);
+      }
+    }
+
     // TRIGGER AC SYNC
     // We await this to ensure it completes before Vercel freezes the lambda.
     // In a high-volume setup, we might push this to a queue. 
@@ -454,6 +480,29 @@ export async function POST(request: NextRequest) {
       });
 
       if (lifecycleDecision.shouldTrack && lifecycleDecision.purchasePayload) {
+        try {
+          await recordConversionEvent(supabase, {
+            eventName: 'purchase',
+            clientEventId: `outseta-purchase:${profileData.outseta_person_uid}:${profileData.plan_uid || profileData.subscription_tier}:${profileData.subscription_start_date || profileData.outseta_updated_at}`,
+            memberUid: profileData.outseta_person_uid,
+            memberEmail: profileData.email,
+            planUid: profileData.plan_uid,
+            planName: lifecycleDecision.subscriptionPlan || profileData.plan_name || profileData.subscription_tier,
+            eventData: {
+              sourcePage: 'outseta_webhook',
+              source: 'outseta',
+              previousPlan: lifecycleDecision.previousPlan || 'free',
+              value: lifecycleDecision.subscriptionAmount || 0,
+              currency: 'USD',
+            },
+            occurredAt: profileData.subscription_start_date || profileData.outseta_updated_at,
+          });
+          lifecycleEventLogs.push('conversion_purchase=recorded');
+        } catch (conversionError) {
+          console.error(`[${requestId}] Purchase conversion event failed:`, conversionError);
+          lifecycleEventLogs.push('conversion_purchase=not_recorded');
+        }
+
         const purchaseTracked = await trackPurchase(profileData.email, lifecycleDecision.purchasePayload);
         lifecycleEventLogs.push(`purchase=${purchaseTracked ? 'tracked' : 'not_tracked'}`);
 

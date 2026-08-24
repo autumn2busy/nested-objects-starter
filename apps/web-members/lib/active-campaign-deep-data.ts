@@ -5,7 +5,7 @@ import { createServiceRoleClient } from '@/lib/supabase-admin';
 const AC_API_URL = env.acApiUrl;
 const AC_API_KEY = env.acApiKey;
 const AC_CONNECTION_ID = env.acConnectionId;
-const AC_MEMBERSHIP_RENEWAL_FIELD_ID = process.env.AC_MEMBERSHIP_RENEWAL_FIELD_ID;
+const AC_MEMBERSHIP_RENEWAL_FIELD_ID = env.acMembershipRenewalFieldId || '187';
 
 interface SyncResult {
     logs: string[];

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 import AdminView from './AdminView'
@@ -60,11 +61,19 @@ export default async function AdminBackgroundChecksPage() {
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Background Verification</h1>
-                <p className="text-slate-500 mt-2">
-                    Review and verify member ABC# records shielding applications.
-                </p>
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">Background Verification</h1>
+                    <p className="text-slate-500 mt-2">
+                        Review and verify member ABC# records shielding applications.
+                    </p>
+                </div>
+                <Link
+                    href="/admin/conversion-funnel"
+                    className="text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
+                >
+                    Conversion funnel
+                </Link>
             </div>
 
             <AdminView initialProfiles={formattedProfiles} />
