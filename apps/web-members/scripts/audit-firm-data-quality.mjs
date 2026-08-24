@@ -98,6 +98,16 @@ const HIGH_VALUE_FIELDS = [
   'vendor_verified',
 ]
 
+const PRIORITY_ORDER = {
+  P0_DUPLICATE_REVIEW: 0,
+  P0_DIRECTORY_INTEGRITY: 1,
+  P1_CONTACT_GAP: 2,
+  P1_PAY_GAP: 3,
+  P2_CLASSIFICATION_GAP: 4,
+  P2_VERIFICATION_GAP: 5,
+  P3_POLISH: 6,
+}
+
 function isBlank(value) {
   if (value === null || value === undefined) return true
   if (typeof value === 'string') {
@@ -106,6 +116,10 @@ function isBlank(value) {
   }
   if (Array.isArray(value)) return value.length === 0
   return false
+}
+
+function normalizeScalar(value) {
+  return isBlank(value) ? null : value
 }
 
 function normalizeText(value) {
@@ -246,24 +260,24 @@ function buildReport(firms) {
 
     return {
       id: firm.id,
-      slug: firm.slug || null,
-      name: firm.name || null,
+      slug: normalizeScalar(firm.slug),
+      name: normalizeScalar(firm.name),
       is_published: firm.is_published ?? null,
       score,
       priority,
       missing_fields: missingFields,
       duplicate_flags: duplicateFlags,
-      industry_focus: firm.industry_focus || null,
-      geographic_coverage: firm.geographic_coverage || null,
-      url: firm.url || firm.website || null,
-      vendor_page_url: firm.vendor_page_url || null,
-      email: firm.email || null,
-      phone: firm.phone || null,
-      verified_at: firm.verified_at || null,
+      industry_focus: normalizeScalar(firm.industry_focus),
+      geographic_coverage: normalizeScalar(firm.geographic_coverage),
+      url: normalizeScalar(firm.url || firm.website),
+      vendor_page_url: normalizeScalar(firm.vendor_page_url),
+      email: normalizeScalar(firm.email),
+      phone: normalizeScalar(firm.phone),
+      verified_at: normalizeScalar(firm.verified_at),
       vendor_verified: firm.vendor_verified ?? null,
       pay_min: firm.pay_min ?? null,
       pay_max: firm.pay_max ?? null,
-      pay_type: firm.pay_type || null,
+      pay_type: normalizeScalar(firm.pay_type),
     }
   })
 
@@ -278,16 +292,7 @@ function buildReport(firms) {
   }, {})
 
   const sortedQueue = [...audited].sort((a, b) => {
-    const priorityOrder = {
-      P0_DUPLICATE_REVIEW: 0,
-      P0_DIRECTORY_INTEGRITY: 1,
-      P1_CONTACT_GAP: 2,
-      P1_PAY_GAP: 3,
-      P2_CLASSIFICATION_GAP: 4,
-      P2_VERIFICATION_GAP: 5,
-      P3_POLISH: 6,
-    }
-    return (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99) || a.score - b.score
+    return (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99) || a.score - b.score
   })
 
   return {
@@ -333,6 +338,29 @@ function toMarkdown(report) {
     return `| ${firm.priority} | ${firm.score} | ${firm.name || ''} | ${firm.slug || ''} | ${missing} |`
   })
 
+  const orderedPriorityRows = Object.entries(report.priority_counts)
+    .sort((a, b) => (PRIORITY_ORDER[a[0]] ?? 99) - (PRIORITY_ORDER[b[0]] ?? 99))
+
+  const nextActions = []
+  if (report.duplicate_name_groups.length > 0 || report.duplicate_url_groups.length > 0) {
+    nextActions.push('Resolve duplicate name and URL groups before any enrichment batch.')
+  }
+  if ((report.field_missing_counts.vendor_page_url ?? 0) > 0) {
+    nextActions.push('Review missing or placeholder vendor pages so every listing has a direct apply or contact path.')
+  }
+  if ((report.field_missing_counts.verified_at ?? 0) > 0 || (report.field_missing_counts.vendor_verified ?? 0) > 0) {
+    nextActions.push('Work the verification backlog by checking official sites, then update verified fields together with source notes.')
+  }
+  if ((report.optional_missing_counts.source ?? 0) > 0 || (report.optional_missing_counts.address_source ?? 0) > 0) {
+    nextActions.push('Add provenance fields such as source and address_source for audited rows before treating them as fully verified.')
+  }
+  if ((report.optional_missing_counts.payment_frequency ?? 0) > 0 || (report.optional_missing_counts.job_volume ?? 0) > 0) {
+    nextActions.push('Strengthen pay intel with payment frequency and job-volume notes where public sources support it.')
+  }
+  if (nextActions.length === 0) {
+    nextActions.push('No material gaps detected in this audit run; monitor for new duplicates, verification drift, and stale apply links.')
+  }
+
   return `# Directory Data Quality Report
 
 Generated: ${report.generated_at}
@@ -362,7 +390,7 @@ ${optionalMissing.map(([field, count]) => `| ${field} | ${formatPercent(count, r
 
 | Priority | Count |
 | --- | ---: |
-${Object.entries(report.priority_counts).map(([priority, count]) => `| ${priority} | ${count} |`).join('\n')}
+${orderedPriorityRows.map(([priority, count]) => `| ${priority} | ${count} |`).join('\n')}
 
 ## Top Enrichment Queue
 
@@ -372,11 +400,7 @@ ${queueRows.join('\n')}
 
 ## Next Actions
 
-1. Resolve P0 duplicate and directory integrity rows before enriching new fields.
-2. Fill P1 contact gaps with vendor page, email, or phone.
-3. Fill P1 pay gaps from public vendor docs or member-submitted intel.
-4. Fill P2 classification gaps for coverage, services, and industry focus.
-5. Mark verified rows with \`verified_at\` and \`vendor_verified\` once reviewed.
+${nextActions.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 `
 }
 

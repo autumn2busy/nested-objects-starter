@@ -132,6 +132,12 @@ type DirectoryViewProps = {
 const FREE_VISIBLE_COUNT = 3
 const FREE_TEASER_COUNT = 4
 
+function hasDisplayValue(value: string | null | undefined) {
+  if (value == null) return false
+  const normalized = value.trim().toLowerCase()
+  return normalized !== '' && !['n/a', 'na', 'none', 'null', '-', '--', 'unknown', 'tbd'].includes(normalized)
+}
+
 function getFirmInitials(name: string) {
   const words = name.trim().split(/\s+/)
   return words
@@ -365,6 +371,11 @@ function NotaryDirectoryPanel({ access }: { access: DirectoryAccess }) {
 }
 
 function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
+  const email = hasDisplayValue(firm.email) ? firm.email : null
+  const phone = hasDisplayValue(firm.phone) ? firm.phone : null
+  const vendorPageUrl = hasDisplayValue(firm.vendor_page_url) ? firm.vendor_page_url : null
+  const websiteUrl = hasDisplayValue(firm.url) ? firm.url : null
+  const source = hasDisplayValue(firm.source) ? firm.source : null
   const payText =
     firm.pay_min != null || firm.pay_max != null
       ? [
@@ -377,11 +388,11 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
 
   const serviceRegion = firm.geographic_coverage || 'Service region not specified'
   const compensationDetails = firm.compensation_structure || payText
-  const workSetting = firm.source || 'Work setting not specified'
+  const workSetting = source || 'Work setting not specified'
   const contactMethod = (() => {
-    if (firm.email) return `Email - ${firm.email}`
-    if (firm.phone) return `Call - ${firm.phone}`
-    if (firm.vendor_page_url || firm.url) return `Website - ${firm.vendor_page_url ?? firm.url}`
+    if (email) return `Email - ${email}`
+    if (phone) return `Call - ${phone}`
+    if (vendorPageUrl || websiteUrl) return `Website - ${vendorPageUrl ?? websiteUrl}`
     return 'Contact info shared on profile'
   })()
 
