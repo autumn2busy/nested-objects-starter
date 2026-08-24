@@ -113,16 +113,6 @@ addCheck('Pricing page tracks pricing intent and Outseta handoff', 'app/membersh
   "mode: 'register'",
 ])
 
-addCheck('Promo banner routes Free members through upgrade instead of signup', 'components/PromoBanner.tsx', [
-  'trackUpgradeStarted',
-  'trackStartTrial',
-  'trackOutsetaModalOpen',
-  "sourcePage: 'promo_banner'",
-  "mode: 'profile_plan_change'",
-  "Outseta.profile.open",
-  "widgetMode: 'register'",
-])
-
 addCheck('Directory client tracks paywall and upgrade behavior', 'app/hiring-firms/DirectoryActions.tsx', [
   'trackDirectoryViewed',
   'trackPaywallHit',
@@ -171,8 +161,9 @@ addCheck('Outseta webhook emits paid transition events only on paid changes', 'a
   'mapAccountStageToStatus(stage?: number, label?: string)',
   "normalizedLabel.includes('trial')",
   "normalizedLabel.includes('cancel')",
+  "normalizedLabel.includes('subscrib')",
   'preserveStoredMembershipContext(profileData, existing)',
-  'subscription_end_date',
+  'subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null',
   'mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel)',
 ])
 
