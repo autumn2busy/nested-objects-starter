@@ -140,6 +140,9 @@ function normalizeExternalHref(rawUrl: string | null): string | null {
   const trimmedUrl = rawUrl.trim()
   if (!trimmedUrl) return null
 
+  const normalized = trimmedUrl.toLowerCase()
+  if (['n/a', 'na', 'none', 'null', '-', '--', 'unknown', 'tbd'].includes(normalized)) return null
+
   if (/^(https?:|mailto:|tel:)/i.test(trimmedUrl)) return trimmedUrl
   if (/^(www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/.*)?$/i.test(trimmedUrl)) {
     return `https://${trimmedUrl}`

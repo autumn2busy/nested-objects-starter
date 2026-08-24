@@ -5,7 +5,7 @@ export function formatPay(firm: Pick<FirmRow, 'pay_min' | 'pay_max' | 'pay_type'
         const min = Math.round(Number(firm.pay_min))
         const max = Math.round(Number(firm.pay_max))
         const unit = firm.pay_type || '/inspection'
-        return `$${min} – $${max} ${unit}`
+        return `$${min} - $${max} ${unit}`
     }
     if (firm.pay_range) return firm.pay_range
     return null
@@ -17,7 +17,7 @@ export function parseCategories(cats: string[] | string | null): string[] {
     try {
         const p = JSON.parse(cats)
         if (Array.isArray(p)) return p.filter(Boolean)
-    } catch { }
+    } catch {}
     return cats.split(',').map((s: string) => s.trim()).filter(Boolean)
 }
 
@@ -26,6 +26,6 @@ export function parseSocialLinks(social: string | null): string[] {
     try {
         const p = JSON.parse(social)
         if (Array.isArray(p)) return p.filter(Boolean)
-    } catch { }
+    } catch {}
     return []
 }

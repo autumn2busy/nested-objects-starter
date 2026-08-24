@@ -13,13 +13,24 @@ type NormalizedFirmRow = {
   company_size?: string | null
   industry_focus?: string | null
   description?: string | null
+  services?: string | null
+  categories?: string[] | null
   phone?: string | null
   email?: string | null
+  address?: string | null
   address_line1?: string | null
   address_street?: string | null
   address_city?: string | null
   address_state?: string | null
   address_postal_code?: string | null
+  pay_min?: number | null
+  pay_max?: number | null
+  pay_type?: string | null
+  contractor_rating?: number | null
+  source?: string | null
+  address_source?: string | null
+  verified_at?: string | null
+  vendor_verified?: boolean | null
   latitude?: number | null
   longitude?: number | null
   is_published?: boolean | null
@@ -30,7 +41,14 @@ const IMPORT_SECRET = process.env.FIRM_IMPORT_SECRET
 function toNullableString(value: any) {
   if (value === null || value === undefined) return null
   const stringValue = String(value).trim()
-  return stringValue.length ? stringValue : null
+  if (!stringValue.length) return null
+
+  const normalized = stringValue.toLowerCase()
+  if (['n/a', 'na', 'none', 'null', '-', '--', 'tbd', 'unknown', 'unknwn', 'address not verified'].includes(normalized)) {
+    return null
+  }
+
+  return stringValue
 }
 
 function toNullableNumber(value: any) {
@@ -46,6 +64,26 @@ function toNullableBoolean(value: any) {
   if (['true', '1', 'yes', 'y'].includes(stringValue)) return true
   if (['false', '0', 'no', 'n'].includes(stringValue)) return false
   return null
+}
+
+function toNullableStringArray(value: any) {
+  if (value === null || value === undefined) return null
+  if (Array.isArray(value)) {
+    const normalized = value
+      .map((item) => toNullableString(item))
+      .filter((item): item is string => Boolean(item))
+    return normalized.length ? normalized : null
+  }
+
+  const stringValue = toNullableString(value)
+  if (!stringValue) return null
+
+  const normalized = stringValue
+    .split(',')
+    .map((item) => toNullableString(item))
+    .filter((item): item is string => Boolean(item))
+
+  return normalized.length ? normalized : null
 }
 
 function normalizeSpreadsheetRow(row: SpreadsheetFirmRow): NormalizedFirmRow | null {
@@ -65,13 +103,24 @@ function normalizeSpreadsheetRow(row: SpreadsheetFirmRow): NormalizedFirmRow | n
     company_size: toNullableString(row.company_size),
     industry_focus: toNullableString(row.industry_focus),
     description: toNullableString(row.description),
+    services: toNullableString(row.services),
+    categories: toNullableStringArray(row.categories),
     phone: toNullableString(row.phone),
     email: toNullableString(row.email),
+    address: toNullableString(row.address),
     address_line1: toNullableString(row.address_line1),
     address_street: toNullableString(row.address_street),
     address_city: toNullableString(row.address_city),
     address_state: toNullableString(row.address_state),
     address_postal_code: toNullableString(row.address_postal_code),
+    pay_min: toNullableNumber(row.pay_min),
+    pay_max: toNullableNumber(row.pay_max),
+    pay_type: toNullableString(row.pay_type),
+    contractor_rating: toNullableNumber(row.contractor_rating),
+    source: toNullableString(row.source),
+    address_source: toNullableString(row.address_source),
+    verified_at: toNullableString(row.verified_at),
+    vendor_verified: toNullableBoolean(row.vendor_verified),
     latitude,
     longitude,
     is_published: toNullableBoolean(row.is_published),
