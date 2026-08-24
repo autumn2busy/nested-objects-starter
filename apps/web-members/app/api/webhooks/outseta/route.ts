@@ -148,6 +148,7 @@ function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateD
   if (normalizedLabel.includes('past due') || normalizedLabel.includes('past_due')) return 'past_due';
   if (normalizedLabel.includes('cancel')) return 'canceled';
   if (normalizedLabel.includes('pause')) return 'paused';
+  if (normalizedLabel.includes('subscrib')) return 'active';
   if (normalizedLabel.includes('active')) return 'active';
 
   switch (stage) {
@@ -235,7 +236,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
       subscription_status: mapAccountStageToStatus(account?.AccountStage, account?.AccountStageLabel),
       subscription_start_date: subscription?.StartDate || null,
-      subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
+      subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
       plan_uid: plan?.Uid || null,
       plan_name: plan?.Name || null,
       billing_renewal_term: subscription?.BillingRenewalTerm || null,
@@ -279,7 +280,7 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
     subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
     subscription_status: mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel),
     subscription_start_date: subscription?.StartDate || null,
-    subscription_end_date: subscription?.EndDate || subscription?.RenewalDate || null,
+    subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
     plan_uid: plan?.Uid || null,
     plan_name: plan?.Name || null,
     billing_renewal_term: subscription?.BillingRenewalTerm || null,
