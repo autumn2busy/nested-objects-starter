@@ -1,0 +1,28 @@
+{
+  "name": "@nested-objects/agent-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-safe Intelligence OS agent control-plane foundation for Nested Objects.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "clean": "node ./scripts/clean.mjs",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "format:check": "node ./scripts/format-check.mjs",
+    "migration:check": "node ./scripts/validate-migration.mjs",
+    "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run migration:check",
+    "dependency:check": "node ./scripts/dependency-smoke.mjs"
+  },
+  "dependencies": {
+    "@openai/agents": "0.17.0",
+    "@supabase/supabase-js": "2.112.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

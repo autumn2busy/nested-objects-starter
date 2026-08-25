@@ -1,0 +1,38 @@
+name: Agent Runtime Phase B
+
+on:
+  pull_request:
+    paths:
+      - 'apps/agent-runtime/**'
+      - 'supabase/migrations/20260825090000_create_intelligence_os_foundation.sql'
+      - 'docs/intelligence-os/phase-b-foundation.md'
+      - '.github/workflows/agent-runtime-phase-b.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-agent-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node 22.16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Install isolated runtime dependencies
+        working-directory: apps/agent-runtime
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Validate isolated runtime
+        working-directory: apps/agent-runtime
+        run: npm run validate
+
+      - name: Check patch whitespace
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
