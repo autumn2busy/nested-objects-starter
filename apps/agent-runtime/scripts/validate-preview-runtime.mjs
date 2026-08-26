@@ -5,17 +5,29 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (relativePath) => readFile(path.join(root, relativePath), 'utf8')
-const [packageSource, envSource, vercelSource, healthSource, evaluateSource, contractSource, runtimeSource, webSource] =
-  await Promise.all([
-    read('package.json'),
-    read('.env.example'),
-    read('vercel.json'),
-    read('api/health.ts'),
-    read('api/preview/evaluate.ts'),
-    read('src/http/preview-contract.ts'),
-    read('src/http/preview-runtime.ts'),
-    read('src/http/web.ts'),
-  ])
+const [
+  packageSource,
+  envSource,
+  vercelSource,
+  healthSource,
+  evaluateSource,
+  contractSource,
+  runtimeSource,
+  evaluationRuntimeSource,
+  webSource,
+  indexSource,
+] = await Promise.all([
+  read('package.json'),
+  read('.env.example'),
+  read('vercel.json'),
+  read('api/health.ts'),
+  read('api/preview/evaluate.ts'),
+  read('src/http/preview-contract.ts'),
+  read('src/http/preview-runtime.ts'),
+  read('src/runtime/preview-evaluation.ts'),
+  read('src/http/web.ts'),
+  read('src/index.ts'),
+])
 
 const failures = []
 let packageJson
@@ -40,17 +52,18 @@ for (const fragment of [
   'AGENT_PREVIEW_SYNTHETIC_ONLY=true',
   'AGENT_PREVIEW_PERSISTENCE_ENABLED=false',
   'AGENT_PREVIEW_API_TOKEN=',
-  'AGENT_STAGING_PROJECT_REF=',
 ]) {
   if (!envSource.includes(fragment)) failures.push(`.env.example is missing ${fragment}`)
 }
 
 for (const pattern of [
   /^AGENT_PREVIEW_API_TOKEN=.+$/m,
-  /^SUPABASE_SERVICE_ROLE_KEY=.+$/m,
+  /^SUPABASE_URL=/m,
+  /^SUPABASE_SERVICE_ROLE_KEY=/m,
+  /^AGENT_STAGING_PROJECT_REF=/m,
   /^OPENAI_API_KEY=.+$/m,
 ]) {
-  if (pattern.test(envSource)) failures.push(`.env.example contains a committed secret matching ${pattern}`)
+  if (pattern.test(envSource)) failures.push(`.env.example violates the Phase C2 secret or database boundary: ${pattern}`)
 }
 
 if (packageJson) {
@@ -95,7 +108,8 @@ if (authenticationIndex < 0 || bodyReadIndex < 0 || authenticationIndex > bodyRe
 for (const fragment of [
   "endsWith('.invalid')",
   'Phase C2 preview does not accept phone numbers',
-  'Contact and asset IDs must begin with validation- or synthetic-.',
+  'Contact, mirror, and asset IDs must begin with validation- or synthetic-.',
+  'Object.values(input.activeCampaignMirrorByMemberId)',
   'requestBytes: 1_500_000',
 ]) {
   if (!contractSource.includes(fragment)) failures.push(`Synthetic preview contract is missing ${fragment}`)
@@ -107,15 +121,48 @@ for (const fragment of [
   "runtime.mode !== 'dry_run'",
   "runtime.workflowProvider !== 'in_memory'",
   'Phase C2 preview does not permit model execution',
-  'assertStagingSupabaseUrl',
+  'Phase C2 preview does not permit database persistence',
+  'Phase C2 preview must not be configured with Supabase credentials',
+  'Phase C2 preview does not accept a staging project reference',
+  'persistenceEnabled: false',
   'timingSafeEqual',
 ]) {
   if (!runtimeSource.includes(fragment)) failures.push(`Preview runtime guard is missing ${fragment}`)
+}
+
+for (const fragment of [
+  'if (input.persist)',
+  'PreviewPersistenceDisabledError',
+  "execution: 'dry_run'",
+]) {
+  if (!evaluationRuntimeSource.includes(fragment)) failures.push(`Dry-run evaluation guard is missing ${fragment}`)
+}
+
+for (const forbidden of [
+  'createSupabaseProjectionRunStore',
+  'createSupabaseProjectionStore',
+  'persistPreviewEvaluation',
+  'persistMemberProjection',
+]) {
+  if (evaluationRuntimeSource.includes(forbidden)) {
+    failures.push(`Phase C2 evaluation still contains forbidden persistence capability: ${forbidden}`)
+  }
+}
+
+if (indexSource.includes('projection-run-store')) {
+  failures.push('Runtime index still exports the removed Phase C2 projection run store')
+}
+
+try {
+  await read('src/persistence/projection-run-store.ts')
+  failures.push('Phase C2 projection run persistence file still exists')
+} catch (error) {
+  if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')) throw error
 }
 
 if (failures.length > 0) {
   console.error(failures.join('\n'))
   process.exitCode = 1
 } else {
-  console.log('Static Phase C2 preview deployment and safety contract check passed.')
+  console.log('Static Phase C2 preview deployment and dry-run safety contract check passed.')
 }
