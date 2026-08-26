@@ -322,4 +322,3 @@ test('daily metric units and idempotency remain stable across projection reruns'
   assert.equal(cancellations.valueState, 'unknown')
   assert.equal(cancellations.value, null)
 })
-
