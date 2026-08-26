@@ -8,6 +8,7 @@ const read = (relativePath) => readFile(path.join(root, relativePath), 'utf8')
 const [
   packageSource,
   envSource,
+  readmeSource,
   vercelSource,
   healthSource,
   evaluateSource,
@@ -19,6 +20,7 @@ const [
 ] = await Promise.all([
   read('package.json'),
   read('.env.example'),
+  read('README.md'),
   read('vercel.json'),
   read('api/health.ts'),
   read('api/preview/evaluate.ts'),
@@ -66,6 +68,18 @@ for (const pattern of [
   if (pattern.test(envSource)) failures.push(`.env.example violates the Phase C2 secret or database boundary: ${pattern}`)
 }
 
+for (const forbidden of [
+  'AGENT_PREVIEW_PERSISTENCE_ENABLED=true',
+  'SUPABASE_SERVICE_ROLE_KEY=<staging secret key>',
+  'Later staging persistence requires',
+  'Optional persistence is separately gated',
+]) {
+  if (readmeSource.includes(forbidden)) failures.push(`README contains obsolete persistence setup: ${forbidden}`)
+}
+if (!readmeSource.includes('Strict dry-run execution with no Supabase credentials, database writes, or persistence mode.')) {
+  failures.push('README does not state the final dry-run-only database boundary')
+}
+
 if (packageJson) {
   const scripts = packageJson.scripts ?? {}
   if (!String(scripts.typecheck ?? '').includes('tsconfig.api.json')) {
@@ -108,6 +122,8 @@ if (authenticationIndex < 0 || bodyReadIndex < 0 || authenticationIndex > bodyRe
 for (const fragment of [
   "endsWith('.invalid')",
   'Phase C2 preview does not accept phone numbers',
+  'Phase C2 preview does not accept ActiveCampaign custom field values',
+  'Object.keys(contact.customFields).length > 0',
   'Contact, mirror, and asset IDs must begin with validation- or synthetic-.',
   'Object.values(input.activeCampaignMirrorByMemberId)',
   'requestBytes: 1_500_000',
