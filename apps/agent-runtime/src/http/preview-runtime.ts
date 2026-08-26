@@ -6,9 +6,8 @@ import { loadRuntimeConfiguration, type RuntimeEnvironmentVariables } from '../e
 export interface PreviewRuntimeConfiguration {
   runtime: RuntimeConfiguration
   apiToken: string
-  persistenceEnabled: boolean
+  persistenceEnabled: false
   syntheticOnly: true
-  stagingProjectRef: string | null
   vercelEnvironment: string | null
 }
 
@@ -19,13 +18,12 @@ export interface PreviewHealthSnapshot {
   phase: 'phase-c2-preview'
   environment: string
   mode: string
-  persistenceEnabled: boolean
+  persistenceEnabled: false
   modelExecutionEnabled: boolean
   mutationsEnabled: boolean
   workflowProvider: string
   tokenConfigured: boolean
   supabaseConfigured: boolean
-  stagingProjectRefConfigured: boolean
   vercelEnvironment: string | null
 }
 
@@ -61,24 +59,28 @@ export function loadPreviewRuntimeConfiguration(
     throw new PreviewRuntimeConfigurationError('Phase C2 preview cannot disable its synthetic-only boundary')
   }
 
-  const persistenceEnabled = parseBoolean(environment.AGENT_PREVIEW_PERSISTENCE_ENABLED, false)
-  const stagingProjectRef = optionalString(environment.AGENT_STAGING_PROJECT_REF)
-  if (persistenceEnabled) {
-    if (!runtime.supabaseUrl || !runtime.supabaseServiceRoleKey) {
-      throw new PreviewRuntimeConfigurationError('Preview persistence requires staging Supabase credentials')
-    }
-    if (!stagingProjectRef) {
-      throw new PreviewRuntimeConfigurationError('Preview persistence requires AGENT_STAGING_PROJECT_REF')
-    }
-    assertStagingSupabaseUrl(runtime.supabaseUrl, stagingProjectRef)
+  const persistenceRequested = parseBoolean(environment.AGENT_PREVIEW_PERSISTENCE_ENABLED, false)
+  if (persistenceRequested) {
+    throw new PreviewRuntimeConfigurationError(
+      'Phase C2 preview does not permit database persistence. Staging writes require the later durable workflow increment.',
+    )
+  }
+  if (runtime.supabaseUrl || runtime.supabaseServiceRoleKey) {
+    throw new PreviewRuntimeConfigurationError(
+      'Phase C2 preview must not be configured with Supabase credentials.',
+    )
+  }
+  if (optionalString(environment.AGENT_STAGING_PROJECT_REF)) {
+    throw new PreviewRuntimeConfigurationError(
+      'Phase C2 preview does not accept a staging project reference because persistence is disabled.',
+    )
   }
 
   return {
     runtime,
     apiToken,
-    persistenceEnabled,
+    persistenceEnabled: false,
     syntheticOnly: true,
-    stagingProjectRef,
     vercelEnvironment,
   }
 }
@@ -92,10 +94,8 @@ export function previewHealthSnapshot(
   const vercelEnvironment = optionalString(environment.VERCEL_ENV)
   const tokenConfigured = Boolean(optionalString(environment.AGENT_PREVIEW_API_TOKEN))
   const supabaseConfigured = Boolean(
-    optionalString(environment.SUPABASE_URL) && optionalString(environment.SUPABASE_SERVICE_ROLE_KEY),
+    optionalString(environment.SUPABASE_URL) || optionalString(environment.SUPABASE_SERVICE_ROLE_KEY),
   )
-  const stagingProjectRefConfigured = Boolean(optionalString(environment.AGENT_STAGING_PROJECT_REF))
-  const persistenceEnabled = readBooleanForHealth(environment.AGENT_PREVIEW_PERSISTENCE_ENABLED, false)
   const modelExecutionEnabled = readBooleanForHealth(environment.AGENT_MODEL_EXECUTION_ENABLED, false)
   const mutationsEnabled = readBooleanForHealth(environment.AGENT_MUTATIONS_ENABLED, false)
 
@@ -113,13 +113,12 @@ export function previewHealthSnapshot(
     phase: 'phase-c2-preview',
     environment: runtimeEnvironment,
     mode,
-    persistenceEnabled,
+    persistenceEnabled: false,
     modelExecutionEnabled,
     mutationsEnabled,
     workflowProvider,
     tokenConfigured,
     supabaseConfigured,
-    stagingProjectRefConfigured,
     vercelEnvironment,
   }
 }
@@ -130,25 +129,6 @@ export function authenticatePreviewRequest(request: Request, expectedToken: stri
   const providedToken = match?.[1]?.trim() ?? ''
   if (!providedToken || !secureTokenEqual(providedToken, expectedToken)) {
     throw new PreviewAuthenticationError('Preview API authentication failed')
-  }
-}
-
-export function assertStagingSupabaseUrl(url: string, projectRef: string): void {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
-    throw new PreviewRuntimeConfigurationError('SUPABASE_URL is not a valid URL')
-  }
-
-  const normalizedRef = projectRef.trim().toLowerCase()
-  if (!/^[a-z0-9-]{6,80}$/.test(normalizedRef)) {
-    throw new PreviewRuntimeConfigurationError('AGENT_STAGING_PROJECT_REF has an invalid format')
-  }
-  if (parsed.protocol !== 'https:' || parsed.hostname.toLowerCase() !== `${normalizedRef}.supabase.co`) {
-    throw new PreviewRuntimeConfigurationError(
-      'SUPABASE_URL does not match the explicitly configured staging project reference',
-    )
   }
 }
 
