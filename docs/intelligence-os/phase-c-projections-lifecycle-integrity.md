@@ -51,9 +51,10 @@ This increment does not apply a production migration, backfill production member
 
 ## Staging rollout
 
-1. Review the migration and runtime changes.
-2. Apply `20260826090000_create_phase_c_projection_and_marketing_registry.sql` to Supabase staging.
-3. Run `20260826_validate_phase_c_projection_and_marketing_registry.sql` in staging.
-4. Confirm the rollback-safe validation returns `PASS`.
-5. Compare projection output with the existing conversion command center and old reports for one parity cycle.
-6. Add a preview-only entry point in the next increment before creating the separate Vercel project.
+1. Confirm GitHub Actions passes on the final branch head, including type checking, all runtime tests, migration and privacy checks, and `git diff --check`.
+2. Review the migration and runtime changes.
+3. Apply `20260826090000_create_phase_c_projection_and_marketing_registry.sql` to Supabase staging.
+4. Run `20260826_validate_phase_c_projection_and_marketing_registry.sql` in staging.
+5. Confirm the rollback-safe validation returns `PASS`.
+6. Compare projection output with the existing conversion command center and old reports for one parity cycle.
+7. Add a preview-only entry point in the next increment before creating the separate Vercel project.
