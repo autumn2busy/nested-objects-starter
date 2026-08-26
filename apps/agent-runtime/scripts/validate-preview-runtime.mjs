@@ -75,6 +75,7 @@ if (vercelJson) {
 }
 
 if (!healthSource.includes('previewHealthSnapshot')) failures.push('Health endpoint is missing previewHealthSnapshot')
+if (!runtimeSource.includes('configurationValid')) failures.push('Preview health does not expose configuration validity')
 if (!webSource.includes("'cache-control': 'no-store")) failures.push('JSON responses are missing no-store cache control')
 
 for (const fragment of [
@@ -103,6 +104,7 @@ for (const fragment of [
 for (const fragment of [
   "runtime.environment !== 'preview'",
   "vercelEnvironment === 'production'",
+  "runtime.mode !== 'dry_run'",
   "runtime.workflowProvider !== 'in_memory'",
   'Phase C2 preview does not permit model execution',
   'assertStagingSupabaseUrl',
