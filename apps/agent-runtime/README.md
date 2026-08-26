@@ -35,7 +35,10 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 - Public configuration-safe health endpoint at `GET /api/health`.
 - Bearer-authenticated deterministic evaluation endpoint at `POST /api/preview/evaluate`.
 - Preview-only and Vercel-production-denied execution guard.
-- Synthetic-data-only request contract. Preview emails must end in `.invalid`, phone numbers and ActiveCampaign custom-field values are rejected, and ActiveCampaign contact, lifecycle-mirror, and asset IDs must use `synthetic-` or `validation-` prefixes.
+- Reserved synthetic identity namespace. Every supplied UUID must match `31800000-xxxx-5xxx-8xxx/9xxx/axxx/bxxx`.
+- External product, conversion, Outseta, attribution, and ActiveCampaign identifiers must begin with `synthetic-` or `validation-`.
+- Synthetic-data-only request contract. Emails and domains must end in `.invalid`, state must be `ZZ`, profile and account labels must begin with `Synthetic` or `Validation`, and ActiveCampaign contact, lifecycle-mirror, and asset IDs must use synthetic prefixes.
+- Phone numbers, profile biographies, profile headlines, conversion event payload values, nonempty ActiveCampaign custom fields, source-page values, and reason text are rejected.
 - Bounded request sizes and record counts.
 - Aggregate-only responses that omit emails, member IDs, contact IDs, evidence payloads, and raw source records.
 - Strict dry-run execution with no Supabase credentials, database writes, or persistence mode.
@@ -78,8 +81,10 @@ The runtime rejects:
 - Any mode other than `dry_run`
 - Model execution
 - Mutation flags
-- Non-synthetic input
-- Nonempty ActiveCampaign custom fields
+- UUIDs outside the reserved Phase C2 fixture namespace
+- External identifiers without synthetic markers
+- Real email addresses, domains, geographic states, or unmarked labels
+- Phone, biography, headline, custom-field, and conversion event payload values
 
 ## Local validation
 
