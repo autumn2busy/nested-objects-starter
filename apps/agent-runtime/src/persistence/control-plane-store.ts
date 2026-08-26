@@ -18,11 +18,18 @@ interface SupabaseResponseLike<T> {
   error: SupabaseErrorLike | null
 }
 
+interface SupabaseQueryLike<T extends Record<string, unknown> = Record<string, unknown>> {
+  eq?(column: string, value: string): SupabaseQueryLike<T>
+  select?(columns: string): SupabaseQueryLike<T>
+  single?(): Promise<SupabaseResponseLike<T>>
+  then?: Promise<SupabaseResponseLike<T>>['then']
+}
+
 interface SupabaseClientLike {
   from(table: string): {
-    upsert(values: unknown, options?: Record<string, unknown>): unknown
-    insert(values: unknown): unknown
-    update(values: unknown): unknown
+    upsert(values: unknown, options?: Record<string, unknown>): SupabaseQueryLike
+    insert(values: unknown): SupabaseQueryLike
+    update(values: unknown): SupabaseQueryLike
   }
 }
 
@@ -42,28 +49,45 @@ export interface SupabaseControlPlaneConfiguration {
   browserEnvironment?: boolean
 }
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
+
+function isSecureOrLoopbackUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol === 'https:') return true
+    if (parsed.protocol !== 'http:') return false
+    return LOOPBACK_HOSTS.has(parsed.hostname.toLowerCase())
+  } catch {
+    return false
+  }
+}
+
 export function assertServerOnlyControlPlaneAccess(
   configuration: SupabaseControlPlaneConfiguration,
 ): void {
   const browserEnvironment =
     configuration.browserEnvironment ?? typeof (globalThis as { window?: unknown }).window !== 'undefined'
+  const url = configuration.url.trim()
+  const serviceRoleKey = configuration.serviceRoleKey.trim()
 
   if (browserEnvironment) {
     throw new ServerOnlyAccessError('The agent control-plane store cannot be created in a browser runtime')
   }
-  if (!configuration.url.trim() || !configuration.serviceRoleKey.trim()) {
+  if (!url || !serviceRoleKey) {
     throw new ServerOnlyAccessError('Supabase URL and service-role credentials are required')
   }
-  if (!configuration.url.startsWith('https://')) {
-    throw new ServerOnlyAccessError('Supabase URL must use HTTPS')
+  if (!isSecureOrLoopbackUrl(url)) {
+    throw new ServerOnlyAccessError(
+      'Supabase URL must use HTTPS unless it targets localhost or another loopback address for local development',
+    )
   }
-  if (configuration.serviceRoleKey.startsWith('sb_publishable_')) {
+  if (serviceRoleKey.startsWith('sb_publishable_')) {
     throw new ServerOnlyAccessError('A Supabase publishable key cannot mutate the private agent control plane')
   }
 
-  if (configuration.serviceRoleKey.startsWith('sb_secret_')) return
+  if (serviceRoleKey.startsWith('sb_secret_')) return
 
-  const segments = configuration.serviceRoleKey.split('.')
+  const segments = serviceRoleKey.split('.')
   if (segments.length !== 3) {
     throw new ServerOnlyAccessError('Service-role credential is neither a Supabase secret key nor a valid legacy JWT')
   }
@@ -86,12 +110,18 @@ export async function createSupabaseControlPlaneStore(
       options: Record<string, unknown>,
     ) => SupabaseClientLike
   }
+
   if (typeof supabaseModule.createClient !== 'function') {
     throw new ContractValidationError('@supabase/supabase-js did not expose createClient')
   }
-  const client = supabaseModule.createClient(configuration.url, configuration.serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
+
+  const client = supabaseModule.createClient(
+    configuration.url.trim(),
+    configuration.serviceRoleKey.trim(),
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  )
   return new SupabaseControlPlaneStore(client)
 }
 
@@ -147,26 +177,28 @@ export class SupabaseControlPlaneStore implements ControlPlaneStore {
 }
 
 async function resolveQuery<T extends Record<string, unknown>>(
-  query: unknown,
+  query: SupabaseQueryLike,
   returnSingle: boolean,
   matchId?: string,
 ): Promise<T> {
-  let builder = query as {
-    eq?: (column: string, value: string) => unknown
-    select?: (columns: string) => unknown
-    single?: () => Promise<SupabaseResponseLike<T>>
-    then?: Promise<SupabaseResponseLike<T>>['then']
-  }
+  let builder = query as SupabaseQueryLike<T>
 
   if (matchId) {
-    if (typeof builder.eq !== 'function') throw new ControlPlanePersistenceError('Supabase update builder is missing eq()')
-    builder = builder.eq('id', matchId) as typeof builder
+    if (typeof builder.eq !== 'function') {
+      throw new ControlPlanePersistenceError('Supabase update builder is missing eq()')
+    }
+    builder = builder.eq('id', matchId)
   }
 
   if (returnSingle) {
-    if (typeof builder.select !== 'function') throw new ControlPlanePersistenceError('Supabase builder is missing select()')
-    builder = builder.select('id') as typeof builder
-    if (typeof builder.single !== 'function') throw new ControlPlanePersistenceError('Supabase builder is missing single()')
+    if (typeof builder.select !== 'function') {
+      throw new ControlPlanePersistenceError('Supabase builder is missing select()')
+    }
+    builder = builder.select('id')
+    if (typeof builder.single !== 'function') {
+      throw new ControlPlanePersistenceError('Supabase builder is missing single()')
+    }
+
     const response = await builder.single()
     if (response.error) throw persistenceError(response.error)
     if (!response.data) throw new ControlPlanePersistenceError('Supabase write returned no row')
@@ -307,7 +339,7 @@ function decodeJwtPayload(encodedPayload: string): Record<string, unknown> {
   try {
     const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/')
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
-    const json = atob(padded)
+    const json = Buffer.from(padded, 'base64').toString('utf8')
     return JSON.parse(json) as Record<string, unknown>
   } catch (error) {
     throw new ServerOnlyAccessError('Supabase legacy JWT could not be decoded', {
