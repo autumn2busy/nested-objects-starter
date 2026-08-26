@@ -17,7 +17,7 @@ export const SITE_URL = getSiteUrl()
 // Site-wide constants
 export const SITE_NAME = 'Nested Objects'
 export const SITE_TAGLINE = 'Vendor Hub'
-export const SITE_DESCRIPTION = 'The #1 Hub for Mortgage Field Inspection services, Mobile Notary for real estate closings, and Certified residential property appraisals.'
+export const SITE_DESCRIPTION = 'The member hub for independent field inspectors to compare hiring firms, understand assignment requirements, build skills, and plan more profitable routes.'
 
 // Social/branding
 export const LOGO_URL = `${SITE_URL}/logo.png`

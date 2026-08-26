@@ -50,7 +50,7 @@ export function SiteFooter({ containerClassName }: SiteFooterProps) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-copper">Vendor hub</p>
             <p className="text-base font-semibold text-text-primary">Nested Objects</p>
             <p className="text-sm text-text-secondary">
-              Compare firms, prep for routes, and get tools that help inspectors, notaries, and real estate pros plan smarter days on the road.
+              Compare firms, prepare for assignments, and use practical tools that help independent field inspectors plan smarter, more profitable routes.
             </p>
             <a
               href="mailto:info@nestedobjects.com"

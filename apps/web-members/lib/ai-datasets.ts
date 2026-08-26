@@ -40,12 +40,13 @@ export const membershipPlans: MembershipPlan[] = [
     period: 'forever',
     headline: 'Explore the hub. Preview the directory.',
     description:
-      'Perfect for checking out the ecosystem before you subscribe. You get limited directory visibility and a preview of the training and resources.',
+      'Explore the ecosystem before you subscribe. Free includes limited directory visibility, training and resource previews, and the income calculator after login.',
     highlight: false,
     features: [
       'Preview up to 3 free firms',
       'Training preview access',
       'Resources and readiness guides',
+      'Income calculator with a Free account',
       'Upgrade any time',
     ],
   },
@@ -131,6 +132,17 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
 ]
+
+const PUBLIC_PLAN_UIDS = new Set<string>([
+  PLAN_UIDS.FREE,
+  PLAN_UIDS.PRO,
+  PLAN_UIDS.ELITE,
+  PLAN_UIDS.AGENCY,
+])
+
+export const publicMembershipPlans = membershipPlans.filter((plan) =>
+  PUBLIC_PLAN_UIDS.has(plan.planUid)
+)
 
 export type FirmDirectoryEntry = {
   name: string

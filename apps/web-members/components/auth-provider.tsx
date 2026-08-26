@@ -72,16 +72,19 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   advanced_training: 'NmdnNO90',  // Elite+
   training_safety: 'L9nbKV9Z',    // Free+ (safety guides)
 
-  // Tools — varies
-  ai_concierge: 'L9nbKV9Z',       // Free+ (quota-limited for Starter/Founders)
-  firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'L9nbKV9Z',       // Free+
-  job_tracker: 'L9nbKV9Z',        // Free+
-  job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Free+
-  ai_resume: 'zWZD0rQp',          // Starter/Founders+ (limited)
-  readiness_guides: 'L9nbKV9Z',   // Free+
-  tools_templates: 'rQVqlLm6',    // Pro+
+  // Tools. Free receives one useful activation tool. Working workspace tools begin at current Pro.
+  // Legacy Starter and Founders members retain the tool access promised by their original plans.
+  income_calculator: 'L9nbKV9Z',       // Free+
+  ai_concierge: 'zWZD0rQp',            // Legacy Starter/Founders and current Pro+
+  ai_resume: 'zWZD0rQp',               // Legacy Starter/Founders and current Pro+
+  job_tracking: 'zWZD0rQp',            // Legacy Starter/Founders and current Pro+
+  job_tracker: 'zWZD0rQp',             // Legacy route alias
+  weather_tool: 'rQVqlLm6',            // Pro+
+  job_routing: 'rQVqlLm6',             // Pro+
+  notary_route_calculator: 'rQVqlLm6', // Pro+
+  firm_intel: 'rQVqlLm6',              // Pro+
+  readiness_guides: 'L9nbKV9Z',        // Free+
+  tools_templates: 'rQVqlLm6',         // Pro+
 
   // Monetization / partners
   sponsor_equipment_links: 'L9nbKV9Z', // Everyone sees

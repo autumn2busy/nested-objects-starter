@@ -44,7 +44,7 @@ const popularSearchLinks = [
   {
     href: '/hiring-firms/texas',
     label: 'Texas field inspection firms',
-    detail: 'Browse firms serving Texas inspectors, notaries, and preservation vendors.',
+    detail: 'Browse firms serving Texas inspectors, property preservation vendors, and field-service contractors.',
   },
   {
     href: '/hiring-firms/florida',
@@ -87,26 +87,26 @@ export default function HomePage() {
             "mainEntity": [
               {
                 "@type": "Question",
-                "name": "How do I find Independent Field Inspector work near me?",
+                "name": "How do I find independent field inspector work near me?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Nested Objects connects you with national firms hiring for Mortgage Field Inspection services and Insurance Loss Control jobs in your exact zip code."
+                  "text": "Nested Objects helps independent inspectors compare national and regional field service firms by coverage, assignment type, requirements, and application path."
                 }
               },
               {
                 "@type": "Question",
-                "name": "Can I do Mobile Notary for real estate closings?",
+                "name": "What kinds of assignments do field inspectors complete?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Yes. Our hub lists firms specifically looking for Loan Signing Agents and notaries certified for Remote Online Notarization (RON)."
+                  "text": "Common assignments include occupancy checks, exterior condition reports, insurance loss-control surveys, property photos, merchant site verifications, and preservation-related documentation. Requirements vary by firm and state."
                 }
               },
               {
                 "@type": "Question",
-                "name": "Who hires for Drive-by appraisal services?",
+                "name": "How do I know which field inspection firms fit my route?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Lenders and AMCs hire through Nested Objects for drive-by appraisals and BPOs. Upgrade to Pro to see pay rates for these valuation orders."
+                  "text": "Compare coverage areas, pay clues, appointment requirements, turnaround expectations, and equipment needs before applying. Pro members can view deeper firm intelligence."
                 }
               }
             ]
@@ -220,10 +220,10 @@ export default function HomePage() {
             <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 text-xs text-slate-700 shadow-sm sm:text-[13px]">
               <p className="font-semibold text-slate-900">Who this hub serves</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                <span>• Mortgage Field Inspection services &amp; Loss Control</span>
-                <span>• Mobile Notary for real estate closings (RON)</span>
-                <span>• Certified residential property appraisal pros</span>
-                <span>• Independent Field Inspector near me (Gig)</span>
+                <span>• Mortgage field inspections and occupancy checks</span>
+                <span>• Insurance loss-control and commercial surveys</span>
+                <span>• Property preservation and REO documentation</span>
+                <span>• Independent field-service and verification work</span>
               </div>
             </div>
           </div>
@@ -235,10 +235,10 @@ export default function HomePage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  Find Field Inspection &amp; Appraisal Jobs
+                  Find field inspection work that fits your route
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-slate-600">
-                  One place to see who is hiring for Mortgage Field Inspection services and Home valuation for mortgage lenders.
+                  One place to compare field-service firms, assignment lanes, coverage, requirements, and route-fit clues.
                 </p>
               </div>
               <Link
@@ -253,8 +253,8 @@ export default function HomePage() {
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                 <h3 className="text-sm font-semibold text-slate-900">Verified Firm Directory</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Search firms for &ldquo;Independent Field Inspector near me&rdquo; and &ldquo;Mobile Notary&rdquo; work. No
-                  resumes uploaded. you control who sees your info.
+                  Compare firms hiring independent field inspectors, loss-control surveyors, preservation vendors,
+                  and property-data contractors. You control when and where you share your information.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                   Included with Free
@@ -420,26 +420,25 @@ export default function HomePage() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Updated 2025 Rates
+                  Planning scenarios
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                   What could you earn?
                 </h2>
                 <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-                  Field inspection pay varies wildly by region and service type.
-                  Use our free calculator to see potential weekly revenue based on your
-                  zip code and vehicle type.
+                  Field inspection pay varies by region, assignment type, and route density.
+                  Free members can model weekly revenue using their expected volume and average fee.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
                     href="/tools/income-calculator"
                     className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
                   >
-                    Calculate My Income →
+                    Open the Free Calculator →
                   </Link>
                   <div className="flex items-center gap-4 text-sm text-slate-500 px-2">
-                    <span>• No signup required</span>
-                    <span>• Instant results</span>
+                    <span>• Free account required</span>
+                    <span>• No card required</span>
                   </div>
                 </div>
               </div>

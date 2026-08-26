@@ -20,7 +20,10 @@ function getCurrentPlanName(planUid: string | null, isAuthenticated: boolean) {
 
 function getPlanPaymentTerm(plan: MembershipPlan) {
   if (plan.period === 'forever') return undefined
-  return plan.period.includes('month') ? 'month' : 'oneTime'
+  if (plan.period.includes('month')) return 'month'
+  if (plan.period.includes('year')) return 'annual'
+  if (plan.period.includes('quarter')) return 'quarter'
+  return 'oneTime'
 }
 
 function scheduleIdleWork(callback: () => void) {
@@ -84,6 +87,8 @@ function usePricingActions() {
     }
 
     if (isAuthenticated) {
+      // The options inside this hosted view are controlled by the active Outseta plan family.
+      // Keep Starter and Founders in the deactivated legacy family documented in the operator runbook.
       trackOutsetaModalOpen({
         sourcePage: 'membership_pricing',
         mode: 'profile_plan_change',

@@ -1,4 +1,4 @@
-import { membershipPlans } from '@/lib/ai-datasets'
+import { publicMembershipPlans } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { TestimonialStrip } from '@/components/TestimonialsSection'
 import Link from 'next/link'
@@ -97,7 +97,7 @@ export const pricingFaqs = [
 ]
 
 function MembershipContent() {
-    const proPlan = membershipPlans.find((p) => p.planUid === PLAN_UIDS.PRO)!
+    const proPlan = publicMembershipPlans.find((p) => p.planUid === PLAN_UIDS.PRO)!
 
     return (
         <main className="mx-auto w-screen max-w-none overflow-x-clip px-4 py-10 sm:w-full sm:px-6 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -111,8 +111,8 @@ function MembershipContent() {
                     Choose the hub that matches your lane in the field.
                 </h1>
                 <p className="mx-auto mt-4 max-w-[18rem] text-base text-slate-600 min-[380px]:max-w-[20rem] sm:max-w-none sm:text-lg">
-                    Nested Objects is built for inspectors, notaries, real estate pros, and gig workers who
-                    want clear intel on firms, gear, and routes before they hit the road.
+                    Nested Objects is built for independent field inspectors and adjacent property-service vendors who
+                    want clear firm intelligence, practical training, and route tools before they take on more work.
                 </p>
 
                 <PricingHeroAccountStatus />
@@ -258,9 +258,7 @@ function MembershipContent() {
                 <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
                     {/* Plan cards */}
                     <div className="grid gap-6 md:grid-cols-2">
-                        {membershipPlans
-                            .filter((plan) => !plan.hidden)
-                            .map((plan) => {
+                        {publicMembershipPlans.map((plan) => {
                                 const isPro = plan.planUid === PLAN_UIDS.PRO
 
                                 return (
