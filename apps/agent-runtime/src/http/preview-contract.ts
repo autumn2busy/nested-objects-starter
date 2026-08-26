@@ -26,10 +26,30 @@ const timestampSchema = z.string().trim().min(1).max(64).refine(
   'Expected an ISO-compatible timestamp',
 )
 const nullableTimestampSchema = timestampSchema.nullable().optional()
-const nullableTextSchema = (maximum = 500) => z.string().trim().max(maximum).nullable().optional()
 const emptyOptionalTextSchema = z.union([z.literal(''), z.null()]).optional()
 const limitedStringArraySchema = (maximumItems: number, maximumLength = 200) =>
   z.array(z.string().trim().min(1).max(maximumLength)).max(maximumItems)
+const membershipTierSchema = z.enum(['free', 'starter', 'founders', 'pro', 'elite', 'agency', 'unknown'])
+const membershipStatusSchema = z.enum(['active', 'trialing', 'past_due', 'canceled', 'paused', 'incomplete', 'unknown'])
+const planNameSchema = z.enum(['Free', 'Starter', 'Founders', 'Pro', 'Elite', 'Agency', 'Unknown'])
+const conversionEventNameSchema = z.enum([
+  'pricing_viewed',
+  'pricing_cta_clicked',
+  'free_join_started',
+  'signup_completed',
+  'trial_started',
+  'upgrade_started',
+  'directory_viewed',
+  'paywall_hit',
+  'firm_viewed',
+  'upgrade_clicked',
+  'subscription_created',
+  'subscription_upgraded',
+  'purchase_confirmed',
+  'profile_completed',
+  'training_started',
+  'training_completed',
+])
 const syntheticUuidSchema = z.string().trim().uuid().refine(
   isSyntheticFixtureUuid,
   'Phase C2 fixture UUIDs must use the reserved 31800000-xxxx-5xxx-8xxx/9xxx/axxx/bxxx namespace.',
@@ -70,12 +90,12 @@ const profileSchema = z.object({
   outseta_account_id: nullableSyntheticIdentifierSchema,
   user_email: nullableSyntheticEmailSchema,
   email: nullableSyntheticEmailSchema,
-  subscription_tier: nullableTextSchema(120),
-  subscription_status: nullableTextSchema(120),
+  subscription_tier: membershipTierSchema.nullable().optional(),
+  subscription_status: membershipStatusSchema.nullable().optional(),
   subscription_start_date: nullableTimestampSchema,
   subscription_end_date: nullableTimestampSchema,
   plan_uid: nullableSyntheticIdentifierSchema,
-  plan_name: nullableTextSchema(255),
+  plan_name: planNameSchema.nullable().optional(),
   outseta_updated_at: nullableTimestampSchema,
   last_login_at: nullableTimestampSchema,
   last_active_at: nullableTimestampSchema,
@@ -105,13 +125,13 @@ const profileSchema = z.object({
 const conversionEventSchema = z.object({
   id: syntheticUuidSchema,
   client_event_id: nullableSyntheticIdentifierSchema,
-  event_name: z.string().trim().min(1).max(160),
+  event_name: conversionEventNameSchema,
   anonymous_id: nullableSyntheticIdentifierSchema,
   session_id: nullableSyntheticIdentifierSchema,
   member_uid: nullableSyntheticIdentifierSchema,
   member_email: nullableSyntheticEmailSchema,
   plan_uid: nullableSyntheticIdentifierSchema,
-  plan_name: nullableTextSchema(255),
+  plan_name: planNameSchema.nullable().optional(),
   source_page: emptyOptionalTextSchema,
   source: nullableSyntheticIdentifierSchema,
   reason: emptyOptionalTextSchema,
@@ -157,16 +177,16 @@ const marketingConfigSchema = z.object({
 
 const productAccessSchema = z.object({
   memberId: syntheticUuidSchema,
-  accessTier: z.string().trim().max(160).nullable(),
-  accessStatus: z.string().trim().max(160).nullable(),
+  accessTier: membershipTierSchema.nullable(),
+  accessStatus: membershipStatusSchema.nullable(),
   directoryAccess: z.boolean().nullable(),
   observedAt: timestampSchema,
 }).strict()
 
 const activeCampaignMirrorSchema = z.object({
   contactId: syntheticIdentifierSchema,
-  planName: z.string().trim().max(255).nullable(),
-  lifecycleStatus: z.string().trim().max(255).nullable(),
+  planName: planNameSchema.nullable(),
+  lifecycleStatus: membershipStatusSchema.nullable(),
   onboardingEnteredAt: timestampSchema.nullable(),
   observedAt: timestampSchema,
 }).strict()
@@ -221,9 +241,12 @@ export function parsePreviewEvaluationRequest(value: unknown): PreviewEvaluation
     )
   }
 
-  const request = parsed.data as PreviewEvaluationRequest
-  const profileIds = new Set(request.profiles.map((profile) => profile.id))
-  assertUnique([...profileIds], 'profiles.id')
+  const request = parsed.data as unknown as PreviewEvaluationRequest
+  const profileIdValues = request.profiles.map((profile) => profile.id)
+  assertUnique(profileIdValues, 'profiles.id')
+  assertUnique(request.conversionEvents.map((event) => event.id), 'conversionEvents.id')
+  assertUnique(request.activeCampaignContacts.map((contact) => contact.contactId), 'activeCampaignContacts.contactId')
+  const profileIds = new Set(profileIdValues)
   assertMapKeysMatchMemberIds(request.productAccessByMemberId, 'productAccessByMemberId')
   assertMapKeysBelongToProfiles(request.productAccessByMemberId, profileIds, 'productAccessByMemberId')
   assertMapKeysBelongToProfiles(request.activeCampaignMirrorByMemberId, profileIds, 'activeCampaignMirrorByMemberId')
