@@ -5,7 +5,9 @@ on:
     paths:
       - 'apps/agent-runtime/**'
       - 'supabase/migrations/20260825090000_create_intelligence_os_foundation.sql'
+      - 'supabase/validation/20260825_validate_intelligence_os_foundation.sql'
       - 'docs/intelligence-os/phase-b-foundation.md'
+      - 'docs/intelligence-os/activecampaign-mcp-governance.md'
       - '.github/workflows/agent-runtime-phase-b.yml'
 
 permissions:
@@ -29,6 +31,14 @@ jobs:
       - name: Install isolated runtime dependencies
         working-directory: apps/agent-runtime
         run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Capture generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-runtime-package-lock
+          path: apps/agent-runtime/package-lock.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Validate isolated runtime
         working-directory: apps/agent-runtime
