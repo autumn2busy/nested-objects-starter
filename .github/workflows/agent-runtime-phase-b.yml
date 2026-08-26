@@ -30,15 +30,7 @@ jobs:
 
       - name: Install isolated runtime dependencies
         working-directory: apps/agent-runtime
-        run: npm install --ignore-scripts --no-audit --no-fund
-
-      - name: Capture generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: agent-runtime-package-lock
-          path: apps/agent-runtime/package-lock.json
-          if-no-files-found: error
-          retention-days: 1
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Validate isolated runtime
         working-directory: apps/agent-runtime
