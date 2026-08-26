@@ -10,11 +10,12 @@
   "scripts": {
     "clean": "node ./scripts/clean.mjs",
     "build": "npm run clean && tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.api.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
     "format:check": "node ./scripts/format-check.mjs",
     "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs",
-    "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run migration:check",
+    "preview:check": "node ./scripts/validate-preview-runtime.mjs",
+    "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run migration:check && npm run preview:check",
     "dependency:check": "node ./scripts/dependency-smoke.mjs"
   },
   "dependencies": {
