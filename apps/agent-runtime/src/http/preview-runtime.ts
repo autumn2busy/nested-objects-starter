@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 
-import type { RuntimeConfiguration } from '../contracts.js'
+import { ContractValidationError, type RuntimeConfiguration } from '../contracts.js'
 import { loadRuntimeConfiguration, type RuntimeEnvironmentVariables } from '../env.js'
 
 export interface PreviewRuntimeConfiguration {
@@ -30,7 +30,7 @@ export interface PreviewHealthSnapshot {
 export function loadPreviewRuntimeConfiguration(
   environment: RuntimeEnvironmentVariables = process.env,
 ): PreviewRuntimeConfiguration {
-  const runtime = loadRuntimeConfiguration(environment)
+  const runtime = loadBaseRuntimeConfiguration(environment)
   const vercelEnvironment = optionalString(environment.VERCEL_ENV)
 
   if (runtime.environment !== 'preview') {
@@ -129,6 +129,17 @@ export function authenticatePreviewRequest(request: Request, expectedToken: stri
   const providedToken = match?.[1]?.trim() ?? ''
   if (!providedToken || !secureTokenEqual(providedToken, expectedToken)) {
     throw new PreviewAuthenticationError('Preview API authentication failed')
+  }
+}
+
+function loadBaseRuntimeConfiguration(environment: RuntimeEnvironmentVariables): RuntimeConfiguration {
+  try {
+    return loadRuntimeConfiguration(environment)
+  } catch (error) {
+    if (error instanceof ContractValidationError) {
+      throw new PreviewRuntimeConfigurationError('Base runtime configuration is invalid.')
+    }
+    throw error
   }
 }
 
