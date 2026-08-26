@@ -1,0 +1,93 @@
+{
+  "idempotencyKey": "phase-c2:synthetic-evaluation:2026-08-26",
+  "correlationId": "33333333-3333-4333-8333-333333333333",
+  "metricDate": "2026-08-26",
+  "persist": false,
+  "profiles": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "outseta_person_uid": "synthetic-outseta-person",
+      "outseta_account_id": "synthetic-outseta-account",
+      "user_email": "member@example.invalid",
+      "subscription_tier": "pro",
+      "subscription_status": "active",
+      "plan_uid": "synthetic-pro-plan",
+      "plan_name": "Pro",
+      "created_at": "2026-08-20T12:00:00.000Z",
+      "updated_at": "2026-08-26T12:00:00.000Z",
+      "state": "GA",
+      "service_areas": ["Gwinnett"],
+      "primary_services": ["Mortgage field inspections"],
+      "training_modules_completed": 2,
+      "training_modules_total": 8,
+      "is_published": true,
+      "phone": null
+    }
+  ],
+  "conversionEvents": [
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "client_event_id": "synthetic-event-delivery-1",
+      "event_name": "signup_completed",
+      "anonymous_id": "synthetic-anonymous-1",
+      "session_id": "synthetic-session-1",
+      "member_uid": "synthetic-outseta-person",
+      "member_email": "member@example.invalid",
+      "plan_uid": "synthetic-pro-plan",
+      "plan_name": "Pro",
+      "source": "synthetic-preview",
+      "occurred_at": "2026-08-20T12:00:00.000Z"
+    }
+  ],
+  "activeCampaignContacts": [
+    {
+      "contactId": "synthetic-contact-1",
+      "email": "member@example.invalid",
+      "tagNames": ["Plan: Pro"],
+      "listNames": ["Nested Objects Members"],
+      "customFields": {},
+      "createdAt": "2026-08-20T12:00:00.000Z",
+      "updatedAt": "2026-08-26T12:00:00.000Z",
+      "lastOpenAt": "2026-08-26T12:00:00.000Z",
+      "lastClickAt": null,
+      "lastSiteVisitAt": null,
+      "bounced": false,
+      "unsubscribed": false
+    }
+  ],
+  "activeCampaignAssets": [
+    {
+      "assetType": "automation",
+      "externalId": "synthetic-automation-1",
+      "name": "Nested Objects Member Welcome",
+      "active": true
+    }
+  ],
+  "marketingConfig": {
+    "internalDomains": ["activecampaign.com"],
+    "approvedInternalMemberEmails": [],
+    "coldTagPatterns": ["cold"],
+    "wixTagPatterns": ["wix"],
+    "testPatterns": ["test"],
+    "staleAfterDays": 90,
+    "now": "2026-08-26T12:00:00.000Z"
+  },
+  "productAccessByMemberId": {
+    "11111111-1111-4111-8111-111111111111": {
+      "memberId": "11111111-1111-4111-8111-111111111111",
+      "accessTier": "pro",
+      "accessStatus": "active",
+      "directoryAccess": true,
+      "observedAt": "2026-08-26T12:00:00.000Z"
+    }
+  },
+  "activeCampaignMirrorByMemberId": {
+    "11111111-1111-4111-8111-111111111111": {
+      "contactId": "synthetic-contact-1",
+      "planName": "Pro",
+      "lifecycleStatus": "active",
+      "onboardingEnteredAt": "2026-08-26T12:00:00.000Z",
+      "observedAt": "2026-08-26T12:00:00.000Z"
+    }
+  }
+}
