@@ -17,7 +17,7 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 - In-memory durable-workflow test adapter and an explicit Vercel Workflow extension boundary.
 - Adapter contracts for the existing conversion, SEO, AEO, content-brief, and Adzuna sensors.
 
-### Phase C projection and integrity increment
+### Phase C1. Projection and integrity
 
 - Deterministic canonical member projection from Supabase `profiles` and the existing `conversion_events` ledger.
 - Anonymous-to-member event stitching and duplicate-delivery detection.
@@ -29,15 +29,49 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 - Private owner-reviewed ActiveCampaign asset registry. Candidate classification never grants connector access automatically.
 - Server-only, retryable, idempotent projection persistence.
 
-## Deliberate safety limits
+### Phase C2. Preview runtime entry point
 
-The runtime does not register any tool that can send email, change ActiveCampaign, publish content, change pricing or subscriptions, repair production data, deploy, merge pull requests, or perform destructive operations.
+- Plain TypeScript Vercel Functions under `api/` so the runtime can deploy independently from the member application.
+- Public configuration-safe health endpoint at `GET /api/health`.
+- Bearer-authenticated deterministic evaluation endpoint at `POST /api/preview/evaluate`.
+- Preview-only and Vercel-production-denied execution guard.
+- Synthetic-data-only request contract. Preview emails must end in `.invalid`, phone numbers are rejected, and ActiveCampaign IDs must use `synthetic-` or `validation-` prefixes.
+- Bounded request sizes and record counts.
+- Aggregate-only responses that omit emails, member IDs, contact IDs, evidence payloads, and raw source records.
+- Dry-run default. Optional persistence is separately gated and verifies the exact staging Supabase project reference before accepting service-role credentials.
+- No OpenAI model execution, ActiveCampaign mutation, email send, content publication, approval execution, cron schedule, queue, or production write path.
 
-Consequential actions stop as persisted proposals. ActiveCampaign asset mutations are database-blocked in the current Phase C migration. Contact classifications are recommendations only. They do not unsubscribe, delete, retag, merge, enroll, suppress, or email anyone.
+Phase C2 deliberately does not install Vercel Workflow yet. The first deployment proves authentication, packaging, synthetic evaluation, and staging persistence boundaries. Durable workflow orchestration can then be introduced for the first real lifecycle-integrity run without mixing deployment troubleshooting with workflow semantics.
 
-Private chain-of-thought is never persisted. The contracts store operational inputs, structured outputs, evidence, concise rationale, tool summaries, status, cost metadata, errors, and outcomes only.
+## Endpoints
 
-## Local setup
+### `GET /api/health`
+
+Returns only safe configuration state, such as whether the preview token and staging configuration are present. It never returns secret values or database URLs.
+
+### `POST /api/preview/evaluate`
+
+Requires:
+
+```text
+Authorization: Bearer <AGENT_PREVIEW_API_TOKEN>
+Content-Type: application/json
+```
+
+The endpoint accepts bounded synthetic fixtures, runs the deterministic Phase C core, and returns aggregate counts, signal types, metric states, contact classifications, asset candidate scopes, and explicit safety flags.
+
+`persist` must remain `false` for the first deployment. Later staging persistence requires all of the following:
+
+```text
+AGENT_PREVIEW_PERSISTENCE_ENABLED=true
+AGENT_STAGING_PROJECT_REF=<exact staging project ref>
+SUPABASE_URL=https://<exact staging project ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<staging secret key>
+```
+
+The runtime rejects a mismatched Supabase host, Vercel Production, non-preview runtime mode, model execution, mutation flags, and non-synthetic input.
+
+## Local validation
 
 ```bash
 cd apps/agent-runtime
@@ -48,31 +82,30 @@ npm run validate
 
 Node 22.16 or newer is required by this isolated package. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
 
-## Environment variables
+## Vercel project boundary
 
-`AGENT_RUNTIME_ENV`, `AGENT_RUNTIME_MODE`, `AGENT_MUTATIONS_ENABLED`, `AGENT_MODEL_EXECUTION_ENABLED`, `AGENT_WORKFLOW_PROVIDER`, `AGENT_RUNTIME_VERSION`, and `AGENT_TRACE_NAMESPACE` configure the host.
+When Phase C2 is approved for preview deployment, create a separate Vercel project from the existing repository:
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are required together for database persistence. The runtime rejects browser execution, Supabase publishable keys, and legacy JWT credentials whose role is not `service_role`.
+```text
+Repository: autumn2busy/nested-objects-starter
+Root Directory: apps/agent-runtime
+Project name: nested-objects-agent-runtime
+```
 
-`OPENAI_API_KEY`, `OPENAI_AGENT_MODEL`, and optionally `OPENAI_AGENT_MAX_TURNS` are required only when model execution is enabled. Model execution remains analytical, structured-output-only, and tool-free.
+Use Preview and Development environment variables only. Do not configure Production credentials or enable production deployment during Phase C2.
 
 ## Package structure
 
 ```text
+api/              Preview-only Vercel Function entry points
 src/
-  agents/          Specialist registrations and tool-free OpenAI adapter
-  persistence/     Server-only control-plane and projection persistence
-  projections/     Canonical member and daily metric projectors
-  sensors/         Existing collector contracts and ActiveCampaign read-only audit
-  workflows/       Durable workflow ports and lifecycle integrity core
-  contracts.ts     Shared typed contracts
-  env.ts           Environment validation and safe defaults
-  stable-id.ts     Stable deterministic operational UUIDs
-  identity-authority.ts
-  idempotency.ts
-  lifecycle.ts
-  metrics.ts
-  policy.ts
+  agents/         Specialist registrations and tool-free OpenAI adapter
+  http/           Request validation, authentication, health, and response contracts
+  persistence/    Server-only control-plane, projection, and projection-run persistence
+  projections/    Canonical member and daily metric projectors
+  runtime/        Preview evaluation composition
+  sensors/        Existing collector contracts and ActiveCampaign read-only audit
+  workflows/      Durable workflow ports and lifecycle integrity core
 ```
 
 Architecture and rollout details are documented under `docs/intelligence-os/`.

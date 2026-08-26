@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci --ignore-scripts --no-audit --no-fund",
+  "buildCommand": "npm run build",
+  "functions": {
+    "api/health.ts": {
+      "maxDuration": 5
+    },
+    "api/preview/evaluate.ts": {
+      "maxDuration": 30,
+      "supportsCancellation": true
+    }
+  }
+}
