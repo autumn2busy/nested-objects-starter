@@ -29,3 +29,7 @@ apps/web-members/reports/
 !apps/web-members/content/seo-content-opportunities.json
 !apps/web-members/content/ai-aeo-opportunities.json
 !apps/web-members/content/content-briefs.json
+
+# Reviewed, synthetic-only Intelligence OS runtime contracts.
+!apps/agent-runtime/tsconfig.api.json
+!apps/agent-runtime/fixtures/preview-evaluation.synthetic.json
