@@ -24,6 +24,8 @@ Phase C2 proves the deployment and security boundary around the deterministic Ph
 
 Public, no-cache, configuration-safe health response. It exposes boolean readiness state only. It does not reveal tokens, Supabase credentials, database URLs, project references, source records, or contact information.
 
+Health is fail-closed. Invalid boolean values, a non-preview runtime, Vercel Production, a mode other than `dry_run`, model execution, mutation enablement, a non-memory workflow provider, a weak or missing token, or an unsafe persistence configuration produce HTTP 503 with `ok: false`.
+
 ### `POST /api/preview/evaluate`
 
 Bearer-authenticated, preview-only deterministic evaluation. It accepts bounded synthetic fixtures and returns only aggregate counts and classifications.
@@ -32,6 +34,7 @@ The endpoint rejects:
 
 - Vercel Production
 - Any runtime environment other than `preview`
+- Any runtime mode other than `dry_run`
 - Model execution
 - Mutation enablement
 - A workflow provider other than `in_memory`
@@ -77,10 +80,12 @@ Create a separate project using:
 Project name: nested-objects-agent-runtime
 Repository: autumn2busy/nested-objects-starter
 Root Directory: apps/agent-runtime
-Production Branch: main
+Production Branch: deploy/agent-runtime-production-disabled
 ```
 
-For the first deployment, import the Phase C2 feature branch as a Preview deployment. Do not promote it to Production.
+The dedicated production-disabled branch is pinned to the merged Phase C1 baseline. It prevents merging Phase C2 into `main` from automatically becoming a production agent-runtime deployment. Do not change the Production Branch to `main` until a later production rollout receives explicit approval.
+
+The first useful deployment must come from the Phase C2 feature branch as a Preview deployment. Do not promote it to Production.
 
 Preview and Development variables:
 
@@ -97,19 +102,21 @@ AGENT_PREVIEW_SYNTHETIC_ONLY=true
 AGENT_PREVIEW_PERSISTENCE_ENABLED=false
 ```
 
-Do not add OpenAI or Supabase credentials for the first dry-run deployment.
+Do not add OpenAI or Supabase credentials for the first dry-run deployment. Keep every Production environment variable empty.
 
 ## Smoke-test sequence
 
-1. Deploy the Phase C2 branch to Vercel Preview.
-2. Confirm `GET /api/health` returns HTTP 200 and `ok: true`.
-3. Confirm an unauthenticated evaluation returns HTTP 401.
-4. Confirm a real email address is rejected with HTTP 400.
-5. Submit the reviewed synthetic fixture with `persist: false`.
-6. Confirm the response contains aggregate counts only and explicit false safety flags for ActiveCampaign mutation, model execution, production writes, and consequential executors.
-7. Only after those checks pass, add staging Supabase variables to Preview and set `AGENT_PREVIEW_PERSISTENCE_ENABLED=true` for a separately approved staging write test.
-8. Verify the staging projection run and synthetic records, then remove the synthetic projection records or retain them under an explicit validation label.
-9. Keep all Production environment variables empty and do not promote the deployment.
+1. Create the separate Vercel project and immediately confirm its Production Branch is `deploy/agent-runtime-production-disabled`.
+2. Add the safe variables above to Preview and Development only.
+3. Deploy or redeploy `feature/318-phase-c2-preview-runtime-entrypoint` as a Vercel Preview.
+4. Confirm `GET /api/health` returns HTTP 200 with `ok: true` and `configurationValid: true`.
+5. Confirm an unauthenticated evaluation returns HTTP 401.
+6. Confirm a real email address is rejected with HTTP 400.
+7. Submit the reviewed synthetic fixture with `persist: false`.
+8. Confirm the response contains aggregate counts only and explicit false safety flags for ActiveCampaign mutation, model execution, production writes, and consequential executors.
+9. Only after those checks pass, add staging Supabase variables to Preview and set `AGENT_PREVIEW_PERSISTENCE_ENABLED=true` for a separately approved staging write test.
+10. Verify the staging projection run and synthetic records, then remove the synthetic projection records or retain them under an explicit validation label.
+11. Keep all Production environment variables empty and do not promote the deployment.
 
 ## Deliberate non-goals
 
