@@ -9,6 +9,7 @@ const [
   packageSource,
   envSource,
   readmeSource,
+  fixtureSource,
   vercelSource,
   healthSource,
   evaluateSource,
@@ -21,6 +22,7 @@ const [
   read('package.json'),
   read('.env.example'),
   read('README.md'),
+  read('fixtures/preview-evaluation.synthetic.json'),
   read('vercel.json'),
   read('api/health.ts'),
   read('api/preview/evaluate.ts'),
@@ -33,11 +35,17 @@ const [
 
 const failures = []
 let packageJson
+let fixtureJson
 let vercelJson
 try {
   packageJson = JSON.parse(packageSource)
 } catch (error) {
   failures.push(`package.json is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
+}
+try {
+  fixtureJson = JSON.parse(fixtureSource)
+} catch (error) {
+  failures.push(`preview fixture is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
 }
 try {
   vercelJson = JSON.parse(vercelSource)
@@ -101,6 +109,8 @@ if (vercelJson) {
   if (vercelJson.routes || vercelJson.rewrites) failures.push('Phase C2 must not add public routing aliases')
 }
 
+if (fixtureJson) validateSyntheticFixture(fixtureJson, failures)
+
 if (!healthSource.includes('previewHealthSnapshot')) failures.push('Health endpoint is missing previewHealthSnapshot')
 if (!runtimeSource.includes('configurationValid')) failures.push('Preview health does not expose configuration validity')
 if (!webSource.includes("'cache-control': 'no-store")) failures.push('JSON responses are missing no-store cache control')
@@ -120,11 +130,16 @@ if (authenticationIndex < 0 || bodyReadIndex < 0 || authenticationIndex > bodyRe
 }
 
 for (const fragment of [
+  'SYNTHETIC_FIXTURE_UUID_PATTERN',
+  'Phase C2 fixture UUIDs must use the reserved 31800000-',
+  'nullableSyntheticIdentifierSchema',
   "endsWith('.invalid')",
+  "state: z.enum(['ZZ'])",
   'Phase C2 preview does not accept phone numbers',
+  'Phase C2 preview does not accept profile headline or biography text',
+  'Phase C2 preview does not accept conversion event payload values',
   'Phase C2 preview does not accept ActiveCampaign custom field values',
-  'Object.keys(contact.customFields).length > 0',
-  'Contact, mirror, and asset IDs must begin with validation- or synthetic-.',
+  'External identifiers must begin with validation- or synthetic-.',
   'Object.values(input.activeCampaignMirrorByMemberId)',
   'requestBytes: 1_500_000',
 ]) {
@@ -181,4 +196,93 @@ if (failures.length > 0) {
   process.exitCode = 1
 } else {
   console.log('Static Phase C2 preview deployment and dry-run safety contract check passed.')
+}
+
+function validateSyntheticFixture(fixture, errors) {
+  const uuidPattern = /^31800000-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  const syntheticIdentifier = (value) => {
+    const normalized = String(value ?? '').trim().toLowerCase()
+    return normalized.startsWith('synthetic-') || normalized.startsWith('validation-')
+  }
+  const syntheticLabel = (value) => {
+    const normalized = String(value ?? '').trim().toLowerCase()
+    return normalized.startsWith('synthetic ') || normalized.startsWith('validation ')
+  }
+
+  const uuids = [
+    fixture.correlationId,
+    fixture.causationId,
+    ...(fixture.profiles ?? []).flatMap((profile) => [profile.id, profile.user_id]),
+    ...(fixture.conversionEvents ?? []).map((event) => event.id),
+    ...Object.keys(fixture.productAccessByMemberId ?? {}),
+    ...Object.values(fixture.productAccessByMemberId ?? {}).map((snapshot) => snapshot.memberId),
+    ...Object.keys(fixture.activeCampaignMirrorByMemberId ?? {}),
+  ].filter(Boolean)
+  if (uuids.some((value) => !uuidPattern.test(String(value)))) {
+    errors.push('Preview fixture contains a UUID outside the reserved 31800000 namespace')
+  }
+
+  const externalIds = [
+    ...(fixture.profiles ?? []).flatMap((profile) => [
+      profile.outseta_person_uid,
+      profile.outseta_account_id,
+      profile.plan_uid,
+    ]),
+    ...(fixture.conversionEvents ?? []).flatMap((event) => [
+      event.client_event_id,
+      event.anonymous_id,
+      event.session_id,
+      event.member_uid,
+      event.plan_uid,
+      event.source,
+      event.utm_source,
+      event.utm_medium,
+      event.utm_campaign,
+    ]),
+    ...(fixture.activeCampaignContacts ?? []).map((contact) => contact.contactId),
+    ...(fixture.activeCampaignAssets ?? []).map((asset) => asset.externalId),
+    ...Object.values(fixture.activeCampaignMirrorByMemberId ?? {}).map((mirror) => mirror.contactId),
+  ].filter(Boolean)
+  if (externalIds.some((value) => !syntheticIdentifier(value))) {
+    errors.push('Preview fixture contains an external identifier without a synthetic or validation prefix')
+  }
+
+  const emails = [
+    ...(fixture.profiles ?? []).flatMap((profile) => [profile.user_email, profile.email]),
+    ...(fixture.conversionEvents ?? []).map((event) => event.member_email),
+    ...(fixture.activeCampaignContacts ?? []).map((contact) => contact.email),
+    ...(fixture.marketingConfig?.approvedInternalMemberEmails ?? []),
+  ].filter(Boolean)
+  if (emails.some((value) => !String(value).toLowerCase().endsWith('.invalid'))) {
+    errors.push('Preview fixture contains a non-.invalid email address')
+  }
+
+  if ((fixture.marketingConfig?.internalDomains ?? []).some(
+    (value) => !String(value).toLowerCase().endsWith('.invalid'),
+  )) {
+    errors.push('Preview fixture contains a real internal domain')
+  }
+  if ((fixture.profiles ?? []).some((profile) => profile.state && profile.state !== 'ZZ')) {
+    errors.push('Preview fixture contains a real geographic state')
+  }
+  if ((fixture.profiles ?? []).some((profile) =>
+    [...(Array.isArray(profile.service_areas) ? profile.service_areas : [profile.service_areas]),
+      ...(Array.isArray(profile.primary_services) ? profile.primary_services : [profile.primary_services])]
+      .filter(Boolean)
+      .some((value) => !syntheticLabel(value)),
+  )) {
+    errors.push('Preview fixture contains an unmarked profile label')
+  }
+  if ((fixture.activeCampaignContacts ?? []).some((contact) =>
+    Object.keys(contact.customFields ?? {}).length > 0
+    || [...(contact.tagNames ?? []), ...(contact.listNames ?? [])].some((value) => !syntheticLabel(value)),
+  )) {
+    errors.push('Preview fixture contains ActiveCampaign custom fields or unmarked asset labels')
+  }
+  if ((fixture.activeCampaignAssets ?? []).some((asset) => !syntheticLabel(asset.name))) {
+    errors.push('Preview fixture contains an unmarked ActiveCampaign asset name')
+  }
+  if ((fixture.conversionEvents ?? []).some((event) => event.event_data && Object.keys(event.event_data).length > 0)) {
+    errors.push('Preview fixture contains conversion event payload values')
+  }
 }
