@@ -1,0 +1,34 @@
+name: Normalize Phase C test EOF
+
+on:
+  push:
+    branches:
+      - feature/318-phase-c-projections-lifecycle-integrity
+    paths:
+      - '.github/workflows/phase-c-whitespace-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  normalize-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out Phase C branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/318-phase-c-projections-lifecycle-integrity
+          fetch-depth: 0
+
+      - name: Normalize final newline
+        run: python -c "from pathlib import Path; p=Path('apps/agent-runtime/test/phase-c.test.mjs'); p.write_text(p.read_text().rstrip() + '\\n')"
+
+      - name: Commit whitespace correction
+        run: |
+          rm .github/workflows/phase-c-whitespace-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: normalize Phase C test whitespace"
+          git push origin HEAD:feature/318-phase-c-projections-lifecycle-integrity
