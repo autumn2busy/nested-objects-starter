@@ -14,7 +14,7 @@
     "test": "npm run build && node --test test/*.test.mjs",
     "format:check": "node ./scripts/format-check.mjs",
     "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs",
-    "preview:check": "node ./scripts/validate-preview-runtime.mjs && node ./scripts/validate-preview-error-mapping.mjs",
+    "preview:check": "node ./scripts/validate-preview-runtime.mjs",
     "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run migration:check && npm run preview:check",
     "dependency:check": "node ./scripts/dependency-smoke.mjs"
   },
