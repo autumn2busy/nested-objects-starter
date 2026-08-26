@@ -21,9 +21,11 @@ It adds canonical member projection plans from Supabase `profiles` and the exist
 
 The projector uses the Supabase profile UUID as the initial canonical member key. It links Supabase profile and user IDs, Outseta person and account IDs, email when it is not in conflict, and anonymous conversion IDs that later resolve to the profile.
 
-A shared identifier attached to multiple profiles is not silently merged. The affected canonical members are marked `conflict`, the unsafe email link is withheld, and a lifecycle signal is emitted for review.
+A shared identifier attached to multiple profiles is not silently merged. The affected canonical members are marked `conflict`, and unsafe email, Outseta person, or Outseta account links are withheld so the database cannot persist the same stable external identity to multiple members. Lifecycle signal fingerprints hash the conflicting identifier instead of placing the raw value in a durable signal key.
 
 Repeated conversion deliveries are deduplicated by `client_event_id`. Browser and authoritative Outseta signup events are deduplicated by actor for daily signup metrics. Unmatched events remain visible as an integrity signal rather than disappearing from the analysis.
+
+Daily metric idempotency keys are stable across projection reruns. A retry updates the same metric-day contract rather than creating a second row merely because the workflow run ID changed.
 
 ## ActiveCampaign cleanup boundary
 
@@ -41,7 +43,7 @@ A suppression candidate is only a recommendation. The runtime does not unsubscri
 
 The first deterministic metrics include signups by tier, confirmed subscription creation and upgrade events, confirmed purchases, directory and firm views, paywall hits, upgrade clicks, profile completions, training starts and completions, and a current active-trial snapshot.
 
-MRR, ARR, and cancellation counts remain `unknown` because current inputs do not provide billing-grade amounts or an authoritative cancellation event. Unknown values remain `NULL` rather than zero.
+MRR, ARR, and cancellation counts remain `unknown` because current inputs do not provide billing-grade amounts or an authoritative cancellation event. Unknown values remain `NULL` rather than zero. Unknown MRR and ARR use currency units, while unknown cancellation counts use a count unit.
 
 ## Safety boundaries
 
