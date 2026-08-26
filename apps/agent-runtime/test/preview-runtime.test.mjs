@@ -183,6 +183,15 @@ test('preview contract rejects real contact data and non-synthetic external iden
   )
   assert.throws(
     () => parsePreviewEvaluationRequest(validPayload({
+      activeCampaignContacts: [{
+        ...validPayload().activeCampaignContacts[0],
+        customFields: { phone: '404-555-0100' },
+      }],
+    })),
+    PreviewRequestValidationError,
+  )
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
       activeCampaignMirrorByMemberId: {
         [memberId]: {
           ...validPayload().activeCampaignMirrorByMemberId[memberId],
