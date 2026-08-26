@@ -1,0 +1,191 @@
+name: Apply Phase C2 audit hardening
+
+on:
+  push:
+    branches:
+      - feature/318-phase-c2-preview-runtime-entrypoint
+    paths:
+      - '.github/workflows/phase-c2-audit-hardening.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out Phase C2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/318-phase-c2-preview-runtime-entrypoint
+          fetch-depth: 0
+
+      - name: Use Node 22.16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Apply reviewed audit fixes
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              source = file.read_text()
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"Expected one match in {path}, found {count}: {old[:100]!r}")
+              file.write_text(source.replace(old, new, 1))
+
+          execution_path = 'apps/agent-runtime/src/preview/execution.ts'
+          replace_once(
+              execution_path,
+              """  const begin = await dependencies.beginRun({
+""",
+              """  const requestDigest = digestInvocation(invocation)
+  const begin = await dependencies.beginRun({
+""",
+          )
+          replace_once(
+              execution_path,
+              """    requestDigest: digestInvocation(invocation),
+""",
+              """    requestDigest,
+""",
+          )
+          replace_once(
+              execution_path,
+              """      metadata: {
+        synthetic: true,
+        persisted: invocation.persist,
+        invocationId: invocation.invocationId,
+        counts,
+      },
+""",
+              """      metadata: {
+        synthetic: true,
+        persistRequested: invocation.persist,
+        persisted: invocation.persist,
+        requestDigest,
+        invocationId: invocation.invocationId,
+        counts,
+      },
+""",
+          )
+
+          handlers_path = 'apps/agent-runtime/src/preview/handlers.ts'
+          replace_once(
+              handlers_path,
+              """    const status = summary.duplicate && ['queued', 'running'].includes(summary.status)
+      ? 202
+      : summary.duplicate && summary.status === 'failed'
+        ? 409
+        : 200
+""",
+              """    const status = !summary.duplicate || summary.status === 'succeeded'
+      ? 200
+      : ['queued', 'running'].includes(summary.status)
+        ? 202
+        : 409
+""",
+          )
+
+          test_path = 'apps/agent-runtime/test/phase-c2.test.mjs'
+          replace_once(
+              test_path,
+              """    complete: 0,
+    fail: 0,
+""",
+              """    complete: 0,
+    fail: 0,
+    completedRun: null,
+""",
+          )
+          replace_once(
+              test_path,
+              """      async completeRun() {
+        calls.complete += 1
+      },
+""",
+              """      async completeRun(input) {
+        calls.complete += 1
+        calls.completedRun = input
+      },
+""",
+          )
+          replace_once(
+              test_path,
+              """  assert.equal(fake.calls.complete, 1)
+  assert.equal(JSON.stringify(body).includes('member@example.invalid'), false)
+})
+""",
+              """  assert.equal(fake.calls.complete, 1)
+  assert.equal(fake.calls.completedRun.metadata.persistRequested, false)
+  assert.match(fake.calls.completedRun.metadata.requestDigest, /^[a-f0-9]{64}$/)
+  assert.equal(JSON.stringify(body).includes('member@example.invalid'), false)
+})
+""",
+          )
+
+          tests = Path(test_path).read_text()
+          addition = r'''
+
+test('idempotent cancelled runs return a conflict instead of a false success', async () => {
+  const fake = fakeDependencies({
+    async beginRun() {
+      fake.calls.begin += 1
+      return {
+        duplicate: true,
+        runId: '66666666-6666-4666-8666-666666666666',
+        status: 'cancelled',
+        completedAt: fixedNow,
+      }
+    },
+  })
+  const response = await handleLifecycleIntegrityRequest(new Request(
+    'https://runtime.example/api/workflows/lifecycle-integrity',
+    {
+      method: 'POST',
+      headers: authorizedHeaders(),
+      body: JSON.stringify(invocation()),
+    },
+  ), {
+    environment: previewEnvironment(),
+    dependencies: fake.dependency,
+    now: () => fixedNow,
+  })
+  const body = await responseJson(response)
+
+  assert.equal(response.status, 409)
+  assert.equal(body.ok, false)
+  assert.equal(body.duplicate, true)
+  assert.equal(body.status, 'cancelled')
+  assert.equal(fake.calls.persist, 0)
+  assert.equal(fake.calls.complete, 0)
+})
+'''
+          marker = 'idempotent cancelled runs return a conflict instead of a false success'
+          if marker in tests:
+              raise SystemExit('Phase C2 cancelled-run test already exists')
+          Path(test_path).write_text(tests.rstrip() + addition + '\n')
+          PY
+
+      - name: Install and validate isolated runtime
+        working-directory: apps/agent-runtime
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run validate
+
+      - name: Check patch whitespace
+        run: git diff --check
+
+      - name: Commit audited Phase C2 contracts
+        run: |
+          rm .github/workflows/phase-c2-audit-hardening.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: preserve Phase C2 preview audit metadata"
+          git push origin HEAD:feature/318-phase-c2-preview-runtime-entrypoint
