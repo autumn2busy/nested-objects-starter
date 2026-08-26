@@ -35,6 +35,10 @@ const flatJsonValueSchema = z.union([
 ])
 const eventDataSchema = z.record(z.string().trim().min(1).max(100), flatJsonValueSchema)
   .refine((value) => Object.keys(value).length <= 30, 'event_data may contain at most 30 keys')
+const syntheticActiveCampaignIdSchema = z.string().trim().min(1).max(255).refine(
+  isSyntheticIdentifier,
+  'ActiveCampaign identifiers must begin with validation- or synthetic-.',
+)
 
 const profileSchema = z.object({
   id: z.string().uuid(),
@@ -100,7 +104,7 @@ const conversionEventSchema = z.object({
 }).strict()
 
 const activeCampaignContactSchema = z.object({
-  contactId: z.string().trim().min(1).max(255),
+  contactId: syntheticActiveCampaignIdSchema,
   email: z.string().email().max(320).nullable(),
   tagNames: limitedStringArraySchema(250, 255),
   listNames: limitedStringArraySchema(100, 255),
@@ -117,7 +121,7 @@ const activeCampaignContactSchema = z.object({
 
 const activeCampaignAssetSchema = z.object({
   assetType: z.enum(['list', 'tag', 'field', 'automation', 'campaign', 'segment', 'custom_object', 'pipeline']),
-  externalId: z.string().trim().min(1).max(255),
+  externalId: syntheticActiveCampaignIdSchema,
   name: z.string().trim().min(1).max(500),
   description: z.string().trim().max(2_000).nullable().optional(),
   active: z.boolean().nullable().optional(),
@@ -142,7 +146,7 @@ const productAccessSchema = z.object({
 }).strict()
 
 const activeCampaignMirrorSchema = z.object({
-  contactId: z.string().trim().min(1).max(255),
+  contactId: syntheticActiveCampaignIdSchema,
   planName: z.string().trim().max(255).nullable(),
   lifecycleStatus: z.string().trim().max(255).nullable(),
   onboardingEnteredAt: timestampSchema.nullable(),
@@ -228,18 +232,17 @@ export function assertSyntheticPreviewInput(input: PreviewEvaluationRequest): vo
     )
   }
 
-  const unsafeContactIds = input.activeCampaignContacts
-    .map((contact) => contact.contactId)
-    .filter((contactId) => !isSyntheticIdentifier(contactId))
-  const unsafeAssetIds = input.activeCampaignAssets
-    .map((asset) => asset.externalId)
-    .filter((externalId) => !isSyntheticIdentifier(externalId))
-  if (unsafeContactIds.length > 0 || unsafeAssetIds.length > 0) {
+  const activeCampaignIds = [
+    ...input.activeCampaignContacts.map((contact) => contact.contactId),
+    ...input.activeCampaignAssets.map((asset) => asset.externalId),
+    ...Object.values(input.activeCampaignMirrorByMemberId).map((mirror) => mirror.contactId),
+  ]
+  if (activeCampaignIds.some((identifier) => !isSyntheticIdentifier(identifier))) {
     throw new PreviewRequestValidationError(
       'Phase C2 preview accepts only synthetic ActiveCampaign identifiers',
       [{
         path: 'activeCampaign',
-        message: 'Contact and asset IDs must begin with validation- or synthetic-.',
+        message: 'Contact, mirror, and asset IDs must begin with validation- or synthetic-.',
       }],
     )
   }
