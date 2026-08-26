@@ -14,17 +14,17 @@ Base commit:
 
 ## Objective
 
-Make `apps/agent-runtime` independently deployable to a separate Vercel Preview project without enabling production behavior, autonomous agents, real-contact processing, or consequential external mutations.
+Make `apps/agent-runtime` independently deployable to a separate Vercel Preview project without enabling production behavior, autonomous agents, real-contact processing, database writes, or consequential external mutations.
 
-Phase C2 proves the deployment and security boundary around the deterministic Phase C1 intelligence core. It does not yet add Vercel Workflow, Vercel Queues, model execution, a cron schedule, or a live ActiveCampaign connector executor.
+Phase C2 proves the deployment and security boundary around the deterministic Phase C1 intelligence core. It does not add Vercel Workflow, Vercel Queues, model execution, a cron schedule, a database persistence path, or a live ActiveCampaign connector executor.
 
 ## Runtime endpoints
 
 ### `GET /api/health`
 
-Public, no-cache, configuration-safe health response. It exposes boolean readiness state only. It does not reveal tokens, Supabase credentials, database URLs, project references, source records, or contact information.
+Public, no-cache, configuration-safe health response. It exposes boolean readiness state only. It does not reveal tokens, credentials, database URLs, project references, source records, or contact information.
 
-Health is fail-closed. Invalid boolean values, a non-preview runtime, Vercel Production, a mode other than `dry_run`, model execution, mutation enablement, a non-memory workflow provider, a weak or missing token, or an unsafe persistence configuration produce HTTP 503 with `ok: false`.
+Health is fail-closed. Invalid boolean values, a non-preview runtime, Vercel Production, a mode other than `dry_run`, model execution, mutation enablement, a non-memory workflow provider, a weak or missing token, Supabase credentials, a staging project reference, or an attempt to enable persistence produce HTTP 503 with `ok: false`.
 
 ### `POST /api/preview/evaluate`
 
@@ -37,6 +37,8 @@ The endpoint rejects:
 - Any runtime mode other than `dry_run`
 - Model execution
 - Mutation enablement
+- Database persistence
+- Supabase credentials or staging project references
 - A workflow provider other than `in_memory`
 - Missing or weak preview bearer tokens
 - Payloads over 1.5 MB
@@ -46,31 +48,37 @@ The endpoint rejects:
 - More than 500 ActiveCampaign asset fixtures
 - Email addresses that do not end in `.invalid`
 - Phone numbers
-- ActiveCampaign contact or asset IDs without `synthetic-` or `validation-` prefixes
+- ActiveCampaign contact, lifecycle-mirror, or asset IDs without `synthetic-` or `validation-` prefixes
 
 Responses omit emails, member identifiers, ActiveCampaign identifiers, raw evidence, source records, and action payloads.
 
-## Persistence boundary
+## Database boundary
 
-The first Preview deployment must use:
+Phase C2 has no database write capability.
+
+The following must not be configured in its Vercel project:
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+AGENT_STAGING_PROJECT_REF
+```
+
+The following must remain false:
 
 ```text
 AGENT_PREVIEW_PERSISTENCE_ENABLED=false
 ```
 
-A later staging-only persistence test may set it to `true` after the dry-run smoke test passes. Persistence then requires the exact staging project reference and refuses a Supabase URL whose hostname does not equal:
+A request containing `persist: true` is rejected. Removing the write path also prevents partial writes under a Vercel timeout and prevents retries from resetting a previously completed projection run.
 
-```text
-<AGENT_STAGING_PROJECT_REF>.supabase.co
-```
-
-Allowed staging writes are limited to the reviewed private operational tables and deterministic projections already established in Phases B and C1. ActiveCampaign is never mutated.
+Staging persistence moves to the next durable-workflow increment. That implementation must bind to an independently reviewed staging destination rather than trusting a URL and project reference supplied together at runtime. It must also use durable idempotent step claims, bounded writes, retries, and explicit verification.
 
 ## Why Vercel Workflow is not installed in this increment
 
-The current evaluation is bounded, deterministic, and completes in one request. Adding durable workflow orchestration before the basic deployment, authentication, packaging, and staging connection boundaries are proven would combine too many failure modes.
+The current evaluation is bounded, deterministic, read-only, and completes in one request. Adding durable workflow orchestration before deployment, authentication, packaging, and synthetic-input boundaries are proven would combine too many failure modes.
 
-The next increment should add Vercel Workflow when the first real lifecycle-integrity execution needs persisted steps, retries, and resumability. Vercel Queues should remain deferred until one source event genuinely needs independent fan-out to multiple consumers.
+The next increment should add Vercel Workflow for the first persisted lifecycle-integrity execution that needs durable steps, retries, resumability, and a verified staging destination. Vercel Queues remain deferred until one source event genuinely needs independent fan-out to multiple consumers.
 
 ## Vercel project configuration after review approval
 
@@ -102,7 +110,7 @@ AGENT_PREVIEW_SYNTHETIC_ONLY=true
 AGENT_PREVIEW_PERSISTENCE_ENABLED=false
 ```
 
-Do not add OpenAI or Supabase credentials for the first dry-run deployment. Keep every Production environment variable empty.
+Do not add OpenAI or Supabase credentials. Keep every Production environment variable empty.
 
 ## Smoke-test sequence
 
@@ -112,15 +120,27 @@ Do not add OpenAI or Supabase credentials for the first dry-run deployment. Keep
 4. Confirm `GET /api/health` returns HTTP 200 with `ok: true` and `configurationValid: true`.
 5. Confirm an unauthenticated evaluation returns HTTP 401.
 6. Confirm a real email address is rejected with HTTP 400.
-7. Submit the reviewed synthetic fixture with `persist: false`.
-8. Confirm the response contains aggregate counts only and explicit false safety flags for ActiveCampaign mutation, model execution, production writes, and consequential executors.
-9. Only after those checks pass, add staging Supabase variables to Preview and set `AGENT_PREVIEW_PERSISTENCE_ENABLED=true` for a separately approved staging write test.
-10. Verify the staging projection run and synthetic records, then remove the synthetic projection records or retain them under an explicit validation label.
+7. Confirm a nonsynthetic lifecycle-mirror contact ID is rejected with HTTP 400.
+8. Confirm a request with `persist: true` is rejected.
+9. Submit the reviewed synthetic fixture with `persist: false`.
+10. Confirm the response contains aggregate counts only and explicit false safety flags for ActiveCampaign mutation, model execution, production writes, and consequential executors.
 11. Keep all Production environment variables empty and do not promote the deployment.
+
+## Codex review resolution
+
+The final Phase C2 review identified four persistence and privacy risks:
+
+1. A URL and project reference supplied together could both point to Production.
+2. A lifecycle mirror could contain a real ActiveCampaign contact ID.
+3. A retry could reset a previously completed projection run.
+4. Serial persistence could exceed the Vercel function duration and leave partial staging writes.
+
+Phase C2 resolves these by removing database persistence entirely and enforcing synthetic identifiers on ActiveCampaign contacts, lifecycle mirrors, and assets. Durable staging writes are deliberately deferred to the workflow increment designed to solve destination binding, idempotency, bounded execution, and retry semantics together.
 
 ## Deliberate non-goals
 
 - No real member or contact data
+- No database credentials or writes
 - No production database connection
 - No ActiveCampaign API or MCP mutation
 - No email or outreach
