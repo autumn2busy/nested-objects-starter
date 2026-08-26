@@ -14,6 +14,7 @@ export interface PreviewRuntimeConfiguration {
 
 export interface PreviewHealthSnapshot {
   ok: boolean
+  configurationValid: boolean
   service: 'nested-objects-agent-runtime'
   phase: 'phase-c2-preview'
   environment: string
@@ -39,6 +40,9 @@ export function loadPreviewRuntimeConfiguration(
   }
   if (vercelEnvironment === 'production') {
     throw new PreviewRuntimeConfigurationError('Phase C2 preview execution is blocked in a Vercel production environment')
+  }
+  if (runtime.mode !== 'dry_run') {
+    throw new PreviewRuntimeConfigurationError('Phase C2 preview requires AGENT_RUNTIME_MODE=dry_run')
   }
   if (runtime.workflowProvider !== 'in_memory') {
     throw new PreviewRuntimeConfigurationError('Phase C2 preview requires AGENT_WORKFLOW_PROVIDER=in_memory')
@@ -91,23 +95,20 @@ export function previewHealthSnapshot(
     optionalString(environment.SUPABASE_URL) && optionalString(environment.SUPABASE_SERVICE_ROLE_KEY),
   )
   const stagingProjectRefConfigured = Boolean(optionalString(environment.AGENT_STAGING_PROJECT_REF))
-  const persistenceEnabled = safeBoolean(environment.AGENT_PREVIEW_PERSISTENCE_ENABLED, false)
-  const modelExecutionEnabled = safeBoolean(environment.AGENT_MODEL_EXECUTION_ENABLED, false)
-  const mutationsEnabled = safeBoolean(environment.AGENT_MUTATIONS_ENABLED, false)
-  const syntheticOnly = safeBoolean(environment.AGENT_PREVIEW_SYNTHETIC_ONLY, true)
-  const ok =
-    runtimeEnvironment === 'preview' &&
-    vercelEnvironment !== 'production' &&
-    mode === 'dry_run' &&
-    workflowProvider === 'in_memory' &&
-    !modelExecutionEnabled &&
-    !mutationsEnabled &&
-    syntheticOnly &&
-    tokenConfigured &&
-    (!persistenceEnabled || (supabaseConfigured && stagingProjectRefConfigured))
+  const persistenceEnabled = readBooleanForHealth(environment.AGENT_PREVIEW_PERSISTENCE_ENABLED, false)
+  const modelExecutionEnabled = readBooleanForHealth(environment.AGENT_MODEL_EXECUTION_ENABLED, false)
+  const mutationsEnabled = readBooleanForHealth(environment.AGENT_MUTATIONS_ENABLED, false)
+
+  let configurationValid = true
+  try {
+    loadPreviewRuntimeConfiguration(environment)
+  } catch {
+    configurationValid = false
+  }
 
   return {
-    ok,
+    ok: configurationValid,
+    configurationValid,
     service: 'nested-objects-agent-runtime',
     phase: 'phase-c2-preview',
     environment: runtimeEnvironment,
@@ -176,7 +177,7 @@ function parseBoolean(value: string | undefined, defaultValue: boolean): boolean
   throw new PreviewRuntimeConfigurationError('Boolean environment variable has an invalid value')
 }
 
-function safeBoolean(value: string | undefined, defaultValue: boolean): boolean {
+function readBooleanForHealth(value: string | undefined, defaultValue: boolean): boolean {
   try {
     return parseBoolean(value, defaultValue)
   } catch {
