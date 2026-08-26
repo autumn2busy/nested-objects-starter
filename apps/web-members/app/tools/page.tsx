@@ -1,10 +1,11 @@
-import { ToolsView } from './ToolsView'
-import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 
+import { generatePageMetadata } from '@/lib/seo'
+import { ToolsView } from './ToolsView'
+
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Field Tools | Income, Notary Route, Weather & Routing',
-  description: 'AI-powered tools for field inspectors and notaries: income calculators, route planning, weather alerts, and client management.',
+  title: 'Field Inspector Tools | Income, Routes, Weather & Tracking',
+  description: 'Preview field inspector tools for income planning, route decisions, weather, applications, client tracking, and AI-assisted workflow support.',
   path: '/tools',
 })
 

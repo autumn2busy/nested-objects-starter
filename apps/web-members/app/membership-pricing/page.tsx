@@ -1,36 +1,25 @@
-import { MembershipView, pricingFaqs } from './MembershipView'
-import { generatePageMetadata, getFAQPageSchema, getProductSchema } from '@/lib/seo'
 import type { Metadata } from 'next'
-import { membershipPlans } from '@/lib/ai-datasets'
-import { PLAN_UIDS } from '@/lib/plan-config'
+
+import { MembershipView, pricingFaqs } from './MembershipView'
+import { publicMembershipPlans } from '@/lib/ai-datasets'
+import { generatePageMetadata, getFAQPageSchema, getProductSchema } from '@/lib/seo'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Membership Plans | Certified Inspection & Notary Hub',
-  description: 'Join the #1 community for field inspectors and mobile notaries. Verified firm intel, training courses, and AI tools to grow your business.',
+  title: 'Membership Plans | Field Inspector Vendor Hub',
+  description: 'Compare current Nested Objects plans for field inspectors. Preview firms with Free, or unlock full firm intelligence, training, and working tools with Pro and above.',
   path: '/membership-pricing',
 })
 
-// Generate structured data for plans
-const publicSchemaPlanUids = new Set<string>([
-  PLAN_UIDS.FREE,
-  PLAN_UIDS.PRO,
-  PLAN_UIDS.ELITE,
-  PLAN_UIDS.AGENCY,
-])
+const productSchemas = publicMembershipPlans.map((plan) =>
+  getProductSchema({
+    name: `Nested Objects ${plan.name} Plan`,
+    description: plan.description,
+    price: plan.price.replace('$', '').replace('/mo', ''),
+    priceCurrency: 'USD',
+  })
+)
 
-const productSchemas = membershipPlans
-  .filter((plan) => publicSchemaPlanUids.has(plan.planUid))
-  .map((plan) =>
-    getProductSchema({
-      name: `Nested Objects ${plan.name} Plan`,
-      description: plan.description,
-      price: plan.price.replace('$', '').replace('/mo', ''),
-      priceCurrency: 'USD',
-    })
-  )
-
-// AggregateRating for rich snippets in search results
 const aggregateRatingSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
