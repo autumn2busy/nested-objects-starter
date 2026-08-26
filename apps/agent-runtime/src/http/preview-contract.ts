@@ -39,6 +39,12 @@ const syntheticActiveCampaignIdSchema = z.string().trim().min(1).max(255).refine
   isSyntheticIdentifier,
   'ActiveCampaign identifiers must begin with validation- or synthetic-.',
 )
+const emptyCustomFieldsSchema = z
+  .record(z.string().trim().min(1).max(255), z.string().max(2_000).nullable())
+  .refine(
+    (value) => Object.keys(value).length === 0,
+    'Phase C2 preview does not accept ActiveCampaign custom field values',
+  )
 
 const profileSchema = z.object({
   id: z.string().uuid(),
@@ -108,8 +114,7 @@ const activeCampaignContactSchema = z.object({
   email: z.string().email().max(320).nullable(),
   tagNames: limitedStringArraySchema(250, 255),
   listNames: limitedStringArraySchema(100, 255),
-  customFields: z.record(z.string().trim().min(1).max(255), z.string().max(2_000).nullable())
-    .refine((value) => Object.keys(value).length <= 250, 'customFields may contain at most 250 keys'),
+  customFields: emptyCustomFieldsSchema,
   createdAt: timestampSchema.nullable(),
   updatedAt: timestampSchema.nullable(),
   lastOpenAt: timestampSchema.nullable(),
@@ -229,6 +234,13 @@ export function assertSyntheticPreviewInput(input: PreviewEvaluationRequest): vo
     throw new PreviewRequestValidationError(
       'Phase C2 preview does not accept phone numbers',
       [{ path: 'profiles.phone', message: 'Remove phone values from synthetic preview fixtures.' }],
+    )
+  }
+
+  if (input.activeCampaignContacts.some((contact) => Object.keys(contact.customFields).length > 0)) {
+    throw new PreviewRequestValidationError(
+      'Phase C2 preview does not accept ActiveCampaign custom field values',
+      [{ path: 'activeCampaignContacts.customFields', message: 'Use an empty object for synthetic preview fixtures.' }],
     )
   }
 
