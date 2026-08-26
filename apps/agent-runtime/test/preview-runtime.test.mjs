@@ -181,6 +181,17 @@ test('preview contract rejects real contact data and non-synthetic external iden
     })),
     PreviewRequestValidationError,
   )
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
+      activeCampaignMirrorByMemberId: {
+        [memberId]: {
+          ...validPayload().activeCampaignMirrorByMemberId[memberId],
+          contactId: 'real-activecampaign-contact-id',
+        },
+      },
+    })),
+    PreviewRequestValidationError,
+  )
 })
 
 test('dry-run preview returns aggregate intelligence without returning PII or external IDs', async () => {
@@ -204,7 +215,7 @@ test('dry-run preview returns aggregate intelligence without returning PII or ex
   assert.equal(serialized.includes(memberId), false)
 })
 
-test('preview persistence requires an explicit staging-only capability flag', async () => {
+test('Phase C2 rejects every database persistence path', async () => {
   const configuration = loadPreviewRuntimeConfiguration(previewEnvironment())
   await assert.rejects(
     () => evaluatePreviewRequest(validPayload({ persist: true }), configuration, fixedNow),
@@ -214,9 +225,19 @@ test('preview persistence requires an explicit staging-only capability flag', as
   assert.throws(
     () => loadPreviewRuntimeConfiguration(previewEnvironment({
       AGENT_PREVIEW_PERSISTENCE_ENABLED: 'true',
-      AGENT_STAGING_PROJECT_REF: 'staging-project',
-      SUPABASE_URL: 'https://production-project.supabase.co',
+    })),
+    PreviewRuntimeConfigurationError,
+  )
+  assert.throws(
+    () => loadPreviewRuntimeConfiguration(previewEnvironment({
+      SUPABASE_URL: 'https://synthetic-staging.supabase.co',
       SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_synthetic',
+    })),
+    PreviewRuntimeConfigurationError,
+  )
+  assert.throws(
+    () => loadPreviewRuntimeConfiguration(previewEnvironment({
+      AGENT_STAGING_PROJECT_REF: 'synthetic-staging',
     })),
     PreviewRuntimeConfigurationError,
   )
@@ -228,6 +249,8 @@ test('health snapshot exposes safe state and fails closed on malformed configura
   assert.equal(health.configurationValid, true)
   assert.equal(health.tokenConfigured, true)
   assert.equal(health.mutationsEnabled, false)
+  assert.equal(health.persistenceEnabled, false)
+  assert.equal(health.supabaseConfigured, false)
   assert.equal(JSON.stringify(health).includes(token), false)
 
   const production = previewHealthSnapshot(previewEnvironment({ VERCEL_ENV: 'production' }))
@@ -241,4 +264,12 @@ test('health snapshot exposes safe state and fails closed on malformed configura
   const wrongMode = previewHealthSnapshot(previewEnvironment({ AGENT_RUNTIME_MODE: 'observe_only' }))
   assert.equal(wrongMode.ok, false)
   assert.equal(wrongMode.configurationValid, false)
+
+  const databaseConfigured = previewHealthSnapshot(previewEnvironment({
+    SUPABASE_URL: 'https://synthetic-staging.supabase.co',
+    SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_synthetic',
+  }))
+  assert.equal(databaseConfigured.ok, false)
+  assert.equal(databaseConfigured.configurationValid, false)
+  assert.equal(databaseConfigured.supabaseConfigured, true)
 })
