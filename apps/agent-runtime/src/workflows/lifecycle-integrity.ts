@@ -43,7 +43,7 @@ export function evaluateLifecycleIntegrity(input: LifecycleIntegrityInput): Inte
       severity: 'high',
       priority: 90,
       confidence: 1,
-      fingerprint: `identity:${input.projection.memberId}:${conflict.conflictType}:${conflict.identifier}`,
+      fingerprint: `identity:${input.projection.memberId}:${conflict.conflictType}:${stableUuid('identity-conflict-identifier', conflict.identifier)}`,
       evidence: [{
         evidenceType: 'observation',
         summary: 'Multiple profiles share a supposedly stable identity.',

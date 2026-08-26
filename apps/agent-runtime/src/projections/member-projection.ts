@@ -288,16 +288,16 @@ function buildIdentityLinks(
       (conflict.conflictType === 'outseta_person_collision' && identifierType === 'person_uid') ||
       (conflict.conflictType === 'outseta_account_collision' && identifierType === 'account_uid'),
     )
-    if (conflicted && identifierType === 'email') return
+    if (conflicted) return
 
     links.push({
       sourceSystem,
       identifierType,
       externalId,
       normalizedExternalId,
-      status: conflicted ? 'conflict' : 'active',
+      status: 'active',
       isPrimary,
-      confidence: conflicted ? 0 : 1,
+      confidence: 1,
       sourceRefs,
       provenance: { projection: 'profiles-and-conversion-events', projectionVersion: 'phase-c-v1' },
       idempotencyKey: `identity:${profile.id}:${sourceSystem}:${identifierType}:${normalizedExternalId}`,

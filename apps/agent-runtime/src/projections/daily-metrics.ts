@@ -60,9 +60,9 @@ export function buildDailyBusinessMetrics(input: BuildDailyMetricsInput): Metric
     dimensions: { snapshot: true },
   }))
 
-  metrics.push(unknownMetric(input, observedAt, 'revenue.mrr', 'revenue', 'Authoritative billing-grade recurring revenue amounts are not available in profiles or conversion_events.'))
-  metrics.push(unknownMetric(input, observedAt, 'revenue.arr', 'revenue', 'Authoritative billing-grade recurring revenue amounts are not available in profiles or conversion_events.'))
-  metrics.push(unknownMetric(input, observedAt, 'members.cancellations', 'revenue', 'No authoritative cancellation event is available in the Phase C input contract yet.'))
+  metrics.push(unknownMetric(input, observedAt, 'revenue.mrr', 'revenue', 'USD', 'Authoritative billing-grade recurring revenue amounts are not available in profiles or conversion_events.'))
+  metrics.push(unknownMetric(input, observedAt, 'revenue.arr', 'revenue', 'USD', 'Authoritative billing-grade recurring revenue amounts are not available in profiles or conversion_events.'))
+  metrics.push(unknownMetric(input, observedAt, 'members.cancellations', 'revenue', 'count', 'No authoritative cancellation event is available in the Phase C input contract yet.'))
 
   return metrics
 }
@@ -96,7 +96,7 @@ function knownMetric(
     sourceRunId: input.sourceRunId ?? null,
     sourceRefs,
     provenance: { eventNames: metadata.eventNames ?? [], projectionVersion: 'phase-c-v1' },
-    idempotencyKey: `metric:${input.metricDate}:${metricName}:global:${input.sourceRunId ?? 'none'}`,
+    idempotencyKey: `metric:${input.metricDate}:${metricName}:global:phase-c-v1`,
     observedAt,
     correlation: input.correlation,
   }
@@ -107,6 +107,7 @@ function unknownMetric(
   observedAt: string,
   metricName: string,
   domain: MetricDomain,
+  unit: string,
   reason: string,
 ): MetricSnapshot {
   return {
@@ -117,7 +118,7 @@ function unknownMetric(
     dimensions: {},
     value: null,
     valueState: 'unknown',
-    unit: 'USD',
+    unit,
     numerator: null,
     denominator: null,
     observedRecords: null,
@@ -128,7 +129,7 @@ function unknownMetric(
     sourceRunId: input.sourceRunId ?? null,
     sourceRefs: [],
     provenance: { reason, projectionVersion: 'phase-c-v1' },
-    idempotencyKey: `metric:${input.metricDate}:${metricName}:global:${input.sourceRunId ?? 'none'}`,
+    idempotencyKey: `metric:${input.metricDate}:${metricName}:global:phase-c-v1`,
     observedAt,
     correlation: input.correlation,
   }

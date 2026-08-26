@@ -273,3 +273,53 @@ test('Phase C core surfaces unmatched and duplicate conversion deliveries withou
   assert.deepEqual(result.unmatchedConversionEventIds, ['event-orphan'])
   assert.deepEqual(result.duplicateConversionEventIds, ['event-2'])
 })
+
+test('conflicting Outseta identifiers are withheld from persistence-safe identity links', () => {
+  const secondId = '22222222-2222-4222-8222-222222222222'
+  const batch = buildMemberProjectionBatch({
+    profiles: [
+      profile(),
+      profile({
+        id: secondId,
+        user_email: 'second@example.com',
+        outseta_account_id: 'account-2',
+      }),
+    ],
+    conversionEvents: [],
+    correlation,
+  })
+
+  assert.ok(batch.identityConflicts.some((conflict) => conflict.conflictType === 'outseta_person_collision'))
+  assert.ok(batch.projections.every((projection) =>
+    projection.identityLinks.every((link) => link.identifierType !== 'person_uid'),
+  ))
+})
+
+test('daily metric units and idempotency remain stable across projection reruns', () => {
+  const first = buildDailyBusinessMetrics({
+    metricDate: '2026-08-25',
+    profiles: [profile()],
+    conversionEvents: [],
+    correlation,
+    sourceRunId: 'run-1',
+    observedAt: fixedNow,
+  })
+  const second = buildDailyBusinessMetrics({
+    metricDate: '2026-08-25',
+    profiles: [profile()],
+    conversionEvents: [],
+    correlation,
+    sourceRunId: 'run-2',
+    observedAt: fixedNow,
+  })
+
+  const firstMrr = first.find((metric) => metric.metricName === 'revenue.mrr')
+  const secondMrr = second.find((metric) => metric.metricName === 'revenue.mrr')
+  const cancellations = first.find((metric) => metric.metricName === 'members.cancellations')
+
+  assert.equal(firstMrr.idempotencyKey, secondMrr.idempotencyKey)
+  assert.equal(cancellations.unit, 'count')
+  assert.equal(cancellations.valueState, 'unknown')
+  assert.equal(cancellations.value, null)
+})
+
