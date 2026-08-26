@@ -15,9 +15,9 @@ import {
 
 const token = 'phase-c2-preview-token-with-more-than-32-characters'
 const fixedNow = '2026-08-26T12:00:00.000Z'
-const memberId = '11111111-1111-4111-8111-111111111111'
-const eventId = '22222222-2222-4222-8222-222222222222'
-const correlationId = '33333333-3333-4333-8333-333333333333'
+const memberId = '31800000-0001-5000-8000-000000000001'
+const eventId = '31800000-0002-5000-8000-000000000002'
+const correlationId = '31800000-0003-5000-8000-000000000003'
 
 function previewEnvironment(overrides = {}) {
   return {
@@ -51,9 +51,9 @@ function validPayload(overrides = {}) {
       plan_name: 'Pro',
       created_at: '2026-08-20T12:00:00.000Z',
       updated_at: fixedNow,
-      state: 'GA',
-      service_areas: ['Gwinnett'],
-      primary_services: ['Mortgage field inspections'],
+      state: 'ZZ',
+      service_areas: ['Synthetic service area'],
+      primary_services: ['Synthetic mortgage field inspections'],
       training_modules_completed: 2,
       training_modules_total: 8,
       is_published: true,
@@ -75,8 +75,8 @@ function validPayload(overrides = {}) {
     activeCampaignContacts: [{
       contactId: 'synthetic-contact-1',
       email: 'member@example.invalid',
-      tagNames: ['Plan: Pro'],
-      listNames: ['Nested Objects Members'],
+      tagNames: ['Synthetic Plan: Pro'],
+      listNames: ['Synthetic Nested Objects Members'],
       customFields: {},
       createdAt: '2026-08-20T12:00:00.000Z',
       updatedAt: fixedNow,
@@ -89,11 +89,11 @@ function validPayload(overrides = {}) {
     activeCampaignAssets: [{
       assetType: 'automation',
       externalId: 'synthetic-automation-1',
-      name: 'Nested Objects Member Welcome',
+      name: 'Synthetic Nested Objects Member Welcome',
       active: true,
     }],
     marketingConfig: {
-      internalDomains: ['activecampaign.com'],
+      internalDomains: ['internal.example.invalid'],
       approvedInternalMemberEmails: [],
       coldTagPatterns: ['cold'],
       wixTagPatterns: ['wix'],
@@ -198,6 +198,37 @@ test('preview contract rejects real contact data and non-synthetic external iden
           contactId: 'real-activecampaign-contact-id',
         },
       },
+    })),
+    PreviewRequestValidationError,
+  )
+})
+
+test('preview contract rejects production member and Outseta identifiers', () => {
+  const realLookingMemberId = '8e0f0af1-3b42-4abc-9af7-5c379b920e01'
+
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
+      profiles: [{ ...validPayload().profiles[0], id: realLookingMemberId }],
+      productAccessByMemberId: {},
+      activeCampaignMirrorByMemberId: {},
+    })),
+    PreviewRequestValidationError,
+  )
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
+      profiles: [{ ...validPayload().profiles[0], outseta_person_uid: 'real-outseta-person-uid' }],
+    })),
+    PreviewRequestValidationError,
+  )
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
+      conversionEvents: [{ ...validPayload().conversionEvents[0], member_uid: 'real-outseta-person-uid' }],
+    })),
+    PreviewRequestValidationError,
+  )
+  assert.throws(
+    () => parsePreviewEvaluationRequest(validPayload({
+      profiles: [{ ...validPayload().profiles[0], state: 'GA' }],
     })),
     PreviewRequestValidationError,
   )
