@@ -1,11 +1,11 @@
-name: Agent Runtime Phase B
+name: Agent Runtime Intelligence OS
 
 on:
   pull_request:
     paths:
       - 'apps/agent-runtime/**'
-      - 'supabase/migrations/20260825090000_create_intelligence_os_foundation.sql'
-      - 'supabase/validation/20260825_validate_intelligence_os_foundation.sql'
+      - 'supabase/migrations/**'
+      - 'supabase/validation/**'
       - 'docs/intelligence-os/**'
       - '.github/workflows/agent-runtime-phase-b.yml'
 
