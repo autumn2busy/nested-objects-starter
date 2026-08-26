@@ -123,7 +123,7 @@ function validPayload(overrides = {}) {
   }
 }
 
-test('preview runtime is fail-closed and rejects production execution', () => {
+test('preview runtime is fail-closed and rejects production or non-dry-run execution', () => {
   const configuration = loadPreviewRuntimeConfiguration(previewEnvironment())
   assert.equal(configuration.runtime.environment, 'preview')
   assert.equal(configuration.persistenceEnabled, false)
@@ -131,6 +131,10 @@ test('preview runtime is fail-closed and rejects production execution', () => {
 
   assert.throws(
     () => loadPreviewRuntimeConfiguration(previewEnvironment({ VERCEL_ENV: 'production' })),
+    PreviewRuntimeConfigurationError,
+  )
+  assert.throws(
+    () => loadPreviewRuntimeConfiguration(previewEnvironment({ AGENT_RUNTIME_MODE: 'observe_only' })),
     PreviewRuntimeConfigurationError,
   )
   assert.throws(
@@ -218,13 +222,23 @@ test('preview persistence requires an explicit staging-only capability flag', as
   )
 })
 
-test('health snapshot exposes configuration state without exposing secret values', () => {
+test('health snapshot exposes safe state and fails closed on malformed configuration', () => {
   const health = previewHealthSnapshot(previewEnvironment({ VERCEL_ENV: 'preview' }))
   assert.equal(health.ok, true)
+  assert.equal(health.configurationValid, true)
   assert.equal(health.tokenConfigured, true)
   assert.equal(health.mutationsEnabled, false)
   assert.equal(JSON.stringify(health).includes(token), false)
 
-  const unsafe = previewHealthSnapshot(previewEnvironment({ VERCEL_ENV: 'production' }))
-  assert.equal(unsafe.ok, false)
+  const production = previewHealthSnapshot(previewEnvironment({ VERCEL_ENV: 'production' }))
+  assert.equal(production.ok, false)
+  assert.equal(production.configurationValid, false)
+
+  const malformed = previewHealthSnapshot(previewEnvironment({ AGENT_MUTATIONS_ENABLED: 'definitely-not-a-boolean' }))
+  assert.equal(malformed.ok, false)
+  assert.equal(malformed.configurationValid, false)
+
+  const wrongMode = previewHealthSnapshot(previewEnvironment({ AGENT_RUNTIME_MODE: 'observe_only' }))
+  assert.equal(wrongMode.ok, false)
+  assert.equal(wrongMode.configurationValid, false)
 })
