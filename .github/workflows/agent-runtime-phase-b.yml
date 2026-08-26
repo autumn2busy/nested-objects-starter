@@ -6,8 +6,7 @@ on:
       - 'apps/agent-runtime/**'
       - 'supabase/migrations/20260825090000_create_intelligence_os_foundation.sql'
       - 'supabase/validation/20260825_validate_intelligence_os_foundation.sql'
-      - 'docs/intelligence-os/phase-b-foundation.md'
-      - 'docs/intelligence-os/activecampaign-mcp-governance.md'
+      - 'docs/intelligence-os/**'
       - '.github/workflows/agent-runtime-phase-b.yml'
 
 permissions:
