@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
+import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability';
 
 // ============================================================
 // FIX: Removed `pdf-parse` — it pulls in @napi-rs/canvas which
@@ -109,6 +110,9 @@ function extractRegexData(extractedText: string) {
 }
 
 export async function POST(req: Request) {
+  const unavailable = memberToolsUnavailableResponse();
+  if (unavailable) return unavailable;
+
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -333,6 +337,9 @@ export async function POST(req: Request) {
  * GET - Health check
  */
 export async function GET() {
+  const unavailable = memberToolsUnavailableResponse();
+  if (unavailable) return unavailable;
+
   return NextResponse.json({
     available: !!process.env.N8N_AI_RESUME_WEBHOOK_URL,
     feature: 'AI Resume Parser',

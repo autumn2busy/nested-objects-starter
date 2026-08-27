@@ -1,5 +1,6 @@
 import aiAeoOpportunitiesJson from '@/content/ai-aeo-opportunities.json'
 import seoOpportunitiesJson from '@/content/seo-content-opportunities.json'
+import { normalizeMemberToolHref, normalizeMemberToolLink } from '@/lib/member-tool-links'
 
 type Priority = 'high' | 'medium' | 'low'
 
@@ -176,7 +177,7 @@ function audienceForTopic(topicKey: string) {
 }
 
 function seedFromSeo(opportunity: SeoOpportunity): TopicSeed {
-  const targetPage = opportunity.internalLinks[0]?.href || '/blog'
+  const targetPage = normalizeMemberToolHref(opportunity.internalLinks[0]?.href || '/blog')
 
   return {
     id: opportunity.id,
@@ -190,7 +191,7 @@ function seedFromSeo(opportunity: SeoOpportunity): TopicSeed {
     intent: opportunity.category,
     targetPage,
     targetKeywords: opportunity.targetKeywords,
-    internalLinks: opportunity.internalLinks,
+    internalLinks: opportunity.internalLinks.map(normalizeMemberToolLink),
     sourceSignals: opportunity.sourceSignals,
     answerElements: ['direct answer', 'requirements', 'pay or fit caveats', 'Nested Objects next step'],
     observedBrands: [],
@@ -210,9 +211,9 @@ function seedFromAeo(opportunity: AiAeoOpportunity): TopicSeed {
     score: opportunity.score,
     audience: audienceForTopic(topicKey),
     intent: opportunity.intent,
-    targetPage: opportunity.targetPage,
+    targetPage: normalizeMemberToolHref(opportunity.targetPage),
     targetKeywords: [opportunity.prompt],
-    internalLinks: opportunity.internalLinks,
+    internalLinks: opportunity.internalLinks.map(normalizeMemberToolLink),
     sourceSignals: [
       `AEO prompt: ${opportunity.prompt}`,
       ...opportunity.observedBrands.map((brand) => `Observed brand: ${brand}`),

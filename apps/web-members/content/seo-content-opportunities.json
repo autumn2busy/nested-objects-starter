@@ -53,8 +53,8 @@
           "href": "/hiring-firms?industry=Notary"
         },
         {
-          "label": "Notary route calculator",
-          "href": "/tools/notary-route-calculator"
+          "label": "Notary route preview",
+          "href": "/tools"
         }
       ],
       "rationale": "The new notary pillar needs supporting content that answers vendor-selection questions without duplicating the pillar page.",
@@ -80,12 +80,12 @@
       ],
       "internalLinks": [
         {
-          "label": "Notary route calculator",
-          "href": "/tools/notary-route-calculator"
+          "label": "Notary route preview",
+          "href": "/tools"
         },
         {
-          "label": "Routing tool",
-          "href": "/tools/routing"
+          "label": "Routing preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -170,8 +170,8 @@
       "targetKeywords": [],
       "internalLinks": [
         {
-          "label": "Affected page",
-          "href": "/tools/notary-route-calculator"
+          "label": "Tools preview",
+          "href": "/tools"
         }
       ],
       "rationale": "PageSpeed mobile score is 65. Top opportunities: Reduce unused JavaScript; Time to Interactive; Speed Index.",

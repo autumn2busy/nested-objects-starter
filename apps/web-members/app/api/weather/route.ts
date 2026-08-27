@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability'
 
 // Cache settings: 30 minutes
 export const revalidate = 1800
@@ -17,6 +18,9 @@ async function geocode(location: string) {
 }
 
 export async function GET(req: Request) {
+    const unavailable = memberToolsUnavailableResponse()
+    if (unavailable) return unavailable
+
     const { searchParams } = new URL(req.url)
     const q = searchParams.get('q')
     let lat = parseFloat(searchParams.get('lat') || '0')

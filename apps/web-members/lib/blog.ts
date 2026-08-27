@@ -121,9 +121,9 @@ const BLOG_POSTS: BlogPost[] = [
                 description: 'Find companies that match your region, route type, and experience level.',
             },
             {
-                label: 'Use the routing tool',
-                href: '/tools/routing',
-                description: 'Compare travel time and route density before accepting scattered orders.',
+                label: 'Preview the planned routing tool',
+                href: '/tools',
+                description: 'See the planned travel-time and route-density workflow. Execution remains disabled.',
             },
             {
                 label: 'Read the beginner guide',
@@ -500,14 +500,14 @@ A field inspection is an on-site visit where an inspector documents facts about 
         },
         internalLinks: [
             {
-                label: 'Use the income calculator',
-                href: '/tools/income-calculator',
-                description: 'Estimate route earnings after order fees, mileage, and time.',
+                label: 'Preview the planned income tool',
+                href: '/tools',
+                description: 'See the planned route-earnings workflow. Calculation remains disabled.',
             },
             {
-                label: 'Plan denser routes',
-                href: '/tools/routing',
-                description: 'Group assignments before accepting scattered work.',
+                label: 'Preview route planning',
+                href: '/tools',
+                description: 'See the planned assignment-grouping workflow. Execution remains disabled.',
             },
             {
                 label: 'Browse hiring firms',

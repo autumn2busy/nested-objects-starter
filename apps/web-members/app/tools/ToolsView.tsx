@@ -1,167 +1,142 @@
-'use client'
-
 import Link from 'next/link'
-import { useAuth } from '@/components/auth-provider'
 
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-const tools = [
-    {
-        title: 'Clients and vendors',
-        description: 'Manage point of contacts, pay dates, and portal links for every firm you work with.',
-        href: '/tools/clients',
-        cta: 'Manage clients',
-    },
-    {
-        title: 'Company tracker',
-        description: 'Build your target list of firms and track your application status.',
-        href: '/tools/companies',
-        cta: 'Track companies',
-    },
-    {
-        title: 'Income calculator',
-        description: 'Visualize your potential earnings based on inspection volume and days worked.',
-        href: '/tools/income-calculator',
-        cta: 'Calculate income',
-    },
-    {
-        title: 'Notary route calculator',
-        description: 'Estimate net signing-agent route pay after printing, scan-backs, mileage, and nearby field add-ons.',
-        href: '/tools/notary-route-calculator',
-        cta: 'Calculate route pay',
-    },
-    {
-        title: 'AI concierge',
-        description: 'Ask questions about firms, requirements, and inspection workflows in plain language.',
-        href: '/tools/ai-concierge',
-        cta: 'Open AI concierge',
-    },
-    {
-        title: 'AI resume builder',
-        description: 'Turn your experience, routes, and gear into a clean resume for field service firms.',
-        href: '/tools/ai-resume',
-        cta: 'Build my resume',
-    },
-    {
-        title: 'Job tracker',
-        description: 'Track applications, interviews, and offers in a simple pipeline.',
-        href: '/tools/job-tracker',
-        cta: 'Open job tracker',
-    },
-    {
-        title: 'Weather',
-        description: 'Plan around storms and daylight so your routes are safer and more profitable.',
-        href: '/tools/weather',
-        cta: 'Open weather tool',
-    },
-    {
-        title: 'Route planning',
-        description: 'Stack inspections into efficient routes so you burn less gas and make more per mile.',
-        href: '/tools/routing',
-        cta: 'Plan my routes',
-    },
-]
+const toolPreviews = [
+  {
+    name: 'Client and vendor workspace',
+    availability: 'Paid access planned',
+    description: 'Organize firm contacts, pay dates, portal links, and follow-up notes in one place.',
+    outcome: 'Spend less time rebuilding the same firm context before every route.',
+  },
+  {
+    name: 'Company tracker',
+    availability: 'Paid access planned',
+    description: 'Build a focused firm list and keep application status, requirements, and next steps together.',
+    outcome: 'Know which application deserves attention next.',
+  },
+  {
+    name: 'Income scenario planner',
+    availability: 'Paid access planned',
+    description: 'Compare inspection volume, service mix, route costs, and workdays before committing to a target.',
+    outcome: 'Pressure-test an income goal without treating an estimate as a promise.',
+  },
+  {
+    name: 'Route economics',
+    availability: 'Paid access planned',
+    description: 'Estimate mileage, printing, scan-backs, and nearby field-service add-ons for a proposed route.',
+    outcome: 'See the route costs that can turn gross pay into a bad assignment.',
+  },
+  {
+    name: 'AI workbench',
+    availability: 'Paid access planned',
+    description: 'Get structured help with firm research, requirements, resumes, and field-work preparation.',
+    outcome: 'Turn scattered questions into a reviewable action plan.',
+  },
+  {
+    name: 'Job and route planning',
+    availability: 'Paid access planned',
+    description: 'Coordinate applications, weather, daylight, assignments, and route order from one workspace.',
+    outcome: 'Reduce avoidable mileage and last-minute route surprises.',
+  },
+] as const
+
+const accessRows = [
+  {
+    audience: 'Visitors and Free members',
+    access: 'Preview only',
+    detail: 'You can review the planned outcomes, but no tool runs and no data is submitted from this page.',
+  },
+  {
+    audience: 'Paid members',
+    access: 'Coming later',
+    detail: 'Functional access will appear only after each tool and its plan entitlement have been reviewed and enabled.',
+  },
+] as const
 
 export function ToolsView() {
-    const { isAuthenticated } = useAuth()
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.18),transparent_45%)]">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+          <div className="inline-flex items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-200">
+            Preview mode
+          </div>
+          <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+            Practical tools for running a stronger field inspection business.
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+            This page is intentionally non-functional while tool behavior, plan entitlements, and data safeguards are finalized.
+            Visitors and Free members can preview the value, but cannot run a tool or submit data.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/membership-pricing"
+              className={buttonVariants({ variant: 'primary', size: 'lg', shape: 'rounded' })}
+            >
+              Compare live plans
+            </Link>
+            <Link
+              href="/hiring-firms"
+              className={buttonVariants({ variant: 'secondary', size: 'lg', shape: 'rounded' })}
+            >
+              Browse hiring firms
+            </Link>
+          </div>
+        </div>
+      </section>
 
-    return (
-        <main className="min-h-screen bg-brand-sand text-brand-dark">
-            <section className="border-b border-brand-copper/15 bg-gradient-to-b from-brand-sand via-white to-brand-mist">
-                <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-copper">
-                        Tools
-                    </p>
-                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                        Inspector tools
-                    </h1>
-                    <p className="max-w-3xl text-base text-slate-700">
-                        AI-powered tools to help you plan routes, watch the weather, and present
-                        yourself like the pro you are.
-                    </p>
-                    <div className="flex flex-col gap-3 pt-3 sm:flex-row sm:flex-wrap">
-                        <Link
-                            href={isAuthenticated ? '/inspector-dashboard' : '/membership-pricing'}
-                            className={buttonVariants({
-                                variant: 'primary',
-                                size: 'lg',
-                                shape: 'rounded',
-                                className: 'w-full sm:w-auto',
-                            })}
-                        >
-                            {isAuthenticated ? 'Open member hub' : 'Start free to unlock tools'}
-                        </Link>
-                        <Link
-                            href="/hiring-firms"
-                            className={buttonVariants({
-                                variant: 'secondary',
-                                size: 'lg',
-                                shape: 'rounded',
-                                className: 'w-full sm:w-auto',
-                            })}
-                        >
-                            Browse firms first
-                        </Link>
-                    </div>
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {toolPreviews.map((tool) => (
+            <Card
+              key={tool.name}
+              className="flex h-full flex-col border border-white/10 bg-white/[0.045] p-6 text-white shadow-2xl shadow-black/10"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-slate-300">
+                  {tool.availability}
+                </span>
+                <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
+                  Locked preview
+                </span>
+              </div>
+              <h2 className="mt-6 text-2xl font-bold">{tool.name}</h2>
+              <p className="mt-3 leading-7 text-slate-300">{tool.description}</p>
+              <p className="mt-5 border-t border-white/10 pt-5 text-sm font-semibold text-sky-200">
+                {tool.outcome}
+              </p>
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                className="mt-auto w-full cursor-not-allowed rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-slate-500"
+              >
+                Preview only. No function enabled
+              </button>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6 sm:p-8">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-300">Access boundary</p>
+          <h2 className="mt-3 text-3xl font-black">Every tool remains locked until its access decision is implemented.</h2>
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            {accessRows.map((row) => (
+              <div key={row.audience} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold">{row.audience}</h3>
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white">{row.access}</span>
                 </div>
-            </section>
-
-            <section className="bg-white">
-                <div className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:px-8 lg:py-16">
-                    {tools.map((tool) => (
-                        <Card
-                            key={tool.title}
-                            className={`relative flex h-full flex-col gap-3 border border-brand-copper/20 p-6 shadow-sm transition ${!isAuthenticated ? 'overflow-hidden' : ''
-                                }`}
-                        >
-                            {!isAuthenticated && (
-                                <div
-                                    aria-hidden="true"
-                                    className="absolute inset-0 bg-brand-mist/60"
-                                />
-                            )}
-                            <div className="relative z-10">
-                                <h2 className="text-xl font-semibold text-text-primary">
-                                    {tool.title}
-                                </h2>
-                                <p className="mt-2 text-sm text-text-secondary">
-                                    {tool.description}
-                                </p>
-                            </div>
-                            <div className="relative z-10 mt-auto">
-                                <Link
-                                    href={tool.href}
-                                    className={buttonVariants({
-                                        variant: isAuthenticated ? 'primary' : 'secondary',
-                                        size: 'sm',
-                                        shape: 'rounded',
-                                        className: 'w-full',
-                                    })}
-                                >
-                                    {isAuthenticated ? tool.cta : 'Preview tool'}
-                                </Link>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-
-                {!isAuthenticated && (
-                    <div className="mx-auto mb-12 flex max-w-md justify-center px-4 sm:px-0">
-                        <Link
-                            href="/membership-pricing"
-                            className={buttonVariants({
-                                variant: 'primary',
-                                size: 'md',
-                                shape: 'rounded',
-                                className: 'w-full border border-brand-copper/50 shadow-lg',
-                            })}
-                        >
-                            Join to unlock all tools
-                        </Link>
-                    </div>
-                )}
-            </section>
-        </main>
-    )
+                <p className="mt-3 text-sm leading-6 text-slate-300">{row.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  )
 }

@@ -9,7 +9,10 @@ const securityHeaders: Record<string, string> = {
 }
 
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next()
+  const isDisabledToolRoute = request.nextUrl.pathname.startsWith('/tools/')
+  const response = isDisabledToolRoute
+    ? NextResponse.redirect(new URL('/tools', request.url), 307)
+    : NextResponse.next()
 
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value)

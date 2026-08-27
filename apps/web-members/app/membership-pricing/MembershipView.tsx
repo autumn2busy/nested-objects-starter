@@ -1,5 +1,5 @@
 import { membershipPlans } from '@/lib/ai-datasets'
-import { PLAN_UIDS } from '@/lib/plan-config'
+import { isPublicPlanUid, PLAN_UIDS } from '@/lib/plan-config'
 import { TestimonialStrip } from '@/components/TestimonialsSection'
 import Link from 'next/link'
 import { Ban, CheckCircle2, Clock, ShieldCheck, Star } from 'lucide-react'
@@ -22,8 +22,8 @@ const proBenefitHighlights = [
         body: 'Compare firms by lane, geography, and assignment type before you spend time applying.',
     },
     {
-        title: 'AI tools and templates',
-        body: 'Use concierge prompts, resume tools, starter kits, and checklists while you test the hub.',
+        title: 'Templates and readiness',
+        body: 'Use starter kits, checklists, and training resources while you evaluate the full directory.',
     },
 ]
 
@@ -80,11 +80,11 @@ export const pricingFaqs = [
     },
     {
         question: 'Do you offer refunds?',
-        answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, templates, and AI tools is non-refundable. Use the 7-day Pro trial to make sure the hub fits before billing starts.',
+        answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, training, and templates is non-refundable. Use the 7-day Pro trial to make sure the currently available hub fits before billing starts.',
     },
     {
         question: 'Which plan should I choose first?',
-        answer: 'Choose Free if you only want a directory preview and no card on file. Choose Pro if you are ready to compare firms, requirements, pay clues, route fit, and tools during the next week.',
+        answer: 'Choose Free if you only want a directory preview and no card on file. Choose Pro if you are ready to compare the full firm directory, requirements, pay clues, route fit, training, and readiness resources during the next week.',
     },
     {
         question: 'What payment methods do you accept?',
@@ -92,7 +92,7 @@ export const pricingFaqs = [
     },
     {
         question: 'Is there a free option while I am getting started?',
-        answer: 'Yes. The Free plan gives you ongoing access to a 3-firm directory preview and core hub without a card on file. When you are ready for full listings and AI tools, you can upgrade into Pro.',
+        answer: 'Yes. The Free plan gives you ongoing access to a 3-firm directory preview and core hub without a card on file. When you are ready for full listings, training, and readiness resources, you can upgrade into Pro.',
     },
 ]
 
@@ -111,8 +111,8 @@ function MembershipContent() {
                     Choose the hub that matches your lane in the field.
                 </h1>
                 <p className="mx-auto mt-4 max-w-[18rem] text-base text-slate-600 min-[380px]:max-w-[20rem] sm:max-w-none sm:text-lg">
-                    Nested Objects is built for inspectors, notaries, real estate pros, and gig workers who
-                    want clear intel on firms, gear, and routes before they hit the road.
+                    Nested Objects is built first for field inspectors, with adjacent paths for mobile notaries,
+                    property-service pros, and gig workers who want clearer firm and route decisions.
                 </p>
 
                 <PricingHeroAccountStatus />
@@ -159,8 +159,8 @@ function MembershipContent() {
                             Use the 7-day trial to decide whether the hub fits your route.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                            Pro is the fastest way to evaluate real firm options, inspect the workflow, and test
-                            the tools before paid billing begins.
+                            Pro is the fastest way to evaluate real firm options, inspect the training library, and
+                            use readiness resources before paid billing begins. Member tools remain preview-only.
                         </p>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -187,7 +187,7 @@ function MembershipContent() {
                             $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
                         </p>
                         <p className="mt-3 text-xs leading-5 text-slate-300">
-                            Use the trial window to inspect firm profiles, tools, and route-fit resources before billing starts.
+                            Use the trial window to inspect firm profiles, training, and route-fit resources before billing starts.
                         </p>
                     </div>
                 </div>
@@ -203,8 +203,8 @@ function MembershipContent() {
                             Pick the plan by what you need to decide this week.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            Preview 3 firms for free, test Pro for seven days, or stay paid only when the firm intel
-                            and tools are worth it for your route.
+                            Preview 3 firms for free, test Pro for seven days, or stay paid only when the current firm
+                            intel, training, and readiness resources are worth it for your route.
                         </p>
                     </div>
 
@@ -259,7 +259,7 @@ function MembershipContent() {
                     {/* Plan cards */}
                     <div className="grid gap-6 md:grid-cols-2">
                         {membershipPlans
-                            .filter((plan) => !plan.hidden)
+                            .filter((plan) => isPublicPlanUid(plan.planUid))
                             .map((plan) => {
                                 const isPro = plan.planUid === PLAN_UIDS.PRO
 
@@ -330,7 +330,7 @@ function MembershipContent() {
                             </h2>
                             <ul className="mt-3 space-y-2">
                                 <li>You are tired of guessing which firms actually pay well in your region.</li>
-                                <li>You want one place to track firms, gear, and requirements instead of random posts.</li>
+                                <li>You want one place to research firms, gear, and requirements instead of random posts.</li>
                                 <li>You are adding inspections as a new lane on top of a job, family, or business.</li>
                                 <li>You want to step into routes with clear expectations, not mystery assignments.</li>
                             </ul>
@@ -347,15 +347,15 @@ function MembershipContent() {
                                 </li>
                                 <li>
                                     <span className="font-semibold text-slate-900">Day 2 to 3.</span> Use firm intel to filter
-                                    by pay, tools, and regions that match your life.
+                                    by pay clues, requirements, and regions that match your life.
                                 </li>
                                 <li>
                                     <span className="font-semibold text-slate-900">Day 4 to 5.</span> Apply to your short list
                                     and track responses in one place.
                                 </li>
                                 <li>
-                                    <span className="font-semibold text-slate-900">Day 6 to 7.</span> Turn on AI tools and
-                                    starter kits to prep for your first or next route.
+                                    <span className="font-semibold text-slate-900">Day 6 to 7.</span> Use starter kits and
+                                    readiness guides to prep for your first or next route.
                                 </li>
                             </ol>
                         </div>
@@ -366,7 +366,7 @@ function MembershipContent() {
                             </h2>
                             <p className="mt-3">
                                 Pro starts with $0 due today for the 7-day trial. After billing starts,
-                                paid digital memberships, firm intel, templates, and AI tools
+                                paid digital memberships, firm intel, training, and templates
                                 are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">

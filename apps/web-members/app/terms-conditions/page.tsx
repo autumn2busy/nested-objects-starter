@@ -4,7 +4,7 @@ const commitments = [
   {
     title: 'Use tied to your membership',
     description:
-      'Access to digital goods, AI tools, and firm intel is granted for active members only and may not be transferred or resold.',
+      'Access to digital goods, training resources, and firm intel is granted for active members only and may not be transferred or resold.',
   },
   {
     title: 'No copying or redistribution',
@@ -32,7 +32,7 @@ const obligations = [
   {
     heading: 'Digital goods and licenses',
     copy:
-      'Digital downloads, templates, and AI outputs are licensed, not sold. They may not be copied, resold, or posted publicly without written consent.',
+      'Digital downloads, templates, and member resources are licensed, not sold. They may not be copied, resold, or posted publicly without written consent.',
   },
   {
     heading: 'Acceptable use',

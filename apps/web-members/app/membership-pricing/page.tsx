@@ -2,25 +2,18 @@ import { MembershipView, pricingFaqs } from './MembershipView'
 import { generatePageMetadata, getFAQPageSchema, getProductSchema } from '@/lib/seo'
 import type { Metadata } from 'next'
 import { membershipPlans } from '@/lib/ai-datasets'
-import { PLAN_UIDS } from '@/lib/plan-config'
+import { isPublicPlanUid } from '@/lib/plan-config'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Membership Plans | Certified Inspection & Notary Hub',
-  description: 'Join the #1 community for field inspectors and mobile notaries. Verified firm intel, training courses, and AI tools to grow your business.',
+  title: 'Field Inspector Membership Plans | Nested Objects',
+  description: 'Compare Nested Objects plans for field inspectors, with verified firm intel, training, and adjacent resources for mobile notaries and other field-service pros.',
   path: '/membership-pricing',
 })
 
-// Generate structured data for plans
-const publicSchemaPlanUids = new Set<string>([
-  PLAN_UIDS.FREE,
-  PLAN_UIDS.PRO,
-  PLAN_UIDS.ELITE,
-  PLAN_UIDS.AGENCY,
-])
-
+// Generate structured data from the same explicit allowlist as the visible cards.
 const productSchemas = membershipPlans
-  .filter((plan) => publicSchemaPlanUids.has(plan.planUid))
+  .filter((plan) => isPublicPlanUid(plan.planUid))
   .map((plan) =>
     getProductSchema({
       name: `Nested Objects ${plan.name} Plan`,

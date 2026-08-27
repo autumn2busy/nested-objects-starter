@@ -68,8 +68,7 @@ const PAGE_SPEED_STRATEGIC_URL_LIMIT = 3
 const STRATEGIC_URLS = [
   '/roles/mobile-notary',
   '/hiring-firms',
-  '/tools/notary-route-calculator',
-  '/tools/income-calculator',
+  '/tools',
   '/roles/mortgage-field-inspector',
   '/roles/insurance-loss-control',
   '/guides/how-to-become-a-field-inspector',
@@ -90,7 +89,7 @@ const FALLBACK_OPPORTUNITIES: SeoContentOpportunity[] = [
     internalLinks: [
       { label: 'Mobile notary role page', href: '/roles/mobile-notary' },
       { label: 'Hiring firm directory', href: '/hiring-firms?industry=Notary' },
-      { label: 'Notary route calculator', href: '/tools/notary-route-calculator' },
+      { label: 'Route tool preview', href: '/tools' },
     ],
     rationale:
       'The new notary pillar needs supporting content that answers vendor-selection questions without duplicating the pillar page.',
@@ -127,8 +126,7 @@ const FALLBACK_OPPORTUNITIES: SeoContentOpportunity[] = [
     workflowStatus: 'candidate',
     targetKeywords: ['notary route income', 'notary and field inspection work', 'signing agent side work'],
     internalLinks: [
-      { label: 'Notary route calculator', href: '/tools/notary-route-calculator' },
-      { label: 'Routing tool', href: '/tools/routing' },
+      { label: 'Route tool preview', href: '/tools' },
       { label: 'Hiring firm directory', href: '/hiring-firms' },
     ],
     rationale:
@@ -687,7 +685,7 @@ function linksForQuery(query: string): SeoContentOpportunity['internalLinks'] {
     return [
       { label: 'Mobile notary role page', href: '/roles/mobile-notary' },
       { label: 'Notary directory filter', href: '/hiring-firms?industry=Notary' },
-      { label: 'Notary route calculator', href: '/tools/notary-route-calculator' },
+      { label: 'Route tool preview', href: '/tools' },
     ]
   }
   if (lower.includes('insurance') || lower.includes('loss control')) {
@@ -705,7 +703,7 @@ function linksForQuery(query: string): SeoContentOpportunity['internalLinks'] {
   return [
     { label: 'Mortgage field inspector role page', href: '/roles/mortgage-field-inspector' },
     { label: 'Hiring firm directory', href: '/hiring-firms' },
-    { label: 'Income calculator', href: '/tools/income-calculator' },
+    { label: 'Income tool preview', href: '/tools' },
   ]
 }
 
@@ -756,7 +754,7 @@ function opportunitiesFromGa4(rows: Ga4Row[]): SeoContentOpportunity[] {
       targetKeywords: ['notary route income', 'notary signing service pay', 'mobile notary vendor applications'],
       internalLinks: [
         { label: 'Mobile notary role page', href: '/roles/mobile-notary' },
-        { label: 'Notary route calculator', href: '/tools/notary-route-calculator' },
+        { label: 'Route tool preview', href: '/tools' },
         { label: 'Hiring firm directory', href: '/hiring-firms?industry=Notary' },
       ],
       rationale: `GA4 shows ${notaryDemand.metric} views on notary-specific paths in the lookback window.`,
@@ -779,7 +777,7 @@ function opportunitiesFromGa4(rows: Ga4Row[]): SeoContentOpportunity[] {
       targetKeywords: ['field inspection companies to apply to', 'how to compare inspection vendors'],
       internalLinks: [
         { label: 'Hiring firm directory', href: '/hiring-firms' },
-        { label: 'Company tracker', href: '/tools/companies' },
+        { label: 'Company tracker preview', href: '/tools' },
       ],
       rationale: `GA4 recorded ${directoryEvents.metric} directory_viewed events.`,
       sourceSignals: ['GA4 event: directory_viewed'],

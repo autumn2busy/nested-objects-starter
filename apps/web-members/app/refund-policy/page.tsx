@@ -4,7 +4,7 @@ const refundPrinciples = [
   {
     title: 'Digital goods are non-refundable',
     detail:
-      'Access to digital downloads, AI tools, templates, and directory intel is delivered instantly and cannot be returned. All sales for these items are final.',
+      'Access to digital downloads, templates, training, and directory intel is delivered instantly and cannot be returned. All sales for these items are final.',
   },
   {
     title: 'Transparent before you buy',
@@ -82,7 +82,7 @@ export default function RefundPolicyPage() {
           <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">No-refund terms for digital goods and memberships.</h1>
           <p className="mt-4 max-w-3xl text-sm text-brand-slate">
             Nested Objects delivers digital resources instantly. In alignment with member.nestedobjects.com, purchases of digital
-            goods, AI tools, and memberships are final and non-refundable. Review the guidelines below to avoid unexpected
+            goods, training resources, and memberships are final and non-refundable. Review the guidelines below to avoid unexpected
             charges and keep your account in good standing.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -119,7 +119,7 @@ export default function RefundPolicyPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-copper">Non-transferable access</p>
               <h3 className="mt-2 text-xl font-semibold">No resale or copying</h3>
               <p className="mt-2 text-sm text-brand-mist">
-                Membership credentials, downloads, and AI outputs are licensed solely to the purchasing account or approved team
+                Membership credentials, downloads, and templates are licensed solely to the purchasing account or approved team
                 seats. Copying, reselling, or redistributing materials violates our terms and may lead to suspension.
               </p>
               <p className="mt-4 text-xs text-brand-mist/80">

@@ -6,12 +6,12 @@ const faqItems = [
   {
     question: 'Do you offer refunds for digital goods or memberships?',
     answer:
-      'No. Because access to AI tools, templates, and intel is delivered instantly, all digital goods and memberships are non-refundable. Cancel before renewal to avoid future charges.',
+      'No. Because access to digital downloads, templates, training, and firm intel is delivered instantly, all digital goods and memberships are non-refundable. Cancel before renewal to avoid future charges.',
   },
   {
     question: 'Can I share or resell Nested Objects resources?',
     answer:
-      'No. Downloads, AI outputs, and directory intel are licensed to your account or approved team seats only. Copying, resale, or reposting is prohibited.',
+      'No. Downloads, templates, and directory intel are licensed to your account or approved team seats only. Copying, resale, or reposting is prohibited.',
   },
   {
     question: 'How do you protect my data?',

@@ -40,7 +40,7 @@
     {
       "prompt": "How much do field inspectors make?",
       "intent": "pay_requirements",
-      "targetPage": "/tools/income-calculator"
+      "targetPage": "/tools"
     },
     {
       "prompt": "What is a mortgage field inspection?",
@@ -65,7 +65,7 @@
     {
       "prompt": "What tools help mobile notaries add field inspection assignments?",
       "intent": "notary_visibility",
-      "targetPage": "/tools/notary-route-calculator"
+      "targetPage": "/tools"
     },
     {
       "prompt": "How do I find field inspection work with no experience?",
@@ -80,7 +80,7 @@
     {
       "prompt": "How much do field inspectors get paid per inspection?",
       "intent": "pay_requirements",
-      "targetPage": "/tools/income-calculator"
+      "targetPage": "/tools"
     },
     {
       "prompt": "What is the difference between mortgage field inspection and property preservation?",
@@ -95,7 +95,7 @@
     {
       "prompt": "Can mobile notaries add field inspection or photo assignments to their route?",
       "intent": "route_operations",
-      "targetPage": "/tools/notary-route-calculator"
+      "targetPage": "/tools"
     },
     {
       "prompt": "What do insurance loss control inspectors do?",
@@ -480,7 +480,7 @@
       "priority": "high",
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/tools/income-calculator",
+      "targetPage": "/tools",
       "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "fee range caveats",
@@ -491,8 +491,8 @@
       ],
       "internalLinks": [
         {
-          "label": "Target answer page",
-          "href": "/tools/income-calculator"
+          "label": "Tools preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -608,7 +608,7 @@
       "priority": "high",
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/tools/notary-route-calculator",
+      "targetPage": "/tools",
       "answerGap": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
       "recommendedAnswerElements": [
         "signing services",
@@ -619,8 +619,8 @@
       ],
       "internalLinks": [
         {
-          "label": "Target answer page",
-          "href": "/tools/notary-route-calculator"
+          "label": "Tools preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -672,7 +672,7 @@
       "priority": "high",
       "score": 95,
       "recommendedAction": "owned_answer_refresh",
-      "targetPage": "/tools/income-calculator",
+      "targetPage": "/tools",
       "answerGap": "No external AI answer snapshot configured yet; use this as the baseline prompt to monitor weekly.",
       "recommendedAnswerElements": [
         "fee range caveats",
@@ -683,8 +683,8 @@
       ],
       "internalLinks": [
         {
-          "label": "Income calculator",
-          "href": "/tools/income-calculator"
+          "label": "Income calculator preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",

@@ -62,9 +62,9 @@ const popularSearchLinks = [
     detail: 'Compare underwriting surveys, appointment expectations, and report complexity.',
   },
   {
-    href: '/tools/income-calculator',
-    label: 'Field inspection income calculator',
-    detail: 'Estimate route income before applying to multiple vendor programs.',
+    href: '/tools',
+    label: 'Field inspection tools preview',
+    detail: 'Preview planned route, income, firm-tracking, and preparation tools.',
   },
 ]
 
@@ -154,11 +154,11 @@ export default function HomePage() {
                   Browse firms
                 </Link>
                 <Link
-                  href="/tools/income-calculator"
+                  href="/tools"
                   className="flex min-h-14 flex-col justify-center border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm"
                 >
                   <Calculator className="mb-1 h-4 w-4 text-brand-copper" aria-hidden />
-                  Estimate income
+                  Preview tools
                 </Link>
               </div>
             </div>
@@ -285,19 +285,19 @@ export default function HomePage() {
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">AI concierge for routes</h3>
+                <h3 className="text-sm font-semibold text-slate-900">Member tools roadmap</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Ask which firms fit your lane, how to price routes, or what gear to buy first. Get
-                  answers in seconds instead of scrolling random threads.
+                  Preview the planned income, route, firm-tracking, resume, and AI workflows. Tool
+                  execution and data submission remain disabled.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Pro · Elite · Agency
+                  Preview only
                 </p>
                 <Link
                   href="/tools"
                   className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
-                  Explore tools →
+                  Preview tools →
                 </Link>
               </div>
             </div>
@@ -336,8 +336,8 @@ export default function HomePage() {
                   Shortlist firms that fit your life.
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Use intel cards and AI concierge to compare pay ranges, volume, and gear so you
-                  avoid dead-end portals and low-ball routes.
+                  Use firm intel and training resources to compare pay clues, requirements, volume,
+                  and gear so you avoid dead-end portals and low-ball routes.
                 </p>
               </li>
               <li className="rounded-2xl border border-brand-copper/20 bg-white p-4">
@@ -345,10 +345,10 @@ export default function HomePage() {
                   Step 3
                 </p>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                  Track applications and routes in one place.
+                  Prepare applications and routes with clearer context.
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Save firms you apply to, jot notes after calls, and use starter kits to prep for
+                  Build a shortlist, keep your own application notes, and use starter kits to prep for
                   day one on a new client&apos;s route.
                 </p>
               </li>
@@ -385,7 +385,7 @@ export default function HomePage() {
                   metric: "3 New Clients"
                 },
                 {
-                  quote: "The resume builder helped me translate my Uber driving experience into field inspection skills. Got hired in 2 weeks.",
+                  quote: "The training helped me translate my driving experience into field inspection skills and prepare for firm applications.",
                   author: "David L.",
                   role: "New Inspector",
                   loc: "Chicago, IL",
@@ -412,7 +412,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* INCOME TEASER: Earnings Calculator Hook */}
+        {/* INCOME TEASER: non-functional tools preview */}
         <section className="relative overflow-hidden border-b border-slate-200 bg-slate-900 text-white [content-visibility:auto] [contain-intrinsic-size:0_720px]">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 relative z-10">
@@ -420,26 +420,26 @@ export default function HomePage() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Updated 2025 Rates
+                  Planned scenario tool
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                   What could you earn?
                 </h2>
                 <p className="text-slate-400 text-lg mb-8 leading-relaxed">
                   Field inspection pay varies wildly by region and service type.
-                  Use our free calculator to see potential weekly revenue based on your
-                  zip code and vehicle type.
+                  Preview how the planned income scenario tool will compare route volume,
+                  service mix, and operating costs before you commit to a target.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
-                    href="/tools/income-calculator"
+                    href="/tools"
                     className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
                   >
-                    Calculate My Income →
+                    Preview the Income Tool →
                   </Link>
                   <div className="flex items-center gap-4 text-sm text-slate-500 px-2">
-                    <span>• No signup required</span>
-                    <span>• Instant results</span>
+                    <span>• No inputs collected</span>
+                    <span>• Execution disabled</span>
                   </div>
                 </div>
               </div>
@@ -463,7 +463,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="mt-6 pt-4 border-t border-slate-700/50 text-center">
-                    <p className="text-xs text-slate-500">Based on national averages. Calculate your specific area below.</p>
+                    <p className="text-xs text-slate-500">Illustrative scenario only. No live calculation or local estimate is running.</p>
                   </div>
                 </div>
               </div>
@@ -501,8 +501,8 @@ export default function HomePage() {
                   Already in the field.
                 </h2>
                 <p className="mt-2 text-sm text-slate-100">
-                  Switch into Pro or higher to layer intel and AI tools on top of routes you already
-                  run.
+                  Switch into Pro or higher to layer full firm intel, training, and readiness
+                  resources on top of routes you already run.
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-slate-100/90">
                   <li>• Compare what you&apos;re earning to typical ranges in your region.</li>

@@ -70,7 +70,7 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
   {
     prompt: 'How much do field inspectors make?',
     intent: 'pay_requirements',
-    targetPage: '/tools/income-calculator',
+    targetPage: '/tools',
   },
   {
     prompt: 'What is a mortgage field inspection?',
@@ -95,7 +95,7 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
   {
     prompt: 'What tools help mobile notaries add field inspection assignments?',
     intent: 'notary_visibility',
-    targetPage: '/tools/notary-route-calculator',
+    targetPage: '/tools',
   },
   {
     prompt: 'How do I find field inspection work with no experience?',
@@ -110,7 +110,7 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
   {
     prompt: 'How much do field inspectors get paid per inspection?',
     intent: 'pay_requirements',
-    targetPage: '/tools/income-calculator',
+    targetPage: '/tools',
   },
   {
     prompt: 'What is the difference between mortgage field inspection and property preservation?',
@@ -125,7 +125,7 @@ const PROMPT_SET: AiAeoMonitorReport['promptSet'] = [
   {
     prompt: 'Can mobile notaries add field inspection or photo assignments to their route?',
     intent: 'route_operations',
-    targetPage: '/tools/notary-route-calculator',
+    targetPage: '/tools',
   },
   {
     prompt: 'What do insurance loss control inspectors do?',
@@ -275,7 +275,7 @@ function expectedLinksForPrompt(prompt: string, targetPage: string): AiAeoOpport
   if (lower.includes('notary') || lower.includes('signing') || lower.includes('ron')) {
     return [
       { label: 'Mobile notary role page', href: '/roles/mobile-notary' },
-      { label: 'Notary route calculator', href: '/tools/notary-route-calculator' },
+      { label: 'Route tool preview', href: '/tools' },
       { label: 'Notary directory filter', href: '/hiring-firms?industry=Notary' },
     ]
   }
@@ -293,7 +293,7 @@ function expectedLinksForPrompt(prompt: string, targetPage: string): AiAeoOpport
   }
   if (lower.includes('pay') || lower.includes('paid')) {
     return [
-      { label: 'Income calculator', href: '/tools/income-calculator' },
+      { label: 'Income tool preview', href: '/tools' },
       { label: 'Hiring firm directory', href: '/hiring-firms' },
     ]
   }

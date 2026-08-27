@@ -8,25 +8,25 @@ const comparisonPoints = [
   {
     title: 'Before the job',
     pain: 'Digging through PDFs, fragmented firm instructions, and outdated templates.',
-    solution: 'Get a daily prep brief with calibrated checklists, sample photo framing, and equipment prompts matched to your route.',
+    solution: 'Use firm profiles, training, and readiness checklists to prepare for likely requirements before accepting work.',
   },
   {
     title: 'On-site',
     pain: 'Guessing what to capture first, worrying about compliance gaps, and missing quick fixes.',
-    solution: 'Follow AI-assisted shot lists, hazard notes, and voice-to-text summaries that keep your report airtight.',
+    solution: 'Review training examples and firm-specific requirement notes, then follow the client instructions for each assignment.',
   },
   {
     title: 'After submission',
     pain: 'Waiting on feedback, chasing revisions, and losing track of payout timelines.',
-    solution: 'Track submission status, get prewritten responses for reworks, and see payout expectations per firm.',
+    solution: 'Use firm intel and messaging templates to organize follow-up while confirming status directly with the client.',
   },
 ]
 
 const milestones = [
   {
-    title: 'Route intelligence that respects your calendar',
+    title: 'Firm intel that supports route decisions',
     detail:
-      'Sync your routes, block buffer windows, and see which firms expect ladder shots, drone use, or HVAC checks before you arrive.',
+      'Compare service areas, equipment clues, and assignment expectations before you add a firm to your shortlist.',
   },
   {
     title: 'Photo standards without the second-guessing',
@@ -34,9 +34,9 @@ const milestones = [
       'Inline examples for exteriors, utilities, and attics keep your angles consistent while minimizing repeat visits.',
   },
   {
-    title: 'Submission guardrails with human support',
+    title: 'Readiness guidance with human support',
     detail:
-      'Auto-run QA for metadata, timestamps, and required exhibits, then push to the firm with annotated context.',
+      'Use checklists and support resources while treating each firm’s current assignment instructions as authoritative.',
   },
 ]
 
@@ -44,12 +44,12 @@ const faqItems = [
   {
     question: 'How specific are the prep briefs for inspectors?',
     answer:
-      'Each brief pairs the firm profile with the property type, state requirements, and your own past submissions so you only see the steps that matter.',
+      'Current resources combine firm-profile context, training, and general readiness checklists. Always verify assignment-specific steps with the hiring firm.',
   },
   {
     question: 'Can I use my own report templates?',
     answer:
-      'Yes. Upload your templates once and the hub applies the right version per firm, including photo order and labeling conventions.',
+      'You can use the downloadable templates and adapt them outside the hub. Automated upload and firm-specific application are not enabled.',
   },
   {
     question: 'Do you cover gear recommendations?',
@@ -59,7 +59,7 @@ const faqItems = [
   {
     question: 'What if I manage a crew of inspectors?',
     answer:
-      'Create shared playbooks with role-based permissions so coordinators, trainees, and leads all see the same SOPs.',
+      'Agency options provide a team-support path. Shared playbook automation and role-based tooling remain on the roadmap.',
   },
 ]
 
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Inspectors | Field-ready membership for home and property inspectors',
     description:
-      'Use AI-assisted checklists, gear prompts, and firm intel to keep every inspection compliant without slowing down.',
+      'Use training, gear guidance, and firm intel to prepare for inspections while following each client’s current requirements.',
     images: ['https://members.nestedobjects.com/logo-slate.svg'],
   },
 }
@@ -144,7 +144,7 @@ export default function InspectorRolePage() {
               </div>
               <div className="border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Always on your side</p>
-                <p className="mt-2 text-sm text-slate-700">Human support plus AI to keep submissions on schedule.</p>
+                <p className="mt-2 text-sm text-slate-700">Human support and readiness resources for clearer preparation.</p>
               </div>
             </div>
           </div>
@@ -153,15 +153,15 @@ export default function InspectorRolePage() {
             <ul className="space-y-3 text-sm text-slate-700">
               <li className="flex gap-2">
                 <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
-                Prep briefs matched to your day&apos;s route and property mix.
+                Firm profiles and training that clarify common assignment expectations.
               </li>
               <li className="flex gap-2">
                 <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
-                AI summaries and captions that keep reports consistent.
+                Photo, equipment, and readiness examples for common inspection work.
               </li>
               <li className="flex gap-2">
                 <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
-                Submission guardrails that flag missing shots or forms.
+                Checklists that help you review likely requirements before submission.
               </li>
               <li className="flex gap-2">
                 <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
@@ -256,7 +256,7 @@ export default function InspectorRolePage() {
               <h2 className="text-2xl font-bold sm:text-3xl">Join the inspector hub and keep routes calm</h2>
               <p className="text-base text-slate-200">
                 Start with the Free plan to explore the directory, then upgrade inside the hub when you are ready for pro intel
-                and routing support.
+                and readiness resources.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -282,7 +282,7 @@ export default function InspectorRolePage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
-                  AI concierge for quick answers during inspections.
+                  A preview of planned member tools, with execution still disabled.
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />

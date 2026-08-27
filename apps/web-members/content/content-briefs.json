@@ -181,14 +181,14 @@
       "audience": "new inspectors evaluating realistic pay after mileage and admin time",
       "intent": "pay_requirements",
       "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
-      "targetPage": "/tools/income-calculator",
+      "targetPage": "/tools",
       "targetKeywords": [
         "How much do field inspectors make?"
       ],
       "internalLinks": [
         {
-          "label": "Target answer page",
-          "href": "/tools/income-calculator"
+          "label": "Tools preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -233,14 +233,14 @@
       "audience": "new inspectors evaluating realistic pay after mileage and admin time",
       "intent": "pay_requirements",
       "angle": "External answer snapshot did not mention Nested Objects; strengthen owned answer signals and citations.",
-      "targetPage": "/tools/income-calculator",
+      "targetPage": "/tools",
       "targetKeywords": [
         "How much do field inspectors make?"
       ],
       "internalLinks": [
         {
-          "label": "Target answer page",
-          "href": "/tools/income-calculator"
+          "label": "Tools preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -440,12 +440,12 @@
           "href": "/hiring-firms?industry=Notary"
         },
         {
-          "label": "Notary route calculator",
-          "href": "/tools/notary-route-calculator"
+          "label": "Notary route preview",
+          "href": "/tools"
         },
         {
-          "label": "Routing tool",
-          "href": "/tools/routing"
+          "label": "Routing preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",
@@ -517,12 +517,12 @@
           "href": "/hiring-firms?industry=Notary"
         },
         {
-          "label": "Notary route calculator",
-          "href": "/tools/notary-route-calculator"
+          "label": "Notary route preview",
+          "href": "/tools"
         },
         {
-          "label": "Routing tool",
-          "href": "/tools/routing"
+          "label": "Routing preview",
+          "href": "/tools"
         },
         {
           "label": "Hiring firm directory",

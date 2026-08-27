@@ -9,7 +9,7 @@
 - Marketing & membership: `/` (hero + membership CTAs), `/about`, `/contact`, `/partners`, `/sponsors`, `/membership`, and `/upgrade` pitch the product and plans.
 - Directory: `/directory` exposes the firm search UI with filtering, Supabase-powered data pulls, and Outseta-gated access.
 - Dashboard: `/dashboard` is the post-login hub shell that links members into tools and membership actions.
-- Tools hub: `/tools` lists member utilities, with subroutes like `/tools/ai-chatbot` (AI concierge chat), `/tools/job-tracker`, `/tools/weather`, and `/tools/ai-resume` for workflow helpers.
+- Tools hub: `/tools` is the reviewed preview surface. Every `/tools/*` execution route redirects to the preview, and tool-only APIs fail closed while `MEMBER_TOOL_EXECUTION_ENABLED` is false.
 
 ## Where key logic lives
 - Authentication: client session management in `components/auth-provider.tsx`, auth callback handling in `app/auth/callback/page.tsx`, and server-side token checks/feature rules in `lib/auth-server.ts` (shared plan gates with the Gate component).

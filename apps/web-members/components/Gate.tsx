@@ -41,7 +41,7 @@ export function Gate({ feature, children, fallback, loadingFallback }: GateProps
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-copper">Vendor hub</p>
               <h2 className="text-xl font-semibold text-brand-dark">You are not a “worker”; you are a Vendor.</h2>
               <p className="text-sm text-brand-slate">
-                Sign in to access premium intel, secure tools, and payments built for vetted vendors.
+                Sign in to access premium firm intel, training, and readiness resources built for vetted vendors.
               </p>
             </div>
           </div>

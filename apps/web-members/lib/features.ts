@@ -4,8 +4,8 @@ export const features: Record<FeatureFlag, boolean> = {
     // Directory is live but "Claim Firm" or deep firm integration might be gated
     enableFirms: true,
 
-    // AI Resume Builder is live
-    enableAIResume: true,
+    // Member tool execution remains disabled while the preview boundary is active.
+    enableAIResume: false,
 
     // New Onboarding flow (PR 3.1)
     enableOnboarding: true,

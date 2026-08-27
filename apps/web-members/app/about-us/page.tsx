@@ -5,9 +5,9 @@ import { TESTIMONIALS } from '@/lib/testimonials'
 
 const serviceHighlights = [
   {
-    title: 'AI field intelligence',
+    title: 'Field intelligence',
     description:
-      'Context-aware guidance on pricing, SLAs, and client expectations drawn from verified field data so you can bid with clarity.',
+      'Firm profiles, training context, and readiness guidance that help you evaluate pricing clues, SLAs, and client expectations.',
   },
   {
     title: 'Inspector-first operations',
@@ -32,7 +32,7 @@ const credibilitySignals = [
   },
   {
     label: 'Tech-forward contractors',
-    copy: 'AI tooling that surfaces next best actions and keeps every job log audit-ready without extra clicks.',
+    copy: 'Structured firm intel, training, and readiness resources with a clearly labeled member-tool roadmap.',
   },
 ]
 
@@ -53,7 +53,7 @@ const teamHighlights = [
     name: 'Kye Gibson',
     role: 'Systems & Security',
     focus:
-      'Oversees the secure, scalable infrastructure that safeguards member data. Ensures 24/7 reliability for field teams utilizing our AI and dispatch tools.',
+      'Oversees the secure, scalable infrastructure that safeguards member data and supports reliable directory, training, and account access.',
   },
 ]
 
@@ -87,14 +87,14 @@ const aboutTestimonials = TESTIMONIALS.slice(0, 3)
 
 const faqItems = [
   {
-    question: 'How does the AI concierge work for inspectors?',
+    question: 'Are the planned member tools available now?',
     answer:
-      'Our AI parses verified firm intel, training content, and your past activity to surface fast, actionable guidance on scope, required photos, and equipment—without replacing your judgment.',
+      'Not yet. The tools catalog is preview-only: prompts, uploads, model execution, data submission, and exports remain disabled while access and safeguards are finalized.',
   },
   {
-    question: 'Do I need a specific plan to access routing support?',
+    question: 'What route support is available today?',
     answer:
-      'Routing insights and templated readiness checklists are included for all members. Advanced optimization and multi-market coordination unlock in Pro and Agency plans.',
+      'Members can use firm profiles, training, and readiness checklists today. Route optimization and multi-market tool execution remain on the preview roadmap.',
   },
   {
     question: 'Is the intel vetted before it is published?',
@@ -106,7 +106,7 @@ const faqItems = [
 export const metadata: Metadata = {
   title: 'About the Inspector Support Hub',
   description:
-    'Learn how Nested Objects equips home and property inspectors with AI-powered intel, routing support, and conversion-ready resources modeled after leading industry associations.',
+    'Learn how Nested Objects equips home and property inspectors with firm intel, training, readiness resources, and a clearly labeled tools roadmap.',
   alternates: {
     canonical: 'https://members.nestedobjects.com/about-us',
   },
@@ -115,7 +115,7 @@ export const metadata: Metadata = {
     url: 'https://members.nestedobjects.com/about-us',
     title: 'About the Inspector Support Hub',
     description:
-      'The Nested Objects story, mission, and team behind AI-driven intel for inspectors, coordinators, and property pros.',
+      'The Nested Objects story, mission, and team behind practical firm intel for inspectors, coordinators, and property pros.',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
@@ -129,7 +129,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'About the Inspector Support Hub',
     description:
-      'See how Nested Objects blends field-tested operations with AI to help inspectors and coordinators win more work.',
+      'See how Nested Objects blends field-tested operations, firm intel, and training for inspectors and coordinators.',
   },
 }
 
@@ -141,7 +141,7 @@ export default function AboutPage() {
     url: 'https://members.nestedobjects.com',
     logo: 'https://members.nestedobjects.com/logo-light.svg',
     description:
-      'AI-powered member hub for home inspectors, notaries, realtors, and coordinators seeking verified intel and modern workflows.',
+      'Member hub for field inspectors and adjacent property professionals seeking verified firm intel, training, and readiness resources.',
     founder: {
       '@type': 'Person',
       name: 'Autumn Williams',
@@ -169,7 +169,7 @@ export default function AboutPage() {
   const serviceSchema = {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    name: 'AI field intelligence and routing support',
+    name: 'Field inspector intelligence and training support',
     areaServed: 'United States',
     provider: {
       '@type': 'Organization',
@@ -177,7 +177,7 @@ export default function AboutPage() {
     },
     serviceType: 'Property inspection enablement',
     description:
-      'Verified firm directory, AI concierge, routing guidance, and training for inspectors, notaries, and coordinators.',
+      'Verified firm directory, training, readiness resources, and a preview-only tools roadmap for field inspectors and adjacent property professionals.',
   }
 
   const faqSchema = {
@@ -204,8 +204,8 @@ export default function AboutPage() {
                 Redefining how inspectors, coordinators, and property pros run their routes.
               </h1>
               <p className="max-w-2xl text-base text-brand-mist">
-                Nested Objects blends field-tested operations with AI insight modeled on organizations like NAMFS. From intel to
-                routing to conversion-ready resources, we help you protect margins and respond to clients faster.
+                Nested Objects blends field-tested operations with practical firm intel and training. From directory research to
+                readiness resources, we help contractors make clearer decisions before they apply or accept work.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -245,9 +245,9 @@ export default function AboutPage() {
                 <span className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-steel">Operational core</span>
               </div>
               <p className="text-sm text-brand-slate">
-                Born from years coordinating property inspections, Nested Objects delivers transparent rates, requirements, and
-                AI-backed suggestions that keep field teams moving. We audit intel weekly, log every update, and translate complex
-                SLAs into steps that fit your workflow.
+                Born from years coordinating property inspections, Nested Objects delivers firm profiles, requirements, and
+                readiness guidance that help field teams prepare. We review intel, record updates, and translate complex
+                requirements into practical training and checklists.
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {milestoneStats.map((stat) => (
@@ -268,12 +268,12 @@ export default function AboutPage() {
               <div className="space-y-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-copper">Story and vision</p>
                 <h2 className="text-2xl font-bold leading-snug sm:text-3xl">
-                  Built like a modern trade association with AI inside every workflow.
+                  Built like a modern trade association with a practical product roadmap.
                 </h2>
                 <p className="text-base text-brand-slate">
-                  We studied the rigor of organizations like NAMFS and paired it with automation that reduces admin time for
-                  inspectors and coordinators. The result: a membership hub that publishes real intel, anticipates risks, and
-                  connects you with the firms that value your craft.
+                  We studied the rigor of organizations like NAMFS and paired it with practical training and readiness resources
+                  for inspectors and coordinators. The result is a membership hub that publishes firm intel and helps contractors
+                  compare opportunities before applying.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {serviceHighlights.map((item) => (
@@ -303,8 +303,8 @@ export default function AboutPage() {
               <div className="grid gap-4 border border-brand-mist bg-brand-sand px-4 py-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="border border-brand-mist bg-white px-3 py-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">AI concierge</p>
-                    <p className="mt-2 text-sm text-brand-dark">Guides next actions based on client SLAs and your past submissions.</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Tools preview</p>
+                    <p className="mt-2 text-sm text-brand-dark">Shows the planned guidance workflow without accepting prompts or running models.</p>
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Compliance snapshots</p>
@@ -312,11 +312,11 @@ export default function AboutPage() {
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Routing intel</p>
-                    <p className="mt-2 text-sm text-brand-dark">Suggested sequencing, gear reminders, and proof photo guidance.</p>
+                    <p className="mt-2 text-sm text-brand-dark">Readiness checklists today, with route optimization still on the preview roadmap.</p>
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Conversion assets</p>
-                    <p className="mt-2 text-sm text-brand-dark">Proposals, outreach cadences, and rate calculators ready to deploy.</p>
+                    <p className="mt-2 text-sm text-brand-dark">Templates and outreach guidance available today; calculator execution remains disabled.</p>
                   </div>
                 </div>
                 <div className="relative h-72 border border-brand-mist bg-brand-dark">
@@ -442,7 +442,7 @@ export default function AboutPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-teal">FAQs</p>
                 <h2 className="text-2xl font-bold sm:text-3xl">Straight answers for field pros.</h2>
                 <p className="text-base text-brand-mist">
-                  From AI guardrails to routing support, here is what new members ask before they join. Need more detail? Reach out
+                  From current firm intel to the preview-only tools roadmap, here is what new members ask before they join. Need more detail? Reach out
                   and we will tailor a plan for your routes.
                 </p>
               </div>
@@ -471,8 +471,8 @@ export default function AboutPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-copper">Next steps</p>
                 <h2 className="text-2xl font-bold sm:text-3xl">Ready to modernize your inspection routes?</h2>
                 <p className="text-base text-brand-slate">
-                  Choose the plan that matches your workload today. We will layer in intel, routing support, and AI concierge access
-                  as you scale into new markets.
+                  Choose the plan that matches your workload today. Current plans focus on firm intel, training, readiness
+                  resources, and support; planned member tools remain preview-only.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link

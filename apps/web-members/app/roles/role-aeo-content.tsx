@@ -66,9 +66,9 @@ function getDecisionGuide(content: RoleAeoContent) {
         detail: 'Compare firms, service areas, reviews, and requirement clues.',
       },
       {
-        label: 'Income calculator',
-        href: '/tools/income-calculator',
-        detail: 'Estimate route pay before accepting scattered assignments.',
+        label: 'Income tool preview',
+        href: '/tools',
+        detail: 'Preview the planned route-income workflow. Calculation remains disabled.',
       },
       {
         label: 'Membership plans',
@@ -156,9 +156,9 @@ export const roleAeoContent = {
           detail: 'Start with a state page, then compare firms serving nearby counties.',
         },
         {
-          label: 'Income calculator',
-          href: '/tools/income-calculator',
-          detail: 'Estimate net route value before accepting scattered assignments.',
+          label: 'Income tool preview',
+          href: '/tools',
+          detail: 'Preview the planned net-route workflow. Calculation remains disabled.',
         },
       ],
     },
@@ -317,14 +317,14 @@ export const roleAeoContent = {
           detail: 'Find signing services, vendor programs, and notary-adjacent firms.',
         },
         {
-          label: 'Notary calculator',
-          href: '/tools/notary-route-calculator',
-          detail: 'Check whether a signing route is still profitable after costs.',
+          label: 'Route tool preview',
+          href: '/tools',
+          detail: 'Preview the planned signing-route workflow. Calculation remains disabled.',
         },
         {
-          label: 'Company tracker',
-          href: '/tools/companies',
-          detail: 'Track saved firms, requirements, and application follow-ups.',
+          label: 'Company tracker preview',
+          href: '/tools',
+          detail: 'Preview the planned firm-tracking workflow. Saving remains disabled.',
         },
       ],
     },
@@ -483,9 +483,9 @@ export const roleAeoContent = {
           detail: 'Compare field-service firms by work type, route fit, and requirements.',
         },
         {
-          label: 'Income calculator',
-          href: '/tools/income-calculator',
-          detail: 'Model whether stacked assignments improve weekly net pay.',
+          label: 'Income tool preview',
+          href: '/tools',
+          detail: 'Preview the planned stacked-assignment workflow. Calculation remains disabled.',
         },
         {
           label: 'Resource center',
@@ -531,7 +531,7 @@ export const roleAeoContent = {
       },
       {
         question: 'How does Nested Objects help inspectors choose firms?',
-        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, and AI tools so inspectors can compare opportunities before spending time on vendor portals.',
+        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, training, and readiness resources so inspectors can compare opportunities before spending time on vendor portals. Planned tools remain preview-only.',
       },
     ],
   },
