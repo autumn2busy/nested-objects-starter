@@ -5,7 +5,7 @@ export interface WorkflowRegistration {
   version: string
   description: string
   durability: 'in_memory_test' | 'vercel_workflow_extension'
-  status: 'foundation' | 'placeholder'
+  status: 'implemented' | 'foundation' | 'placeholder'
   enabledByDefault: false
   mutationBoundary: 'internal_only' | 'proposal_only'
 }
@@ -16,25 +16,34 @@ export const WORKFLOW_REGISTRATIONS: readonly WorkflowRegistration[] = [
     version: 'phase-c3-v1',
     description: 'Durable synthetic staging workflow for identity, membership, lifecycle routing, and source completeness anomalies.',
     durability: 'vercel_workflow_extension',
-    status: 'foundation',
+    status: 'implemented',
     enabledByDefault: false,
     mutationBoundary: 'proposal_only',
   },
   {
-    name: 'weekly-operating-review',
-    version: 'phase-b-v1',
-    description: 'Future correlated operating review that consumes normalized metrics and persisted intelligence signals.',
+    name: 'conversion_review',
+    version: 'phase-c5-v1',
+    description: 'Durable conversion review invoking Revenue, Growth, and Marketing with verified artifact persistence.',
     durability: 'vercel_workflow_extension',
-    status: 'placeholder',
+    status: 'implemented',
     enabledByDefault: false,
     mutationBoundary: 'proposal_only',
   },
   {
-    name: 'industry-intelligence-scan',
-    version: 'phase-b-v1',
-    description: 'Future sourced research workflow that persists industry signals without executing external actions.',
+    name: 'daily_business_health',
+    version: 'phase-c5-v1',
+    description: 'Quiet-by-default lifecycle, identity, access, routing, source, collector, and tracking health review.',
     durability: 'vercel_workflow_extension',
-    status: 'placeholder',
+    status: 'implemented',
+    enabledByDefault: false,
+    mutationBoundary: 'proposal_only',
+  },
+  {
+    name: 'weekly_operating_review',
+    version: 'phase-c5-v1',
+    description: 'Durable weekly specialist review with no more than three priorities and explicit Autumn decisions.',
+    durability: 'vercel_workflow_extension',
+    status: 'implemented',
     enabledByDefault: false,
     mutationBoundary: 'proposal_only',
   },
