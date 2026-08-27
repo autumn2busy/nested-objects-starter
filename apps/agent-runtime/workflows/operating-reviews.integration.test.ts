@@ -4,6 +4,7 @@ import { start } from 'workflow/api'
 import type { CorrelationContext, IntelligenceSignal, MetricSnapshot } from '../src/contracts.js'
 import { InMemoryDurableWorkflowStore } from '../src/persistence/durable-workflow-store.js'
 import { InMemoryOperatingWorkflowStore } from '../src/persistence/operating-workflow-store.js'
+import { InMemorySensorObservationStore } from '../src/persistence/sensor-observation-store.js'
 import { installOperatingWorkflowTestContext } from '../src/runtime/operating-workflow-context.js'
 import { createStagingDestinationFingerprint } from '../src/runtime/staging-destination.js'
 import { stableUuid } from '../src/stable-id.js'
@@ -38,14 +39,17 @@ describe('Phase C5 operating workflows', () => {
   let cleanup: (() => void) | null = null
   let durableStore: InMemoryDurableWorkflowStore
   let operatingStore: InMemoryOperatingWorkflowStore
+  let sensorStore: InMemorySensorObservationStore
 
   beforeEach(() => {
     process.env.VITEST = 'true'
     durableStore = new InMemoryDurableWorkflowStore(binding)
     operatingStore = new InMemoryOperatingWorkflowStore()
+    sensorStore = new InMemorySensorObservationStore()
     cleanup = installOperatingWorkflowTestContext({
       durableStore,
       operatingStore,
+      sensorStore,
       binding,
       runtimeVersion: 'phase-c5-test',
     })
@@ -129,7 +133,92 @@ describe('Phase C5 operating workflows', () => {
     ))).toBe(true)
     expect([...operatingStore.reviews.values()][0]?.priorities).toHaveLength(3)
   })
+
+  it('weekly_operating_review consumes and durably reuses live SEO/AEO sensor observations', async () => {
+    const input = workflowInput('weekly_operating_review', {
+      sensorReports: [seoSensorReport(), aeoSensorReport()],
+      persistedSignals: [],
+    })
+    const run = await start(weeklyOperatingReviewWorkflow, [input])
+    const result = await run.returnValue
+
+    expect(result.state).toBe('succeeded')
+    expect(result.sensorRunCount).toBe(2)
+    expect(result.sensorObservationCount).toBe(2)
+    expect(result.sensorProvenanceModes).toEqual(['live'])
+    expect(result.sensorPersistenceVerified).toBe(true)
+    expect(sensorStore.runs.size).toBe(2)
+    expect(sensorStore.observations.size).toBe(2)
+    expect([...operatingStore.signals.values()].some((signal) => signal.producer === 'seo-content-monitor')).toBe(true)
+    expect([...operatingStore.signals.values()].some((signal) => signal.producer === 'ai-aeo-monitor')).toBe(true)
+
+    const duplicateRun = await start(weeklyOperatingReviewWorkflow, [input])
+    const duplicate = await duplicateRun.returnValue
+    expect(duplicate.state).toBe('reused')
+    expect(duplicate.sensorRunCount).toBe(2)
+    expect(duplicate.sensorObservationCount).toBe(2)
+    expect(duplicate.sensorProvenanceModes).toEqual(['live'])
+    expect(duplicate.sensorPersistenceVerified).toBe(true)
+    expect(sensorStore.runs.size).toBe(2)
+    expect(sensorStore.observations.size).toBe(2)
+  })
 })
+
+function seoSensorReport(): OperatingReviewWorkflowInput['fixture']['sensorReports'][number] {
+  return {
+    sensorName: 'seo-content-monitor',
+    provenanceMode: 'live',
+    report: {
+      generatedAt: fixedNow,
+      cadence: 'weekly',
+      workflowBoundary: 'Candidate opportunities only; no publishing.',
+      dataSources: [{ name: 'Google Search Console', status: 'configured', detail: 'Synthetic fixture.', count: 1 }],
+      opportunities: [{
+        id: 'seo-synthetic-field-inspection',
+        title: 'Synthetic field inspection search opportunity',
+        angle: 'Answer one bounded search intent with reviewed evidence.',
+        category: 'field-inspection',
+        priority: 'high',
+        score: 88,
+        recommendedSurface: 'blog_supporting_article',
+        workflowStatus: 'candidate',
+        targetKeywords: ['synthetic field inspection query'],
+        internalLinks: [{ label: 'Field inspection guide', href: '/guides/how-to-become-a-field-inspector' }],
+        rationale: 'Synthetic Search Console evidence shows a documented opportunity.',
+        sourceSignals: ['synthetic Search Console row'],
+      }],
+    },
+  }
+}
+
+function aeoSensorReport(): OperatingReviewWorkflowInput['fixture']['sensorReports'][number] {
+  return {
+    sensorName: 'ai-aeo-monitor',
+    provenanceMode: 'live',
+    report: {
+      generatedAt: fixedNow,
+      cadence: 'weekly',
+      workflowBoundary: 'Visibility evidence only; no publishing.',
+      dataSources: [{ name: 'AEO snapshot webhook', status: 'configured', detail: 'Synthetic fixture.', count: 1 }],
+      promptSet: [],
+      answerSnapshots: [],
+      opportunities: [{
+        id: 'aeo-synthetic-field-inspection',
+        prompt: 'What is a synthetic field inspection?',
+        intent: 'career_research',
+        priority: 'medium',
+        score: 76,
+        recommendedAction: 'owned_answer_refresh',
+        targetPage: '/guides/how-to-become-a-field-inspector',
+        answerGap: 'The synthetic answer snapshot omitted one owned entity.',
+        recommendedAnswerElements: ['plain-language definition'],
+        internalLinks: [{ label: 'Field inspection guide', href: '/guides/how-to-become-a-field-inspector' }],
+        observedBrands: [],
+        workflowStatus: 'candidate',
+      }],
+    },
+  }
+}
 
 function workflowInput(
   workflowName: 'conversion_review' | 'daily_business_health' | 'weekly_operating_review',
@@ -147,6 +236,7 @@ function workflowInput(
     experiments: [],
     tasks: [],
     priorActions: [],
+    sensorReports: [],
     specialists: {
       revenue: {
         currentMetrics: [metric('2026-08-27', 'subscriptions.upgraded.confirmed', 4, 'revenue')],

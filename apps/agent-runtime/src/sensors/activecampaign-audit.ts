@@ -128,16 +128,16 @@ export function classifyMarketingContact(input: {
     confidence = 0.85
     recommendedDisposition = 'quarantine'
     evidence.push({ type: 'test_pattern' })
-  } else if (hasColdEvidence) {
-    classification = 'cold_import'
-    confidence = 0.9
-    recommendedDisposition = engagementState === 'never_engaged' || engagementState === 'stale' ? 'suppress_candidate' : 'review'
-    evidence.push({ type: 'cold_import_marker' })
   } else if (hasWixEvidence) {
     classification = 'legacy_wix_candidate'
     confidence = 0.85
     recommendedDisposition = 'review'
     evidence.push({ type: 'wix_marker' })
+  } else if (hasColdEvidence) {
+    classification = 'cold_import'
+    confidence = 0.9
+    recommendedDisposition = engagementState === 'never_engaged' || engagementState === 'stale' ? 'suppress_candidate' : 'review'
+    evidence.push({ type: 'cold_import_marker' })
   }
 
   const excludedFromMarketingAnalysis =

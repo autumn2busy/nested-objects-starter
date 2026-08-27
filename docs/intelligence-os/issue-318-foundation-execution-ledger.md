@@ -11,8 +11,8 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Repository | `autumn2busy/nested-objects-starter` |
 | Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
-| Current increment | Phase C5 durable operating-review workflows |
-| Current branch | `feature/318-c5-orchestrator-operating-review` at C4 base `ee3b328` |
+| Current increment | Phase C6 durable sensors and marketing integrity |
+| Current branch | `feature/318-c6-sensors-marketing-integrity` at C5 base `c5ac01d` |
 | Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
@@ -58,13 +58,13 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 7 | Agent control-plane persistence exists | Repository-complete; live staging application blocked | C3 durable store, Workflow entry point, atomic run/step RPCs, committed destination policy, migration and validation | Autumn must review the exact staging project reference, database sentinel, secret channel, migration, and Preview smoke. |
 | 8 | Operations Orchestrator v1 exists | Complete locally | C4 typed invocation plus C5 durable state/artifact persistence in all three operating workflows | Live staging persistence remains gated by the C3 destination review. |
 | 9 | Revenue Agent v1 exists | Complete locally | C4 normalized-metric comparisons, authority/data-quality states, unknown preservation, evidenced drivers only | No model or live financial connector is required. |
-| 10 | Growth Agent v1 replaces standalone Weekly Growth Analysis logic | Complete locally | C4 current/prior week and trailing 4/12-week comparisons, coverage/confidence, typed anomalies and durable signals; C5 invokes it durably | C6 adds live SEO/AEO sensor inputs. |
+| 10 | Growth Agent v1 replaces standalone Weekly Growth Analysis logic | Complete locally | C4 current/prior week and trailing 4/12-week comparisons, coverage/confidence, typed anomalies and durable signals; C5 invokes it durably and C6 supplies durable SEO/AEO signals | Live staging persistence remains gated by the C3 destination review. |
 | 11 | Industry Intelligence Agent v1 replaces standalone AI Industry Brief logic | Complete locally | C4 dated/provenanced/licensed structured events, high-value routing, deterministic research fixtures | Approved live read-only research remains disabled until an explicit tool is configured. |
 | 12 | Marketing Agent v1 exists | Complete locally | C4 Revenue/Growth consumption, lifecycle/engagement diagnosis, identifier-free audiences, experiments, internal copy, policy-gated proposals | ActiveCampaign remains read-only/no mutation. |
-| 13 | Existing SEO/AEO/content/opportunity collectors have documented sensor integration; weekly review consumes SEO/AEO | Partial | Sensor contracts and Phase B docs exist; current report imports are deployment-static and checked-in reports are stale | C6: adapters, live/baseline provenance, source checksum/run health, idempotent ingestion, fixtures, and durable weekly consumption that does not depend on same-deployment Git commits. |
+| 13 | Existing SEO/AEO/content/opportunity collectors have documented sensor integration; weekly review consumes SEO/AEO | Complete locally | C6 preserves collector/report shapes, adds live/baseline/fixture provenance, checksums, health/staleness, stable references, idempotent ingestion, proposal-only content briefs, documented Adzuna opportunity ownership, and direct same-invocation weekly SEO/AEO consumption | One staging parity cycle remains gated by the C3 destination review and later C7 protected trigger. |
 | 14 | `conversion_review` runs end-to-end against mocks/dev data | Complete locally | C5 real Workflow fixture, durable run/step reuse, specialist invocation, transactional artifact persistence, readback verification, and duplicate-delivery test | Live staging smoke remains gated by the C3 destination review. |
 | 15 | `daily_business_health` runs and stays quiet when healthy | Complete locally | C5 source/staleness evaluation and healthy fixture with `quiet=true`, no notification, no signals/priorities/decisions/actions | Live staging smoke remains gated by the C3 destination review. |
-| 16 | `weekly_operating_review` runs end-to-end and returns no more than three priorities plus Autumn decisions | Complete locally | C5 durable specialist/experiment/action/review fixture proves the three-priority and three-decision bounds | C6 must attach durable SEO/AEO sensor observations without changing this contract. |
+| 16 | `weekly_operating_review` runs end-to-end and returns no more than three priorities plus Autumn decisions | Complete locally | C5 proves the durable specialist/artifact path and C6 proves direct SEO/AEO adaptation, durable observation reuse, signal consumption, and unchanged three-priority/three-decision bounds | Live staging smoke remains gated by the C3 destination review. |
 | 17 | External mutations are code-gated by approval | Partial | Phase B TypeScript/Postgres guards; no executor | C7/C8: stable Autumn subject, origin/CSRF and replay defenses, atomic decision update, immutable approved payload, no execution attachment. Do not reuse email/role fallback auth. |
 | 18 | Correlation IDs allow signal -> action -> outcome audit | Partial | C5 persists one correlated run/step/signal/recommendation/task/experiment/proposed-action/review trace and verifies duplicate reuse | C8: add outcome measurement/linkage and full observation-to-learning acceptance. |
 | 19 | Tests/builds pass | Partial | C2 checks pass; PR #325 left an invalid workflow on `main` that fails on every push | Remove both one-shot workflows, then run the full matrix for every stacked increment and final audit. |
@@ -78,10 +78,10 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | Real Vercel Workflow implementation | Repository-complete | C3 pins Workflow `4.8.5`, compiles a real lifecycle workflow, and executes it under `@workflow/vitest`. |
 | Staging persistence with reviewed destination binding | Repository-complete / live application blocked | Code allowlist is intentionally empty; live application requires Autumn-reviewed staging reference, database sentinel, and server-only secret credential. |
 | Executable stale-run detection and resume-safe semantics | Repository-complete | C3 atomic RPCs, retry windows, bounded stale sweep, duplicate delivery, and completed-step reuse tests. |
-| Read-only ActiveCampaign sensor and lifecycle/performance signals | Partial | C6; live inventory remains read-only and stable-ID allowlisted. |
+| Read-only ActiveCampaign sensor and lifecycle/performance signals | Complete locally | C6 bounded GET-only client, owner-reviewed hostname/stable-ID allowlist, email-free stable-ID classifications, durable marketing metrics/signals, proposal-only cleanup, and stable contact-ID authority join. Live credential use remains disabled. |
 | Minimal protected run/signal/priority/approval surface | Missing | C7. |
 | Trigger contracts and protected endpoints; no Production schedule | Missing | C7. |
-| One-cycle parity plan and retained old reports | Partial | Preserve reports now; document/validate in C6/C8. |
+| One-cycle parity plan and retained old reports | Repository-complete / execution blocked | C6 documents the exact compatibility comparison and keeps the old collectors/reports. Execution requires the approved C3 staging binding and C7 protected trigger. |
 | Full observation-to-learning trace and measurement linkage | Missing | C8. |
 
 ## Cross-increment architecture findings
@@ -104,7 +104,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Complete locally; live staging application and stacked draft PR externally gated |
 | 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Complete locally; stacked draft PR remains externally gated |
 | 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Complete locally; live staging application and stacked draft PR externally gated |
-| 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Pending |
+| 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Complete locally; live staging/parity cycle and stacked draft PR externally gated |
 | 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Pending |
 | 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Pending |
 
@@ -141,6 +141,12 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 | C5 | Weekly review bounds | Passed | The fixture invokes Revenue, Growth, Industry, and Marketing, suppresses duplicate operational work, and emits no more than three priorities, decisions, or proposed actions. |
 | C5 | Migration and permission contract | Passed locally / live staging blocked | Static checks and rollback-safe SQL cover service-role-only functions, SELECT-only direct access, bounded atomic batches, idempotency mismatch rejection, proposed-only actions, and duplicate stable counts. |
 | C5 | Full isolated `npm run validate` | Passed | Format and dependency checks, both TypeScript targets, 49 Node tests, five real Workflow tests across two files, all Phase B/C1/C3/C5 migration checks, C2 Preview checks, and C4 specialist checks pass. |
+| C6 | Existing-report compatibility and provenance | Passed | Checked-in SEO/AEO/content report shapes normalize without collector changes; their June 2026 data is explicitly stale baseline evidence, not live observation. |
+| C6 | Durable weekly sensor consumption | Passed | The sixth Workflow fixture directly supplies live SEO/AEO reports, persists normalized observations before operating artifacts, consumes their signals, and reuses every record on duplicate delivery. |
+| C6 | ActiveCampaign read-only integrity | Passed | Focused fixtures prove exact-host and stable-ID allowlisting, bounded GET-only pagination, all seven classifications, all twelve required lifecycle/engagement cases, email-free outputs, marketing-only authority, proposal-only actions, and idempotent sensor-batch persistence. |
+| C6 | Stable contact authority and approval-preserving inventory | Passed | ActiveCampaign membership context joins by stored contact ID rather than email, collisions are withheld, and recurring inventory uses an RPC that preserves owner review/read state while direct service-role asset writes are revoked. |
+| C6 | Migration and permission contract | Passed locally / live staging blocked | Static and rollback-safe SQL cover null/bound checks, duplicate reuse, changed-payload rejection, SELECT-only runtime tables, normalized sensor events, and approval-preserving asset refresh. |
+| C6 | Full isolated `npm run validate` | Passed | Format and dependency checks, both TypeScript targets, 55 Node tests, six real Workflow tests across two files, all Phase B/C1/C3/C5/C6 migration checks, C2 Preview checks, and C4 specialist checks pass. |
 
 ## External blockers and Autumn-controlled decisions
 
@@ -175,10 +181,29 @@ These findings were verified against current `main` on 2026-08-26 and remain req
 | --- | --- | --- | --- |
 | P1 | One anonymous identity can be attributed to multiple profiles in input-order-dependent fashion | `apps/agent-runtime/src/projections/member-projection.ts` overwrites the anonymous-ID map when more than one profile claims the ID | C8 at the latest; move earlier if touched by C3/C4 |
 | P2 | Stale identity links are never revoked | `apps/agent-runtime/src/persistence/projection-store.ts` only upserts current links | C8 at the latest; include in projection batch hardening if C3 touches the store |
-| P2 | Recurring asset audits reset owner approval | `apps/agent-runtime/src/persistence/projection-store.ts` conflict upserts restore `read_allowed=false` and `review_status=pending` | C6 before recurring ActiveCampaign inventory runs |
+| P2 | Recurring asset audits reset owner approval | Resolved locally in C6: recurring refresh calls an approval-preserving RPC, and direct service-role registry writes are revoked | C6 commit review/merge |
+| P2 | ActiveCampaign contact authority was joined by email despite a stored contact ID | Resolved locally in C6: active contact-ID identity links are authoritative; collision links are withheld and email equality grants no authority | C6 commit review/merge |
 | P2 | Paid-access integrity ignored disabled/inactive `accessStatus` | Resolved locally in C4: tier, directory access, and recognized enabled status must all agree; focused regression passes | C4 commit review/merge |
 
-The paid-access `accessStatus` finding above is resolved locally in C4; it remains listed until the stacked commit is reviewed and merged.
+The paid-access, ActiveCampaign contact-ID, and approval-preserving inventory findings above are resolved locally; they remain listed until their stacked commits are reviewed and merged.
+
+## Current C6 acceptance checklist
+
+- [x] Preserve the existing SEO, AEO, content-brief, conversion, and Adzuna collectors and document their target sensor contracts.
+- [x] Accept existing SEO/AEO/content report shapes with explicit live/baseline/fixture provenance, stable references, checksums, health, staleness, correlation, and causation.
+- [x] Remove the weekly workflow's build-time JSON dependency by accepting report objects directly in the same invocation.
+- [x] Persist bounded sensor runs and observations idempotently before weekly operating artifacts; reuse identical deliveries and reject changed payloads under reused keys.
+- [x] Route SEO/AEO signals into weekly review while retaining the three-priority and three-Autumn-decision bounds.
+- [x] Keep content briefs unpublished, mutation-disabled candidate actions and Adzuna as the existing opportunity source.
+- [x] Implement the bounded GET-only ActiveCampaign client with an owner-reviewed hostname and stable resource-ID allowlist.
+- [x] Emit email-free stable-ID classifications, marketing metrics, all required lifecycle/engagement signals, and proposal-only cleanup actions without membership/revenue authority.
+- [x] Join ActiveCampaign context by stored contact ID, withhold collision links, and remove email-based authority.
+- [x] Preserve owner asset approvals during recurring inventory refresh and revoke direct runtime writes to the registry.
+- [x] Add migration, rollback-safe validation, deterministic fixtures, compatibility/parity documentation, and focused static checks.
+- [x] Pass both TypeScript targets, 55 Node tests, six real Workflow tests, and all Phase B/C1/C3/C5/C6 migration checks.
+- [x] Keep credentials, external calls, schedules, triggers, migrations, mutations, Production variables, and Production deployment disabled.
+- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [ ] Apply migrations and complete one parity cycle in reviewed staging; blocked pending Autumn's C3 binding, credential, migration authorization, and the C7 protected trigger.
 
 ## Current C5 acceptance checklist
 

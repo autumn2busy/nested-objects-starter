@@ -53,7 +53,7 @@ A degraded source produces one evidence-backed operating signal and priority as 
 
 `weekly_operating_review` invokes Revenue, Growth, Industry Intelligence, and Marketing when their typed inputs are present. It combines new and unresolved persisted signals, suppresses duplicate open tasks/experiments/actions, correlates related metric evidence, and persists at most three priorities.
 
-C6 will attach live/baseline-provenanced SEO and AEO sensor output. Until then, the C5 weekly fixture validates the complete durable specialist and artifact path without pretending deployment-static JSON is live evidence.
+C6 attaches live/baseline/fixture-provenanced SEO and AEO sensor output as a durable step before operating artifacts are persisted. The original C5 fixture still validates the no-sensor path, while the C6 fixture proves direct report consumption and duplicate observation reuse without pretending deployment-static JSON is live evidence.
 
 ## Schema and permissions
 

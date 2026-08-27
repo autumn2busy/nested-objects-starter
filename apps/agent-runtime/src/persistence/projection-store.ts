@@ -25,6 +25,7 @@ interface SupabaseQueryLike {
 }
 
 interface SupabaseClientLike {
+  rpc(name: string, parameters: Record<string, unknown>): PromiseLike<SupabaseResponseLike>
   from(table: string): {
     upsert(values: unknown, options?: Record<string, unknown>): SupabaseQueryLike
     update(values: unknown): SupabaseQueryLike
@@ -128,8 +129,8 @@ export class SupabaseProjectionStore implements ProjectionPersistenceStore {
 
   async persistAssetClassifications(classifications: AssetClassificationResult[], observedAt: string): Promise<void> {
     if (classifications.length === 0) return
-    await execute(this.client.from('activecampaign_asset_registry').upsert(
-      classifications.map((classification) => ({
+    await executeRpc(this.client.rpc('upsert_activecampaign_asset_inventory', {
+      p_assets: classifications.map((classification) => ({
         source_system: 'activecampaign',
         asset_type: classification.assetType,
         external_id: classification.externalId,
@@ -143,10 +144,15 @@ export class SupabaseProjectionStore implements ProjectionPersistenceStore {
         confidence: classification.confidence,
         review_status: 'pending',
         last_seen_at: observedAt,
+        source_refs: [{
+          sourceSystem: 'activecampaign',
+          sourceType: classification.assetType,
+          sourceId: classification.externalId,
+          observedAt,
+        }],
         idempotency_key: `activecampaign-asset:${classification.assetType}:${classification.externalId}`,
       })),
-      { onConflict: 'source_system,asset_type,external_id' },
-    ))
+    }))
   }
 }
 
@@ -290,6 +296,17 @@ async function execute(query: SupabaseQueryLike): Promise<void> {
   const response = await (query as unknown as Promise<SupabaseResponseLike>)
   if (response.error) {
     throw new ProjectionPersistenceError(response.error.message ?? 'Projection persistence failed', {
+      code: response.error.code,
+      details: response.error.details,
+      hint: response.error.hint,
+    })
+  }
+}
+
+async function executeRpc(query: PromiseLike<SupabaseResponseLike>): Promise<void> {
+  const response = await query
+  if (response.error) {
+    throw new ProjectionPersistenceError(response.error.message ?? 'Projection persistence RPC failed', {
       code: response.error.code,
       details: response.error.details,
       hint: response.error.hint,

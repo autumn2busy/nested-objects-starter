@@ -12,6 +12,54 @@ export type SensorName =
   | 'ai-aeo-monitor'
   | 'content-brief-generator'
   | 'adzuna-opportunity-ingestion'
+  | 'activecampaign-readonly'
+
+export type SensorProvenanceMode = 'live' | 'baseline' | 'fixture'
+export type SensorHealthStatus = 'healthy' | 'degraded' | 'failed' | 'stale' | 'not_configured'
+
+export interface SensorSourceHealth {
+  sourceId: string
+  status: SensorHealthStatus
+  detail: string
+  observedAt: string
+  recordCount: number | null
+  staleAfterHours: number
+  errorCode: string | null
+}
+
+export interface SensorObservation<TPayload extends Record<string, unknown> = Record<string, unknown>> {
+  id: string
+  sensorName: SensorName
+  sensorRunId: string
+  observationType: string
+  sourceRecordId: string
+  provenanceMode: SensorProvenanceMode
+  observedAt: string
+  sourceGeneratedAt: string | null
+  checksum: string
+  payload: TPayload
+  sourceRefs: SourceReference[]
+  sourceHealth: SensorSourceHealth[]
+  idempotencyKey: string
+  correlation: CorrelationContext
+}
+
+export interface SensorIngestionBatch {
+  sensorName: SensorName
+  sensorRunId: string
+  provenanceMode: SensorProvenanceMode
+  observedAt: string
+  sourceGeneratedAt: string | null
+  checksum: string
+  healthStatus: SensorHealthStatus
+  sourceHealth: SensorSourceHealth[]
+  observations: SensorObservation[]
+  metrics: MetricSnapshot[]
+  signals: IntelligenceSignal[]
+  candidateActions: SensorAdapterResult['candidateActions']
+  idempotencyKey: string
+  correlation: CorrelationContext
+}
 
 export interface SensorRegistration {
   name: SensorName
@@ -90,6 +138,14 @@ export const SENSOR_REGISTRATIONS: readonly SensorRegistration[] = [
     targetOutput: 'opportunity_source',
     phaseBChange: 'contract_only',
     authorityBoundary: 'The existing importer owns source collection. Later opportunity workflows consume persisted job records.',
+  },
+  {
+    name: 'activecampaign-readonly',
+    currentLocation: 'apps/web-members/lib/active-campaign-deep-data.ts',
+    currentOutput: 'marketing execution state, lifecycle delivery state, and engagement observations',
+    targetOutput: 'intelligence_signals',
+    phaseBChange: 'minimal_adapter',
+    authorityBoundary: 'GET-only owner-allowlisted marketing evidence. Outseta remains membership authority and no mutation tool is exposed.',
   },
 ] as const
 
