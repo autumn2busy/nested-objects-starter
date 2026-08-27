@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (relativePath) => readFile(path.join(root, relativePath), 'utf8')
 const [
   packageSource,
+  tsconfigSource,
   envSource,
   readmeSource,
   fixtureSource,
@@ -21,6 +22,7 @@ const [
   indexSource,
 ] = await Promise.all([
   read('package.json'),
+  read('tsconfig.json'),
   read('.env.example'),
   read('README.md'),
   read('fixtures/preview-evaluation.synthetic.json'),
@@ -37,12 +39,18 @@ const [
 
 const failures = []
 let packageJson
+let tsconfigJson
 let fixtureJson
 let vercelJson
 try {
   packageJson = JSON.parse(packageSource)
 } catch (error) {
   failures.push(`package.json is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
+}
+try {
+  tsconfigJson = JSON.parse(tsconfigSource)
+} catch (error) {
+  failures.push(`tsconfig.json is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
 }
 try {
   fixtureJson = JSON.parse(fixtureSource)
@@ -98,12 +106,19 @@ if (packageJson) {
   if (!String(scripts.typecheck ?? '').includes('tsconfig.api.json')) {
     failures.push('package.json typecheck does not validate the Vercel API entrypoints')
   }
+  if (scripts.build !== 'npm run clean && tsc -p tsconfig.json') {
+    failures.push('package.json build must preserve the validated TypeScript library build')
+  }
   if (!String(scripts.validate ?? '').includes('preview:check')) {
     failures.push('package.json validate does not include preview:check')
   }
   if (packageJson.dependencies?.workflow || packageJson.dependencies?.['@vercel/workflow']) {
     failures.push('Phase C2 unexpectedly installs a durable workflow package before the preview boundary is proven')
   }
+}
+
+if (Object.hasOwn(tsconfigJson?.compilerOptions ?? {}, 'rootDir')) {
+  failures.push('tsconfig.json must infer a root that contains both Vercel api/ functions and src/ imports')
 }
 
 if (vercelJson) {

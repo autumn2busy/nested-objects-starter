@@ -15,7 +15,6 @@
     "sourceMap": true,
     "noEmitOnError": true,
     "outDir": "dist",
-    "rootDir": "src",
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],

@@ -98,6 +98,8 @@ npm run validate
 
 Node 22.16 or newer within the Node 22 release line is required by this isolated package. The upper bound prevents Vercel from overriding the project runtime with a newer major version. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
 
+The root TypeScript configuration intentionally infers its source root. Local builds include only `src/` and retain the existing private `dist` layout, while Vercel can add `api/` Function entries without excluding them from emission.
+
 ## Vercel project boundary
 
 When Phase C2 is approved for preview deployment, create a separate Vercel project from the existing repository:
