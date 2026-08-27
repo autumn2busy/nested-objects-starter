@@ -13,7 +13,7 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
 | Current increment | Phase C8 foundation hardening and completion audit |
 | Current branch | `feature/318-c8-foundation-hardening` at C7 base `7f8cb39` |
-| Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
+| Current draft PR | C8 draft PR #333; dependency stack is PRs #326 -> #327 -> #328 -> #329 -> #330 -> #331 -> #332 -> #333 |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
 | Consequential-action approver | Autumn only |
@@ -100,13 +100,13 @@ Live Issue #318 was re-read on 2026-08-27. It is open, has no comments, and its 
 | Order | Branch | Intended PR base | Scope | Status |
 | ---: | --- | --- | --- | --- |
 | 1 | `feature/318-phase-c2-preview-deployment-verification` | `main` | C2 fixes and live isolated Preview verification | Draft PR #326; complete; unmerged |
-| 2 | `fix/318-member-surface-correction` | C2 verification branch | Remove invalid PR #325 workflows; implement preview-only tools, explicit public pricing, and field-inspector-first surfaces | Complete locally at `d80bffb`; push/draft PR blocked pending explicit private-repository push approval |
-| 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Complete locally; live staging application and stacked draft PR externally gated |
-| 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Complete locally; stacked draft PR remains externally gated |
-| 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Complete locally; live staging application and stacked draft PR externally gated |
-| 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Complete locally; live staging/parity cycle and stacked draft PR externally gated |
-| 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Complete locally; staging activation and stacked draft PR externally gated |
-| 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Complete locally; final local commit and stacked draft PR remain gated at this checkpoint |
+| 2 | `fix/318-member-surface-correction` | C2 verification branch | Remove invalid PR #325 workflows; implement preview-only tools, explicit public pricing, and field-inspector-first surfaces | Complete; draft PR #327 open and unmerged |
+| 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Complete; draft PR #328 open; live staging application remains gated |
+| 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Complete; draft PR #329 open and unmerged |
+| 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Complete; draft PR #330 open; live staging application remains gated |
+| 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Complete; draft PR #331 open; live staging/parity remains gated |
+| 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Complete; draft PR #332 open; staging activation remains gated |
+| 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Complete; draft PR #333 open and unmerged |
 
 Each later draft PR must state that it is stacked on the preceding branch. If an earlier PR merges while work continues, fetch `main`, verify the graph, and safely retarget/rebase without duplicating commits.
 
@@ -184,7 +184,7 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 - [x] Preserve Founders and Starter in legacy entitlement checks.
 - [x] Keep mobile notary as an adjacent role rather than removing the segment.
 - [x] Add focused static and runtime CI contracts and run lint, TypeScript, existing funnel regression, and browser checks.
-- [ ] Commit, push, and open a stacked draft PR based on the C2 verification branch. Do not merge.
+- [x] Commit, push, and open draft PR #327 based on the C2 verification branch. It remains unmerged.
 
 ## Unresolved merged-code hardening ledger
 
@@ -213,7 +213,7 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Create a rollback-safe migration validation and focused static, Node, Workflow, and TypeScript checks.
 - [x] Create `docs/agent-control-plane.md`, update this durable ledger, record the 22-item completion audit, and keep Issue #318 open.
 - [ ] Apply C3-C8 migrations and run rollback validations against the reviewed staging destination; blocked pending Autumn's destination binding, credential, migration, stable subject, and owner-row authorization.
-- [ ] Push the stacked local branches and open C3-C8 draft PRs; requires explicit private-repository write approval. Do not merge.
+- [x] Push the reviewed stack and open C3-C8 draft PRs #328-#333. None is merged.
 - [ ] Run one staging report-parity cycle; blocked on the reviewed durable staging and protected trigger activation.
 
 ## Current C7 acceptance checklist
@@ -234,7 +234,7 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Keep Production variables, Production migration, Production deployment, schedules, live connectors, model execution, external mutations, delegated approval, and executors disabled.
 - [x] Run and record the full C7 validation matrix.
 - [x] Commit C7 locally on its focused branch.
-- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [x] Push and open stacked draft PR #332 without merging.
 - [ ] Apply migrations and smoke-test protected reads/triggers/decisions in reviewed staging; blocked pending Autumn's C3 binding, secret, migration, exact subject, and owner-row authorization.
 
 ## Current C6 acceptance checklist
@@ -252,7 +252,7 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Add migration, rollback-safe validation, deterministic fixtures, compatibility/parity documentation, and focused static checks.
 - [x] Pass both TypeScript targets, 55 Node tests, six real Workflow tests, and all Phase B/C1/C3/C5/C6 migration checks.
 - [x] Keep credentials, external calls, schedules, triggers, migrations, mutations, Production variables, and Production deployment disabled.
-- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [x] Push and open stacked draft PR #331 without merging.
 - [ ] Apply migrations and complete one parity cycle in reviewed staging; blocked pending Autumn's C3 binding, credential, migration authorization, and the C7 protected trigger.
 
 ## Current C5 acceptance checklist
@@ -267,7 +267,7 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Preserve the C6 seam for durable live/baseline-provenanced SEO/AEO observations.
 - [x] Keep schedules, public triggers, notifications, model calls, external mutations, Production configuration, and Production deployment out of scope.
 - [x] Run focused Workflow, Node, TypeScript, format, migration, and static acceptance checks.
-- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [x] Push and open stacked draft PR #330 without merging.
 - [ ] Apply and smoke-test against the reviewed staging destination; blocked pending Autumn's C3 binding, credential, and migration authorization.
 
 ## C4 acceptance checklist
@@ -284,7 +284,7 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Keep model execution disabled, token/cost null, mutations false, and private reasoning absent.
 - [x] Resolve inactive paid-access integrity and add regression coverage.
 - [x] Run focused static, TypeScript, and 49-test Node acceptance checks.
-- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [x] Push and open stacked draft PR #329 without merging.
 
 ## Current C3 acceptance checklist
 
@@ -299,5 +299,5 @@ All five findings above are resolved locally in the stacked corrective/C4/C6/C8 
 - [x] Add a focused migration plus rollback-safe validation/operator instructions.
 - [x] Run Node version, `npm ci`, full `npm run validate`, focused tests, and `git diff --check`.
 - [x] Review the local C3 diff against corrective base `d80bffb` and resolve findings.
-- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [x] Push and open stacked draft PR #328 without merging.
 - [ ] Apply and smoke-test against the reviewed staging destination; blocked pending Autumn's staging reference, sentinel approval, credential, and migration authorization.

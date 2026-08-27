@@ -1,20 +1,20 @@
 # Issue #318 Intelligence OS Foundation implementation summary
 
-Status: repository implementation complete locally; live staging activation, stacked draft-PR publication, one parity cycle, and every Production action remain explicitly blocked or Autumn-controlled. Issue #318 remains open.
+Status: repository implementation complete with the dependency-ordered draft stack published; live staging activation, one parity cycle, every merge, and every Production action remain explicitly blocked or Autumn-controlled. Issue #318 remains open.
 
 ## Verified repository baseline and implementation stack
 
 - Latest fetched `origin/main` at the implementation checkpoint: `7e1eab8100b80f42c274816fbb7bf254edaa7545`.
 - Phase C2 verification: `feature/318-phase-c2-preview-deployment-verification`, draft PR #326.
-- Corrective member surface: `fix/318-member-surface-correction`, local commit `d80bffb`.
-- C3 durable staging workflows: `feature/318-c3-durable-staging-workflows`, local commit `78ead78`.
-- C4 core specialists: `feature/318-c4-core-specialist-agents`, local commit `ee3b328`.
-- C5 operating workflows: `feature/318-c5-orchestrator-operating-review`, local commit `c5ac01d`.
-- C6 durable sensors and marketing integrity: `feature/318-c6-sensors-marketing-integrity`, local commit `0b0bc33`.
-- C7 protected approval surface: `feature/318-c7-admin-approval-surface`, local commit `7f8cb39`.
-- C8 traceability and foundation hardening: `feature/318-c8-foundation-hardening`, stacked on C7.
+- Corrective member surface: `fix/318-member-surface-correction`, commit `d80bffb`, draft PR #327.
+- C3 durable staging workflows: `feature/318-c3-durable-staging-workflows`, commit `78ead78`, draft PR #328.
+- C4 core specialists: `feature/318-c4-core-specialist-agents`, commit `ee3b328`, draft PR #329.
+- C5 operating workflows: `feature/318-c5-orchestrator-operating-review`, commit `c5ac01d`, draft PR #330.
+- C6 durable sensors and marketing integrity: `feature/318-c6-sensors-marketing-integrity`, commit `0b0bc33`, draft PR #331.
+- C7 protected approval surface: `feature/318-c7-admin-approval-surface`, commit `7f8cb39`, draft PR #332.
+- C8 traceability and foundation hardening: `feature/318-c8-foundation-hardening`, draft PR #333, stacked on C7.
 
-The required merge order is exactly the order above. Each branch depends on its predecessor and must be reviewed as a stacked increment. No branch in this local stack was merged, pushed, or deployed by the C3-C8 implementation session. PR #324 remains open and must not be merged or cherry-picked; its Free functional-calculator decision is superseded. Autumn may close it only after the corrective stack is reviewed and merged.
+The required merge order is PRs #326 -> #327 -> #328 -> #329 -> #330 -> #331 -> #332 -> #333. Each branch depends on its predecessor and must be reviewed as a stacked increment. The branches are pushed and the PRs are drafts; none was merged or deployed. PR #324 remains open and must not be merged or cherry-picked; its Free functional-calculator decision is superseded. Autumn may close it only after the corrective stack is reviewed and merged.
 
 ## Full 22-item completion audit
 
@@ -108,7 +108,7 @@ Protected staging additionally requires `AGENT_ADMIN_ENABLED=true`, `AGENT_ADMIN
 
 ## Exact actions remaining for Autumn
 
-1. Review the stacked local branches and authorize a private-repository push/draft-PR publication if desired. Do not merge out of order.
+1. Review draft PRs #326-#333 in dependency order. Do not merge out of order.
 2. Review the exact nonsecret staging Supabase project reference/hostname and commit its destination fingerprint; provide the service-role secret only through the approved server environment channel.
 3. Authorize C3-C8 migrations in staging and run every rollback-safe validation script; inspect the database sentinel and direct privileges.
 4. Approve the exact stable Outseta `sub` and have an audited operator add the single active owner registry row.
@@ -126,7 +126,7 @@ Opportunity, Inbox/Member Success, autonomous SEO/AEO, Lead/Firm Acquisition, Pr
 
 ## Recommended rollout
 
-1. Review and publish the stacked draft PRs in dependency order.
+1. Review the published draft PRs in dependency order.
 2. Merge only after each focused review/check set is green; synchronize `main` between merges.
 3. Activate the reviewed synthetic-only staging destination and apply C3-C8 migrations.
 4. Run rollback validation, durable fixture smoke, protected owner smoke, full correlation readback, and one report parity cycle.
