@@ -2,76 +2,51 @@
 
 Date: 2026-08-26
 
-Status: Repository preflight complete; isolated Vercel project creation, Preview deployment, and live HTTP smoke testing are blocked on authenticated Vercel write access.
+Status: COMPLETE for the isolated Vercel Preview deployment and live HTTP verification. No Production deployment reached `READY` or became live; one failed Production-target attempt is recorded below. Pull request #326 remains draft, and Issue #318 remains open.
 
-## Scope and tested revisions
+## Scope and exact revisions
 
 - Repository: `autumn2busy/nested-objects-starter`
 - Verified `main` baseline: `7e1eab8100b80f42c274816fbb7bf254edaa7545`
 - Merged Phase C2 baseline: `f5cba5e36df902b17f13a7ca3764ee5f6fea0802`
 - Verification branch: `feature/318-phase-c2-preview-deployment-verification`
-- Runtime revision tested: `de8ddeed8220376b4e465fa4709585b0416f9017`
-- Planned Preview source: the verification branch above, including the restored configuration-error guard
+- Draft pull request: <https://github.com/autumn2busy/nested-objects-starter/pull/326>
+- Restored configuration-error guard: `de8ddeed8220376b4e465fa4709585b0416f9017`
+- Runtime and packaging revision tested live: `4ca7f8648da014edd375fb85b7ede2c415595c43`
 - Original Phase C2 feature branch: deleted after merge
-- Vercel deployment ID or safe Preview identifier: not assigned; no deployment was created
 
-The handoff's deleted-branch fallback would deploy a dedicated branch at the exact merged Phase C2 commit. That commit has a known configuration-error mapping regression, so the planned source intentionally differs: deploy the verification branch only after the focused correction at `de8ddeed8220376b4e465fa4709585b0416f9017`. The tested runtime revision restores the reviewed behavior that normalizes base runtime contract failures into `PreviewRuntimeConfigurationError`. The actual compiled Preview API handler is now covered by a test that requires malformed base configuration to return a sanitized HTTP 503 response before authentication or request-body parsing.
+The deleted-branch fallback in the original handoff pointed to the merged Phase C2 commit. That tree contains a known response-mapping regression: a malformed base runtime contract can return a generic HTTP 500 instead of the documented sanitized HTTP 503. The verification branch intentionally restores the reviewed configuration guard and compiled-handler regression test before deployment. This is a focused safety correction, not an attempt to expand Phase C2.
 
-## Local validation evidence
+Three packaging corrections were also required to make the reviewed API handlers deployable as Vercel Functions:
 
-Commands were run from `apps/agent-runtime` unless otherwise stated.
+1. `4cd7d882d45660db2e6c19a9576fb27ad8bd29be` constrains Node.js to `>=22.16.0 <23` so the Vercel 22.x project setting cannot be overridden by Node 24.
+2. `cbae253a33d486d644ad7d81fd9e9bddb4f0dd5f` declares the controlled `public` output directory and adds only a deny-all `robots.txt`; compiled runtime modules are not published as static assets.
+3. `4ca7f8648da014edd375fb85b7ede2c415595c43` removes the restrictive root `rootDir` from `tsconfig.json`. Vercel can inject both API entry points into its TypeScript program while the normal package build continues to infer `src` and preserve the existing `dist` layout.
 
-| Check | Result | Evidence |
-| --- | --- | --- |
-| Node.js | PASS | `v22.22.2`, satisfying the `>=22.16.0` requirement |
-| npm | PASS | `10.9.7` |
-| Dependency install | PASS | `npm ci` installed 35 packages, audited 36 packages, and reported 0 vulnerabilities |
-| Format check | PASS | `npm run format:check` |
-| Dependency smoke check | PASS | `npm run dependency:check` |
-| TypeScript checks | PASS | Runtime and Vercel API TypeScript configurations passed |
-| Build and unit tests | PASS | Runtime and API handlers compiled; 37 tests passed, 0 failed, 0 skipped, 0 todo |
-| Migration contracts | PASS (static only) | Both migration contract/shape checks passed; no SQL migration was applied |
-| Preview safety checks | PASS | Deployment/dry-run safety and configuration-error mapping checks passed |
-| Full package validation | PASS | `npm run validate` completed successfully |
-| Diff integrity | PASS | `git diff --check` completed successfully |
-
-The first validation attempt exposed CRLF conversion in the Windows checkout. Repository-scoped line-ending policy now keeps `apps/agent-runtime` text files at LF while preserving binary auto-detection; validation was rerun successfully after normalization.
-
-## Vercel preflight
-
-The required configuration was reviewed before any possible platform mutation:
+## Verified Vercel project
 
 ```text
-Project name: nested-objects-agent-runtime
+Team: Autumn's projects (autumns-projects-246e052c)
+Project: nested-objects-agent-runtime
+Project ID: prj_Qofq8LTeDd3Kyiv7T2rbx6xoN3qA
 Repository: autumn2busy/nested-objects-starter
 Root Directory: apps/agent-runtime
+Framework: Other
+Node.js setting: 22.x
 Production Branch: deploy/agent-runtime-production-disabled
-Preview source: feature/318-phase-c2-preview-deployment-verification
+Ignored Build Step: Automatic
+Custom Production Domain assignment: disabled
 Production environment variables: none
 Custom or existing domains added or moved: none
-Promotion to Production: prohibited
 ```
 
-The live Vercel account is readable through the connected integration. An exact project lookup returned not found. The repository is connected to other Vercel projects, including the member website, but none is the isolated Agent Runtime project. No existing project setting, Root Directory, Production Branch, custom domain, environment variable, or Production deployment was changed.
+After the live tests, Vercel still reported `live: false` and `domains: []`. The successful deployment has a generated `.vercel.app` URL and a generated feature-branch alias; neither is a custom-domain attachment or a Production promotion.
 
-The Vercel CLI and the interactive browser session were not authenticated for write operations. Consequently:
+The configured Production Branch remains pinned to the reviewed Phase C1 baseline at `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` (pull request #322). It is 0 commits ahead and 58 commits behind the verified `main`; it is an ancestor of the Phase C2 merge, while `f5cba5e36df902b17f13a7ca3764ee5f6fea0802` is not its ancestor. The disabled branch therefore contains neither the Phase C2 API/runtime entry point nor the later member-application changes.
 
-- `nested-objects-agent-runtime` was not created.
-- No Preview or Development variables were added.
-- No Production variables were added.
-- No Supabase, OpenAI, ActiveCampaign, Outseta, Stripe, member-data, or contact-data credential was configured.
-- No isolated Agent Runtime deployment was created, and no deployment was promoted to Production.
-- No custom or existing domain was added or moved. A future Preview will receive a generated Vercel URL; that is not a custom-domain move or Production promotion.
+### Preview and Development variables
 
-The target project does not yet exist, so it currently has no project-level environment variables of any kind. Production-variable and forbidden-credential checks must be repeated in Vercel immediately after the project is created and before the first deployment.
-
-### Existing repository Preview checks
-
-Pushing this verification branch and opening the requested draft pull request activated the repository's pre-existing Vercel Git integrations for `nested-objects-public`, `nested-objects-starter`, and `nested-objects-firms`. Those integrations initiated their normal branch Preview checks. They are not the isolated Agent Runtime deployment and cannot satisfy this verification's live smoke matrix. No project configuration, custom domain, Production Branch, Production variable, or Production promotion was changed as part of those automatic checks.
-
-## Required Preview and Development configuration
-
-Add exactly these values to Preview and Development. Leave Production unselected for every entry.
+The project contains exactly these ten logical keys for Preview and Development. The bearer value is hidden and is stored in the appropriate Preview and Development scopes; it is not recorded here.
 
 ```text
 AGENT_RUNTIME_ENV=preview
@@ -81,99 +56,167 @@ AGENT_MODEL_EXECUTION_ENABLED=false
 AGENT_WORKFLOW_PROVIDER=in_memory
 AGENT_RUNTIME_VERSION=phase-c2-v1
 AGENT_TRACE_NAMESPACE=nested-objects-intelligence-os
-AGENT_PREVIEW_API_TOKEN=<secure random value of at least 32 characters>
+AGENT_PREVIEW_API_TOKEN=<hidden secure random value>
 AGENT_PREVIEW_SYNTHETIC_ONLY=true
 AGENT_PREVIEW_PERSISTENCE_ENABLED=false
 ```
 
-Do not manually set `VERCEL_ENV`. Do not configure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `AGENT_STAGING_PROJECT_REF`, `OPENAI_API_KEY`, `OPENAI_AGENT_MODEL`, or any ActiveCampaign, Outseta, Stripe, production-member, or production-contact value.
+`VERCEL_ENV` is platform-provided and was not configured manually. Production was filtered separately and showed no user-configured variables. A second unfiltered audit found no Supabase, OpenAI, ActiveCampaign, Outseta, Stripe, staging-project, production-member, or production-contact credential names.
 
-## Smoke-test matrix
+## Deployment history and boundary event
 
-No live endpoint was available. `PASS` below means the repository test/static gate passed; it is not a claim that the behavior was observed on Vercel.
+Four isolated Agent Runtime deployments exist:
 
-| Boundary | Repository gate | Live Preview |
+| Deployment | Source commit | Target | Result | Evidence |
+| --- | --- | --- | --- | --- |
+| `dpl_CHvHuzSCDqRFwKuHw5yPgLLoLqHL` | `980c0ca849a6808f6787017ec879612221c25580` | Production | ERROR | The Dashboard control labeled **Create Preview Deployment** unexpectedly staged a Production-target deployment. It failed before serving with `STATIC_BUILD_NO_OUT_DIR`; it is not a rollback candidate and never made the project live. |
+| `dpl_6Tj5U6N3hPnUJuqmHAbWMVYZBv6K` | `4cd7d882d45660db2e6c19a9576fb27ad8bd29be` | Preview | ERROR | Package compilation passed, then static output validation expected `public`. |
+| `dpl_3WBspsaACeqQarcLGyFMwLWojiYV` | `cbae253a33d486d644ad7d81fd9e9bddb4f0dd5f` | Preview | ERROR | Static output passed, then Vercel Function TypeScript emission failed because the root config restricted `rootDir` to `src`. |
+| `dpl_AyU7g3xtmKrXVbw1uWdEX1dRzphw` | `4ca7f8648da014edd375fb85b7ede2c415595c43` | Preview | READY | Build and deployment completed; Vercel emitted two Node.js 22 Functions. |
+
+The successful immutable Preview is:
+
+```text
+Deployment ID: dpl_AyU7g3xtmKrXVbw1uWdEX1dRzphw
+Deployment URL: https://nested-objects-agent-runtime-90kp8vxsk.vercel.app
+Branch alias: https://nested-objects-agent-runti-git-b7da68-autumns-projects-246e052c.vercel.app
+Source: Git, PR #326, feature/318-phase-c2-preview-deployment-verification
+Commit: 4ca7f8648da014edd375fb85b7ede2c415595c43
+Target: Preview
+State: READY
+Region: iad1
+```
+
+`vercel inspect --json` independently matched the deployment ID, project name, URL, team scope, `preview` target, `READY` state, and project output digest. It reported exactly these Function outputs:
+
+- `api/health` on `nodejs22.x`, 5-second timeout
+- `api/preview/evaluate` on `nodejs22.x`, 30-second timeout
+
+The failed Production-target attempt is recorded as a boundary breach even though it never became Ready or live. No successful Production deployment, promotion, custom-domain assignment, Production variable, or Production traffic exists.
+
+## Repository and build validation
+
+Commands were run from `apps/agent-runtime` unless stated otherwise.
+
+| Check | Result | Evidence |
 | --- | --- | --- |
-| `GET /api/health` returns safe healthy state for valid Preview configuration | PASS | NOT RUN — no deployment |
-| Health and error responses use `Cache-Control: no-store, max-age=0` | PASS | NOT RUN — no deployment |
-| Health response omits tokens, URLs, project identifiers, records, member data, and contact data | PASS | NOT RUN — no deployment |
-| Missing bearer authorization returns 401 before body parsing | PASS | NOT RUN — no deployment |
-| Real email address is rejected with 400 | PASS | NOT RUN — no deployment |
-| UUID outside the reserved Issue #318 namespace is rejected with 400 | PASS | NOT RUN — no deployment |
-| Unmarked Outseta/member/lifecycle/ActiveCampaign identifier is rejected with 400 | PASS | NOT RUN — no deployment |
-| Nonempty ActiveCampaign custom fields are rejected with 400 | PASS | NOT RUN — no deployment |
-| `persist: true` is rejected without a database call | PASS | NOT RUN — no deployment |
-| Reviewed synthetic fixture evaluates deterministically | PASS | NOT RUN — no deployment |
-| Fixture response contains aggregate data and omits email, member/contact IDs, raw source/evidence, and action payloads | PASS | NOT RUN — no deployment |
-| ActiveCampaign mutation, model execution, production writes, and consequential executors remain false | PASS | NOT RUN — no deployment |
-| Database persistence remains false | PASS | NOT RUN — no deployment |
-| Email sending, content publication, external actions, and approval execution are unavailable | PASS through the aggregate `consequentialExecutors: false` boundary; these are not separate response fields | NOT RUN — no deployment |
-| Vercel Production configuration fails closed | PASS in unit/configuration guards; Production was not invoked | NOT RUN by design |
-| Malformed base runtime configuration maps to sanitized HTTP 503 | PASS against the compiled API handler | NOT RUN — no deployment |
+| Local Node.js | PASS | `v22.22.2`, satisfying `>=22.16.0 <23` |
+| npm | PASS | `10.9.7` |
+| Dependency install | PASS | 35 packages installed; audit reported 0 vulnerabilities |
+| Full package validation at the runtime guard revision | PASS | Format, dependency, dual TypeScript, build, 37 Node tests, two static migration checks, and two Preview checks passed |
+| Final format check | PASS | `npm run format:check` after the packaging corrections |
+| Final TypeScript checks | PASS | `npm run typecheck` after the packaging corrections |
+| Final Preview safety checks | PASS | `npm run preview:check` after the packaging corrections |
+| Diff integrity | PASS | `git diff --check` |
+| Vercel install and build | PASS | `npm ci --ignore-scripts --no-audit --no-fund` and `npm run build` completed with TypeScript 5.9.3 |
+| Vercel Function output | PASS | Two Node.js 22 lambdas emitted and deployment reached `READY` |
 
-## Safe operator procedure
+The final packaging commits did not change handler semantics. The full local `npm run validate` was not repeated after those packaging-only corrections, so the dependency, unit-test, and static migration checks were not rerun at the exact final packaging revision. The final format, dual TypeScript, and Preview safety gates passed, and Vercel itself ran the package build successfully from the exact tested commit.
 
-The normal Vercel **Add New > Project > Import > Deploy** flow must not be used because it can create an initial deployment before the Production Branch boundary is confirmed. The sequence below still requires careful observation: if connecting Git offers or creates a deployment while Branch Tracking is unset or points to `main`, stop. Do not treat this runbook as proof of platform state until the empty deployment list and disabled Production Branch have both been observed.
+The earlier Windows checkout also exposed CRLF conversion. Repository-scoped line-ending policy keeps Agent Runtime text files at LF, and the validation gates passed after normalization.
 
-1. Authenticate the Vercel CLI as Autumn and select the `Autumn's projects` team:
+## Live protected smoke matrix
 
-   ```powershell
-   npx --yes vercel@59.7.0 login
-   ```
+Deployment Protection remained enabled throughout. The final harness first bound the URL to the exact deployment ID, project ID, team, `Preview` target, `READY` state, and both Node.js 22 Function outputs. It then used the pinned Vercel CLI to access the protected deployment.
 
-2. Create an empty project without deploying code:
+The application bearer was never placed in a command argument, local shell/process environment variable, repository file, temporary payload file, documentation, or captured output. It moved once from the authenticated Dashboard process to the terminal process over a random-nonce, one-shot loopback channel, then into curl configuration through process stdin. Request bodies stayed synthetic and in process; only response headers and bodies entered the system temporary directory, which the harness removed in `finally`. The local variable reference was overwritten before process exit, and the ignored harness was not committed.
 
-   ```powershell
-   npx --yes vercel@59.7.0 project add nested-objects-agent-runtime --scope autumns-projects-246e052c
-   ```
+Every application JSON response passed these common assertions:
 
-3. In Vercel Dashboard, open **Autumn's projects > nested-objects-agent-runtime > Settings > Build and Deployment**. Set **Root Directory** to `apps/agent-runtime` and save. If the Node.js Version control is shown, select Node.js 22.x.
-4. Open **Settings > Environments > Production > Branch Tracking**. If the control is available before Git is connected, set it to `deploy/agent-runtime-production-disabled`, save, and confirm it is not `main`.
-5. Connect `autumn2busy/nested-objects-starter` through the project's Git settings using a path that does not offer or start an initial deployment. If Branch Tracking was unavailable in step 4, go immediately to **Settings > Environments > Production > Branch Tracking**, set `deploy/agent-runtime-production-disabled`, and save before any push or deployment action. Do not continue while the value is unset or `main`.
-6. Open **Deployments** and confirm the list is empty. If a deployment appeared automatically, stop; do not promote, alias, or redeploy it, and record the boundary breach for review.
-7. Open **Settings > Environment Variables**. Add the ten values above one at a time with only **Preview** and **Development** selected. Generate the bearer token locally, store it only in Vercel, and do not paste it into a terminal transcript, document, issue, or pull request.
-8. Filter environment variables to **Production** and confirm there are zero user-configured values. Clear the environment filter, then search across all environments for each forbidden credential name and confirm every one is absent.
-9. Recheck **Settings > Build and Deployment** and **Settings > Environments > Production > Branch Tracking** for the exact Root Directory and Production Branch. Confirm no custom or existing domain was attached or moved; generated `.vercel.app` Preview URLs are expected.
-10. From the monorepo root on the verification branch, link the Git repository in monorepo mode. Select the existing `nested-objects-agent-runtime` project when prompted, then inspect the selected project:
+- `Cache-Control: no-store, max-age=0`
+- `Content-Type: application/json; charset=utf-8`
+- `X-Content-Type-Options: nosniff`
 
-   ```powershell
-   cd C:\Users\Mother\Projects\nested-objects-starter
-   npx --yes vercel@59.7.0 link --repo --scope autumns-projects-246e052c
-   npx --yes vercel@59.7.0 project inspect nested-objects-agent-runtime --scope autumns-projects-246e052c
-   ```
+The live cases produced:
 
-11. Prove the local source before uploading it. The branch must contain the tested runtime correction, the runtime tree must be unchanged from that correction, and the worktree must be clean. Record the exact `git rev-parse HEAD` value as the deployment source:
+| Case | Live result | Verified contract |
+| --- | --- | --- |
+| Safe health | PASS — 200 | Exact safe Preview state: dry run, in-memory workflow, token configured, Supabase absent, persistence/model/mutations false, and no secret or source data |
+| Missing bearer with deliberately malformed JSON | PASS — 401 | `PREVIEW_AUTHENTICATION_FAILED` before body parsing and `WWW-Authenticate: Bearer` |
+| Deliberately wrong same-length bearer | PASS — 401 | Same sanitized authentication failure; mere non-emptiness is insufficient |
+| Reserved example-domain email changed to a real-domain shape | PASS — 400 | Exact `profiles.0.user_email` synthetic-email issue |
+| Profile UUID moved outside the reserved Issue #318 namespace | PASS — 400 | Exact `profiles.0.id` namespace issue |
+| Unmarked profile Outseta identifier | PASS — 400 | Exact `profiles.0.outseta_person_uid` issue |
+| Unmarked conversion member identifier | PASS — 400 | Exact `conversionEvents.0.member_uid` issue |
+| Unmarked ActiveCampaign contact identifier | PASS — 400 | Exact `activeCampaignContacts.0.contactId` issue |
+| Unmarked ActiveCampaign mirror identifier | PASS — 400 | Exact mirror-map `contactId` issue |
+| Nonempty ActiveCampaign custom fields | PASS — 400 | Exact `activeCampaignContacts.0.customFields` empty-object issue |
+| `persist: true` | PASS — 403 | Exact `PREVIEW_PERSISTENCE_DISABLED` response; health/configuration also proved persistence false and Supabase absent |
+| Unchanged reviewed synthetic fixture | PASS — 200 | Deterministic aggregate response, expected correlation header, and no raw member/contact/source/action data |
 
-    ```powershell
-    git branch --show-current
-    git merge-base --is-ancestor de8ddeed8220376b4e465fa4709585b0416f9017 HEAD
-    git diff --exit-code de8ddeed8220376b4e465fa4709585b0416f9017 -- .gitattributes apps/agent-runtime
-    git status --short
-    git rev-parse HEAD
-    ```
+The successful evaluation matched these stable values:
 
-12. Run a no-deploy manifest inspection from the monorepo root. Confirm the selected project/team and `apps/agent-runtime` Root Directory, and confirm member-application files are not in the upload:
+```text
+runId: 6a3c1abb-7a29-52a5-b601-13c5a85b6198
+correlationId: 31800000-0003-5000-8000-000000000003
+profiles: 1
+conversionEvents: 1
+activeCampaignContacts: 1
+activeCampaignAssets: 1
+projectedMembers: 1
+metrics: 21
+signals: 0
+marketingClassifications: 1
+assetClassifications: 1
+identityConflicts: 0
+unmatchedConversionEvents: 0
+duplicateConversionEvents: 0
+metricValueStates: known=18, unknown=3
+contactClassifications: current_member=1
+assetCandidateScopes: nested_objects=1
+```
 
-    ```powershell
-    npx --yes vercel@59.7.0 deploy --dry --format=json --project nested-objects-agent-runtime --scope autumns-projects-246e052c
-    ```
+Its safety object was exactly:
 
-13. Create an explicit Preview deployment from the same clean revision. Do not use `--prod` and do not promote it:
+```json
+{
+  "syntheticInputOnly": true,
+  "activeCampaignMutations": false,
+  "modelExecution": false,
+  "productionWrites": false,
+  "consequentialExecutors": false
+}
+```
 
-    ```powershell
-    npx --yes vercel@59.7.0 deploy --target=preview --project nested-objects-agent-runtime --scope autumns-projects-246e052c
-    ```
+The response's exact top-level allowlist was `ok`, `phase`, `execution`, `runId`, `correlationId`, `counts`, `signalTypes`, `metricValueStates`, `contactClassifications`, `assetCandidateScopes`, and `safety`. The serialized response omitted the fixture email, contact identifier, member UUID, raw profiles/events/evidence, and action payloads.
 
-14. Record only the non-secret deployment identifier and generated Preview URL, then run every live smoke test in the matrix. Keep the bearer token out of shell history and captured output.
+Production fail-closed behavior was not tested by changing Vercel configuration or invoking a Production deployment. It remains covered by the compiled handler and configuration guards: a Production environment or malformed runtime configuration must return a sanitized HTTP 503 before authentication or body parsing.
+
+## Runtime telemetry
+
+Post-smoke Vercel telemetry for the exact successful deployment reported:
+
+| Dimension | Count |
+| --- | ---: |
+| `/api/preview/evaluate` | 11 |
+| `/api/health` | 3 |
+| HTTP 200 | 4 |
+| HTTP 400 | 7 |
+| HTTP 401 | 2 |
+| HTTP 403 | 1 |
+
+The extra health requests were read-only deployment checks. No `5xx` runtime logs and no runtime error clusters were present for the selected period.
+
+## Guardrails that remain in force
+
+- Keep `deploy/agent-runtime-production-disabled` as the Production Branch. Do not change it to `main`.
+- Keep Production environment variables empty.
+- Do not promote or redeploy the failed Production-target attempt.
+- Do not add or move a custom/existing domain.
+- Keep Deployment Protection enabled.
+- Do not add Supabase, OpenAI, ActiveCampaign, Outseta, Stripe, production-member, or production-contact credentials during Phase C2.
+- Use only the reviewed synthetic fixture family and keep `persist: false`.
+- Treat the successful deployment at `4ca7f8648da014edd375fb85b7ede2c415595c43` as the live verification source. A later evidence-only commit does not change the tested runtime tree.
 
 ## Limitations and follow-up risks
 
-- Live platform configuration and HTTP behavior remain unverified until authenticated Vercel write access is available.
-- The Preview input schema uses `pricing_viewed`, `pricing_cta_clicked`, `firm_viewed`, and `purchase_confirmed`, while the production conversion ledger and Phase C projection core use `pricing_view`, `pricing_cta_click`, `firm_view`, and `purchase`. This does not weaken isolation, but it can reject production-shaped synthetic event fixtures or yield semantically incomplete metrics. Resolve it in a focused contract-alignment change.
-- The response exposes one `consequentialExecutors: false` umbrella instead of separate flags for email, content publication, external actions, and approval execution. The code path remains non-consequential, but the live verification checklist should record this representation explicitly.
-- Synthetic prefixes, reserved UUIDs, and visible labels are enforceable fixture boundaries, not proof of the semantic origin of every string. Preview operators must continue using generated synthetic fixtures only.
-- The application rejects declared oversized bodies and bounds parsed arrays, but a chunked body without `Content-Length` is buffered before the post-read byte check. Vercel platform request limits and the bearer boundary reduce exposure; a streaming byte cap is a later hardening opportunity.
+- The Preview schema uses `pricing_viewed`, `pricing_cta_clicked`, `firm_viewed`, and `purchase_confirmed`, while the production conversion ledger and Phase C core use `pricing_view`, `pricing_cta_click`, `firm_view`, and `purchase`. This does not weaken isolation, but it can reject production-shaped synthetic fixtures or yield semantically incomplete metrics. Resolve it in a focused contract-alignment change.
+- The response exposes one `consequentialExecutors: false` umbrella instead of separate flags for email, content publication, external actions, and approval execution. The code path remains non-consequential, but the response does not independently prove four separate flags.
+- Synthetic prefixes, reserved UUIDs, and visible labels are enforceable fixture boundaries, not proof of the semantic origin of every string. Operators must continue using generated synthetic fixtures only.
+- The runtime guard rejects configured model execution, but an `OPENAI_API_KEY` by itself is dormant and ignored while `AGENT_MODEL_EXECUTION_ENABLED=false`; unrelated dormant service credential names are not all rejected by handler logic. The exact-key Vercel environment audit proved those credentials absent for this deployment, so continued environment auditing remains an operator boundary.
+- The application rejects declared oversized bodies and bounds parsed arrays, but a chunked body without `Content-Length` is buffered before the post-read byte check. Vercel request limits and the bearer boundary reduce exposure; a streaming byte cap is a later hardening opportunity.
+- Production 503 behavior remains deliberately verified in compiled tests rather than through a live Production invocation.
 
 ## Completion boundary
 
-This verification did not create or promote a Production deployment, add Production variables, apply a migration, connect Supabase, invoke OpenAI or ActiveCampaign, process real data, enable persistence or mutations, install Workflow or Queues, merge a pull request, close Issue #318, or revive PR #324.
+This verification created one isolated Vercel project and one successful protected Preview deployment. It did not create a successful Production deployment, promote a deployment, attach a custom domain, add Production variables, apply a migration, connect Supabase, invoke OpenAI or ActiveCampaign, process real data, enable persistence or mutations, install Workflow or Queues, merge pull request #326, close Issue #318, or revive pull request #324.
