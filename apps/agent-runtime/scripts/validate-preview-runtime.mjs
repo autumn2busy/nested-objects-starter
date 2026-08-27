@@ -90,6 +90,9 @@ if (!readmeSource.includes('Strict dry-run execution with no Supabase credential
 
 if (packageJson) {
   const scripts = packageJson.scripts ?? {}
+  if (packageJson.engines?.node !== '>=22.16.0 <23') {
+    failures.push('package.json must pin the isolated Vercel runtime to Node 22.16 or newer within major 22')
+  }
   if (!String(scripts.typecheck ?? '').includes('tsconfig.api.json')) {
     failures.push('package.json typecheck does not validate the Vercel API entrypoints')
   }
@@ -103,6 +106,12 @@ if (packageJson) {
 
 if (vercelJson) {
   const functions = vercelJson.functions ?? {}
+  if (vercelJson.buildCommand != null) {
+    failures.push('API-only Phase C2 must let Vercel build api/ functions natively without a static build command')
+  }
+  if (vercelJson.outputDirectory != null) {
+    failures.push('API-only Phase C2 must not publish a static output directory')
+  }
   if (!functions['api/health.ts']) failures.push('vercel.json is missing api/health.ts')
   if (!functions['api/preview/evaluate.ts']) failures.push('vercel.json is missing api/preview/evaluate.ts')
   if (vercelJson.crons) failures.push('Phase C2 must not schedule preview execution')

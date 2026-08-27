@@ -95,7 +95,7 @@ cp .env.example .env
 npm run validate
 ```
 
-Node 22.16 or newer is required by this isolated package. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
+Node 22.16 or newer within the Node 22 release line is required by this isolated package. The upper bound prevents Vercel from overriding the project runtime with a newer major version. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
 
 ## Vercel project boundary
 

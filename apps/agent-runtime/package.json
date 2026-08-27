@@ -5,7 +5,7 @@
   "description": "Production-safe Intelligence OS agent control-plane foundation for Nested Objects.",
   "type": "module",
   "engines": {
-    "node": ">=22.16.0"
+    "node": ">=22.16.0 <23"
   },
   "scripts": {
     "clean": "node ./scripts/clean.mjs",
