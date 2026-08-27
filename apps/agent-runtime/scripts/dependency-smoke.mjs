@@ -1,6 +1,8 @@
 const requirements = [
   ['@openai/agents', ['Agent', 'run']],
   ['@supabase/supabase-js', ['createClient']],
+  ['@workflow/core', ['FatalError', 'RetryableError', 'getStepMetadata', 'getWorkflowMetadata']],
+  ['workflow/api', ['start']],
   ['zod', ['z']],
 ]
 

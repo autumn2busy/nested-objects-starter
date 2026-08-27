@@ -31,7 +31,7 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 
 ### Phase C2. Preview runtime entry point
 
-- Plain TypeScript Vercel Functions under `api/` so the runtime can deploy independently from the member application.
+- Independently deployable TypeScript HTTP handlers, retained as framework-neutral adapters and exposed through the Nitro server entry points.
 - Public configuration-safe health endpoint at `GET /api/health`.
 - Bearer-authenticated deterministic evaluation endpoint at `POST /api/preview/evaluate`.
 - Preview-only and Vercel-production-denied execution guard.
@@ -43,9 +43,20 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 - Aggregate-only responses that omit emails, member IDs, contact IDs, evidence payloads, and raw source records.
 - Strict dry-run execution with no Supabase credentials, database writes, or persistence mode.
 - No OpenAI model execution, ActiveCampaign mutation, email send, content publication, approval execution, cron schedule, queue, or production write path.
-- A minimal crawler-blocking `public/robots.txt`; Vercel packages `api/` as Functions and does not publish compiled runtime libraries as static assets.
+- A minimal crawler-blocking `public/robots.txt`; Nitro packages only the explicit server routes and Workflow entry points.
 
-Phase C2 deliberately does not install Vercel Workflow. The first deployment proves authentication, packaging, synthetic evaluation, and production isolation. Durable workflow orchestration and staging persistence move to the next increment so destination binding, idempotency, bounded steps, retries, and verification can be implemented together.
+Strict dry-run execution with no Supabase credentials, database writes, or persistence mode remains the Phase C2 default profile.
+
+### Phase C3. Durable staging workflow foundation
+
+- Nitro 3 hosts the HTTP boundary and the pinned Workflow DevKit compiles the real `"use workflow"` and bounded `"use step"` lifecycle workflow.
+- A business idempotency key and input fingerprint atomically claim each run. Duplicate deliveries reuse completed output, live duplicates report in-progress state, and stale or failed work resumes only within bounded attempts.
+- Durable step claims reuse completed output and never reset a completed step. Run and step events retain correlation, causation, timestamps, concise errors, tool summaries, verification state, and optional usage/cost fields.
+- Signal persistence uses one bounded batch of at most 50 records and preserves existing signal review state on recurrence.
+- The runtime rejects Vercel Production, the known production Supabase project, URL/project-reference mismatches, non-service credentials, and every staging project not reviewed in the committed allowlist.
+- The database independently verifies a service-role-only destination sentinel before a workflow can claim a run. Runtime credentials cannot create or alter the sentinel.
+- The committed allowlist is intentionally empty. The code, migration, rollback-safe validation, and synthetic tests are complete, while live staging application remains blocked until Autumn reviews the exact nonsecret staging project reference and supplies its server-only credential through the approved environment channel.
+- No queue package, model execution, ActiveCampaign mutation, email send, content publication, Production schedule, or Production deployment was added.
 
 ## Endpoints
 
@@ -87,6 +98,12 @@ The runtime rejects:
 - Real email addresses, domains, geographic states, or unmarked labels
 - Phone, biography, headline, custom-field, and conversion event payload values
 
+### `POST /api/workflows/lifecycle-integrity`
+
+This endpoint accepts the same bounded synthetic fixture contract and uses a separate bearer token, `AGENT_STAGING_WORKFLOW_TOKEN`. It returns `202` only after the committed staging policy and server-only credential shape pass. The workflow's first durable step then verifies the matching database sentinel before any run or signal write.
+
+Until a reviewed staging project is committed, the endpoint deliberately returns a sanitized `503` and `/api/health` reports the C3 configuration as invalid. A configured environment variable cannot approve its own destination.
+
 ## Local validation
 
 ```bash
@@ -96,13 +113,15 @@ cp .env.example .env
 npm run validate
 ```
 
+`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves duplicate delivery reuse and retry/resume behavior using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, and C3 migration contracts without contacting a database.
+
 Node 22.16 or newer within the Node 22 release line is required by this isolated package. The upper bound prevents Vercel from overriding the project runtime with a newer major version. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
 
 The root TypeScript configuration intentionally infers its source root. Local builds include only `src/` and retain the existing private `dist` layout, while Vercel can add `api/` Function entries without excluding them from emission.
 
 ## Vercel project boundary
 
-When Phase C2 is approved for preview deployment, create a separate Vercel project from the existing repository:
+The runtime uses the separate Vercel project created for Phase C2:
 
 ```text
 Repository: autumn2busy/nested-objects-starter
@@ -111,21 +130,23 @@ Project name: nested-objects-agent-runtime
 Production Branch: deploy/agent-runtime-production-disabled
 ```
 
-Use Preview and Development environment variables only. Do not configure Production variables, OpenAI credentials, Supabase credentials, or a production deployment during Phase C2.
+For the C2 profile, use Preview and Development variables only and do not configure Supabase credentials. For the C3 profile, follow `docs/intelligence-os/phase-c3-durable-staging-workflows.md`; add a staging destination only after its code allowlist and database sentinel are reviewed together. Do not configure Production variables, OpenAI credentials, a Production schedule, or a Production deployment.
 
 ## Package structure
 
 ```text
-api/              Preview-only Vercel Function entry points
+api/              Framework-neutral HTTP adapters retained for focused tests
 public/           Minimal non-indexable static output required by the Vercel project
+server/api/       Nitro HTTP entry points for health, C2 evaluation, and C3 workflow start
 src/
   agents/         Specialist registrations and tool-free OpenAI adapter
   http/           Request validation, authentication, health, and response contracts
   persistence/    Phase B and C1 server-only persistence contracts for later durable workflows
   projections/    Canonical member and daily metric projectors
-  runtime/        Dry-run preview evaluation composition
+  runtime/        Dry-run evaluation plus deny-by-default durable staging binding
   sensors/        Existing collector contracts and ActiveCampaign read-only audit
-  workflows/      Durable workflow ports and lifecycle integrity core
+  workflows/      Workflow ports and deterministic lifecycle integrity core
+workflows/        Real Workflow DevKit orchestration and bounded durable steps
 ```
 
 Architecture and rollout details are documented under `docs/intelligence-os/`.

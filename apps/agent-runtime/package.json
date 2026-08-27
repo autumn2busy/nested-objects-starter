@@ -10,20 +10,28 @@
   "scripts": {
     "clean": "node ./scripts/clean.mjs",
     "build": "npm run clean && tsc -p tsconfig.json",
+    "build:runtime": "nitro build",
+    "dev": "nitro dev",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.api.json --noEmit",
     "test": "npm run build && tsc -p tsconfig.api.json --noEmit false --outDir dist-api && node --test test/*.test.mjs",
+    "test:workflow": "npm run clean && vitest run --config vitest.workflow.config.ts",
     "format:check": "node ./scripts/format-check.mjs",
-    "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs",
+    "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs && node ./scripts/validate-durable-workflow-migration.mjs",
     "preview:check": "node ./scripts/validate-preview-runtime.mjs && node ./scripts/validate-preview-error-mapping.mjs",
-    "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run migration:check && npm run preview:check",
+    "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run test:workflow && npm run migration:check && npm run preview:check",
     "dependency:check": "node ./scripts/dependency-smoke.mjs"
   },
   "dependencies": {
     "@openai/agents": "0.17.0",
     "@supabase/supabase-js": "2.112.3",
+    "@workflow/core": "4.8.5",
+    "nitro": "3.0.260610-beta",
+    "workflow": "4.8.5",
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "@workflow/vitest": "4.0.21",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   }
 }

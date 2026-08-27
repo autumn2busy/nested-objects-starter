@@ -5,6 +5,10 @@ node_modules/
 out/
 dist/
 apps/agent-runtime/dist-api/
+apps/agent-runtime/.output/
+apps/agent-runtime/.workflow-data/
+apps/agent-runtime/.workflow-test/
+apps/agent-runtime/.workflow-vitest/
 *.log
 *.tsbuildinfo
 .DS_Store

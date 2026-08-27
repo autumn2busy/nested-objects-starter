@@ -7,6 +7,13 @@
     "declarationMap": false,
     "sourceMap": false
   },
-  "include": ["src/**/*.ts", "api/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "api/**/*.ts",
+    "server/**/*.ts",
+    "workflows/**/*.ts",
+    "nitro.config.ts",
+    "vitest.workflow.config.ts"
+  ],
   "exclude": ["dist", "node_modules"]
 }
