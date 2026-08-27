@@ -180,7 +180,7 @@ Its safety object was exactly:
 
 The response's exact top-level allowlist was `ok`, `phase`, `execution`, `runId`, `correlationId`, `counts`, `signalTypes`, `metricValueStates`, `contactClassifications`, `assetCandidateScopes`, and `safety`. The serialized response omitted the fixture email, contact identifier, member UUID, raw profiles/events/evidence, and action payloads.
 
-Production fail-closed behavior was not tested by changing Vercel configuration or invoking a Production deployment. It remains covered by the compiled handler and configuration guards: a Production environment or malformed runtime configuration must return a sanitized HTTP 503 before authentication or body parsing.
+Production fail-closed behavior was not tested by changing Vercel configuration or invoking a Production deployment. It remains covered by the compiled handler and configuration guards: for a `POST /api/preview/evaluate` request, a Production environment or malformed runtime configuration must return a sanitized HTTP 503 before authentication or body parsing. Unsupported methods remain subject to the earlier HTTP 405 method gate.
 
 ## Runtime telemetry
 
@@ -219,4 +219,4 @@ The extra health requests were read-only deployment checks. No `5xx` runtime log
 
 ## Completion boundary
 
-This verification created one isolated Vercel project and one successful protected Preview deployment. It did not create a successful Production deployment, promote a deployment, attach a custom domain, add Production variables, apply a migration, connect Supabase, invoke OpenAI or ActiveCampaign, process real data, enable persistence or mutations, install Workflow or Queues, merge pull request #326, close Issue #318, or revive pull request #324.
+This verification created one isolated Vercel project and one successful protected Preview deployment. It did not create a successful Production deployment, promote a deployment, attach a custom domain, add Production variables, apply a migration, connect Supabase, invoke OpenAI or ActiveCampaign, process real data, enable persistence or mutations, install Workflow or Queues, add a cron job, implement Revenue Agent v1 or Growth Agent v1, add an approval UI, merge pull request #326, close Issue #318, or revive pull request #324. Autumn remains the sole approver for consequential actions.
