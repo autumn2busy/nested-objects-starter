@@ -12,7 +12,7 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
 | Current increment | Corrective member-surface implementation and broken-workflow removal |
-| Current branch | `feature/318-c3-durable-staging-workflows` at corrective base `d80bffb` |
+| Current branch | `feature/318-c4-core-specialist-agents` at C3 base `78ead78` |
 | Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
@@ -56,11 +56,11 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 5 | `intelligence_signals` exists | Complete | Phase B migration/contracts/store | Prove end-to-end production path with fixtures. |
 | 6 | `experiments` exists | Complete | Phase B migration/contracts/readiness logic | Integrate into weekly review and admin status. |
 | 7 | Agent control-plane persistence exists | Repository-complete; live staging application blocked | C3 durable store, Workflow entry point, atomic run/step RPCs, committed destination policy, migration and validation | Autumn must review the exact staging project reference, database sentinel, secret channel, migration, and Preview smoke. |
-| 8 | Operations Orchestrator v1 exists | Missing | C4/C5 | Implement typed deterministic orchestrator and persistence. |
-| 9 | Revenue Agent v1 exists | Missing | C4 | Implement against normalized authoritative metrics. |
-| 10 | Growth Agent v1 replaces standalone Weekly Growth Analysis logic | Missing | C4 | Implement week/prior/4-week/12-week comparison and durable anomalies. |
-| 11 | Industry Intelligence Agent v1 replaces standalone AI Industry Brief logic | Missing | C4 | Implement deterministic fixtures and read-only live-research extension. |
-| 12 | Marketing Agent v1 exists | Missing | C4 | Implement proposal-only analysis consuming Revenue/Growth. |
+| 8 | Operations Orchestrator v1 exists | Complete locally | C4 typed invocation, evidence ranking, maximum three priorities, action-policy enforcement, idempotent operational state store, and quiet path | C5 will attach the state contract to each durable operating workflow. |
+| 9 | Revenue Agent v1 exists | Complete locally | C4 normalized-metric comparisons, authority/data-quality states, unknown preservation, evidenced drivers only | No model or live financial connector is required. |
+| 10 | Growth Agent v1 replaces standalone Weekly Growth Analysis logic | Complete locally | C4 current/prior week and trailing 4/12-week comparisons, coverage/confidence, typed anomalies and durable signals | C5 wires it into the named workflows; C6 adds live SEO/AEO sensor inputs. |
+| 11 | Industry Intelligence Agent v1 replaces standalone AI Industry Brief logic | Complete locally | C4 dated/provenanced/licensed structured events, high-value routing, deterministic research fixtures | Approved live read-only research remains disabled until an explicit tool is configured. |
+| 12 | Marketing Agent v1 exists | Complete locally | C4 Revenue/Growth consumption, lifecycle/engagement diagnosis, identifier-free audiences, experiments, internal copy, policy-gated proposals | ActiveCampaign remains read-only/no mutation. |
 | 13 | Existing SEO/AEO/content/opportunity collectors have documented sensor integration; weekly review consumes SEO/AEO | Partial | Sensor contracts and Phase B docs exist; current report imports are deployment-static and checked-in reports are stale | C6: adapters, live/baseline provenance, source checksum/run health, idempotent ingestion, fixtures, and durable weekly consumption that does not depend on same-deployment Git commits. |
 | 14 | `conversion_review` runs end-to-end against mocks/dev data | Missing | C5 | Implement durable fixture path and persistence trace. |
 | 15 | `daily_business_health` runs and stays quiet when healthy | Missing | C5 | Implement health/no-op path, source and stale checks. |
@@ -102,7 +102,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 1 | `feature/318-phase-c2-preview-deployment-verification` | `main` | C2 fixes and live isolated Preview verification | Draft PR #326; complete; unmerged |
 | 2 | `fix/318-member-surface-correction` | C2 verification branch | Remove invalid PR #325 workflows; implement preview-only tools, explicit public pricing, and field-inspector-first surfaces | Complete locally at `d80bffb`; push/draft PR blocked pending explicit private-repository push approval |
 | 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Complete locally; live staging application and stacked draft PR externally gated |
-| 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Pending |
+| 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Complete locally; stacked draft PR remains externally gated |
 | 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Pending |
 | 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Pending |
 | 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Pending |
@@ -132,6 +132,9 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 | C3 | New migration static/rollback-safe validation | Passed locally / live staging blocked | SQL shape, sentinel permissions, atomic claims, retry windows, duplicate reuse, completed-step reuse, stale sweep, and transactional rollback script validated statically. |
 | C3 | Nitro development compile and HTTP boundary | Passed with browser limitation | Workflow compiler found one workflow/eight steps; C2 health/auth and fail-closed C3 responses passed over HTTP. In-app localhost navigation was blocked by `ERR_BLOCKED_BY_CLIENT`. |
 | C3 | Live staging migration and workflow smoke | Blocked pending verified staging binding/credentials | Do not use `apps/web-members/.env.local` or any unverified/production destination. |
+| C4 | Core specialist static contract | Passed | `npm.cmd run specialists:check` verifies five implemented typed registrations, deterministic metadata, exact comparison/provenance boundaries, proposal-only Marketing, Orchestrator state persistence/policy/quiet path, and access-status integrity. |
+| C4 | Focused deterministic fixtures | Passed | Seven focused tests cover Revenue unknown/authority behavior, four Growth windows, Industry routing, Marketing proposals, Orchestrator ranking/idempotency/quiet behavior; full Node suite is 49/49. |
+| C4 | Paid-access `accessStatus` hardening | Passed | A paid tier with directory access but `accessStatus=disabled` now produces `lifecycle.paid_access_mismatch`; prior tier/directory regression remains green. |
 
 ## External blockers and Autumn-controlled decisions
 
@@ -167,7 +170,25 @@ These findings were verified against current `main` on 2026-08-26 and remain req
 | P1 | One anonymous identity can be attributed to multiple profiles in input-order-dependent fashion | `apps/agent-runtime/src/projections/member-projection.ts` overwrites the anonymous-ID map when more than one profile claims the ID | C8 at the latest; move earlier if touched by C3/C4 |
 | P2 | Stale identity links are never revoked | `apps/agent-runtime/src/persistence/projection-store.ts` only upserts current links | C8 at the latest; include in projection batch hardening if C3 touches the store |
 | P2 | Recurring asset audits reset owner approval | `apps/agent-runtime/src/persistence/projection-store.ts` conflict upserts restore `read_allowed=false` and `review_status=pending` | C6 before recurring ActiveCampaign inventory runs |
-| P2 | Paid-access integrity ignores disabled/inactive `accessStatus` | `apps/agent-runtime/src/workflows/lifecycle-integrity.ts` compares tier and directory access only | C4/C5 lifecycle hardening |
+| P2 | Paid-access integrity ignored disabled/inactive `accessStatus` | Resolved locally in C4: tier, directory access, and recognized enabled status must all agree; focused regression passes | C4 commit review/merge |
+
+The paid-access `accessStatus` finding above is resolved locally in C4; it remains listed until the stacked commit is reviewed and merged.
+
+## Current C4 acceptance checklist
+
+- [x] Implement Revenue Agent v1 against normalized metrics with defensible deltas and unknown preservation.
+- [x] Keep ActiveCampaign outside financial and paid-status authority.
+- [x] Implement Growth Agent v1 current/prior week and trailing 4/12-week comparisons across required metric families.
+- [x] Produce deterministic structured anomalies and durable signals; use Revenue output for financial truth.
+- [x] Implement Industry Intelligence Agent v1 with publication/event dates, provenance, confidence, relevance, segment, risk, licensing caveat, and follow-up.
+- [x] Keep live research behind an explicitly approved read-only tool gate; use deterministic fixtures for acceptance.
+- [x] Implement Marketing Agent v1 consuming Revenue/Growth with recommendations, experiments, identifier-free audiences, internal copy, and proposed actions only.
+- [x] Implement Operations Orchestrator v1 typed invocation, persisted-state inputs, evidence ranking, tasks/experiments/actions, action-policy enforcement, bounded Autumn decisions, and quiet path.
+- [x] Persist bounded Orchestrator operational state through an idempotent testable store port.
+- [x] Keep model execution disabled, token/cost null, mutations false, and private reasoning absent.
+- [x] Resolve inactive paid-access integrity and add regression coverage.
+- [x] Run focused static, TypeScript, and 49-test Node acceptance checks.
+- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
 
 ## Current C3 acceptance checklist
 

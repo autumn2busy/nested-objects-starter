@@ -72,7 +72,8 @@ export function evaluateLifecycleIntegrity(input: LifecycleIntegrityInput): Inte
   if (authority && isPaidTier(authority.membershipTier) && authority.membershipStatus === 'active' && input.productAccess) {
     const accessTier = normalizeTier(input.productAccess.accessTier)
     const expectedTier = authority.membershipTier
-    if (accessTier !== expectedTier || input.productAccess.directoryAccess === false) {
+    const accessEnabled = isAccessEnabled(input.productAccess.accessStatus)
+    if (accessTier !== expectedTier || input.productAccess.directoryAccess === false || !accessEnabled) {
       signals.push(makeSignal(input, now, {
         signalType: 'lifecycle.paid_access_mismatch',
         title: 'Paid member access does not match authoritative membership',
@@ -80,7 +81,7 @@ export function evaluateLifecycleIntegrity(input: LifecycleIntegrityInput): Inte
         severity: 'critical',
         priority: 100,
         confidence: 1,
-        fingerprint: `paid-access:${input.projection.memberId}:${expectedTier}:${accessTier}:${input.productAccess.directoryAccess}`,
+        fingerprint: `paid-access:${input.projection.memberId}:${expectedTier}:${accessTier}:${input.productAccess.accessStatus}:${input.productAccess.directoryAccess}`,
         evidence: [
           ...membershipEvidence(authority, input.projection.memberId, now),
           {
@@ -313,6 +314,11 @@ function normalizeTier(value: string | null): string {
 function isCancelled(value: string | null): boolean {
   const normalized = value?.toLowerCase() ?? ''
   return normalized.includes('cancel') || normalized.includes('churn')
+}
+
+function isAccessEnabled(value: string | null): boolean {
+  const normalized = value?.trim().toLowerCase().replace(/[\s-]+/g, '_') ?? ''
+  return ['active', 'enabled', 'granted', 'current'].includes(normalized)
 }
 
 function ageHours(older: string, newer: string): number {

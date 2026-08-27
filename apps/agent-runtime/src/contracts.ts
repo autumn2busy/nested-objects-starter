@@ -328,7 +328,7 @@ export interface AgentRegistration {
   name: string
   displayName: string
   description: string
-  implementationStatus: 'foundation' | 'placeholder'
+  implementationStatus: 'implemented' | 'foundation' | 'placeholder'
   riskBoundary: 'read_only' | 'analytical' | 'proposal_only'
   capabilities: string[]
   inputContract: string
