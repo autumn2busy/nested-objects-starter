@@ -11,6 +11,7 @@ const [
   readmeSource,
   fixtureSource,
   vercelSource,
+  robotsSource,
   healthSource,
   evaluateSource,
   contractSource,
@@ -24,6 +25,7 @@ const [
   read('README.md'),
   read('fixtures/preview-evaluation.synthetic.json'),
   read('vercel.json'),
+  read('public/robots.txt'),
   read('api/health.ts'),
   read('api/preview/evaluate.ts'),
   read('src/http/preview-contract.ts'),
@@ -106,16 +108,20 @@ if (packageJson) {
 
 if (vercelJson) {
   const functions = vercelJson.functions ?? {}
-  if (vercelJson.buildCommand != null) {
-    failures.push('API-only Phase C2 must let Vercel build api/ functions natively without a static build command')
+  if (vercelJson.buildCommand !== 'npm run build') {
+    failures.push('Phase C2 must run the validated TypeScript build before Vercel packages its functions')
   }
-  if (vercelJson.outputDirectory != null) {
-    failures.push('API-only Phase C2 must not publish a static output directory')
+  if (vercelJson.outputDirectory !== 'public') {
+    failures.push('Phase C2 must publish only its minimal public directory as static output')
   }
   if (!functions['api/health.ts']) failures.push('vercel.json is missing api/health.ts')
   if (!functions['api/preview/evaluate.ts']) failures.push('vercel.json is missing api/preview/evaluate.ts')
   if (vercelJson.crons) failures.push('Phase C2 must not schedule preview execution')
   if (vercelJson.routes || vercelJson.rewrites) failures.push('Phase C2 must not add public routing aliases')
+}
+
+if (robotsSource.trim() !== 'User-agent: *\nDisallow: /') {
+  failures.push('public/robots.txt must discourage indexing of the isolated preview runtime')
 }
 
 if (fixtureJson) validateSyntheticFixture(fixtureJson, failures)
