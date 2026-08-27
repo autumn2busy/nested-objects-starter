@@ -1,6 +1,7 @@
 # Node / Next.js
 node_modules/
 .next/
+.vercel/
 out/
 dist/
 apps/agent-runtime/dist-api/
