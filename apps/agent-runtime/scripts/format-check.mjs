@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const extensions = new Set(['.ts', '.mjs', '.json', '.md', '.example'])
-const ignored = new Set(['node_modules', 'dist'])
+const ignored = new Set(['node_modules', 'dist', 'dist-api'])
 const failures = []
 
 async function walk(directory) {
