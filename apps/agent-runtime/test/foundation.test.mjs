@@ -94,6 +94,17 @@ test('unknown and consequential actions require approval and cannot execute in P
   })
   assert.equal(proposed.approvalRequired, true)
   assert.equal(proposed.status, 'proposed')
+  assert.throws(
+    () => transitionAction(proposed, 'approved', {
+      approval: createApprovalRecord({
+        approvedBy: 'autumn',
+        approvedAt: fixedNow,
+        approvalContext: { authority: 'owner', channel: 'control-plane-review' },
+      }),
+      now: fixedNow,
+    }),
+    LifecycleTransitionError,
+  )
 
   const fakeExecutor = {
     key: 'test-email-executor',

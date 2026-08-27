@@ -8,12 +8,14 @@ import { InMemorySensorObservationStore } from '../src/persistence/sensor-observ
 import { installOperatingWorkflowTestContext } from '../src/runtime/operating-workflow-context.js'
 import { createStagingDestinationFingerprint } from '../src/runtime/staging-destination.js'
 import { stableUuid } from '../src/stable-id.js'
+import type { AdminTriggerRequest } from '../src/http/admin-contracts.js'
 import {
   conversionReviewWorkflow,
   dailyBusinessHealthWorkflow,
   weeklyOperatingReviewWorkflow,
   type OperatingReviewWorkflowInput,
 } from './operating-reviews.js'
+import { createSyntheticOperatingFixture } from './synthetic-operating-fixtures.js'
 
 const fixedNow = '2026-08-27T16:00:00.000Z'
 const projectRef = 'syntheticstaging318'
@@ -161,6 +163,76 @@ describe('Phase C5 operating workflows', () => {
     expect(duplicate.sensorPersistenceVerified).toBe(true)
     expect(sensorStore.runs.size).toBe(2)
     expect(sensorStore.observations.size).toBe(2)
+  })
+
+  it('protected C7 fixtures route event, daily, and weekly triggers through the shared durable workflows', async () => {
+    const cases: Array<{
+      trigger: AdminTriggerRequest
+      workflow: typeof conversionReviewWorkflow
+      workflowName: 'conversion_review' | 'daily_business_health' | 'weekly_operating_review'
+    }> = [
+      {
+        trigger: {
+          triggerCategory: 'event',
+          eventType: 'payment_failure',
+          sourceEventId: 'synthetic-event:payment-failure-001',
+          businessKey: 'synthetic-business:payment-failure-001',
+          fixtureMode: 'synthetic',
+        },
+        workflow: conversionReviewWorkflow,
+        workflowName: 'conversion_review',
+      },
+      {
+        trigger: {
+          triggerCategory: 'daily',
+          workflowName: 'daily_business_health',
+          businessKey: 'synthetic-daily:2026-08-27',
+          fixtureMode: 'synthetic',
+        },
+        workflow: dailyBusinessHealthWorkflow,
+        workflowName: 'daily_business_health',
+      },
+      {
+        trigger: {
+          triggerCategory: 'weekly',
+          workflowName: 'weekly_operating_review',
+          businessKey: 'synthetic-weekly:2026-w35',
+          fixtureMode: 'synthetic',
+        },
+        workflow: weeklyOperatingReviewWorkflow,
+        workflowName: 'weekly_operating_review',
+      },
+    ]
+
+    for (const [index, item] of cases.entries()) {
+      const correlationId = stableUuid('phase-c7-protected-trigger-test', item.trigger.businessKey)
+      const run = await start(item.workflow, [{
+        fixture: createSyntheticOperatingFixture({
+          trigger: item.trigger,
+          requestedAt: fixedNow,
+          correlationId,
+        }),
+        binding,
+        idempotencyKey: `phase-c5:${item.workflowName}:${item.trigger.businessKey}`,
+        requestedAt: fixedNow,
+        correlation: {
+          correlationId,
+          causationId: null,
+          traceId: `phase-c7-protected-trigger-${index}`,
+        },
+      }])
+      const result = await run.returnValue
+      expect(result.state).toBe('succeeded')
+      expect(result.workflowName).toBe(item.workflowName)
+    }
+
+    expect(durableStore.runsById.size).toBe(3)
+    expect([...operatingStore.actions.values()].every((action) => (
+      action.executorKey === null && action.executionStartedAt === null && action.executedAt === null
+    ))).toBe(true)
+    expect([...operatingStore.signals.values()].some((signal) => (
+      signal.signalType === 'operations.event.payment_failure'
+    ))).toBe(true)
   })
 })
 

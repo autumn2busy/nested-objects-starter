@@ -83,12 +83,20 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
             not raw clicks, and purchases are confirmed by Outseta.
           </p>
         </div>
-        <Link
-          href="/admin/background-checks"
-          className="text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
-        >
-          Background verification
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            href="/admin/intelligence-os"
+            className="text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
+          >
+            Intelligence OS
+          </Link>
+          <Link
+            href="/admin/background-checks"
+            className="text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
+          >
+            Background verification
+          </Link>
+        </div>
       </div>
 
       <section aria-label="Funnel filters" className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

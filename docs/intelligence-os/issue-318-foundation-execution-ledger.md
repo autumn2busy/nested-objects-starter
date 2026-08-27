@@ -11,8 +11,8 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Repository | `autumn2busy/nested-objects-starter` |
 | Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
-| Current increment | Phase C6 durable sensors and marketing integrity |
-| Current branch | `feature/318-c6-sensors-marketing-integrity` at C5 base `c5ac01d` |
+| Current increment | Phase C7 protected admin and immutable approval |
+| Current branch | `feature/318-c7-admin-approval-surface` at C6 base `0b0bc33` |
 | Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
@@ -54,7 +54,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 3 | Canonical `member_360` projection/source-of-truth strategy exists | Partial | Phase B/C migrations, projection code, authority-conflict view | Fix ambiguous anonymous-ID attribution and stale identity-link revocation before calling the projection correct. |
 | 4 | `business_metrics_daily` exists | Complete | Phase B migration and Phase C daily projector | Extend only with provenance and unknown preservation. |
 | 5 | `intelligence_signals` exists | Complete | Phase B migration/contracts/store | Prove end-to-end production path with fixtures. |
-| 6 | `experiments` exists | Complete | Phase B migration/contracts/readiness logic | Integrate into weekly review and admin status. |
+| 6 | `experiments` exists | Complete locally | Phase B migration/contracts/readiness logic; C5 weekly persistence; C7 owner view exposes sample and duration sufficiency | Live staging inspection remains gated by the reviewed C3/C7 activation path. |
 | 7 | Agent control-plane persistence exists | Repository-complete; live staging application blocked | C3 durable store, Workflow entry point, atomic run/step RPCs, committed destination policy, migration and validation | Autumn must review the exact staging project reference, database sentinel, secret channel, migration, and Preview smoke. |
 | 8 | Operations Orchestrator v1 exists | Complete locally | C4 typed invocation plus C5 durable state/artifact persistence in all three operating workflows | Live staging persistence remains gated by the C3 destination review. |
 | 9 | Revenue Agent v1 exists | Complete locally | C4 normalized-metric comparisons, authority/data-quality states, unknown preservation, evidenced drivers only | No model or live financial connector is required. |
@@ -65,7 +65,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 14 | `conversion_review` runs end-to-end against mocks/dev data | Complete locally | C5 real Workflow fixture, durable run/step reuse, specialist invocation, transactional artifact persistence, readback verification, and duplicate-delivery test | Live staging smoke remains gated by the C3 destination review. |
 | 15 | `daily_business_health` runs and stays quiet when healthy | Complete locally | C5 source/staleness evaluation and healthy fixture with `quiet=true`, no notification, no signals/priorities/decisions/actions | Live staging smoke remains gated by the C3 destination review. |
 | 16 | `weekly_operating_review` runs end-to-end and returns no more than three priorities plus Autumn decisions | Complete locally | C5 proves the durable specialist/artifact path and C6 proves direct SEO/AEO adaptation, durable observation reuse, signal consumption, and unchanged three-priority/three-decision bounds | Live staging smoke remains gated by the C3 destination review. |
-| 17 | External mutations are code-gated by approval | Partial | Phase B TypeScript/Postgres guards; no executor | C7/C8: stable Autumn subject, origin/CSRF and replay defenses, atomic decision update, immutable approved payload, no execution attachment. Do not reuse email/role fallback auth. |
+| 17 | External mutations are code-gated by approval | Complete locally; no executor | C7 exact Autumn `sub`, same-origin and purpose-bound form tokens, signed server requests, one-use database nonces, payload/version compare-and-set, immutable approved payload, durable decision events, and explicit no-execution response | Live staging validation remains gated. C8 must preserve this boundary while adding measurement linkage. |
 | 18 | Correlation IDs allow signal -> action -> outcome audit | Partial | C5 persists one correlated run/step/signal/recommendation/task/experiment/proposed-action/review trace and verifies duplicate reuse | C8: add outcome measurement/linkage and full observation-to-learning acceptance. |
 | 19 | Tests/builds pass | Partial | C2 checks pass; PR #325 left an invalid workflow on `main` that fails on every push | Remove both one-shot workflows, then run the full matrix for every stacked increment and final audit. |
 | 20 | Documentation explains future Opportunity, Inbox/Member Success, SEO, Product, Lead, and Codex Engineering agents | Partial | Phase B docs contain high-level extension points | C8: complete `docs/agent-control-plane.md` and implementation summary. |
@@ -79,8 +79,8 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | Staging persistence with reviewed destination binding | Repository-complete / live application blocked | Code allowlist is intentionally empty; live application requires Autumn-reviewed staging reference, database sentinel, and server-only secret credential. |
 | Executable stale-run detection and resume-safe semantics | Repository-complete | C3 atomic RPCs, retry windows, bounded stale sweep, duplicate delivery, and completed-step reuse tests. |
 | Read-only ActiveCampaign sensor and lifecycle/performance signals | Complete locally | C6 bounded GET-only client, owner-reviewed hostname/stable-ID allowlist, email-free stable-ID classifications, durable marketing metrics/signals, proposal-only cleanup, and stable contact-ID authority join. Live credential use remains disabled. |
-| Minimal protected run/signal/priority/approval surface | Missing | C7. |
-| Trigger contracts and protected endpoints; no Production schedule | Missing | C7. |
+| Minimal protected run/signal/priority/approval surface | Complete locally | C7 owner-only Server Component shows bounded runs, signals, top three, warnings, evidence/provenance, experiments, reviews, and exact proposed action payloads. |
+| Trigger contracts and protected endpoints; no Production schedule | Complete locally | C7 signed staging-only endpoints map manual/event/daily/weekly requests into the shared C5 workflows. Fixtures are synthetic-only; no schedule is configured. |
 | One-cycle parity plan and retained old reports | Repository-complete / execution blocked | C6 documents the exact compatibility comparison and keeps the old collectors/reports. Execution requires the approved C3 staging binding and C7 protected trigger. |
 | Full observation-to-learning trace and measurement linkage | Missing | C8. |
 
@@ -105,7 +105,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Complete locally; stacked draft PR remains externally gated |
 | 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Complete locally; live staging application and stacked draft PR externally gated |
 | 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Complete locally; live staging/parity cycle and stacked draft PR externally gated |
-| 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Pending |
+| 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Complete locally; staging activation and stacked draft PR externally gated |
 | 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Pending |
 
 Each later draft PR must state that it is stacked on the preceding branch. If an earlier PR merges while work continues, fetch `main`, verify the graph, and safely retarget/rebase without duplicating commits.
@@ -147,6 +147,12 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 | C6 | Stable contact authority and approval-preserving inventory | Passed | ActiveCampaign membership context joins by stored contact ID rather than email, collisions are withheld, and recurring inventory uses an RPC that preserves owner review/read state while direct service-role asset writes are revoked. |
 | C6 | Migration and permission contract | Passed locally / live staging blocked | Static and rollback-safe SQL cover null/bound checks, duplicate reuse, changed-payload rejection, SELECT-only runtime tables, normalized sensor events, and approval-preserving asset refresh. |
 | C6 | Full isolated `npm run validate` | Passed | Format and dependency checks, both TypeScript targets, 55 Node tests, six real Workflow tests across two files, all Phase B/C1/C3/C5/C6 migration checks, C2 Preview checks, and C4 specialist checks pass. |
+| C7 | Stable owner, request, and browser boundary | Passed | Focused fixtures bind HMAC requests to method/path/origin/body/timestamp/nonce and exact Autumn subject; wrong subject/origin, body tampering, clock skew, email-only identity, invalid form/trigger contracts, and Production activation fail closed. |
+| C7 | Replay-safe immutable decisions | Passed locally / live staging blocked | In-memory and rollback-safe SQL checks cover active-owner authorization, one-use nonces, payload/version compare-and-set, immutable approved payload and digest, durable approval/rejection events, null executor, and `executionStarted=false`. |
+| C7 | Protected trigger integration | Passed | The seventh real Workflow fixture routes event, daily, and weekly synthetic inputs through the shared C5 durable entry points and proves no action acquires execution state. |
+| C7 | Minimal member-web owner surface | Passed | Static contract, strict TypeScript, and ESLint validate the Server Component, exact `sub` gate, same-origin Server Actions, purpose-bound form tokens, bounded status/evidence views, and no browser secret or direct runtime call. |
+| C7 | Local HTTP owner boundary | Passed | Next development mode compiled `/admin/intelligence-os`; an unauthenticated request returned `307 /profile` with `no-store`. Google Fonts fell back because sandbox egress was denied; page compilation and authorization completed. |
+| C7 | Full isolated validation matrix | Passed | Agent Runtime format/dependency checks, both TypeScript targets, 60 Node tests, seven real Workflow tests, all Phase B/C1/C3/C5/C6/C7 migration checks, C2 Preview checks, and C4 specialist checks pass. Member web also passes the C7 audit, member-surface audit, 18-case Free-to-Pro regression, strict TypeScript, and ESLint. |
 
 ## External blockers and Autumn-controlled decisions
 
@@ -155,6 +161,7 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 3. No OpenAI key is available or required. Model execution remains disabled by default; deterministic agents and test doubles are the foundation acceptance path.
 4. PR #324 must remain open until the focused replacement is implemented, verified, and merged. Then Autumn may close it as superseded; never reuse its commits.
 5. Existing reports and scheduled collectors remain active until one successful parity cycle is recorded.
+6. The C7 approver registry is intentionally empty. Staging access remains blocked until Autumn approves the exact stable Outseta subject and an audited operator adds the single active owner row after migration.
 
 ## Corrective member-surface acceptance checklist
 
@@ -186,6 +193,27 @@ These findings were verified against current `main` on 2026-08-26 and remain req
 | P2 | Paid-access integrity ignored disabled/inactive `accessStatus` | Resolved locally in C4: tier, directory access, and recognized enabled status must all agree; focused regression passes | C4 commit review/merge |
 
 The paid-access, ActiveCampaign contact-ID, and approval-preserving inventory findings above are resolved locally; they remain listed until their stacked commits are reviewed and merged.
+
+## Current C7 acceptance checklist
+
+- [x] Require Autumn's exact verified Outseta `sub`; do not reuse email, account-ID, plan, or role fallback authorization.
+- [x] Keep the browser outside the Agent Runtime trust boundary with owner-only Server Components and Server Actions.
+- [x] Bind mutations to the exact staging origin and a short-lived, purpose-bound HMAC form token.
+- [x] Bind service requests to method, pathname, stable subject, exact origin, timestamp, UUID nonce, and raw body SHA-256.
+- [x] Deny Vercel Production and retain the C3 reviewed allowlist plus service-role-only destination sentinel.
+- [x] Create an initially empty single-owner registry; leave delegated approval disabled.
+- [x] Consume one-use database nonces and write durable authorization and decision events.
+- [x] Compare action status, decision version, exact payload, and canonical digest atomically under row lock.
+- [x] Snapshot the approved payload immutably, increment decision version, and keep executor/execution state null.
+- [x] Expose bounded runs, unresolved/high signals, awaiting actions, source warnings, top three priorities, evidence/provenance, experiment sufficiency, and operating reviews.
+- [x] Support manual conversion, daily health, unified weekly review, and every required event trigger with synthetic-only contracts.
+- [x] Route triggers through the existing shared C5 workflows and durable business idempotency keys; do not create per-agent schedules.
+- [x] Add static contracts, rollback-safe validation, deterministic request/store fixtures, and a real Workflow trigger integration fixture.
+- [x] Keep Production variables, Production migration, Production deployment, schedules, live connectors, model execution, external mutations, delegated approval, and executors disabled.
+- [x] Run and record the full C7 validation matrix.
+- [x] Commit C7 locally on its focused branch.
+- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [ ] Apply migrations and smoke-test protected reads/triggers/decisions in reviewed staging; blocked pending Autumn's C3 binding, secret, migration, exact subject, and owner-row authorization.
 
 ## Current C6 acceptance checklist
 
