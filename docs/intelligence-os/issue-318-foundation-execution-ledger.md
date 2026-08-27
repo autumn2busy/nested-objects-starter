@@ -11,8 +11,8 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Repository | `autumn2busy/nested-objects-starter` |
 | Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
-| Current increment | Phase C7 protected admin and immutable approval |
-| Current branch | `feature/318-c7-admin-approval-surface` at C6 base `0b0bc33` |
+| Current increment | Phase C8 foundation hardening and completion audit |
+| Current branch | `feature/318-c8-foundation-hardening` at C7 base `7f8cb39` |
 | Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
@@ -45,13 +45,13 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 
 ## Live Issue #318 definition-of-done matrix
 
-Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its definition-of-done wording has not changed.
+Live Issue #318 was re-read on 2026-08-27. It is open, has no comments, and its definition-of-done wording has not changed.
 
 | # | Definition of done | Status | Repository evidence / responsible increment | Remaining validation or blocker |
 | ---: | --- | --- | --- | --- |
 | 1 | PR #317 explicitly reconciled; no duplicate conversion-event architecture | Complete | PR #317; `conversion_events`; Phase B/C docs | Preserve architecture in all later increments. |
 | 2 | `apps/agent-runtime` exists and builds independently | Complete | PRs #321/#323/#326; isolated package and CI | Revalidate after every increment. |
-| 3 | Canonical `member_360` projection/source-of-truth strategy exists | Partial | Phase B/C migrations, projection code, authority-conflict view | Fix ambiguous anonymous-ID attribution and stale identity-link revocation before calling the projection correct. |
+| 3 | Canonical `member_360` projection/source-of-truth strategy exists | Complete locally | Phase B/C migrations, projection code, authority-conflict view; C8 makes ambiguous anonymous-ID collisions order-independent and synchronizes projection-managed identity links with auditable revocation | C8 migration application/rollback validation remains staging-gated. |
 | 4 | `business_metrics_daily` exists | Complete | Phase B migration and Phase C daily projector | Extend only with provenance and unknown preservation. |
 | 5 | `intelligence_signals` exists | Complete | Phase B migration/contracts/store | Prove end-to-end production path with fixtures. |
 | 6 | `experiments` exists | Complete locally | Phase B migration/contracts/readiness logic; C5 weekly persistence; C7 owner view exposes sample and duration sufficiency | Live staging inspection remains gated by the reviewed C3/C7 activation path. |
@@ -66,9 +66,9 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 15 | `daily_business_health` runs and stays quiet when healthy | Complete locally | C5 source/staleness evaluation and healthy fixture with `quiet=true`, no notification, no signals/priorities/decisions/actions | Live staging smoke remains gated by the C3 destination review. |
 | 16 | `weekly_operating_review` runs end-to-end and returns no more than three priorities plus Autumn decisions | Complete locally | C5 proves the durable specialist/artifact path and C6 proves direct SEO/AEO adaptation, durable observation reuse, signal consumption, and unchanged three-priority/three-decision bounds | Live staging smoke remains gated by the C3 destination review. |
 | 17 | External mutations are code-gated by approval | Complete locally; no executor | C7 exact Autumn `sub`, same-origin and purpose-bound form tokens, signed server requests, one-use database nonces, payload/version compare-and-set, immutable approved payload, durable decision events, and explicit no-execution response | Live staging validation remains gated. C8 must preserve this boundary while adding measurement linkage. |
-| 18 | Correlation IDs allow signal -> action -> outcome audit | Partial | C5 persists one correlated run/step/signal/recommendation/task/experiment/proposed-action/review trace and verifies duplicate reuse | C8: add outcome measurement/linkage and full observation-to-learning acceptance. |
-| 19 | Tests/builds pass | Partial | C2 checks pass; PR #325 left an invalid workflow on `main` that fails on every push | Remove both one-shot workflows, then run the full matrix for every stacked increment and final audit. |
-| 20 | Documentation explains future Opportunity, Inbox/Member Success, SEO, Product, Lead, and Codex Engineering agents | Partial | Phase B docs contain high-level extension points | C8: complete `docs/agent-control-plane.md` and implementation summary. |
+| 18 | Correlation IDs allow signal -> action -> outcome audit | Complete locally | C8 adds immutable source/signal/task/recommendation/action/approval/outcome/measurement/learning links, owner-only correlation readback, later measurement linkage, checksum idempotency, and private-reasoning denial | C8 migration application/rollback validation remains staging-gated. |
+| 19 | Tests/builds pass | Complete locally | Corrective through C8 static, Node, Workflow, TypeScript, lint/audit, local HTTP, and migration-contract suites are recorded below | Live C3-C8 staging SQL and protected Preview smoke remain externally blocked. |
+| 20 | Documentation explains future Opportunity, Inbox/Member Success, SEO, Product, Lead, and Codex Engineering agents | Complete locally | `docs/agent-control-plane.md` documents the architecture, contracts, operations, security, rollout, parity, and all required Phase 2 extension points | Autumn acceptance remains required; Issue #318 stays open. |
 
 ## Execution-brief additions to the live definition of done
 
@@ -82,7 +82,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | Minimal protected run/signal/priority/approval surface | Complete locally | C7 owner-only Server Component shows bounded runs, signals, top three, warnings, evidence/provenance, experiments, reviews, and exact proposed action payloads. |
 | Trigger contracts and protected endpoints; no Production schedule | Complete locally | C7 signed staging-only endpoints map manual/event/daily/weekly requests into the shared C5 workflows. Fixtures are synthetic-only; no schedule is configured. |
 | One-cycle parity plan and retained old reports | Repository-complete / execution blocked | C6 documents the exact compatibility comparison and keeps the old collectors/reports. Execution requires the approved C3 staging binding and C7 protected trigger. |
-| Full observation-to-learning trace and measurement linkage | Missing | C8. |
+| Full observation-to-learning trace and measurement linkage | Complete locally / live staging validation blocked | C8 trace contracts/store/migration/tests cover the entire observation-to-learning chain and later measurement persistence. |
 
 ## Cross-increment architecture findings
 
@@ -106,7 +106,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Complete locally; live staging application and stacked draft PR externally gated |
 | 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Complete locally; live staging/parity cycle and stacked draft PR externally gated |
 | 7 | `feature/318-c7-admin-approval-surface` | C6 branch | Protected API/admin, owner approval/rejection, triggers, run/status views | Complete locally; staging activation and stacked draft PR externally gated |
-| 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Pending |
+| 8 | `feature/318-c8-foundation-hardening` | C7 branch | End-to-end trace, unresolved Phase C1 findings, full validation, documentation, parity plan, completion audit | Complete locally; final local commit and stacked draft PR remain gated at this checkpoint |
 
 Each later draft PR must state that it is stacked on the preceding branch. If an earlier PR merges while work continues, fetch `main`, verify the graph, and safely retarget/rebase without duplicating commits.
 
@@ -153,6 +153,12 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 | C7 | Minimal member-web owner surface | Passed | Static contract, strict TypeScript, and ESLint validate the Server Component, exact `sub` gate, same-origin Server Actions, purpose-bound form tokens, bounded status/evidence views, and no browser secret or direct runtime call. |
 | C7 | Local HTTP owner boundary | Passed | Next development mode compiled `/admin/intelligence-os`; an unauthenticated request returned `307 /profile` with `no-store`. Google Fonts fell back because sandbox egress was denied; page compilation and authorization completed. |
 | C7 | Full isolated validation matrix | Passed | Agent Runtime format/dependency checks, both TypeScript targets, 60 Node tests, seven real Workflow tests, all Phase B/C1/C3/C5/C6/C7 migration checks, C2 Preview checks, and C4 specialist checks pass. Member web also passes the C7 audit, member-surface audit, 18-case Free-to-Pro regression, strict TypeScript, and ESLint. |
+| C8 | Ambiguous identity and stale-link hardening | Passed locally / live staging blocked | Forward/reverse profile fixtures produce the same anonymous-ID conflict and never stitch the anonymous-only event. Projection persistence uses a bounded synchronization RPC that revokes absent projection-managed links while preserving audit provenance and rejecting cross-member transfer. |
+| C8 | Complete artifact trace and duplicate delivery | Passed | The conversion Workflow fixture links observation -> signal -> investigation -> recommendation -> proposed action with one correlation; duplicate delivery preserves signal, action, and trace-link counts. Approval retains that correlation. |
+| C8 | Outcome, measurement, and candidate learning | Passed locally / live staging blocked | Node fixtures persist a measurement plan, later verified outcome/completed measurement/candidate learning, three immutable trace links, duplicate reuse, changed-content denial, insufficient-threshold denial, and private-reasoning denial. |
+| C8 | Migration and privilege contract | Passed locally / live staging blocked | Static and rollback-safe SQL cover new private tables, SELECT-only runtime access, service-role RPCs, record checksums, approval trace trigger, owner correlation readback, identity revocation, later measurement, rollback, and no private-reasoning column. |
+| C8 | Control-plane documentation and final audit | Passed locally | `docs/agent-control-plane.md` and the final implementation summary cover architecture, authority, contracts, operations, environment/secrets, parity, limitations, all 22 completion items, and Phase 2 extension points. |
+| C8 | Full isolated `npm run validate` | Passed | Format and pinned-dependency checks, both TypeScript targets, 63 Node tests, seven real Workflow tests, all Phase B/C1/C3/C5/C6/C7/C8 migration checks, Preview guards, and specialist checks pass. The Workflow suite required broader filesystem read access after the restricted sandbox produced false dependency-resolution errors. |
 
 ## External blockers and Autumn-controlled decisions
 
@@ -186,13 +192,29 @@ These findings were verified against current `main` on 2026-08-26 and remain req
 
 | Priority | Finding | Current evidence | Responsible increment |
 | --- | --- | --- | --- |
-| P1 | One anonymous identity can be attributed to multiple profiles in input-order-dependent fashion | `apps/agent-runtime/src/projections/member-projection.ts` overwrites the anonymous-ID map when more than one profile claims the ID | C8 at the latest; move earlier if touched by C3/C4 |
-| P2 | Stale identity links are never revoked | `apps/agent-runtime/src/persistence/projection-store.ts` only upserts current links | C8 at the latest; include in projection batch hardening if C3 touches the store |
+| P1 | One anonymous identity can be attributed to multiple profiles in input-order-dependent fashion | Resolved locally in C8: all directly claimed owners are collected first; ambiguous IDs emit a deterministic sorted conflict and are withheld from anonymous-only stitching | C8 commit review/merge |
+| P2 | Stale identity links are never revoked | Resolved locally in C8: projection writes call `sync_member_identity_links`, which auditably revokes absent projection-managed links and refuses cross-member identifier transfer | C8 commit review/migration |
 | P2 | Recurring asset audits reset owner approval | Resolved locally in C6: recurring refresh calls an approval-preserving RPC, and direct service-role registry writes are revoked | C6 commit review/merge |
 | P2 | ActiveCampaign contact authority was joined by email despite a stored contact ID | Resolved locally in C6: active contact-ID identity links are authoritative; collision links are withheld and email equality grants no authority | C6 commit review/merge |
 | P2 | Paid-access integrity ignored disabled/inactive `accessStatus` | Resolved locally in C4: tier, directory access, and recognized enabled status must all agree; focused regression passes | C4 commit review/merge |
 
-The paid-access, ActiveCampaign contact-ID, and approval-preserving inventory findings above are resolved locally; they remain listed until their stacked commits are reviewed and merged.
+All five findings above are resolved locally in the stacked corrective/C4/C6/C8 commits; they remain listed until those commits are reviewed and merged.
+
+## Current C8 acceptance checklist
+
+- [x] Make ambiguous anonymous-ID attribution deterministic, record a collision, and never stitch an anonymous-only event when multiple direct owners exist.
+- [x] Replace direct identity-link upsert with a bounded service-role synchronization RPC that revokes stale projection-managed links with audit provenance.
+- [x] Propagate signal IDs and correlation through every specialist recommendation.
+- [x] Persist immutable links from source observation to signal, signal to investigation/recommendation/action, and workflow run to artifacts.
+- [x] Preserve the action correlation through owner approval/rejection without starting execution.
+- [x] Add outcome, planned/later measurement, and candidate-learning contracts and service-role-only persistence.
+- [x] Enforce sample/duration sufficiency, checksum idempotency, duplicate reuse, and private-reasoning denial.
+- [x] Add owner-only correlation trace readback and retain all no-executor/no-Production boundaries.
+- [x] Create a rollback-safe migration validation and focused static, Node, Workflow, and TypeScript checks.
+- [x] Create `docs/agent-control-plane.md`, update this durable ledger, record the 22-item completion audit, and keep Issue #318 open.
+- [ ] Apply C3-C8 migrations and run rollback validations against the reviewed staging destination; blocked pending Autumn's destination binding, credential, migration, stable subject, and owner-row authorization.
+- [ ] Push the stacked local branches and open C3-C8 draft PRs; requires explicit private-repository write approval. Do not merge.
+- [ ] Run one staging report-parity cycle; blocked on the reviewed durable staging and protected trigger activation.
 
 ## Current C7 acceptance checklist
 

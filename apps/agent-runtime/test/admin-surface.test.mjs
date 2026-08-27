@@ -202,6 +202,7 @@ test('owner decisions are replay-safe, compare-and-swap guarded, payload-bound, 
   })
   originalPayload.contactId = 'caller-side-mutation'
   assert.equal(approved.executionStarted, false)
+  assert.equal(approved.correlationId, correlationId)
   assert.equal(approved.approvedPayloadDigest, payloadDigest({
     contactId: 'synthetic-contact-c7',
     mutationAllowed: false,

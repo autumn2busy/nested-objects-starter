@@ -88,7 +88,11 @@ export function runIndustryIntelligenceAgent(
       summary: event.recommendedFollowUp,
       priority: priorityFor(event.businessRelevance, event.risk),
       evidenceReferences: [event.provenance],
+      signalIds: event.signalId ? [event.signalId] : [],
       recommendedFollowUp: event.recommendedFollowUp,
+      correlation: event.signalId
+        ? { ...input.correlation, causationId: event.signalId }
+        : input.correlation,
     })),
     proposedActions: [],
     autumnDecisions: [],

@@ -16,7 +16,9 @@ export interface AgentRecommendation {
   summary: string
   priority: number
   evidenceReferences: SourceReference[]
+  signalIds: string[]
   recommendedFollowUp: string | null
+  correlation: CorrelationContext
 }
 
 export interface AutumnDecision {

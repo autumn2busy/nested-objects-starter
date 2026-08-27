@@ -101,6 +101,16 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - Approval never executes. The decision path clears and rejects executor/execution state, and no executor capability is exposed.
 - `apps/web-members` hosts the minimal owner-only Server Component. Same-origin Server Actions use short-lived purpose-bound form tokens and server-to-server signatures; the browser never receives the shared secret or calls this runtime directly.
 
+### Phase C8. Traceability, learning memory, and projection hardening
+
+- Recommendations retain their source signal IDs and correlation context. Durable operating persistence emits immutable links from workflow/source observations through signals, investigations, recommendations, experiments, and proposed actions.
+- Owner approval/rejection preserves the action correlation in a dedicated approval-state trace link and still does not execute the action.
+- Typed outcomes, planned/later measurements, and candidate learnings complete the evidence-backed operating loop. Completed measurements require the committed minimum sample and duration; changed content under an idempotency key fails closed.
+- The database exposes an owner-only correlation trace read model and SELECT-only direct access to trace, outcome, measurement, and learning tables. Writes use bounded service-role RPCs.
+- Private chain-of-thought fields are rejected by runtime contracts, static validation, tests, and database JSON checks. Only concise rationale, evidence, decisions, outcomes, and candidate learnings are stored.
+- Anonymous IDs claimed by more than one explicit member now produce an order-independent collision and never stitch anonymous-only events. Projection-managed identity links absent from a later snapshot are auditably revoked rather than left active.
+- No Production migration, schedule, connector, model, external mutation executor, or deployment was added.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -165,7 +175,7 @@ cp .env.example .env
 npm run validate
 ```
 
-`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior, all three C5 operating flows, durable weekly SEO/AEO sensor reuse, and C7 protected-trigger fixture routing using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, C5, C6, and C7 migration contracts without contacting a database.
+`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior, all three C5 operating flows, durable weekly SEO/AEO sensor reuse, C7 protected-trigger fixture routing, and C8 correlated artifact links using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, C5, C6, C7, and C8 migration contracts without contacting a database.
 
 `npm run specialists:check` enforces the Phase C4 implementation registrations and deterministic, proposal-only capability boundary. The Node suite exercises all five specialists and the inactive paid-access regression without an OpenAI key.
 
@@ -195,6 +205,7 @@ server/api/       Nitro HTTP entry points for health, C2 evaluation, and C3 work
 src/
   agents/         Implemented deterministic v1 specialists, registrations, and optional tool-free OpenAI adapter
   http/           Request validation, authentication, signatures, health, and response contracts
+  learning/       Observation-to-learning trace contracts and private-reasoning denial
   persistence/    Phase B and C1 server-only persistence contracts for later durable workflows
   projections/    Canonical member and daily metric projectors
   runtime/        Dry-run evaluation plus deny-by-default durable staging binding

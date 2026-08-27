@@ -96,15 +96,24 @@ export function runRevenueAgent(input: RevenueAgentInput): RevenueAgentOutput {
       financialTruthSource: 'normalized_metrics_only',
     },
     signals,
-    recommendations: degraded.map((assessment) => ({
-      id: stableUuid('revenue-agent-recommendation', `${assessment.metric}:${assessment.scopeKey}:${assessment.dataQualityState}`),
-      domain: 'revenue',
-      title: `${assessment.metric} requires better evidence`,
-      summary: assessment.recommendedFollowUp ?? 'Review the normalized metric evidence.',
-      priority: isFinancialMetric(assessment.metric) ? 75 : 55,
-      evidenceReferences: assessment.evidenceReferences,
-      recommendedFollowUp: assessment.recommendedFollowUp,
-    })),
+    recommendations: degraded.map((assessment) => {
+      const signalIds = signals
+        .filter((signal) => signal.affectedEntities.some((entity) => (
+          entity.metricName === assessment.metric && entity.scopeKey === assessment.scopeKey
+        )))
+        .map((signal) => signal.id)
+      return {
+        id: stableUuid('revenue-agent-recommendation', `${assessment.metric}:${assessment.scopeKey}:${assessment.dataQualityState}`),
+        domain: 'revenue',
+        title: `${assessment.metric} requires better evidence`,
+        summary: assessment.recommendedFollowUp ?? 'Review the normalized metric evidence.',
+        priority: isFinancialMetric(assessment.metric) ? 75 : 55,
+        evidenceReferences: assessment.evidenceReferences,
+        signalIds,
+        recommendedFollowUp: assessment.recommendedFollowUp,
+        correlation: signalIds[0] ? { ...input.correlation, causationId: signalIds[0] } : input.correlation,
+      }
+    }),
     proposedActions: [],
     autumnDecisions: [],
     evidence,
