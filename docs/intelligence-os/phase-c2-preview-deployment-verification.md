@@ -52,7 +52,7 @@ Custom or existing domains added or moved: none
 Promotion to Production: prohibited
 ```
 
-The live Vercel account is readable through the connected integration. An exact project lookup returned not found. The repository is connected to other Vercel projects, including the member website, but none is the isolated Agent Runtime project. No existing project, Root Directory, Git branch, domain, environment variable, or deployment was changed.
+The live Vercel account is readable through the connected integration. An exact project lookup returned not found. The repository is connected to other Vercel projects, including the member website, but none is the isolated Agent Runtime project. No existing project setting, Root Directory, Production Branch, custom domain, environment variable, or Production deployment was changed.
 
 The Vercel CLI and the interactive browser session were not authenticated for write operations. Consequently:
 
@@ -60,10 +60,14 @@ The Vercel CLI and the interactive browser session were not authenticated for wr
 - No Preview or Development variables were added.
 - No Production variables were added.
 - No Supabase, OpenAI, ActiveCampaign, Outseta, Stripe, member-data, or contact-data credential was configured.
-- No deployment was created or promoted.
+- No isolated Agent Runtime deployment was created, and no deployment was promoted to Production.
 - No custom or existing domain was added or moved. A future Preview will receive a generated Vercel URL; that is not a custom-domain move or Production promotion.
 
 The target project does not yet exist, so it currently has no project-level environment variables of any kind. Production-variable and forbidden-credential checks must be repeated in Vercel immediately after the project is created and before the first deployment.
+
+### Existing repository Preview checks
+
+Pushing this verification branch and opening the requested draft pull request activated the repository's pre-existing Vercel Git integrations for `nested-objects-public`, `nested-objects-starter`, and `nested-objects-firms`. Those integrations initiated their normal branch Preview checks. They are not the isolated Agent Runtime deployment and cannot satisfy this verification's live smoke matrix. No project configuration, custom domain, Production Branch, Production variable, or Production promotion was changed as part of those automatic checks.
 
 ## Required Preview and Development configuration
 
