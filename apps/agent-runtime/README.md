@@ -43,6 +43,7 @@ This package is intentionally isolated from `apps/web-members`. It has its own N
 - Aggregate-only responses that omit emails, member IDs, contact IDs, evidence payloads, and raw source records.
 - Strict dry-run execution with no Supabase credentials, database writes, or persistence mode.
 - No OpenAI model execution, ActiveCampaign mutation, email send, content publication, approval execution, cron schedule, queue, or production write path.
+- A minimal crawler-blocking `public/robots.txt`; Vercel packages `api/` as Functions and does not publish compiled runtime libraries as static assets.
 
 Phase C2 deliberately does not install Vercel Workflow. The first deployment proves authentication, packaging, synthetic evaluation, and production isolation. Durable workflow orchestration and staging persistence move to the next increment so destination binding, idempotency, bounded steps, retries, and verification can be implemented together.
 
@@ -95,7 +96,9 @@ cp .env.example .env
 npm run validate
 ```
 
-Node 22.16 or newer is required by this isolated package. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
+Node 22.16 or newer within the Node 22 release line is required by this isolated package. The upper bound prevents Vercel from overriding the project runtime with a newer major version. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
+
+The root TypeScript configuration intentionally infers its source root. Local builds include only `src/` and retain the existing private `dist` layout, while Vercel can add `api/` Function entries without excluding them from emission.
 
 ## Vercel project boundary
 
@@ -114,6 +117,7 @@ Use Preview and Development environment variables only. Do not configure Product
 
 ```text
 api/              Preview-only Vercel Function entry points
+public/           Minimal non-indexable static output required by the Vercel project
 src/
   agents/         Specialist registrations and tool-free OpenAI adapter
   http/           Request validation, authentication, health, and response contracts

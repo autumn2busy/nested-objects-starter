@@ -7,10 +7,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (relativePath) => readFile(path.join(root, relativePath), 'utf8')
 const [
   packageSource,
+  tsconfigSource,
   envSource,
   readmeSource,
   fixtureSource,
   vercelSource,
+  robotsSource,
   healthSource,
   evaluateSource,
   contractSource,
@@ -20,10 +22,12 @@ const [
   indexSource,
 ] = await Promise.all([
   read('package.json'),
+  read('tsconfig.json'),
   read('.env.example'),
   read('README.md'),
   read('fixtures/preview-evaluation.synthetic.json'),
   read('vercel.json'),
+  read('public/robots.txt'),
   read('api/health.ts'),
   read('api/preview/evaluate.ts'),
   read('src/http/preview-contract.ts'),
@@ -35,12 +39,18 @@ const [
 
 const failures = []
 let packageJson
+let tsconfigJson
 let fixtureJson
 let vercelJson
 try {
   packageJson = JSON.parse(packageSource)
 } catch (error) {
   failures.push(`package.json is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
+}
+try {
+  tsconfigJson = JSON.parse(tsconfigSource)
+} catch (error) {
+  failures.push(`tsconfig.json is invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
 }
 try {
   fixtureJson = JSON.parse(fixtureSource)
@@ -90,8 +100,14 @@ if (!readmeSource.includes('Strict dry-run execution with no Supabase credential
 
 if (packageJson) {
   const scripts = packageJson.scripts ?? {}
+  if (packageJson.engines?.node !== '>=22.16.0 <23') {
+    failures.push('package.json must pin the isolated Vercel runtime to Node 22.16 or newer within major 22')
+  }
   if (!String(scripts.typecheck ?? '').includes('tsconfig.api.json')) {
     failures.push('package.json typecheck does not validate the Vercel API entrypoints')
+  }
+  if (scripts.build !== 'npm run clean && tsc -p tsconfig.json') {
+    failures.push('package.json build must preserve the validated TypeScript library build')
   }
   if (!String(scripts.validate ?? '').includes('preview:check')) {
     failures.push('package.json validate does not include preview:check')
@@ -101,12 +117,26 @@ if (packageJson) {
   }
 }
 
+if (Object.hasOwn(tsconfigJson?.compilerOptions ?? {}, 'rootDir')) {
+  failures.push('tsconfig.json must infer a root that contains both Vercel api/ functions and src/ imports')
+}
+
 if (vercelJson) {
   const functions = vercelJson.functions ?? {}
+  if (vercelJson.buildCommand !== 'npm run build') {
+    failures.push('Phase C2 must run the validated TypeScript build before Vercel packages its functions')
+  }
+  if (vercelJson.outputDirectory !== 'public') {
+    failures.push('Phase C2 must publish only its minimal public directory as static output')
+  }
   if (!functions['api/health.ts']) failures.push('vercel.json is missing api/health.ts')
   if (!functions['api/preview/evaluate.ts']) failures.push('vercel.json is missing api/preview/evaluate.ts')
   if (vercelJson.crons) failures.push('Phase C2 must not schedule preview execution')
   if (vercelJson.routes || vercelJson.rewrites) failures.push('Phase C2 must not add public routing aliases')
+}
+
+if (robotsSource.trim() !== 'User-agent: *\nDisallow: /') {
+  failures.push('public/robots.txt must discourage indexing of the isolated preview runtime')
 }
 
 if (fixtureJson) validateSyntheticFixture(fixtureJson, failures)
