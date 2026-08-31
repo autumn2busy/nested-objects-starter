@@ -13,6 +13,18 @@ if (previewResponse.status !== 200) {
   }
 }
 
+const dashboardResponse = await request('/inspector-dashboard', { redirect: 'manual' })
+const dashboardLocation = dashboardResponse.headers.get('location')
+if (
+  ![307, 308].includes(dashboardResponse.status) ||
+  !dashboardLocation?.startsWith('https://nested-objects.outseta.com/auth?widgetMode=login')
+) {
+  failures.push(
+    `/inspector-dashboard did not redirect signed-out visitors to login ` +
+    `(status=${dashboardResponse.status}, location=${dashboardLocation})`,
+  )
+}
+
 const disabledToolRoutes = [
   '/tools/ai-concierge',
   '/tools/ai-resume',
