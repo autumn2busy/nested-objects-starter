@@ -68,6 +68,17 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - All five implementations use deterministic test doubles by default. Their structured results explicitly record no model use, no tokens/cost, no external mutation, concise rationale, evidence, source references, signals, proposed actions, and Autumn decisions only.
 - Paid-access integrity now treats disabled, inactive, missing, or otherwise unrecognized `accessStatus` as a mismatch even when tier and directory flags look correct.
 
+### Phase C5. Required operating workflows
+
+- Real Workflow DevKit entry points implement the exact stable names `conversion_review`, `daily_business_health`, and `weekly_operating_review` at `phase-c5-v1`.
+- Every workflow claims the C3 business-idempotent durable run, claims bounded evaluation and persistence steps, invokes the C4 Operations Orchestrator, persists a verified artifact batch, and completes the run with null model usage/cost.
+- `conversion_review` requires Revenue, Growth, and Marketing inputs and persists an executive summary, signals, recommendations, tasks, experiment proposals, proposed actions, correlation, and causation.
+- `daily_business_health` checks supplied lifecycle/identity/access/routing/tracking signals plus source freshness and collector failure observations. A healthy fixture stores one quiet review with zero signals, priorities, decisions, actions, or notification.
+- `weekly_operating_review` can invoke all four specialists and persists no more than three priorities and no more than three explicit Autumn decisions.
+- The Phase C5 migration adds private orchestrator-state, recommendation, and operating-review tables plus one bounded transactional artifact RPC. The runtime role receives SELECT-only table access and can write only through service-role-checked functions.
+- Actions must remain non-mutating proposals with no executor or execution timestamps. Duplicate state, review, recommendation, task, experiment, and action keys reject changed payloads.
+- No endpoint, cron, Production schedule, Production variable, migration application, notification sender, or external executor is enabled in this increment.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -123,7 +134,7 @@ cp .env.example .env
 npm run validate
 ```
 
-`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves duplicate delivery reuse and retry/resume behavior using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, and C3 migration contracts without contacting a database.
+`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior and all three C5 operating flows using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, and C5 migration contracts without contacting a database.
 
 `npm run specialists:check` enforces the Phase C4 implementation registrations and deterministic, proposal-only capability boundary. The Node suite exercises all five specialists and the inactive paid-access regression without an OpenAI key.
 

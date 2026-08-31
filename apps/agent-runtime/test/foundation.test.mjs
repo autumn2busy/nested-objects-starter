@@ -398,7 +398,8 @@ test('agent and sensor registrations are explicit, disabled, and non-mutating by
   assert.ok(AGENT_REGISTRATIONS.every((registration) => registration.enabledByDefault === false))
   assert.ok(AGENT_REGISTRATIONS.every((registration) => registration.riskBoundary !== 'read_write'))
   assert.equal(SENSOR_REGISTRATIONS.length, 5)
-  assert.equal(WORKFLOW_REGISTRATIONS.length, 3)
+  assert.equal(WORKFLOW_REGISTRATIONS.length, 4)
+  assert.ok(WORKFLOW_REGISTRATIONS.every((registration) => registration.status === 'implemented'))
   assert.ok(WORKFLOW_REGISTRATIONS.every((registration) => registration.enabledByDefault === false))
   assert.equal(
     SENSOR_REGISTRATIONS.find((registration) => registration.name === 'conversion-events-ledger')?.targetOutput,
