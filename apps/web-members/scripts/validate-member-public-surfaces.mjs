@@ -9,7 +9,7 @@ const failures = []
 
 const read = (relativePath) => readFile(path.join(webRoot, relativePath), 'utf8')
 
-const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, availabilitySource, memberToolLinksSource, contentGeneratorSource, blogReviewSource] =
+const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, availabilitySource, memberToolLinksSource, contentGeneratorSource, blogReviewSource, portalLayoutSource, toolLayoutSource] =
   await Promise.all([
     read('app/tools/ToolsView.tsx'),
     read('middleware.ts'),
@@ -24,6 +24,8 @@ const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSour
     read('lib/member-tool-links.ts'),
     read('lib/content-brief-generator.ts'),
     read('app/blog/review/page.tsx'),
+    read('app/(portal)/layout.tsx'),
+    read('app/tools/_components/ToolLayout.tsx'),
   ])
 
 for (const required of [
@@ -41,10 +43,32 @@ if (/href\s*=\s*["'`]\/tools\//.test(toolsSource)) {
 }
 
 for (const required of [
-  "request.nextUrl.pathname.startsWith('/tools/')",
+  "pathname.startsWith('/tools/')",
   "NextResponse.redirect(new URL('/tools', request.url), 307)",
 ]) {
   requireText(middlewareSource, required, `middleware is missing the disabled-tool boundary ${JSON.stringify(required)}`)
+}
+
+for (const required of [
+  "'/inspector-dashboard'",
+  "request.cookies.get('outseta_access_token')?.value",
+  'isProtectedPortalRoute && !hasSessionCookie',
+  'NextResponse.redirect(OUTSETA_LOGIN_URL, 307)',
+]) {
+  requireText(middlewareSource, required, `middleware is missing the signed-out portal redirect ${JSON.stringify(required)}`)
+}
+
+for (const required of [
+  "import { getCurrentUser } from \"@/lib/auth-server\"",
+  'const user = await getCurrentUser()',
+  'if (!user)',
+  'redirect(OUTSETA_LOGIN_URL)',
+]) {
+  requireText(portalLayoutSource, required, `portal layout is missing the unauthenticated redirect boundary ${JSON.stringify(required)}`)
+}
+
+if (toolLayoutSource.includes("href: '/inspector-dashboard'")) {
+  failures.push('public tool layout still exposes Dashboard navigation to signed-out visitors')
 }
 
 for (const publicPlan of ['PLAN_UIDS.FREE', 'PLAN_UIDS.PRO', 'PLAN_UIDS.ELITE', 'PLAN_UIDS.AGENCY']) {
