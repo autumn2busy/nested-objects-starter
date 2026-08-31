@@ -9,6 +9,7 @@ export interface ProfileSourceRow {
   user_id?: string | null
   outseta_person_uid?: string | null
   outseta_account_id?: string | null
+  ac_contact_id?: string | null
   user_email?: string | null
   email?: string | null
   subscription_tier?: string | null
@@ -56,7 +57,7 @@ export interface ConversionEventSourceRow {
 }
 
 export interface IdentityConflict {
-  conflictType: 'email_collision' | 'outseta_person_collision' | 'outseta_account_collision'
+  conflictType: 'email_collision' | 'outseta_person_collision' | 'outseta_account_collision' | 'activecampaign_contact_collision'
   identifier: string
   profileIds: string[]
 }
@@ -170,10 +171,12 @@ export function buildMemberProjectionBatch(input: BuildProjectionBatchInput): Pr
   const emailGroups = groupProfiles(profiles, (profile) => normalizeEmail(profile.user_email ?? profile.email))
   const personGroups = groupProfiles(profiles, (profile) => normalizeText(profile.outseta_person_uid))
   const accountGroups = groupProfiles(profiles, (profile) => normalizeText(profile.outseta_account_id))
+  const activeCampaignGroups = groupProfiles(profiles, (profile) => normalizeText(profile.ac_contact_id))
   const conflicts = [
     ...groupsToConflicts(emailGroups, 'email_collision'),
     ...groupsToConflicts(personGroups, 'outseta_person_collision'),
     ...groupsToConflicts(accountGroups, 'outseta_account_collision'),
+    ...groupsToConflicts(activeCampaignGroups, 'activecampaign_contact_collision'),
   ]
 
   const profileByPerson = uniqueProfileLookup(personGroups)
@@ -286,7 +289,8 @@ function buildIdentityLinks(
     const conflicted = conflicts.some((conflict) =>
       (conflict.conflictType === 'email_collision' && identifierType === 'email') ||
       (conflict.conflictType === 'outseta_person_collision' && identifierType === 'person_uid') ||
-      (conflict.conflictType === 'outseta_account_collision' && identifierType === 'account_uid'),
+      (conflict.conflictType === 'outseta_account_collision' && identifierType === 'account_uid') ||
+      (conflict.conflictType === 'activecampaign_contact_collision' && identifierType === 'contact_id'),
     )
     if (conflicted) return
 
@@ -308,6 +312,7 @@ function buildIdentityLinks(
   add('supabase', 'user_id', profile.user_id)
   add('outseta', 'person_uid', profile.outseta_person_uid, true)
   add('outseta', 'account_uid', profile.outseta_account_id)
+  add('activecampaign', 'contact_id', profile.ac_contact_id)
   add('profile', 'email', profile.user_email ?? profile.email, true)
 
   const anonymousIds = new Set(events.map((event) => normalizeText(event.anonymous_id)).filter(isPresent))

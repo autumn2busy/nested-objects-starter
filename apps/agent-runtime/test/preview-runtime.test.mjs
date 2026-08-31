@@ -44,6 +44,7 @@ function validPayload(overrides = {}) {
       id: memberId,
       outseta_person_uid: 'synthetic-outseta-person',
       outseta_account_id: 'synthetic-outseta-account',
+      ac_contact_id: 'synthetic-contact-1',
       user_email: 'member@example.invalid',
       subscription_tier: 'pro',
       subscription_status: 'active',

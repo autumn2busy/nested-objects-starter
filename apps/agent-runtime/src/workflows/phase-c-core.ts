@@ -9,6 +9,7 @@ import {
 import {
   classifyMarketingContact,
   type ActiveCampaignContactSnapshot,
+  type AuthoritativeMembershipTruth,
   type MarketingClassificationConfig,
   type MarketingContactClassificationResult,
 } from '../sensors/activecampaign-audit.js'
@@ -39,26 +40,28 @@ export interface PhaseCWorkflowResult {
 export function runPhaseCCore(input: PhaseCWorkflowInput): PhaseCWorkflowResult {
   const projectionBatch = buildMemberProjectionBatch(input)
   const detectedAt = input.marketingConfig.now ?? new Date().toISOString()
-  const membershipByEmail = new Map(
-    projectionBatch.projections
-      .filter((projection) => projection.canonicalMember.primaryEmail)
-      .map((projection) => {
-        const membership = [...projection.memberships].sort((left, right) => right.authorityRank - left.authorityRank)[0]
-        return [projection.canonicalMember.primaryEmail!, membership ? {
-          memberId: projection.memberId,
-          email: projection.canonicalMember.primaryEmail,
-          membershipTier: membership.membershipTier,
-          membershipStatus: membership.membershipStatus,
-          authoritative: true as const,
-        } : null] as const
-      })
-      .filter((entry): entry is readonly [string, NonNullable<(typeof entry)[1]>] => Boolean(entry[1])),
-  )
+  const membershipByActiveCampaignContactId = new Map<string, AuthoritativeMembershipTruth>()
+  for (const projection of projectionBatch.projections) {
+    const contactLink = projection.identityLinks.find((link) => (
+      link.sourceSystem === 'activecampaign'
+      && link.identifierType === 'contact_id'
+      && link.status === 'active'
+    ))
+    const membership = [...projection.memberships].sort((left, right) => right.authorityRank - left.authorityRank)[0]
+    if (!contactLink || !membership) continue
+    membershipByActiveCampaignContactId.set(contactLink.normalizedExternalId, {
+      memberId: projection.memberId,
+      email: projection.canonicalMember.primaryEmail,
+      membershipTier: membership.membershipTier,
+      membershipStatus: membership.membershipStatus,
+      authoritative: true,
+    })
+  }
 
   const classifications = input.activeCampaignContacts.map((contact) =>
     classifyMarketingContact({
       contact,
-      membership: contact.email ? membershipByEmail.get(contact.email.trim().toLowerCase()) ?? null : null,
+      membership: membershipByActiveCampaignContactId.get(contact.contactId) ?? null,
       config: input.marketingConfig,
       correlation: input.correlation,
     }),

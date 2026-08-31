@@ -79,6 +79,18 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - Actions must remain non-mutating proposals with no executor or execution timestamps. Duplicate state, review, recommendation, task, experiment, and action keys reject changed payloads.
 - No endpoint, cron, Production schedule, Production variable, migration application, notification sender, or external executor is enabled in this increment.
 
+### Phase C6. Durable sensors and read-only marketing integrity
+
+- The existing SEO, AEO, content-brief, conversion, and Adzuna collectors remain the collection authority. Typed adapters normalize their outputs or persisted records instead of rebuilding authentication or collection.
+- SEO and AEO reports carry explicit `live`, `baseline`, or `fixture` provenance, source generation time, checksum, source health, staleness, stable record references, correlation, and causation. The weekly workflow receives report objects directly, persists their normalized observations first, and therefore does not depend on a same-deployment Git commit or build-time JSON import.
+- Content briefs normalize to candidate actions with `mutationAllowed=false` and `publishAllowed=false`. Adzuna remains the deduplicated opportunity source for a later Opportunity Agent rather than an autonomous action path.
+- `agent_sensor_runs` and `sensor_observations` provide bounded, idempotent, service-role-only durable ingestion. Changed content under a reused key fails closed; identical delivery reuses the existing run and observations.
+- The ActiveCampaign adapter permits only bounded `GET` requests to one owner-reviewed hostname and stable-ID allowlist. It emits identifier-free marketing metrics, lifecycle/engagement signals, and approval-required cleanup proposals; it sends no email, mutates no asset, and cannot declare membership or revenue truth.
+- ActiveCampaign classifications cover paid/free labeling conflicts, onboarding and nurture conflicts, post-purchase upgrade sequences, overlapping or stale automations, engagement decline, deliverability risk, high intent, cold never-engaged contacts, and internal contacts without returning email addresses.
+- Projection authority joins ActiveCampaign evidence through the stored contact ID, not email. Contact-ID collisions are withheld as identity conflicts.
+- Recurring asset inventory refreshes use an approval-preserving RPC and cannot reset owner review, read approval, reviewer identity, or the permanent mutation denial.
+- No connector credential loader, endpoint, schedule, migration application, Production variable, external call, or mutation path is enabled in C6.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -134,7 +146,7 @@ cp .env.example .env
 npm run validate
 ```
 
-`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior and all three C5 operating flows using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, and C5 migration contracts without contacting a database.
+`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior, all three C5 operating flows, and durable weekly SEO/AEO sensor reuse using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, C5, and C6 migration contracts without contacting a database.
 
 `npm run specialists:check` enforces the Phase C4 implementation registrations and deterministic, proposal-only capability boundary. The Node suite exercises all five specialists and the inactive paid-access regression without an OpenAI key.
 

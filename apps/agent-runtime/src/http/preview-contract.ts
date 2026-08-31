@@ -88,6 +88,7 @@ const profileSchema = z.object({
   user_id: nullableSyntheticUuidSchema,
   outseta_person_uid: nullableSyntheticIdentifierSchema,
   outseta_account_id: nullableSyntheticIdentifierSchema,
+  ac_contact_id: nullableSyntheticIdentifierSchema,
   user_email: nullableSyntheticEmailSchema,
   email: nullableSyntheticEmailSchema,
   subscription_tier: membershipTierSchema.nullable().optional(),
@@ -275,6 +276,7 @@ export function assertSyntheticPreviewInput(input: PreviewEvaluationRequest): vo
     ...input.profiles.flatMap((profile) => [
       profile.outseta_person_uid,
       profile.outseta_account_id,
+      profile.ac_contact_id,
       profile.plan_uid,
     ]),
     ...input.conversionEvents.flatMap((event) => [

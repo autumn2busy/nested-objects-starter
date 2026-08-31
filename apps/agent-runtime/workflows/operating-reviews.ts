@@ -21,6 +21,7 @@ import type {
   OperatingWorkflowName,
   OperatingWorkflowPersistedCounts,
 } from '../src/persistence/operating-workflow-store.js'
+import type { PersistedSensorBatchCounts } from '../src/persistence/sensor-observation-store.js'
 import type {
   DurableClaimDisposition,
   DurableRunClaim,
@@ -29,6 +30,11 @@ import type {
 import { resolveOperatingWorkflowContext } from '../src/runtime/operating-workflow-context.js'
 import type { StagingDestinationBinding } from '../src/runtime/staging-destination.js'
 import { stableUuid } from '../src/stable-id.js'
+import type { SensorIngestionBatch, SensorProvenanceMode } from '../src/sensors/contracts.js'
+import {
+  adaptWeeklySensorReports,
+  type WeeklySensorReportInput,
+} from '../src/sensors/report-adapters.js'
 
 export const CONVERSION_REVIEW_WORKFLOW_NAME = 'conversion_review'
 export const DAILY_BUSINESS_HEALTH_WORKFLOW_NAME = 'daily_business_health'
@@ -57,6 +63,7 @@ export interface OperatingReviewFixture {
   tasks: AgentTask[]
   priorActions: ProposedAction[]
   specialists: OperationsOrchestratorSpecialistInputs
+  sensorReports: WeeklySensorReportInput[]
 }
 
 export interface OperatingReviewWorkflowInput {
@@ -80,6 +87,10 @@ export interface OperatingWorkflowOutput {
   priorities: Array<Record<string, unknown>>
   autumnDecisions: Array<Record<string, unknown>>
   artifactCounts: OperatingWorkflowPersistedCounts | null
+  sensorRunCount: number
+  sensorObservationCount: number
+  sensorProvenanceModes: SensorProvenanceMode[]
+  sensorPersistenceVerified: boolean
   verificationStatus: 'pending' | 'verified' | 'failed'
   correlationId: string
 }
@@ -88,7 +99,14 @@ interface OperatingWorkflowEvaluation {
   disposition: DurableClaimDisposition
   orchestrator: OperationsOrchestratorOutput | null
   batch: OperatingWorkflowArtifactBatch | null
+  sensorBatches: SensorIngestionBatch[]
   output: OperatingWorkflowOutput
+}
+
+interface OperatingSensorPersistedCounts {
+  sensorRunCount: number
+  sensorObservationCount: number
+  reusedRunCount: number
 }
 
 export async function conversionReviewWorkflow(
@@ -127,10 +145,19 @@ async function runOperatingWorkflow(
     const evaluation = await evaluateOperatingReviewStep(input, workflowName, claim.run.runId)
     if (evaluation.disposition !== 'claimed' && evaluation.disposition !== 'reused') return evaluation.output
     if (!evaluation.batch) throw new FatalError('Operating review evaluation did not return a persistence batch')
+    const sensorPersistence = await persistOperatingSensorsStep(
+      input,
+      workflowName,
+      claim.run.runId,
+      evaluation.sensorBatches,
+    )
     const persisted = await persistOperatingArtifactsStep(input, workflowName, claim.run.runId, evaluation.batch)
     const output: OperatingWorkflowOutput = {
       ...evaluation.output,
       artifactCounts: persisted,
+      sensorRunCount: sensorPersistence.sensorRunCount,
+      sensorObservationCount: sensorPersistence.sensorObservationCount,
+      sensorPersistenceVerified: true,
       verificationStatus: 'verified',
     }
     const completed = await completeOperatingRunStep(input, workflowName, claim.run.runId, output, evaluation.batch)
@@ -200,7 +227,13 @@ export async function evaluateOperatingReviewStep(
   if (!claim.step.claimToken) throw new FatalError('Operating review evaluation claim has no token')
 
   try {
-    const operatingSignals = signalsForWorkflow(input, workflowName)
+    const sensorBatches = workflowName === WEEKLY_OPERATING_REVIEW_WORKFLOW_NAME
+      ? adaptWeeklySensorReports(input.fixture.sensorReports, {
+        observedAt: input.requestedAt,
+        correlation: input.correlation,
+      })
+      : []
+    const operatingSignals = signalsForWorkflow(input, workflowName, sensorBatches)
     const specialists = specialistsForWorkflow(input.fixture.specialists, input.fixture.industryObservations, workflowName)
     const orchestrator = await runOperationsOrchestrator({
       workflowName,
@@ -216,7 +249,13 @@ export async function evaluateOperatingReviewStep(
       observedAt: input.requestedAt,
       maximumPriorities: 3,
     })
-    const output = outputFromOrchestrator(orchestrator, workflowName, runId, input.correlation)
+    const output = outputFromOrchestrator(
+      orchestrator,
+      workflowName,
+      runId,
+      input.correlation,
+      sensorBatches,
+    )
     const review = reviewFromOutput(output, orchestrator, input, runId, workflowName)
     const batch: OperatingWorkflowArtifactBatch = {
       runId,
@@ -228,7 +267,13 @@ export async function evaluateOperatingReviewStep(
       experiments: orchestrator.data.experimentProposals.slice(0, 10),
       actions: orchestrator.proposedActions.slice(0, 10),
     }
-    const evaluation: OperatingWorkflowEvaluation = { disposition: 'claimed', orchestrator, batch, output }
+    const evaluation: OperatingWorkflowEvaluation = {
+      disposition: 'claimed',
+      orchestrator,
+      batch,
+      sensorBatches,
+      output,
+    }
     await context.durableStore.completeStep({
       runId,
       stepKey,
@@ -240,6 +285,77 @@ export async function evaluateOperatingReviewStep(
       traceId: input.correlation.traceId,
     })
     return evaluation
+  } catch (error) {
+    await context.durableStore.failStep({
+      runId,
+      stepKey,
+      claimToken: claim.step.claimToken,
+      error: toOperationalError(error),
+      retryAfter: retryAfterForAttempt(metadata.attempt),
+      correlationId: input.correlation.correlationId,
+      causationId: input.correlation.causationId,
+      traceId: input.correlation.traceId,
+    })
+    throw workflowStepError(error, metadata.attempt)
+  }
+}
+
+export async function persistOperatingSensorsStep(
+  input: OperatingReviewWorkflowInput,
+  workflowName: OperatingWorkflowName,
+  runId: string,
+  sensorBatches: SensorIngestionBatch[],
+): Promise<OperatingSensorPersistedCounts> {
+  'use step'
+
+  const metadata = getStepMetadata()
+  const context = await resolveOperatingWorkflowContext(input.binding)
+  const stepKey = `persist-sensors-${workflowName}`
+  const expected: OperatingSensorPersistedCounts = {
+    sensorRunCount: sensorBatches.length,
+    sensorObservationCount: sensorBatches.reduce((sum, batch) => sum + batch.observations.length, 0),
+    reusedRunCount: 0,
+  }
+  const claim = await context.durableStore.claimStep({
+    runId,
+    stepKey,
+    workflowStepId: metadata.stepId,
+    input: {
+      sensorRunCount: expected.sensorRunCount,
+      sensorObservationCount: expected.sensorObservationCount,
+      checksums: sensorBatches.map((batch) => batch.checksum),
+    },
+    maxAttempts: MAX_ATTEMPTS,
+    leaseSeconds: STEP_LEASE_SECONDS,
+    correlationId: input.correlation.correlationId,
+    causationId: input.correlation.causationId,
+    traceId: input.correlation.traceId,
+  })
+  if (claim.disposition === 'reused') return storedSensorCounts(claim.step.output)
+  if (claim.disposition === 'busy') throw new RetryableError('Operating sensor persistence claim is busy', { retryAfter: '2s' })
+  if (claim.disposition === 'exhausted') throw new FatalError('Operating sensor persistence attempts are exhausted')
+  if (!claim.step.claimToken) throw new FatalError('Operating sensor persistence claim has no token')
+
+  try {
+    const persisted = await Promise.all(sensorBatches.map((batch) => context.sensorStore.persistBatch(batch)))
+    const result = summarizeSensorPersistence(persisted)
+    if (
+      result.sensorRunCount !== expected.sensorRunCount
+      || result.sensorObservationCount !== expected.sensorObservationCount
+    ) {
+      throw new FatalError('Operating sensor persistence verification failed')
+    }
+    await context.durableStore.completeStep({
+      runId,
+      stepKey,
+      claimToken: claim.step.claimToken,
+      output: result as unknown as Record<string, unknown>,
+      toolCalls: [],
+      correlationId: input.correlation.correlationId,
+      causationId: input.correlation.causationId,
+      traceId: input.correlation.traceId,
+    })
+    return result
   } catch (error) {
     await context.durableStore.failStep({
       runId,
@@ -337,6 +453,9 @@ export async function completeOperatingRunStep(
       artifactCounts: output.artifactCounts,
       priorityCount: output.priorityCount,
       quiet: output.quiet,
+      sensorRunCount: output.sensorRunCount,
+      sensorObservationCount: output.sensorObservationCount,
+      sensorPersistenceVerified: output.sensorPersistenceVerified,
     },
     correlationId: input.correlation.correlationId,
     causationId: input.correlation.causationId,
@@ -366,8 +485,12 @@ export async function recordOperatingRunFailureStep(
 function signalsForWorkflow(
   input: OperatingReviewWorkflowInput,
   workflowName: OperatingWorkflowName,
+  sensorBatches: SensorIngestionBatch[],
 ): IntelligenceSignal[] {
-  const base = [...input.fixture.persistedSignals]
+  const base = [
+    ...input.fixture.persistedSignals,
+    ...sensorBatches.flatMap((batch) => batch.signals),
+  ]
   if (workflowName === DAILY_BUSINESS_HEALTH_WORKFLOW_NAME) {
     base.push(...input.fixture.lifecycleSignals, ...sourceHealthSignals(input.fixture.sourceHealth, input))
   } else if (workflowName === CONVERSION_REVIEW_WORKFLOW_NAME) {
@@ -458,6 +581,7 @@ function outputFromOrchestrator(
   workflowName: OperatingWorkflowName,
   runId: string,
   correlation: CorrelationContext,
+  sensorBatches: SensorIngestionBatch[],
 ): OperatingWorkflowOutput {
   const quiet = orchestrator.status === 'quiet'
   const priorities = orchestrator.data.priorities.map((priority) => ({ ...priority }))
@@ -475,6 +599,10 @@ function outputFromOrchestrator(
     priorities,
     autumnDecisions,
     artifactCounts: null,
+    sensorRunCount: sensorBatches.length,
+    sensorObservationCount: sensorBatches.reduce((sum, batch) => sum + batch.observations.length, 0),
+    sensorProvenanceModes: [...new Set(sensorBatches.map((batch) => batch.provenanceMode))],
+    sensorPersistenceVerified: sensorBatches.length === 0,
     verificationStatus: 'pending',
     correlationId: correlation.correlationId,
   }
@@ -504,6 +632,9 @@ function reviewFromOutput(
       taskCount: orchestrator.data.taskDrafts.length,
       experimentCount: orchestrator.data.experimentProposals.length,
       proposedActionCount: orchestrator.proposedActions.length,
+      sensorRunCount: output.sensorRunCount,
+      sensorObservationCount: output.sensorObservationCount,
+      sensorProvenanceModes: output.sensorProvenanceModes,
     },
     idempotencyKey,
     correlationId: input.correlation.correlationId,
@@ -541,6 +672,10 @@ function summarizeExistingRun(
     priorities: [],
     autumnDecisions: [],
     artifactCounts: null,
+    sensorRunCount: 0,
+    sensorObservationCount: 0,
+    sensorProvenanceModes: [],
+    sensorPersistenceVerified: true,
     verificationStatus: claim.disposition === 'exhausted' ? 'failed' : claim.run.verificationStatus,
     correlationId: correlation.correlationId,
   }
@@ -556,6 +691,7 @@ function emptyEvaluation(
     disposition,
     orchestrator: null,
     batch: null,
+    sensorBatches: [],
     output: {
       ...summarizeExistingRun({
         disposition,
@@ -588,6 +724,19 @@ function storedCounts(value: Record<string, unknown> | null): OperatingWorkflowP
   return value as unknown as OperatingWorkflowPersistedCounts
 }
 
+function storedSensorCounts(value: Record<string, unknown> | null): OperatingSensorPersistedCounts {
+  if (!value) throw new FatalError('Completed operating sensor persistence step has no reusable output')
+  return value as unknown as OperatingSensorPersistedCounts
+}
+
+function summarizeSensorPersistence(results: PersistedSensorBatchCounts[]): OperatingSensorPersistedCounts {
+  return {
+    sensorRunCount: results.reduce((sum, result) => sum + result.runCount, 0),
+    sensorObservationCount: results.reduce((sum, result) => sum + result.observationCount, 0),
+    reusedRunCount: results.filter((result) => result.disposition === 'reused').length,
+  }
+}
+
 function countsFor(batch: OperatingWorkflowArtifactBatch): OperatingWorkflowPersistedCounts {
   return {
     signalCount: batch.signals.length,
@@ -616,6 +765,10 @@ function assertWorkflowInput(input: OperatingReviewWorkflowInput, workflowName: 
   if (input.fixture.metrics.length > 25_000 || input.fixture.persistedSignals.length > 50) {
     throw new FatalError('Operating workflow fixture exceeds bounded inputs')
   }
+  if (input.fixture.sensorReports.length > 10) throw new FatalError('Operating workflow exceeds ten sensor reports')
+  if (workflowName !== WEEKLY_OPERATING_REVIEW_WORKFLOW_NAME && input.fixture.sensorReports.length > 0) {
+    throw new FatalError('SEO/AEO sensor reports are accepted only by weekly_operating_review')
+  }
 }
 
 function fixtureSummary(fixture: OperatingReviewFixture): Record<string, unknown> {
@@ -629,6 +782,7 @@ function fixtureSummary(fixture: OperatingReviewFixture): Record<string, unknown
     experimentCount: fixture.experiments.length,
     taskCount: fixture.tasks.length,
     priorActionCount: fixture.priorActions.length,
+    sensorReportCount: fixture.sensorReports.length,
   }
 }
 

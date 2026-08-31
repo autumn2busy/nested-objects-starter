@@ -6,12 +6,17 @@ import {
   createSupabaseOperatingWorkflowStore,
   type OperatingWorkflowStore,
 } from '../persistence/operating-workflow-store.js'
+import {
+  createSupabaseSensorObservationStore,
+  type SensorObservationStore,
+} from '../persistence/sensor-observation-store.js'
 import { loadDurableRuntimeConfiguration } from './durable-runtime.js'
 import type { StagingDestinationBinding } from './staging-destination.js'
 
 export interface OperatingWorkflowContext {
   durableStore: DurableWorkflowStore
   operatingStore: OperatingWorkflowStore
+  sensorStore: SensorObservationStore
   binding: StagingDestinationBinding
   runtimeVersion: string
 }
@@ -34,14 +39,16 @@ export async function resolveOperatingWorkflowContext(
     url: requiredValue(configuration.runtime.supabaseUrl),
     serviceRoleKey: requiredValue(configuration.runtime.supabaseServiceRoleKey),
   }
-  const [durableStore, operatingStore] = await Promise.all([
+  const [durableStore, operatingStore, sensorStore] = await Promise.all([
     createSupabaseDurableWorkflowStore(credentials),
     createSupabaseOperatingWorkflowStore(credentials),
+    createSupabaseSensorObservationStore(credentials),
   ])
   await durableStore.verifyDestination(configuration.binding)
   return {
     durableStore,
     operatingStore,
+    sensorStore,
     binding: configuration.binding,
     runtimeVersion: configuration.runtime.runtimeVersion,
   }
