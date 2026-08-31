@@ -66,7 +66,7 @@ export default function RolesPage() {
             Field service paths Nested Objects supports
           </h1>
           <p className="mt-3 max-w-3xl text-base text-slate-700">
-            Start with the role closest to your work, then use the firm directory and member tools to
+            Start with the role closest to your work, then use the firm directory and tools preview to
             compare opportunities, requirements, and next steps.
           </p>
         </div>

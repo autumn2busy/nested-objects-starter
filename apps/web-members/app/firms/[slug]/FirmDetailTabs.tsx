@@ -164,7 +164,7 @@ export function FirmDetailTabs({
                         <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Pay intel</p>
                         <p className="mt-1 text-sm text-blue-800/80">
                             Pay ranges are based on available data and may vary by region, experience, and order type.
-                            Use the AI concierge to compare this firm against others in your area.
+                            Compare the firm profile, requirements, and service area before applying.
                         </p>
                     </div>
                 </TabsContent>

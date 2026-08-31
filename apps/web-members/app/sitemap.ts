@@ -88,26 +88,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  // Static tool slugs — public tool pages
-  const STATIC_TOOL_SLUGS = [
-    'income-calculator',
-    'notary-route-calculator',
-    'ai-resume',
-    'ai-concierge',
-    'weather',
-    'routing',
-    'job-tracker',
-    'clients',
-    'companies',
-  ]
-
-  const toolEntries = STATIC_TOOL_SLUGS.map((slug) => ({
-    url: `${SITE_URL}/tools/${slug}`,
-    lastModified: getFileLastModified(`tools/${slug}/page.tsx`),
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
-
   const stateEntries = ALL_STATE_SLUGS.map((slug) => ({
     url: `${SITE_URL}/hiring-firms/${slug}`,
     lastModified: getFileLastModified('hiring-firms/state-data.ts'),
@@ -248,7 +228,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Firm detail routes are intentionally excluded. They contain member-only
     // intelligence and must not be advertised to anonymous crawlers.
     ...roleEntries,
-    ...toolEntries,
     ...stateEntries,
     ...blogCategoryEntries,
     ...blogEntries,

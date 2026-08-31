@@ -14,7 +14,7 @@ export function OnboardingWidget() {
     const steps = [
         { label: 'Complete your profile', href: '/profile', icon: Circle },
         { label: 'Explore the member directory', href: '/members', icon: Circle },
-        { label: 'Try the AI Resume Builder', href: '/tools', icon: Circle },
+        { label: 'Preview planned resume support', href: '/tools', icon: Circle },
     ]
 
     const handleDismiss = async () => {

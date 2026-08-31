@@ -361,8 +361,8 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                                 <p className="text-xs text-muted-foreground">
                                     Inspections logged
                                 </p>
-                                <Link href="/tools/job-tracking" className="text-xs text-brand-copper hover:underline mt-1 block">
-                                    View work history →
+                                <Link href="/tools" className="text-xs text-brand-copper hover:underline mt-1 block">
+                                    Preview job and route tools →
                                 </Link>
                             </CardContent>
                         </Card>

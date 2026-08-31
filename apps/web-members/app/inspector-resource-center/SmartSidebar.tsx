@@ -48,8 +48,7 @@ function getTierLabel(planUid: string | null): string {
 
 function getRecommendations(
     planUid: string | null,
-    isAuthenticated: boolean,
-    hasAccess: (feature: string) => boolean
+    isAuthenticated: boolean
 ): Recommendation[] {
     const tier = getTierLabel(planUid)
 
@@ -110,13 +109,12 @@ function getRecommendations(
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'AI tool',
-                title: 'Build your field services resume',
+                eyebrow: 'Tools preview',
+                title: 'Preview planned member tools',
                 description:
-                    'Our AI rewrites your resume for inspections, notary, and property preservation roles.',
-                href: '/tools/ai-resume',
-                locked: !hasAccess('ai_resume'),
-                badge: !hasAccess('ai_resume') ? 'PRO' : undefined,
+                    'See the planned resume, AI, income, and route workflows. Execution remains disabled.',
+                href: '/tools',
+                badge: 'PREVIEW',
                 badgeColor: 'bg-brand-copper/10 text-brand-copper',
             },
             {
@@ -124,7 +122,7 @@ function getRecommendations(
                 eyebrow: 'Upgrade',
                 title: 'Unlock all training modules',
                 description:
-                    'Pro members get full access to every module, AI tools, and priority support.',
+                    'Pro members get full training, firm intel, readiness resources, and priority support.',
                 href: '/membership-pricing',
                 badge: 'UPGRADE',
                 badgeColor: 'bg-amber-100 text-amber-700',
@@ -145,26 +143,26 @@ function getRecommendations(
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'AI tool',
-                title: 'Build your field services resume',
+                eyebrow: 'Tools preview',
+                title: 'Preview planned resume support',
                 description:
-                    'Upload your resume and let AI rewrite it for the roles firms are actually hiring for.',
-                href: '/tools/ai-resume',
+                    'Review the planned resume workflow. Upload and AI execution remain disabled.',
+                href: '/tools',
             },
             {
                 icon: <Search className="w-5 h-5" />,
                 eyebrow: 'Directory',
                 title: 'Explore the firm directory',
                 description:
-                    'Filter by location, role, and pay. Save firms to your pipeline.',
+                    'Filter by location, role, and pay, then build a practical application shortlist.',
                 href: '/hiring-firms',
             },
             {
                 icon: <Sparkles className="w-5 h-5" />,
                 eyebrow: 'Next level',
-                title: 'Upgrade to Pro for AI tools',
+                title: 'Upgrade to Pro for full firm intel',
                 description:
-                    'Get the AI Concierge, firm intel, and job routing. See what Pro unlocks.',
+                    'Get the full directory, training, readiness resources, and priority support.',
                 href: '/membership-pricing',
                 badge: 'UPGRADE',
                 badgeColor: 'bg-amber-100 text-amber-700',
@@ -177,21 +175,21 @@ function getRecommendations(
         return [
             {
                 icon: <Sparkles className="w-5 h-5" />,
-                eyebrow: 'AI tool',
-                title: 'Ask the AI Concierge',
+                eyebrow: 'Tools preview',
+                title: 'Preview the planned AI workbench',
                 description:
-                    'Get personalized next steps based on your role, experience, and goals.',
-                href: '/tools/ai-concierge',
-                badge: 'NEW',
+                    'See the planned guidance workflow. Prompts and model execution remain disabled.',
+                href: '/tools',
+                badge: 'PREVIEW',
                 badgeColor: 'bg-blue-100 text-blue-700',
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'AI tool',
-                title: 'Build or update your resume',
+                eyebrow: 'Tools preview',
+                title: 'Preview the planned resume workflow',
                 description:
-                    'AI tailors your resume for field services. Upload, edit, export to Word.',
-                href: '/tools/ai-resume',
+                    'Review the intended outcome. Upload, generation, and export remain disabled.',
+                href: '/tools',
             },
             {
                 icon: <Briefcase className="w-5 h-5" />,
@@ -226,11 +224,11 @@ function getRecommendations(
         },
         {
             icon: <Sparkles className="w-5 h-5" />,
-            eyebrow: 'AI tool',
-            title: 'AI Concierge',
+            eyebrow: 'Tools preview',
+            title: 'Preview the planned AI workbench',
             description:
-                'Get strategic guidance on firm applications, route optimization, and growth.',
-            href: '/tools/ai-concierge',
+                'Review the intended guidance workflow. Model execution remains disabled.',
+            href: '/tools',
         },
         {
             icon: <Users className="w-5 h-5" />,
@@ -252,7 +250,7 @@ function getRecommendations(
 }
 
 export default function SmartSidebar() {
-    const { planUid, isAuthenticated, isLoading, hasAccess, profileDisplayName } =
+    const { planUid, isAuthenticated, isLoading, profileDisplayName } =
         useAuth()
 
     if (isLoading) {
@@ -273,7 +271,7 @@ export default function SmartSidebar() {
     }
 
     const tier = getTierLabel(planUid)
-    const recommendations = getRecommendations(planUid, isAuthenticated, hasAccess)
+    const recommendations = getRecommendations(planUid, isAuthenticated)
     const greeting = profileDisplayName
         ? `${profileDisplayName}'s next steps`
         : 'Your next steps'
@@ -348,7 +346,7 @@ export default function SmartSidebar() {
                     <p className="mt-1 text-slate-200">
                         {tier === 'Pro'
                             ? 'Elite members get partner referrals, 1-to-1 gaming sessions, and concierge calls.'
-                            : 'Pro members unlock AI tools, full training, and the job pipeline.'}
+                            : 'Pro members unlock the full directory, full training, and readiness resources.'}
                     </p>
                     <Link
                         href="/membership-pricing"

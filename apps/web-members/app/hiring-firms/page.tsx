@@ -426,10 +426,10 @@ function DirectoryRankingHub({ states }: { states: StateIndexEntry[] }) {
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
-                href="/tools/income-calculator"
+                href="/tools"
                 className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-copper hover:text-brand-copper"
               >
-                Estimate route income
+                Preview income tool
               </Link>
               <Link
                 href="/inspector-resource-center/firm-intel"

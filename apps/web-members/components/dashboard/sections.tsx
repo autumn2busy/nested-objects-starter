@@ -40,7 +40,7 @@ export function HomeOverviewSection() {
   ]
 
   const quickActions = [
-    { label: 'Create briefing', href: '/tools/checklists' },
+    { label: 'Preview planned tools', href: '/tools' },
     { label: 'Log mileage', href: '/tools' },
     { label: 'Share availability', href: '/profile' },
     { label: 'Open firm directory', href: '/hiring-firms' },
@@ -230,16 +230,16 @@ export function JobTrackerSection() {
 export function AIConciergeSection() {
   return (
     <DashboardSectionCard
-      title="AI concierge"
-      subtitle="Ask anything about your business"
+      title="AI concierge preview"
+      subtitle="See the planned guidance workflow"
       actions={
-        <Link href="/tools/ai-concierge" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
-          Open chat
+        <Link href="/tools" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
+          Preview tools
         </Link>
       }
     >
       <div className="rounded-xl border border-brand-mist bg-brand-sand p-4">
-        <p className="mb-3 text-sm text-brand-slate data-[theme=dark]:text-white">Try asking:</p>
+        <p className="mb-3 text-sm text-brand-slate data-[theme=dark]:text-white">Planned prompt examples:</p>
         <ul className="space-y-2 text-sm">
           <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;What inspections pay the most in my area?&rdquo;</li>
           <li className="rounded-lg bg-white px-3 py-2 text-brand-steel">&ldquo;Help me write a follow-up email to a firm&rdquo;</li>
@@ -482,7 +482,7 @@ export function ResumeBuilderSection() {
 
   return (
     <DashboardSectionCard
-      title="Resume builder"
+      title="Resume builder preview"
       subtitle="Keep a sharable portfolio ready"
       actions={
         <Link href="/profile" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">

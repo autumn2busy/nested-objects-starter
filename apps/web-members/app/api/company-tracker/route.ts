@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
+import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability'
 
 export const dynamic = 'force-dynamic'
 
 // GET — fetch all tracked firms for the current user
 export async function GET() {
+    const unavailable = memberToolsUnavailableResponse()
+    if (unavailable) return unavailable
+
     try {
         const user = await getCurrentUser()
         const outsetaId = getOutsetaUserId(user)
@@ -37,6 +41,9 @@ export async function GET() {
 
 // POST — add a firm to the company tracker
 export async function POST(request: Request) {
+    const unavailable = memberToolsUnavailableResponse()
+    if (unavailable) return unavailable
+
     try {
         const user = await getCurrentUser()
         const outsetaId = getOutsetaUserId(user)
@@ -92,6 +99,9 @@ export async function POST(request: Request) {
 
 // DELETE — remove a firm from the company tracker
 export async function DELETE(request: Request) {
+    const unavailable = memberToolsUnavailableResponse()
+    if (unavailable) return unavailable
+
     try {
         const user = await getCurrentUser()
         const outsetaId = getOutsetaUserId(user)
@@ -129,6 +139,9 @@ export async function DELETE(request: Request) {
 
 // PATCH — update a tracked firm (e.g. status change)
 export async function PATCH(request: Request) {
+    const unavailable = memberToolsUnavailableResponse()
+    if (unavailable) return unavailable
+
     try {
         const user = await getCurrentUser()
         const outsetaId = getOutsetaUserId(user)

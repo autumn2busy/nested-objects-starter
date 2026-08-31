@@ -10,6 +10,19 @@ export const PLAN_UIDS = {
     FOUNDERS: 'pWrBRnWn', // $37/yr legacy plan — same access level as Starter
 } as const
 
+// Public checkout is intentionally allowlisted. Legacy plans stay valid for
+// existing members but cannot reappear because a display flag changes.
+export const PUBLIC_PLAN_UIDS: readonly string[] = [
+    PLAN_UIDS.FREE,
+    PLAN_UIDS.PRO,
+    PLAN_UIDS.ELITE,
+    PLAN_UIDS.AGENCY,
+]
+
+export function isPublicPlanUid(planUid: string): boolean {
+    return PUBLIC_PLAN_UIDS.includes(planUid)
+}
+
 // All plans that represent a paid subscription
 export const PAID_PLANS: readonly string[] = [
     PLAN_UIDS.FOUNDERS, // $37/yr (legacy)

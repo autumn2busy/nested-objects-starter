@@ -20,8 +20,8 @@ type TokenState =
 const FEATURES = [
   { icon: Search, title: '200+ Verified Hiring Firms', desc: 'Searchable directory with real pay data, contacts, and coverage areas.' },
   { icon: BookOpen, title: 'Structured Training Tracks', desc: 'Role-based modules, quizzes, and certificates. Earn your Trust Score.' },
-  { icon: Bot, title: 'AI Concierge', desc: 'Ask anything about firms, routes, or requirements — grounded answers instantly.' },
-  { icon: FileText, title: 'AI Resume Builder', desc: 'ATS-optimized resumes built for inspectors, notaries, and field pros.' },
+  { icon: Bot, title: 'Member Tools Preview', desc: 'Preview planned guidance for firms, routes, and requirements. Execution remains disabled.' },
+  { icon: FileText, title: 'Resume Workflow Preview', desc: 'Preview the planned inspector resume workflow. Upload and generation remain disabled.' },
   { icon: Briefcase, title: 'Live Job Board', desc: 'Updated listings filtered by location, pay, and specialty.' },
   { icon: Shield, title: 'Trust Score & Badge', desc: 'Complete training, verify background, earn a visible score firms recognize.' },
 ]
@@ -30,7 +30,7 @@ const STEPS = [
   { n: 1, title: 'Click "Claim Your Account" below', detail: "You'll create your login on the new platform. Use the same email from your original signup." },
   { n: 2, title: 'Set your password', detail: "Choose a new password. Your old Wix login doesn't carry over — this is a fresh, faster system." },
   { n: 3, title: 'Enter your card for the Founders plan ($37/year)', detail: "Your early adopter price is honored. New billing runs through Stripe. Your old Wix subscription stays active until you cancel it." },
-  { n: 4, title: 'Explore your new dashboard', detail: "Everything is waiting — directory, training, AI tools, and your profile." },
+  { n: 4, title: 'Explore your new dashboard', detail: "Your directory, training, readiness resources, profile, and tools preview are waiting." },
 ]
 
 function Badge() {
@@ -173,7 +173,7 @@ export function WelcomeBackView() {
         <h2 className="text-center text-xl font-semibold text-slate-900">Common questions</h2>
         <div className="mx-auto mt-6 max-w-2xl space-y-5 text-sm text-slate-700">
           {[
-            { q: 'Why do I need a new account?', a: "We moved from Wix to a custom platform for speed, AI tools, and a better experience. Your old login can't transfer, but setup takes 2 minutes." },
+            { q: 'Why do I need a new account?', a: "We moved from Wix to a custom platform for faster directory, training, and account access. Your old login can't transfer, but setup takes 2 minutes." },
             { q: 'Am I paying twice?', a: "No. When you sign up here, a new $37/year cycle starts on Stripe. Cancel your old Wix subscription once you're set up — you won't be double-charged." },
             { q: 'How long is the $37/year pricing good for?', a: "Your Founders plan renews at $37/year as long as you keep your subscription active. If you cancel and rejoin later, you'll need to choose from current plans." },
             { q: 'What if I need help?', a: 'Reply to the email you received or use the Contact page. Founding Members get priority support.' },

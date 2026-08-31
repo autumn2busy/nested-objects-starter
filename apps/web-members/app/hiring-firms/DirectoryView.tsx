@@ -11,7 +11,7 @@ import {
   DirectoryAnalytics,
   DirectoryLoginLink,
   DirectoryUpgradeLink,
-  TrackFirmButton,
+  TrackFirmPreviewButton,
 } from './DirectoryActions'
 
 const INDUSTRY_OPTIONS = [
@@ -342,10 +342,10 @@ function NotaryDirectoryPanel({ access }: { access: DirectoryAccess }) {
           </p>
         </div>
         <Link
-          href="/tools/notary-route-calculator"
+          href="/tools"
           className="inline-flex w-full items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
         >
-          Calculate route pay
+          Preview route tool
         </Link>
       </div>
 
@@ -496,7 +496,7 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
         >
           VIEW PROFILE
         </Link>
-        {canTrack && <TrackFirmButton firm={firm} />}
+        {canTrack && <TrackFirmPreviewButton />}
       </div>
     </article>
   )

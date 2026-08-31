@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { redirectDisabledMemberTool } from '../_disabled-tool-route'
 
-export default function JobTrackingRedirectPage() {
-  redirect('/tools/job-tracker')
+export default function JobTrackingPage() {
+  return redirectDisabledMemberTool()
 }

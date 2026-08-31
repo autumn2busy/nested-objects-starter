@@ -72,10 +72,10 @@ export default function MobileNotaryPage() {
                 Browse notary-friendly firms
               </Link>
               <Link
-                href="/tools/notary-route-calculator"
+                href="/tools"
                 className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white sm:w-auto"
               >
-                Calculate route profit
+                Preview route tool
               </Link>
             </div>
             <div className="grid gap-3 text-sm text-slate-200 sm:grid-cols-3">
@@ -179,10 +179,10 @@ export default function MobileNotaryPage() {
             </p>
           </div>
           <Link
-            href="/tools/notary-route-calculator"
+            href="/tools"
             className="inline-flex w-full items-center justify-center rounded-md bg-brand-copper px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
           >
-            Open notary calculator
+            Preview route tool
           </Link>
         </div>
       </section>
@@ -206,10 +206,10 @@ export default function MobileNotaryPage() {
               Start membership
             </Link>
             <Link
-              href="/tools/companies"
+              href="/tools"
               className="inline-flex w-full items-center justify-center rounded-md border border-slate-500 px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-white sm:w-auto"
             >
-              Track saved firms
+              Preview firm-tracking tool
             </Link>
           </div>
         </div>

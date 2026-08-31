@@ -13,7 +13,7 @@ const footerSections = [
       { href: '/hiring-firms', label: 'Field inspector directory' },
       { href: '/jobs', label: 'Inspector jobs board' },
       { href: '/challenges', label: 'Training & certification' },
-      { href: '/tools', label: 'AI tools' },
+      { href: '/tools', label: 'Tools preview' },
       { href: '/roles/inspector', label: 'Inspector roles' },
     ],
   },

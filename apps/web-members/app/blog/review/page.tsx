@@ -8,6 +8,7 @@ import { getBlogReviewerSession } from '@/lib/blog-admin-auth'
 import seoOpportunitiesJson from '@/content/seo-content-opportunities.json'
 import aiAeoOpportunitiesJson from '@/content/ai-aeo-opportunities.json'
 import contentBriefsJson from '@/content/content-briefs.json'
+import { normalizeMemberToolHref, normalizeMemberToolLink } from '@/lib/member-tool-links'
 
 export const dynamic = 'force-dynamic'
 
@@ -288,15 +289,18 @@ export default async function BlogReviewPage() {
                                             )}
 
                                             <div className="mt-4 flex flex-wrap gap-2">
-                                                {opportunity.internalLinks.slice(0, 3).map((link) => (
-                                                    <Link
-                                                        key={`${opportunity.id}-${link.href}`}
-                                                        href={link.href}
-                                                        className="text-xs font-semibold text-brand underline underline-offset-2"
-                                                    >
-                                                        {link.label}
-                                                    </Link>
-                                                ))}
+                                                {opportunity.internalLinks.slice(0, 3).map((link) => {
+                                                    const previewSafeLink = normalizeMemberToolLink(link)
+                                                    return (
+                                                        <Link
+                                                            key={`${opportunity.id}-${link.href}`}
+                                                            href={previewSafeLink.href}
+                                                            className="text-xs font-semibold text-brand underline underline-offset-2"
+                                                        >
+                                                            {previewSafeLink.label}
+                                                        </Link>
+                                                    )
+                                                })}
                                             </div>
                                         </article>
                                     )
@@ -361,7 +365,7 @@ export default async function BlogReviewPage() {
                                                 </p>
                                             </div>
                                             <Link
-                                                href={brief.targetPage}
+                                                href={normalizeMemberToolHref(brief.targetPage)}
                                                 className="shrink-0 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100"
                                             >
                                                 Target page
@@ -509,7 +513,7 @@ export default async function BlogReviewPage() {
                                             </span>
                                         </div>
                                         <p className="mt-2 text-sm font-semibold leading-5">{opportunity.prompt}</p>
-                                        <Link href={opportunity.targetPage} className="mt-2 inline-flex text-xs font-semibold underline">
+                                        <Link href={normalizeMemberToolHref(opportunity.targetPage)} className="mt-2 inline-flex text-xs font-semibold underline">
                                             Target answer page
                                         </Link>
                                     </div>

@@ -651,10 +651,10 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <Link
-              href="/tools/income-calculator"
+              href="/tools"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
             >
-              Estimate income
+              Preview income tool
             </Link>
           </div>
         </div>
