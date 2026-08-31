@@ -1,13 +1,21 @@
-"use client";
-
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { ContentProtection } from "@/components/ContentProtection";
+import { getCurrentUser } from "@/lib/auth-server";
 
-export default function PortalLayout({
+const OUTSETA_LOGIN_URL = "https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous";
+
+export default async function PortalLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const user = await getCurrentUser();
+
+    if (!user) {
+        redirect(OUTSETA_LOGIN_URL);
+    }
+
     return (
         <div className="flex min-h-screen">
             <ContentProtection />
