@@ -58,6 +58,16 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - The committed allowlist is intentionally empty. The code, migration, rollback-safe validation, and synthetic tests are complete, while live staging application remains blocked until Autumn reviews the exact nonsecret staging project reference and supplies its server-only credential through the approved environment channel.
 - No queue package, model execution, ActiveCampaign mutation, email send, content publication, Production schedule, or Production deployment was added.
 
+### Phase C4. Core specialist agents
+
+- Revenue Agent compares normalized metrics only, preserves unknown values as null, and refuses to treat ActiveCampaign as financial truth.
+- Growth Agent replaces the standalone weekly-analysis shape with current-week, prior-week, trailing-four-week, and trailing-twelve-week structured comparisons across signup, upgrade, churn, trial, directory, paywall, profile, training, opportunity, marketing, acquisition, and SEO metric families.
+- Industry Intelligence Agent converts approved research observations into publication-dated, event-dated, licensed, source-addressable records and routes high-value evidence as durable signals. Live research remains disabled unless a read-only tool is explicitly approved and configured.
+- Marketing Agent consumes Revenue and Growth outputs, defines identifier-free audiences, and produces recommendations, experiments, internal copy, and proposed actions. It never independently declares financial success or mutates ActiveCampaign.
+- Operations Orchestrator invokes specialists through typed contracts, reads prior control-plane state, ranks no more than three meaningful priorities, creates task/experiment/action drafts, enforces the action policy, persists bounded operational state through an injected store, and stays quiet when evidence is not material.
+- All five implementations use deterministic test doubles by default. Their structured results explicitly record no model use, no tokens/cost, no external mutation, concise rationale, evidence, source references, signals, proposed actions, and Autumn decisions only.
+- Paid-access integrity now treats disabled, inactive, missing, or otherwise unrecognized `accessStatus` as a mismatch even when tier and directory flags look correct.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -115,6 +125,8 @@ npm run validate
 
 `npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves duplicate delivery reuse and retry/resume behavior using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, and C3 migration contracts without contacting a database.
 
+`npm run specialists:check` enforces the Phase C4 implementation registrations and deterministic, proposal-only capability boundary. The Node suite exercises all five specialists and the inactive paid-access regression without an OpenAI key.
+
 Node 22.16 or newer within the Node 22 release line is required by this isolated package. The upper bound prevents Vercel from overriding the project runtime with a newer major version. The repository-level Node setting and `apps/web-members` dependencies remain unchanged.
 
 The root TypeScript configuration intentionally infers its source root. Local builds include only `src/` and retain the existing private `dist` layout, while Vercel can add `api/` Function entries without excluding them from emission.
@@ -139,7 +151,7 @@ api/              Framework-neutral HTTP adapters retained for focused tests
 public/           Minimal non-indexable static output required by the Vercel project
 server/api/       Nitro HTTP entry points for health, C2 evaluation, and C3 workflow start
 src/
-  agents/         Specialist registrations and tool-free OpenAI adapter
+  agents/         Implemented deterministic v1 specialists, registrations, and optional tool-free OpenAI adapter
   http/           Request validation, authentication, health, and response contracts
   persistence/    Phase B and C1 server-only persistence contracts for later durable workflows
   projections/    Canonical member and daily metric projectors

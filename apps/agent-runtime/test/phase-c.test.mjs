@@ -222,6 +222,24 @@ test('lifecycle integrity detects paid access and ActiveCampaign plan mismatches
   assert.ok(signals.every((signal) => signal.id === stableUuid('nested-objects-intelligence-signal', signal.fingerprint)))
 })
 
+test('lifecycle integrity treats inactive access status as a paid-access mismatch', () => {
+  const projection = buildMemberProjectionBatch({
+    profiles: [profile()],
+    conversionEvents: [event('event-1', 'signup_completed')],
+    correlation,
+    observedAt: fixedNow,
+  }).projections[0]
+  const signals = evaluateLifecycleIntegrity({
+    projection,
+    productAccess: { memberId: profileId, accessTier: 'pro', accessStatus: 'disabled', directoryAccess: true, observedAt: fixedNow },
+    activeCampaignMirror: null,
+    marketingClassification: null,
+    correlation,
+    now: fixedNow,
+  })
+  assert.ok(signals.some((signal) => signal.signalType === 'lifecycle.paid_access_mismatch'))
+})
+
 test('tracking lag is detected only from contradictory activity timestamps', () => {
   const projection = buildMemberProjectionBatch({
     profiles: [profile({ last_active_at: '2026-08-25T10:00:00.000Z' })],
