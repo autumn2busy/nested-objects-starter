@@ -12,8 +12,8 @@ This is the durable source of truth for the remaining Issue #318 program. Update
 | Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
 | Current increment | Corrective member-surface implementation and broken-workflow removal |
-| Current branch | `fix/318-member-surface-correction` |
-| Current draft PR | Not opened yet |
+| Current branch | `feature/318-c3-durable-staging-workflows` at corrective base `d80bffb` |
+| Current draft PR | Not opened; the private corrective/C3 branch push requires explicit user approval |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
 | Consequential-action approver | Autumn only |
@@ -55,7 +55,7 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | 4 | `business_metrics_daily` exists | Complete | Phase B migration and Phase C daily projector | Extend only with provenance and unknown preservation. |
 | 5 | `intelligence_signals` exists | Complete | Phase B migration/contracts/store | Prove end-to-end production path with fixtures. |
 | 6 | `experiments` exists | Complete | Phase B migration/contracts/readiness logic | Integrate into weekly review and admin status. |
-| 7 | Agent control-plane persistence exists | Partial | Schema and Supabase store exist | C3: atomic claims, durable steps, staging binding, verification, resume/duplicate safety. |
+| 7 | Agent control-plane persistence exists | Repository-complete; live staging application blocked | C3 durable store, Workflow entry point, atomic run/step RPCs, committed destination policy, migration and validation | Autumn must review the exact staging project reference, database sentinel, secret channel, migration, and Preview smoke. |
 | 8 | Operations Orchestrator v1 exists | Missing | C4/C5 | Implement typed deterministic orchestrator and persistence. |
 | 9 | Revenue Agent v1 exists | Missing | C4 | Implement against normalized authoritative metrics. |
 | 10 | Growth Agent v1 replaces standalone Weekly Growth Analysis logic | Missing | C4 | Implement week/prior/4-week/12-week comparison and durable anomalies. |
@@ -75,9 +75,9 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | Requirement | Status | Responsible increment / blocker |
 | --- | --- | --- |
 | Independent Preview deployment and full Phase C2 live smoke verification | Complete | Draft PR #326 and `phase-c2-preview-deployment-verification.md`. |
-| Real Vercel Workflow implementation | Missing | C3. |
-| Staging persistence with reviewed destination binding | Missing / externally constrained | C3 code and fixtures; live application requires the dedicated staging project reference and server-only secret credential. |
-| Executable stale-run detection and resume-safe semantics | Missing | C3. |
+| Real Vercel Workflow implementation | Repository-complete | C3 pins Workflow `4.8.5`, compiles a real lifecycle workflow, and executes it under `@workflow/vitest`. |
+| Staging persistence with reviewed destination binding | Repository-complete / live application blocked | Code allowlist is intentionally empty; live application requires Autumn-reviewed staging reference, database sentinel, and server-only secret credential. |
+| Executable stale-run detection and resume-safe semantics | Repository-complete | C3 atomic RPCs, retry windows, bounded stale sweep, duplicate delivery, and completed-step reuse tests. |
 | Read-only ActiveCampaign sensor and lifecycle/performance signals | Partial | C6; live inventory remains read-only and stable-ID allowlisted. |
 | Minimal protected run/signal/priority/approval surface | Missing | C7. |
 | Trigger contracts and protected endpoints; no Production schedule | Missing | C7. |
@@ -100,8 +100,8 @@ Live Issue #318 was read on 2026-08-26. It is open, has no comments, and its def
 | Order | Branch | Intended PR base | Scope | Status |
 | ---: | --- | --- | --- | --- |
 | 1 | `feature/318-phase-c2-preview-deployment-verification` | `main` | C2 fixes and live isolated Preview verification | Draft PR #326; complete; unmerged |
-| 2 | `fix/318-member-surface-correction` | C2 verification branch | Remove invalid PR #325 workflows; implement preview-only tools, explicit public pricing, and field-inspector-first surfaces | In progress |
-| 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Pending |
+| 2 | `fix/318-member-surface-correction` | C2 verification branch | Remove invalid PR #325 workflows; implement preview-only tools, explicit public pricing, and field-inspector-first surfaces | Complete locally at `d80bffb`; push/draft PR blocked pending explicit private-repository push approval |
+| 3 | `feature/318-c3-durable-staging-workflows` | Corrective branch | Durable Workflow, atomic claims, staging safety, persistence adapter, migrations/tests | Complete locally; live staging application and stacked draft PR externally gated |
 | 4 | `feature/318-c4-core-specialist-agents` | C3 branch | Revenue, Growth, Industry, Marketing, Orchestrator v1 contracts/logic | Pending |
 | 5 | `feature/318-c5-orchestrator-operating-review` | C4 branch | `conversion_review`, `daily_business_health`, `weekly_operating_review` | Pending |
 | 6 | `feature/318-c6-sensors-marketing-integrity` | C5 branch | Sensors, SEO/AEO consumption, ActiveCampaign read-only integrity | Pending |
@@ -126,8 +126,11 @@ Each later draft PR must state that it is stacked on the preceding branch. If an
 | Corrective | Rendered homepage positioning | Passed | Field-inspector-first title and role order; mobile notary remains third/adjacent; no functional-tool promises or deep links. |
 | Corrective | Browser console/runtime | Passed with environmental observations | Tools, pricing, homepage, and About product truth rendered correctly with no browser errors. Existing logo aspect-ratio warning remains; blocked Google Fonts/Upstash network calls are local sandbox constraints and did not create a page error overlay. |
 | Corrective | Isolated Agent Runtime full validation | Passed | Format, pinned dependency smoke, typechecks, 37 tests, migrations, and Preview contracts all pass. |
-| C3 | Baseline `npm ci` / `npm run validate` | Not run yet | Required before implementation handoff. |
-| C3 | New migration static/rollback-safe validation | Not run yet | Required. |
+| C3 | Node and clean dependency install | Passed | Node `v22.22.2`; `npm.cmd ci --ignore-scripts --no-audit --no-fund` installed 521 locked packages. |
+| C3 | Full isolated `npm run validate` | Passed | Format, dependency smoke, two TypeScript targets, 41 Node tests, two real Workflow tests, all migration checks, and C2/C3 Preview contracts pass. |
+| C3 | Durable duplicate/retry/resume integration | Passed | `@workflow/vitest`: duplicate delivery reuses the same completed run; injected transient persistence failure retries once and reuses completed evaluation output. |
+| C3 | New migration static/rollback-safe validation | Passed locally / live staging blocked | SQL shape, sentinel permissions, atomic claims, retry windows, duplicate reuse, completed-step reuse, stale sweep, and transactional rollback script validated statically. |
+| C3 | Nitro development compile and HTTP boundary | Passed with browser limitation | Workflow compiler found one workflow/eight steps; C2 health/auth and fail-closed C3 responses passed over HTTP. In-app localhost navigation was blocked by `ERR_BLOCKED_BY_CLIENT`. |
 | C3 | Live staging migration and workflow smoke | Blocked pending verified staging binding/credentials | Do not use `apps/web-members/.env.local` or any unverified/production destination. |
 
 ## External blockers and Autumn-controlled decisions
@@ -168,14 +171,16 @@ These findings were verified against current `main` on 2026-08-26 and remain req
 
 ## Current C3 acceptance checklist
 
-- [ ] Install and lock the current Workflow DevKit without adding Vercel Queues.
-- [ ] Add a real `"use workflow"` orchestration entry point and bounded `"use step"` functions.
-- [ ] Add atomic, idempotent run/step claims that reuse completed work and never reset a completed run.
-- [ ] Persist start/completion/failure/retry/heartbeat/stale/verification state, correlation/causation, tool summaries, and optional usage/cost.
-- [ ] Add duplicate-delivery and resume-safe tests.
-- [ ] Add a committed deny-by-default staging destination binding that rejects the known production project and unreviewed hosts.
-- [ ] Keep secrets server-only and absent from logs/responses/tests/docs/Git.
-- [ ] Add bounded/batch persistence APIs and tests that avoid request-time serial write chains.
-- [ ] Add a focused migration plus rollback-safe validation/operator instructions.
-- [ ] Run Node version, `npm ci`, full `npm run validate`, focused tests, and `git diff --check`.
-- [ ] Review the diff against `7e5bd39`, resolve findings, push, and open a stacked draft PR without merging.
+- [x] Install and lock the current Workflow DevKit without adding Vercel Queues.
+- [x] Add a real `"use workflow"` orchestration entry point and bounded `"use step"` functions.
+- [x] Add atomic, idempotent run/step claims that reuse completed work and never reset a completed run.
+- [x] Persist start/completion/failure/retry/heartbeat/stale/verification state, correlation/causation, tool summaries, and optional usage/cost.
+- [x] Add duplicate-delivery and resume-safe tests.
+- [x] Add a committed deny-by-default staging destination binding that rejects the known production project and unreviewed hosts.
+- [x] Keep secrets server-only and absent from logs/responses/tests/docs/Git.
+- [x] Add bounded/batch persistence APIs and tests that avoid request-time serial write chains.
+- [x] Add a focused migration plus rollback-safe validation/operator instructions.
+- [x] Run Node version, `npm ci`, full `npm run validate`, focused tests, and `git diff --check`.
+- [x] Review the local C3 diff against corrective base `d80bffb` and resolve findings.
+- [ ] Push and open a stacked draft PR without merging; blocked pending explicit private-repository push approval.
+- [ ] Apply and smoke-test against the reviewed staging destination; blocked pending Autumn's staging reference, sentinel approval, credential, and migration authorization.

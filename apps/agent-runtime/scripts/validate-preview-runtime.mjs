@@ -112,8 +112,8 @@ if (packageJson) {
   if (!String(scripts.validate ?? '').includes('preview:check')) {
     failures.push('package.json validate does not include preview:check')
   }
-  if (packageJson.dependencies?.workflow || packageJson.dependencies?.['@vercel/workflow']) {
-    failures.push('Phase C2 unexpectedly installs a durable workflow package before the preview boundary is proven')
+  if (packageJson.dependencies?.workflow !== '4.8.5') {
+    failures.push('The C2/C3 runtime must pin the reviewed Workflow DevKit version')
   }
 }
 
@@ -122,17 +122,16 @@ if (Object.hasOwn(tsconfigJson?.compilerOptions ?? {}, 'rootDir')) {
 }
 
 if (vercelJson) {
-  const functions = vercelJson.functions ?? {}
-  if (vercelJson.buildCommand !== 'npm run build') {
-    failures.push('Phase C2 must run the validated TypeScript build before Vercel packages its functions')
+  if (vercelJson.framework !== null) {
+    failures.push('The isolated runtime must use the explicit Nitro framework boundary')
   }
-  if (vercelJson.outputDirectory !== 'public') {
-    failures.push('Phase C2 must publish only its minimal public directory as static output')
+  if (vercelJson.buildCommand !== 'npm run build:runtime') {
+    failures.push('The isolated runtime must compile the Nitro/Workflow entry points')
   }
-  if (!functions['api/health.ts']) failures.push('vercel.json is missing api/health.ts')
-  if (!functions['api/preview/evaluate.ts']) failures.push('vercel.json is missing api/preview/evaluate.ts')
-  if (vercelJson.crons) failures.push('Phase C2 must not schedule preview execution')
-  if (vercelJson.routes || vercelJson.rewrites) failures.push('Phase C2 must not add public routing aliases')
+  if (vercelJson.outputDirectory) failures.push('The Nitro runtime must not declare a static output directory')
+  if (vercelJson.functions) failures.push('Nitro owns function packaging; raw Vercel Function globs are not allowed')
+  if (vercelJson.crons) failures.push('Issue #318 must not activate a Production schedule')
+  if (vercelJson.routes || vercelJson.rewrites) failures.push('The runtime must not add public routing aliases')
 }
 
 if (robotsSource.trim() !== 'User-agent: *\nDisallow: /') {
@@ -141,7 +140,9 @@ if (robotsSource.trim() !== 'User-agent: *\nDisallow: /') {
 
 if (fixtureJson) validateSyntheticFixture(fixtureJson, failures)
 
-if (!healthSource.includes('previewHealthSnapshot')) failures.push('Health endpoint is missing previewHealthSnapshot')
+if (!healthSource.includes('runtimeHealthSnapshot')) {
+  failures.push('Health endpoint is missing the C2/C3-safe runtimeHealthSnapshot dispatcher')
+}
 if (!runtimeSource.includes('configurationValid')) failures.push('Preview health does not expose configuration validity')
 if (!webSource.includes("'cache-control': 'no-store")) failures.push('JSON responses are missing no-store cache control')
 
@@ -225,7 +226,7 @@ if (failures.length > 0) {
   console.error(failures.join('\n'))
   process.exitCode = 1
 } else {
-  console.log('Static Phase C2 preview deployment and dry-run safety contract check passed.')
+  console.log('Static Phase C2 dry-run boundary remains valid inside the C3 Nitro/Workflow runtime.')
 }
 
 function validateSyntheticFixture(fixture, errors) {

@@ -13,8 +13,8 @@ export interface WorkflowRegistration {
 export const WORKFLOW_REGISTRATIONS: readonly WorkflowRegistration[] = [
   {
     name: 'lifecycle-integrity-check',
-    version: 'phase-b-v1',
-    description: 'Future durable health workflow for identity, membership, lifecycle routing, and source completeness anomalies.',
+    version: 'phase-c3-v1',
+    description: 'Durable synthetic staging workflow for identity, membership, lifecycle routing, and source completeness anomalies.',
     durability: 'vercel_workflow_extension',
     status: 'foundation',
     enabledByDefault: false,
