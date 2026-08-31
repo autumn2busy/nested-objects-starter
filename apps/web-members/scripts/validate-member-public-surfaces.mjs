@@ -43,10 +43,19 @@ if (/href\s*=\s*["'`]\/tools\//.test(toolsSource)) {
 }
 
 for (const required of [
-  "request.nextUrl.pathname.startsWith('/tools/')",
+  "pathname.startsWith('/tools/')",
   "NextResponse.redirect(new URL('/tools', request.url), 307)",
 ]) {
   requireText(middlewareSource, required, `middleware is missing the disabled-tool boundary ${JSON.stringify(required)}`)
+}
+
+for (const required of [
+  "'/inspector-dashboard'",
+  "request.cookies.get('outseta_access_token')?.value",
+  'isProtectedPortalRoute && !hasSessionCookie',
+  'NextResponse.redirect(OUTSETA_LOGIN_URL, 307)',
+]) {
+  requireText(middlewareSource, required, `middleware is missing the signed-out portal redirect ${JSON.stringify(required)}`)
 }
 
 for (const required of [
