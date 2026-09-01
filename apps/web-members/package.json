@@ -13,6 +13,7 @@
     "audit:firms": "node ./scripts/audit-firm-data-quality.mjs",
     "audit:free-to-pro": "node ./scripts/audit-free-to-pro-funnel.mjs",
     "audit:member-surfaces": "node ./scripts/validate-member-public-surfaces.mjs",
+    "audit:intelligence-os-admin": "node ./scripts/validate-intelligence-os-admin.mjs",
     "verify:member-tools-runtime": "node ./scripts/verify-member-tools-runtime.mjs"
   },
   "dependencies": {

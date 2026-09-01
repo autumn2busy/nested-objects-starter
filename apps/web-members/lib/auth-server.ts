@@ -1,7 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
 
-interface OutsetaJWTPayload {
+export interface OutsetaJWTPayload {
   email: string
   name: string
   sub: string
@@ -71,8 +71,6 @@ export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPaylo
     if (cleanToken.startsWith('Bearer ')) {
       cleanToken = cleanToken.substring(7)
     }
-
-    console.log(`[AUTH] Verifying token (len: ${cleanToken.length}): ${cleanToken.substring(0, 15)}...`)
 
     const { payload } = await jwtVerify(cleanToken, JWKS, {
       issuer: 'https://nested-objects.outseta.com'

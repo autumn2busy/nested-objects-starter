@@ -91,6 +91,16 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - Recurring asset inventory refreshes use an approval-preserving RPC and cannot reset owner review, read approval, reviewer identity, or the permanent mutation denial.
 - No connector credential loader, endpoint, schedule, migration application, Production variable, external call, or mutation path is enabled in C6.
 
+### Phase C7. Protected admin and immutable approval
+
+- Nitro exposes HMAC-authenticated, bounded status, run-detail, synthetic-trigger, and action-decision endpoints. Signatures bind the stable subject, exact origin, method, pathname, timestamp, fresh nonce, and raw body digest.
+- Runtime configuration rejects Vercel Production and still requires the C3 code-reviewed staging allowlist plus database destination sentinel.
+- The database requires one active owner row keyed by Autumn's exact stable Outseta subject. Email and role fallback authorization is not accepted, and delegated approval remains disabled.
+- Trigger contracts cover the three shared C5 workflows plus all required business-event types. Inputs are synthetic-only and converge through the existing durable business idempotency keys; no Production schedule or independent agent cron is added.
+- Approval and rejection use one-use nonce consumption, row locking, expected payload/version compare-and-set, immutable approved payload snapshots, decision idempotency, and durable correlated events.
+- Approval never executes. The decision path clears and rejects executor/execution state, and no executor capability is exposed.
+- `apps/web-members` hosts the minimal owner-only Server Component. Same-origin Server Actions use short-lived purpose-bound form tokens and server-to-server signatures; the browser never receives the shared secret or calls this runtime directly.
+
 ## Endpoints
 
 ### `GET /api/health`
@@ -137,6 +147,15 @@ This endpoint accepts the same bounded synthetic fixture contract and uses a sep
 
 Until a reviewed staging project is committed, the endpoint deliberately returns a sanitized `503` and `/api/health` reports the C3 configuration as invalid. A configured environment variable cannot approve its own destination.
 
+### Protected C7 admin endpoints
+
+- `GET /api/admin/snapshot`
+- `GET /api/admin/runs/:runId`
+- `POST /api/admin/triggers`
+- `POST /api/admin/actions/:actionId/decision`
+
+These endpoints are staging-only and require the complete `nested-objects-admin-v1` service signature. The browser-facing page is documented in `docs/intelligence-os/phase-c7-protected-admin-approval.md`. The owner registry is intentionally empty after migration; repository code alone cannot activate access.
+
 ## Local validation
 
 ```bash
@@ -146,7 +165,7 @@ cp .env.example .env
 npm run validate
 ```
 
-`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior, all three C5 operating flows, and durable weekly SEO/AEO sensor reuse using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, C5, and C6 migration contracts without contacting a database.
+`npm run test:workflow` compiles and executes the real Workflow directives with `@workflow/vitest`. It proves C3 duplicate/retry/resume behavior, all three C5 operating flows, durable weekly SEO/AEO sensor reuse, and C7 protected-trigger fixture routing using only synthetic in-memory persistence. `npm run migration:check` validates the Phase B, C1, C3, C5, C6, and C7 migration contracts without contacting a database.
 
 `npm run specialists:check` enforces the Phase C4 implementation registrations and deterministic, proposal-only capability boundary. The Node suite exercises all five specialists and the inactive paid-access regression without an OpenAI key.
 
@@ -175,7 +194,7 @@ public/           Minimal non-indexable static output required by the Vercel pro
 server/api/       Nitro HTTP entry points for health, C2 evaluation, and C3 workflow start
 src/
   agents/         Implemented deterministic v1 specialists, registrations, and optional tool-free OpenAI adapter
-  http/           Request validation, authentication, health, and response contracts
+  http/           Request validation, authentication, signatures, health, and response contracts
   persistence/    Phase B and C1 server-only persistence contracts for later durable workflows
   projections/    Canonical member and daily metric projectors
   runtime/        Dry-run evaluation plus deny-by-default durable staging binding

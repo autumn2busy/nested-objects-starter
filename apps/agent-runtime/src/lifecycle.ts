@@ -185,6 +185,11 @@ export function transitionAction<TPayload extends Record<string, unknown>>(
   }
 
   if (nextStatus === 'approved') {
+    if (action.approvalRequired && action.status !== 'awaiting_approval') {
+      throw new LifecycleTransitionError(
+        'Approval-required action must enter awaiting_approval before owner approval',
+      )
+    }
     if (action.approvalRequired && !context.approval) {
       throw new LifecycleTransitionError('Approval-required action cannot be approved without an owner approval record')
     }
