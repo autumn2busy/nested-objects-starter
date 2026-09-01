@@ -57,7 +57,12 @@ export interface ConversionEventSourceRow {
 }
 
 export interface IdentityConflict {
-  conflictType: 'email_collision' | 'outseta_person_collision' | 'outseta_account_collision' | 'activecampaign_contact_collision'
+  conflictType:
+    | 'email_collision'
+    | 'outseta_person_collision'
+    | 'outseta_account_collision'
+    | 'activecampaign_contact_collision'
+    | 'anonymous_id_collision'
   identifier: string
   profileIds: string[]
 }
@@ -182,15 +187,31 @@ export function buildMemberProjectionBatch(input: BuildProjectionBatchInput): Pr
   const profileByPerson = uniqueProfileLookup(personGroups)
   const profileByEmail = uniqueProfileLookup(emailGroups)
   const assignments = new Map<string, string>()
-  const anonymousToProfile = new Map<string, string>()
+  const anonymousOwners = new Map<string, Set<string>>()
 
   for (const event of events) {
     const profileId = directEventProfile(event, profileByPerson, profileByEmail)
     if (!profileId) continue
     assignments.set(event.id, profileId)
     const anonymousId = normalizeText(event.anonymous_id)
-    if (anonymousId) anonymousToProfile.set(anonymousId, profileId)
+    if (anonymousId) {
+      const owners = anonymousOwners.get(anonymousId) ?? new Set<string>()
+      owners.add(profileId)
+      anonymousOwners.set(anonymousId, owners)
+    }
   }
+
+  const anonymousConflicts = [...anonymousOwners.entries()]
+    .filter(([, profileIds]) => profileIds.size > 1)
+    .map(([identifier, profileIds]): IdentityConflict => ({
+      conflictType: 'anonymous_id_collision',
+      identifier,
+      profileIds: [...profileIds].sort(),
+    }))
+  conflicts.push(...anonymousConflicts)
+  const anonymousToProfile = new Map([...anonymousOwners.entries()]
+    .filter(([, profileIds]) => profileIds.size === 1)
+    .map(([anonymousId, profileIds]) => [anonymousId, [...profileIds][0] ?? '']))
 
   for (const event of events) {
     if (assignments.has(event.id)) continue
@@ -287,10 +308,13 @@ function buildIdentityLinks(
     if (!externalId) return
     const normalizedExternalId = identifierType === 'email' ? externalId.toLowerCase() : externalId
     const conflicted = conflicts.some((conflict) =>
-      (conflict.conflictType === 'email_collision' && identifierType === 'email') ||
-      (conflict.conflictType === 'outseta_person_collision' && identifierType === 'person_uid') ||
-      (conflict.conflictType === 'outseta_account_collision' && identifierType === 'account_uid') ||
-      (conflict.conflictType === 'activecampaign_contact_collision' && identifierType === 'contact_id'),
+      conflict.identifier === normalizedExternalId && (
+        (conflict.conflictType === 'email_collision' && identifierType === 'email') ||
+        (conflict.conflictType === 'outseta_person_collision' && identifierType === 'person_uid') ||
+        (conflict.conflictType === 'outseta_account_collision' && identifierType === 'account_uid') ||
+        (conflict.conflictType === 'activecampaign_contact_collision' && identifierType === 'contact_id') ||
+        (conflict.conflictType === 'anonymous_id_collision' && identifierType === 'anonymous_id')
+      ),
     )
     if (conflicted) return
 

@@ -16,7 +16,7 @@
     "test": "npm run build && tsc -p tsconfig.api.json --noEmit false --outDir dist-api && node --test test/*.test.mjs",
     "test:workflow": "npm run clean && vitest run --config vitest.workflow.config.ts",
     "format:check": "node ./scripts/format-check.mjs",
-    "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs && node ./scripts/validate-durable-workflow-migration.mjs && node ./scripts/validate-operating-workflow-migration.mjs && node ./scripts/validate-sensor-migration.mjs && node ./scripts/validate-admin-migration.mjs",
+    "migration:check": "node ./scripts/validate-migration.mjs && node ./scripts/validate-phase-c-migration.mjs && node ./scripts/validate-durable-workflow-migration.mjs && node ./scripts/validate-operating-workflow-migration.mjs && node ./scripts/validate-sensor-migration.mjs && node ./scripts/validate-admin-migration.mjs && node ./scripts/validate-foundation-hardening.mjs",
     "preview:check": "node ./scripts/validate-preview-runtime.mjs && node ./scripts/validate-preview-error-mapping.mjs",
     "specialists:check": "node ./scripts/validate-core-specialists.mjs",
     "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run test:workflow && npm run migration:check && npm run preview:check && npm run specialists:check",

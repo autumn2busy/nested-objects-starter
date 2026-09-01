@@ -7,7 +7,9 @@ import type {
   OrchestratorTaskDraft,
 } from '../agents/operations-orchestrator.js'
 import type { AgentRecommendation, AutumnDecision } from '../agents/specialist-contracts.js'
+import { buildOperatingArtifactTraceLinks, type ArtifactTraceLink } from '../learning/traceability.js'
 import { assertServerOnlyControlPlaneAccess } from './control-plane-store.js'
+import { mapTraceLink } from './learning-trace-store.js'
 
 export type OperatingWorkflowName = 'conversion_review' | 'daily_business_health' | 'weekly_operating_review'
 
@@ -97,9 +99,9 @@ export class SupabaseOperatingWorkflowStore implements OperatingWorkflowStore {
     })
   }
 
-  persistArtifacts(batch: OperatingWorkflowArtifactBatch): Promise<OperatingWorkflowPersistedCounts> {
+  async persistArtifacts(batch: OperatingWorkflowArtifactBatch): Promise<OperatingWorkflowPersistedCounts> {
     assertBatchBounds(batch)
-    return rpcValue(this.client, 'persist_agent_operating_workflow_batch', {
+    const persisted = await rpcValue<OperatingWorkflowPersistedCounts>(this.client, 'persist_agent_operating_workflow_batch', {
       p_run_id: batch.runId,
       p_workflow_name: batch.workflowName,
       p_review: mapReview(batch.review),
@@ -109,6 +111,12 @@ export class SupabaseOperatingWorkflowStore implements OperatingWorkflowStore {
       p_experiments: batch.experiments.map((experiment) => mapExperiment(experiment, batch)),
       p_actions: batch.actions.map((action) => mapAction(action, batch.runId)),
     })
+    const traceLinks = buildOperatingArtifactTraceLinks(batch)
+    await rpcValue(this.client, 'persist_agent_trace_links', {
+      p_run_id: batch.runId,
+      p_links: traceLinks.map(mapTraceLink),
+    })
+    return persisted
   }
 }
 
@@ -120,6 +128,7 @@ export class InMemoryOperatingWorkflowStore implements OperatingWorkflowStore {
   readonly tasks = new Map<string, OrchestratorTaskDraft>()
   readonly experiments = new Map<string, MarketingExperimentProposal>()
   readonly actions = new Map<string, ProposedAction>()
+  readonly traceLinks = new Map<string, ArtifactTraceLink>()
 
   async persist(state: OrchestratorOperationalState): Promise<'created' | 'reused'> {
     const existing = this.states.get(state.idempotencyKey)
@@ -147,6 +156,9 @@ export class InMemoryOperatingWorkflowStore implements OperatingWorkflowStore {
     for (const task of batch.tasks) putIdempotently(this.tasks, task.idempotencyKey, task, 'task')
     for (const experiment of batch.experiments) putIdempotently(this.experiments, experiment.id, experiment, 'experiment')
     for (const action of batch.actions) putIdempotently(this.actions, action.idempotencyKey, action, 'action')
+    for (const link of buildOperatingArtifactTraceLinks(batch)) {
+      putIdempotently(this.traceLinks, link.idempotencyKey, link, 'trace link')
+    }
     return countsFor(batch)
   }
 }
@@ -251,12 +263,13 @@ function mapRecommendation(
     title: recommendation.title,
     summary: recommendation.summary,
     priority: recommendation.priority,
+    signal_ids: recommendation.signalIds,
     source_refs: recommendation.evidenceReferences,
     recommended_follow_up: recommendation.recommendedFollowUp,
     fingerprint: recommendation.id,
     idempotency_key: `recommendation:${recommendation.id}`,
-    correlation_id: batch.review.correlationId,
-    causation_id: batch.review.causationId,
+    correlation_id: recommendation.correlation.correlationId,
+    causation_id: recommendation.correlation.causationId,
   }
 }
 

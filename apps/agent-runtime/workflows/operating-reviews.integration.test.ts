@@ -76,6 +76,15 @@ describe('Phase C5 operating workflows', () => {
     expect([...operatingStore.actions.values()].every((action) => (
       action.status === 'proposed' && action.executorKey === null && action.executedAt === null
     ))).toBe(true)
+    const traceLinks = [...operatingStore.traceLinks.values()]
+    expect(traceLinks.some((link) => link.relationship === 'observation_produced_signal')).toBe(true)
+    expect(traceLinks.some((link) => link.relationship === 'signal_created_investigation')).toBe(true)
+    expect(traceLinks.some((link) => link.relationship === 'signal_supported_recommendation')).toBe(true)
+    expect(traceLinks.some((link) => link.relationship === 'signal_proposed_action')).toBe(true)
+    expect(traceLinks.every((link) => link.correlation.correlationId === correlation.correlationId)).toBe(true)
+    const firstTraceCount = operatingStore.traceLinks.size
+    const firstSignalCount = operatingStore.signals.size
+    const firstActionCount = operatingStore.actions.size
 
     const duplicateRun = await start(conversionReviewWorkflow, [input])
     const duplicate = await duplicateRun.returnValue
@@ -83,6 +92,9 @@ describe('Phase C5 operating workflows', () => {
     expect(duplicate.agentRunId).toBe(first.agentRunId)
     expect(durableStore.runsById.size).toBe(1)
     expect(operatingStore.reviews.size).toBe(1)
+    expect(operatingStore.traceLinks.size).toBe(firstTraceCount)
+    expect(operatingStore.signals.size).toBe(firstSignalCount)
+    expect(operatingStore.actions.size).toBe(firstActionCount)
   })
 
   it('daily_business_health completes quietly with no notification or signal when healthy', async () => {

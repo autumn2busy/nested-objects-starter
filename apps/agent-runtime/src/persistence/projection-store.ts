@@ -71,9 +71,11 @@ export class SupabaseProjectionStore implements ProjectionPersistenceStore {
   async persistMemberProjection(plan: MemberProjectionPlan): Promise<void> {
     const writes = buildProjectionWriteSet(plan)
     await execute(this.client.from('canonical_members').upsert(writes.canonicalMember, { onConflict: 'id' }))
-    if (writes.identityLinks.length > 0) {
-      await execute(this.client.from('member_identity_links').upsert(writes.identityLinks, { onConflict: 'idempotency_key' }))
-    }
+    await executeRpc(this.client.rpc('sync_member_identity_links', {
+      p_member_id: plan.memberId,
+      p_identity_links: writes.identityLinks,
+      p_observed_at: projectionObservedAt(writes.identityLinks),
+    }))
 
     for (const membership of writes.memberships) {
       const sourceSystem = String(membership.source_system)
@@ -154,6 +156,25 @@ export class SupabaseProjectionStore implements ProjectionPersistenceStore {
       })),
     }))
   }
+}
+
+function projectionObservedAt(identityLinks: Record<string, unknown>[]): string {
+  const observedTimes = identityLinks.flatMap((link) => {
+    const refs = Array.isArray(link.source_refs) ? link.source_refs : []
+    return refs.flatMap((ref) => {
+      if (!ref || typeof ref !== 'object') return []
+      const value = (ref as Record<string, unknown>).observedAt
+      if (typeof value !== 'string') return []
+      const timestamp = Date.parse(value)
+      return Number.isFinite(timestamp) ? [{ timestamp, value }] : []
+    })
+  })
+  if (observedTimes.length === 0) {
+    throw new ContractValidationError('Member projection identity links require an observed timestamp')
+  }
+  return observedTimes.reduce((latest, candidate) => (
+    candidate.timestamp > latest.timestamp ? candidate : latest
+  )).value
 }
 
 export function buildProjectionWriteSet(plan: MemberProjectionPlan): ProjectionWriteSet {

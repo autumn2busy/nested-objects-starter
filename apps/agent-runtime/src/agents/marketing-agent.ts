@@ -119,7 +119,11 @@ export function runMarketingAgent(input: MarketingAgentInput): MarketingAgentOut
       summary: recommendation.summary,
       priority: recommendation.priority,
       evidenceReferences: recommendation.evidenceReferences,
+      signalIds: recommendation.sourceSignalIds,
       recommendedFollowUp: 'Review the proposal and its audience rules; no ActiveCampaign change has been made.',
+      correlation: recommendation.sourceSignalIds[0]
+        ? { ...input.correlation, causationId: recommendation.sourceSignalIds[0] }
+        : input.correlation,
     })),
     proposedActions,
     autumnDecisions: proposedActions.filter((action) => action.approvalRequired).map((action) => ({

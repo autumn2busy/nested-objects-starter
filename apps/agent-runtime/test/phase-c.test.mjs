@@ -97,6 +97,48 @@ test('duplicate conversion deliveries are deduplicated by client event id', () =
   assert.equal(batch.projections[0].operationalProfile.firmViews, 1)
 })
 
+test('ambiguous anonymous identity is order-independent and never stitches anonymous-only events', () => {
+  const secondId = '22222222-2222-4222-8222-222222222222'
+  const secondProfile = profile({
+    id: secondId,
+    user_email: 'second@example.com',
+    outseta_person_uid: 'outseta-person-2',
+    outseta_account_id: 'outseta-account-2',
+  })
+  const events = [
+    event('event-owner-1', 'signup_completed'),
+    event('event-owner-2', 'signup_completed', {
+      member_uid: 'outseta-person-2',
+      member_email: 'second@example.com',
+    }),
+    event('event-anonymous-only', 'firm_view', { member_uid: null, member_email: null }),
+  ]
+  const forward = buildMemberProjectionBatch({
+    profiles: [profile(), secondProfile],
+    conversionEvents: events,
+    correlation,
+  })
+  const reverse = buildMemberProjectionBatch({
+    profiles: [secondProfile, profile()],
+    conversionEvents: [...events].reverse(),
+    correlation,
+  })
+
+  for (const batch of [forward, reverse]) {
+    assert.ok(batch.identityConflicts.some((conflict) => (
+      conflict.conflictType === 'anonymous_id_collision'
+      && conflict.identifier === 'anon-1'
+      && conflict.profileIds.join(',') === [profileId, secondId].sort().join(',')
+    )))
+    assert.deepEqual(batch.unmatchedEventIds, ['event-anonymous-only'])
+    assert.ok(batch.projections.every((projection) => (
+      !projection.identityLinks.some((link) => link.identifierType === 'anonymous_id')
+    )))
+    assert.equal(batch.projections.find((projection) => projection.memberId === profileId).assignedEventIds.length, 1)
+    assert.equal(batch.projections.find((projection) => projection.memberId === secondId).assignedEventIds.length, 1)
+  }
+})
+
 test('internal-domain contacts are quarantined without changing ActiveCampaign', () => {
   const classification = classifyMarketingContact({
     contact: {
