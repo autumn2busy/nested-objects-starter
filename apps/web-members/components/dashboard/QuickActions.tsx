@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, MapPin, FileText, UserCircle, Wrench } from "lucide-react";
+import { Search, FileText, UserCircle, Wrench } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ACTIONS = [
@@ -7,28 +7,21 @@ const ACTIONS = [
         label: "Find Firms",
         href: "/hiring-firms",
         icon: Search,
-        description: "Search for new partners",
+        description: "Research firms and their requirements",
         color: "bg-blue-50 text-blue-600",
-    },
-    {
-        label: "View Map",
-        href: "/hiring-firms?view=map",
-        icon: MapPin,
-        description: "Explore firms near you",
-        color: "bg-emerald-50 text-emerald-600",
     },
     {
         label: "Job Board",
         href: "/jobs",
         icon: FileText,
-        description: "Browse 50+ new leads",
+        description: "Explore available listings",
         color: "bg-orange-50 text-orange-600",
     },
     {
         label: "Update Profile",
         href: "/profile",
         icon: UserCircle,
-        description: "Keep your info fresh",
+        description: "Manage your private profile",
         color: "bg-purple-50 text-purple-600",
     },
     {

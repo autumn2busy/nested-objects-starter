@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, ClipboardList, LogIn, Mail, Search } from 'lucide-react'
+import { ArrowRight, LogIn, Mail } from 'lucide-react'
+import { InspectorStartGuide } from '@/components/onboarding/inspector-start-guide'
 import { useAuth } from '@/components/auth-provider'
 import { trackSignupCompleted } from '@/lib/ac-events'
 
@@ -18,27 +19,6 @@ declare global {
     gtag?: (...args: any[]) => void
   }
 }
-
-const activationSteps = [
-  {
-    title: 'Account created',
-    description: 'Your free member account is ready.',
-    status: 'complete',
-    icon: CheckCircle2,
-  },
-  {
-    title: 'Tell us your role',
-    description: 'Add your inspector, notary, or contractor details so the hub can fit your work.',
-    status: 'current',
-    icon: ClipboardList,
-  },
-  {
-    title: 'Search for jobs in your zip code',
-    description: 'Use the job board to find nearby field opportunities.',
-    status: 'upcoming',
-    icon: Search,
-  },
-] as const
 
 function getOutsetaValue(user: OutsetaUser, keys: string[]) {
   if (!user) return ''
@@ -196,109 +176,89 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
   const greeting = name ? `Welcome, ${name}` : isNewUser ? 'Welcome to Nested Objects' : 'Welcome back'
   const shouldShowPendingConfirmation = isNewUser && !isLoading && !isAuthenticated
 
-  if (shouldShowPendingConfirmation) {
+  if (isLoading) {
     return (
-      <section className="min-h-[calc(100vh-9rem)] bg-white">
-        <div className="mx-auto grid min-h-[calc(100vh-9rem)] w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:px-8 lg:py-16">
+      <section className="bg-slate-50 px-4 py-16 sm:px-6" aria-busy="true">
+        <div className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white p-8">
+          <p role="status" className="text-sm font-medium text-slate-600">Checking your sign-in...</p>
+          <div className="mt-6 h-8 max-w-md rounded bg-slate-100 motion-safe:animate-pulse" aria-hidden="true" />
+        </div>
+      </section>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <section className="min-h-[calc(100vh-9rem)] bg-slate-50">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:items-center lg:px-8 lg:py-20">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-copper">
-              Account confirmation
+              {shouldShowPendingConfirmation ? 'Account confirmation' : 'Your inspector workspace'}
             </p>
-            <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
-              Check your email to finish setup
+            <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+              {shouldShowPendingConfirmation ? 'Check your email to finish setup' : 'Sign in to continue'}
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-text-muted">
-              We sent a confirmation email for your Nested Objects account. Confirm your account and set your password, then log in to open your member hub.
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+              {shouldShowPendingConfirmation
+                ? 'If you just signed up, use the email from Nested Objects to confirm your account and set your password. Then sign in to get started.'
+                : 'Open your member account to research hiring firms and manage your private profile.'}
             </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={login}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus:outline-none focus:ring-2 focus:ring-brand-copper focus:ring-offset-2"
-              >
-                Open Login
-                <LogIn className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={login}
+              className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-copper"
+            >
+              Open Login
+              <LogIn className="h-4 w-4" aria-hidden="true" />
+            </button>
           </div>
-
-          <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-sm">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-copper/10 text-brand-copper">
-              <Mail className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <h2 className="mt-5 text-xl font-semibold text-text-primary">Confirmation required</h2>
-            <p className="mt-3 text-sm leading-6 text-text-muted">
-              Your account is reserved, but it is not active in the member hub until the confirmation and password step is complete.
+          <aside className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+            <Mail className="h-6 w-6 text-brand-copper" aria-hidden="true" />
+            <h2 className="mt-5 text-xl font-semibold text-slate-900">
+              {shouldShowPendingConfirmation ? 'Confirmation required' : 'New to Nested Objects?'}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {shouldShowPendingConfirmation
+                ? 'Check your spam or promotions folder if you do not see the email. Already confirmed? Use Open Login.'
+                : 'Review the membership options and choose the access that fits your work.'}
             </p>
-          </div>
+            <Link
+              href={shouldShowPendingConfirmation ? '/contact-us' : '/membership-pricing'}
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md text-sm font-semibold text-brand-copper underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+            >
+              {shouldShowPendingConfirmation ? 'Get help with your account' : 'Explore membership options'}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </aside>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="min-h-[calc(100vh-9rem)] bg-white">
-      <div className="mx-auto grid min-h-[calc(100vh-9rem)] w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:px-8 lg:py-16">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-copper">
-            Account activation
+    <section className="min-h-[calc(100vh-9rem)] bg-[#f4f7f5]">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <header className="mb-8 max-w-3xl">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-copper">Your inspector workspace</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{greeting}</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-600">
+            Make your first visit useful: find a firm to research, understand what the work involves, and keep your next step clear.
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
-            {greeting}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-text-muted">
-            Your member hub is ready. Start by finding work near you, then complete the details that help tailor your directory, jobs, and tools.
-          </p>
+          {email && <p className="mt-3 text-sm text-slate-500">Signed in as {email}</p>}
+        </header>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/hiring-firms"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus:outline-none focus:ring-2 focus:ring-brand-copper focus:ring-offset-2"
-            >
-              Find Work Near You
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
+        <InspectorStartGuide />
 
-          <p className="mt-4 text-sm text-text-muted">
-            {isResolvingUser ? 'Syncing your account details...' : email ? `Signed in as ${email}` : 'Account details will sync when Outseta finishes loading.'}
-          </p>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-slate-600">Already know where you are headed?</p>
+          <Link
+            href="/inspector-dashboard"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-brand-copper focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+          >
+            Open my dashboard
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
-
-        <ol className="space-y-4">
-          {activationSteps.map((step, index) => {
-            const Icon = step.icon
-            const isComplete = step.status === 'complete'
-            const isCurrent = step.status === 'current'
-
-            return (
-              <li
-                key={step.title}
-                className="flex gap-4 rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
-              >
-                <div
-                  className={
-                    isComplete
-                      ? 'mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600'
-                      : isCurrent
-                        ? 'mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-copper/10 text-brand-copper'
-                        : 'mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500'
-                  }
-                >
-                  {isComplete ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Icon className="h-5 w-5" aria-hidden="true" />}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
-                    Step {index + 1}
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold text-text-primary">{step.title}</h2>
-                  <p className="mt-1 text-sm leading-6 text-text-muted">{step.description}</p>
-                </div>
-              </li>
-            )
-          })}
-        </ol>
       </div>
     </section>
   )
