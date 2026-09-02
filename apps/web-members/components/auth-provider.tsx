@@ -284,6 +284,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
+    let disposed = false
+
     const handleOutsetaAuth = async () => {
       // Small delay — Outseta needs a tick to update its internal state
       await new Promise((r) => setTimeout(r, 300))
@@ -309,17 +311,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('o-authenticated', handleOutsetaAuth)
 
     const syncExistingOutsetaToken = async () => {
-      if (!isAuthenticated && window.Outseta?.getAccessToken) {
+      // The verified cookie is authoritative. Never race the initial session load
+      // or let a stale effect restore a previous browser account over a fresh login.
+      if (disposed || isLoading || isAuthenticated) return
+      if (window.Outseta?.getAccessToken) {
         const existingToken = window.Outseta.getAccessToken()
         if (existingToken) {
-          console.log('[Auth] Found existing Outseta token, syncing session...')
           try {
             const res = await fetch('/api/auth/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ accessToken: existingToken }),
             })
-            if (res.ok) {
+            if (res.ok && !disposed) {
               await loadUser({ retry: true })
             }
           } catch (err) {
@@ -331,25 +335,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Also handle the case where Outseta already has a token on page load
     // (e.g. returning user with tokenStorage: 'local') but our httpOnly cookie is missing
-    const checkExistingOutsetaToken = async () => {
-      // Wait briefly for immediate widget routes, then listen for deferred public-page loads.
-      await new Promise((r) => setTimeout(r, 1500))
-      await syncExistingOutsetaToken()
-    }
+    // Keep the timer cancelable when the cookie check completes or the effect unmounts.
+    const existingTokenTimer = window.setTimeout(() => {
+      void syncExistingOutsetaToken()
+    }, 1500)
 
     const handleOutsetaReady = () => {
       void syncExistingOutsetaToken()
     }
 
-    checkExistingOutsetaToken()
     window.addEventListener('outseta-ready', handleOutsetaReady)
 
     return () => {
+      disposed = true
+      window.clearTimeout(existingTokenTimer)
       window.removeEventListener('o-authenticated', handleOutsetaAuth)
       window.removeEventListener('outseta-ready', handleOutsetaReady)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, loadUser])
+  }, [isAuthenticated, isLoading, loadUser])
 
   const fetchProfileDisplayName = useCallback(async () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return

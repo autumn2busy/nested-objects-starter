@@ -30,3 +30,13 @@ A read-only Production check reproduced a 307 back to hosted login with both no 
 Local verification is not Production recovery. Publishing a branch creates an automatic Vercel Preview; merge and Production rollout remain approval-gated. No database, Outseta configuration, passwords, entitlements, environment variables or Production deployment were changed for this fix.
 
 After an approved rollout, the owner should perform one fresh hosted login (not reuse an exposed token), confirm the clean dashboard URL and authenticated session, then confirm a signed-out browser still cannot render the dashboard. Do not merge PR #334 as part of this hotfix.
+
+## Deployment and client-session follow-up
+
+The user merged #335 at `31d021e`; Vercel reported its Production deployment Ready. Read-only live HTTP checks confirmed that signed-out dashboard requests still redirect to hosted login, while an invalid synthetic token reaches verification and returns a clean 303 to the callback error page, without a session cookie or token-bearing response header. Browser verification confirmed the deployed error page hydrates into a clear error and Return to home link. This does not confirm a real member login.
+
+PR #336 corrects the CI loopback hostname to `localhost` (the original CI failure was an exact-origin assertion against Next.js's normalized redirect). Independent review also reproduced an old SDK-token fallback running after cookie authentication had succeeded. The follow-up waits for initial session loading to finish, honors the verified cookie session, cancels its pending timer during effect cleanup, and ignores disposed callbacks. Explicit widget-login events remain unchanged.
+
+All 16 local regression tests pass: the original nine signed-handoff tests plus seven actual-AuthProvider tests using mocked hooks, timers, storage and session HTTP. New cases cover cookie-only bootstrap, stale SDK suppression, slow session loading, auth arriving during a pending timer, unmount cleanup, and both delayed and ready-event recovery for logged-out members. TypeScript, provider lint and the member-surface audit also pass. No production build was run locally.
+
+The cookie-only flow restores the application's AuthProvider state. Outseta's separate profile/account widget token initialization is still a verification gap; no cookie-to-JavaScript token export was added as part of this focused correction. Full recovery still requires a fresh hosted login and account-widget check.
