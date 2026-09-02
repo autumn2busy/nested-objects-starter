@@ -34,6 +34,9 @@ function safeEventData(value: unknown): Record<string, unknown> | null {
 }
 
 export async function POST(request: Request) {
+  if (process.env.VERCEL_ENV === 'preview' && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true') {
+    return new Response(null, { status: 204 })
+  }
   try {
     const contentLength = Number(request.headers.get('content-length') || 0)
     if (contentLength > MAX_BODY_BYTES) {

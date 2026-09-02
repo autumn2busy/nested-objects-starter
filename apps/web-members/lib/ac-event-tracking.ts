@@ -35,6 +35,7 @@ type ActiveCampaignTag = {
 const tagIdCache = new Map<string, string>()
 
 function getActiveCampaignConfig() {
+    if (process.env.VERCEL_ENV === 'preview' && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true') return null
     const acApiUrl = env.acApiUrl?.replace(/\/$/, '')
     const acApiKey = env.acApiKey
 
@@ -130,6 +131,7 @@ async function getOrCreateActiveCampaignTagId(tagName: string): Promise<string |
  * @param eventData - Optional JSON string of additional data
  */
 export async function trackACServerEvent({ email, event, eventData }: TrackEventParams): Promise<boolean> {
+    if (process.env.VERCEL_ENV === 'preview' && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true') return false
     const actId = env.acEventActId
     const eventKey = env.acEventKey
 

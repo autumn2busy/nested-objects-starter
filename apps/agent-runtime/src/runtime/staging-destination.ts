@@ -22,7 +22,9 @@ const MEMBER_SITE_PRODUCTION_PROJECT_REF = 'lzzghrjjsyzlvofpidis'
 export const STAGING_DESTINATION_POLICY: StagingDestinationPolicy = Object.freeze({
   version: 'phase-c3-v1',
   bindingKey: 'nested-objects-agent-runtime-staging',
-  reviewedProjectRefs: Object.freeze([]),
+  // Verified in Supabase as nested-objects-staging on 2026-09-02 (Issue #318).
+  // Credentials and the database sentinel remain separate activation gates.
+  reviewedProjectRefs: Object.freeze(['wqstirwszdbsygstnvbn']),
   deniedProjectRefs: Object.freeze([MEMBER_SITE_PRODUCTION_PROJECT_REF]),
 })
 

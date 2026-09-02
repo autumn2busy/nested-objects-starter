@@ -12,6 +12,8 @@ The browser never calls the Agent Runtime directly and never receives a signing 
 4. Verify a short-lived, purpose-bound HMAC form token.
 5. Create a fresh UUID request nonce and sign the method, pathname, exact origin, stable subject, timestamp, nonce, and raw body SHA-256 with the server-only shared secret.
 
+For a Vercel-protected Runtime Preview, `INTELLIGENCE_OS_AGENT_RUNTIME_BYPASS_SECRET` optionally supplies the server-only `x-vercel-protection-bypass` header. The destination must be HTTPS on a `.vercel.app` host; fetch redirects are rejected. This platform credential does not replace the signed owner authorization and is never placed in a URL or sent to the browser. Vercel Authentication remains enabled.
+
 The Agent Runtime independently denies Vercel Production, requires the C3 reviewed staging binding, validates the complete HMAC contract within a five-minute window, and forwards the stable subject to service-role-only database functions. It does not accept a browser bearer token, email, role, query-string secret, `x-vercel-cron`, or unsigned request.
 
 The database has the final authorization boundary. `agent_approvers` starts empty and permits only one active owner. Delegated rows are schema extension points but never satisfy `assert_agent_owner_subject`. A reviewed staging operator must insert Autumn's exact stable subject before any status read, trigger, or decision can succeed.
@@ -76,6 +78,8 @@ No cron entry or Production schedule is added. A later rollout may bind existing
 
 The rollback-safe validation creates only synthetic owner/actions inside a transaction. It proves non-owner denial, nonce replay rejection, payload/version compare-and-set, immutable approval payload, durable approval/rejection events, no execution attachment, direct write denial, and finishes with `ROLLBACK`.
 
+Run synthetic-owner validations before owner activation, or in a disposable database. They deliberately conflict with the single-active-owner constraint once the real staging owner is registered; do not remove that owner merely to rerun a fixture.
+
 ## Reviewed staging activation gate
 
 Repository work does not authorize this activation. After Autumn separately approves the C3 staging destination, migration, secret channel, and exact Outseta subject:
@@ -94,6 +98,14 @@ Repository work does not authorize this activation. After Autumn separately appr
 
 Never set these variables for Production, apply this migration to Production, add a Production schedule, or attach an executor as part of Issue #318.
 
+### Issue #318 acceptance branch isolation
+
+The user confirmed owner subject `9P66YMPm`. The operator script `supabase/operations/20260902_activate_issue318_staging_owner.sql` registered that owner and the reviewed destination binding in `wqstirwszdbsygstnvbn`. It is a one-time, staging-only operation, not an automatic migration.
+
+Runtime and Members configuration is restricted to `codex/318-staging-acceptance`. Members must override both server and `NEXT_PUBLIC_` Supabase URL/key variables with staging values, rather than inherit the normal Preview database. Public URL/publishable-key variables are Config values; service credentials remain Secret values. Regular member features may be unavailable because this database contains Intelligence OS fixtures, not real member profiles.
+
+When `VERCEL_ENV=preview` and `INTELLIGENCE_OS_ADMIN_ENABLED=true`, the Members layout omits GTM and ActiveCampaign tracking, server marketing helpers suppress events/tags, and the conversion endpoint returns 204 before rate-limiter, identity or database access. Production behavior is unchanged. Owner login is authentication only; business acceptance inputs remain synthetic.
+
 ## Local validation
 
 ```powershell
@@ -102,6 +114,7 @@ npm.cmd run validate
 
 cd ..\web-members
 npm.cmd run audit:intelligence-os-admin
+node --test tests/intelligence-os-transport.test.mjs
 npx.cmd tsc --noEmit
 npm.cmd run lint
 ```
