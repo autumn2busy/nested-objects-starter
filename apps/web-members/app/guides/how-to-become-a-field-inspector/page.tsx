@@ -5,13 +5,19 @@ import {
     ArrowRight, Briefcase, Clock, Car, Smartphone, Shield,
     TrendingUp, Users, ChevronRight
 } from 'lucide-react'
-import { generatePageMetadata, SITE_URL } from '@/lib/seo'
+import { generatePageMetadata, getBreadcrumbSchema, SITE_URL } from '@/lib/seo'
 
 export const metadata: Metadata = generatePageMetadata({
     title: 'How to Become a Field Inspector in 2026 — The Complete Guide',
     description: 'Step-by-step guide to becoming a field inspector. Learn requirements, pay rates ($25–$75/inspection), training, and which companies are hiring. No degree needed.',
     path: '/guides/how-to-become-a-field-inspector',
 })
+
+const SCHEMA_BREADCRUMB = getBreadcrumbSchema([
+    { name: 'Home', url: SITE_URL },
+    { name: 'Guides', url: `${SITE_URL}/guides` },
+    { name: 'How to Become a Field Inspector', url: `${SITE_URL}/guides/how-to-become-a-field-inspector` },
+])
 
 const SCHEMA_FAQ = {
     '@context': 'https://schema.org',
@@ -170,6 +176,10 @@ function TableOfContents() {
 export default function HowToBecomeFieldInspectorPage() {
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(SCHEMA_BREADCRUMB) }}
+            />
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(SCHEMA_FAQ) }}
@@ -349,6 +359,18 @@ export default function HowToBecomeFieldInspectorPage() {
                             <Link href="/hiring-firms" className="font-semibold text-brand underline">
                                 Browse all 460+ firms in our directory →
                             </Link>
+                        </p>
+                        <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                            Focus your research on areas you can cover. For example, browse{' '}
+                            <Link href="/hiring-firms/california" className="font-semibold text-brand underline rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                                California field inspection firms
+                            </Link>,{' '}
+                            <Link href="/hiring-firms/florida" className="font-semibold text-brand underline rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                                Florida field inspection firms
+                            </Link>, or{' '}
+                            <Link href="/hiring-firms/texas" className="font-semibold text-brand underline rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                                Texas field inspection firms
+                            </Link>. Confirm each firm&apos;s current service area and application requirements before applying.
                         </p>
 
                         <SectionHeading id="training">Training and certifications</SectionHeading>

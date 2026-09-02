@@ -198,7 +198,41 @@ function FilterBar({
 
   return (
     <Card className="mb-6 border-border-subtle px-5 py-4 shadow-sm">
-      <form action="/hiring-firms" className="space-y-4">
+      {disabled && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-amber-950">
+            <LockKeyhole className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Directory search and filters are restricted
+          </p>
+          <p id="directory-filter-explanation" className="mt-2 text-sm leading-6 text-amber-950">
+            {access.isAuthenticated
+              ? 'Your Free plan includes a directory preview. Compare plans for access to directory search and filters.'
+              : 'Search and filters are unavailable to visitors and Free members. Sign in to use the directory access included with your plan.'}
+          </p>
+          <div className="mt-3">
+            {access.isAuthenticated ? (
+              <DirectoryUpgradeLink
+                source="filter_gate"
+                planUid={access.planUid}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-amber-900 px-4 py-2 text-sm font-semibold text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2"
+                eventData={{ isAuthenticated: access.isAuthenticated }}
+              >
+                Compare plans
+              </DirectoryUpgradeLink>
+            ) : (
+              <DirectoryLoginLink className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-amber-900 px-4 py-2 text-sm font-semibold text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900 focus-visible:ring-offset-2">
+                Sign in
+              </DirectoryLoginLink>
+            )}
+          </div>
+        </div>
+      )}
+      <form
+        action="/hiring-firms"
+        aria-label="Directory filters"
+        aria-describedby={disabled ? 'directory-filter-explanation' : undefined}
+        className="space-y-4"
+      >
         <input type="hidden" name="limit" value="24" />
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] md:items-end">
           <div className="space-y-1">
@@ -292,35 +326,19 @@ function FilterBar({
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {disabled ? (
-            <FieldHelperText className="text-amber-800">
-              {!access.isAuthenticated ? 'Log in' : 'Upgrade to Pro or higher'} to unlock all filters and search the full directory.
-            </FieldHelperText>
-          ) : (
+        {!disabled && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <FieldHelperText>
               Tip. Many firms are national or multi-state, so start broad then narrow by state when you are ready.
             </FieldHelperText>
-          )}
-
-          {disabled ? (
-            <DirectoryUpgradeLink
-              source="filter_gate"
-              planUid={access.planUid}
-              className="inline-flex justify-center rounded-md border border-amber-900 px-4 py-2 text-xs font-semibold text-amber-900"
-              eventData={{ isAuthenticated: access.isAuthenticated }}
-            >
-              View plans
-            </DirectoryUpgradeLink>
-          ) : (
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-white"
             >
               APPLY FILTERS
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </form>
     </Card>
   )
