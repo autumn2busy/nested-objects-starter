@@ -19,7 +19,6 @@ import {
   getSoftwareApplicationSchema,
   getWebSiteSchema
 } from '@/lib/seo'
-import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 import '../styles/globals.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -85,18 +84,7 @@ export default function RootLayout({
 }) {
   const organizationSchema = getOrganizationSchema()
   const webSiteSchema = getWebSiteSchema()
-  const softwareApplicationSchema = getSoftwareApplicationSchema({
-    ratingValue: getAverageRating(),
-    reviewCount: TESTIMONIALS.length,
-    reviews: TESTIMONIALS.filter((testimonial) => testimonial.source === 'google' || testimonial.source === 'review')
-      .slice(0, 5)
-      .map((testimonial) => ({
-        author: testimonial.name,
-        rating: testimonial.rating,
-        body: testimonial.quote,
-        datePublished: testimonial.date,
-      })),
-  })
+  const softwareApplicationSchema = getSoftwareApplicationSchema()
   const homeBreadcrumbSchema = getBreadcrumbSchema([{ name: 'Home', url: SITE_URL }])
 
   const intelligenceStaging = process.env.VERCEL_ENV === 'preview'

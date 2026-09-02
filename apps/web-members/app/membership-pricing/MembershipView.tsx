@@ -69,7 +69,13 @@ const trustAssuranceItems = [
     },
 ]
 
+const toolPreviewLimitation = 'Tool execution and data submission are disabled on every plan, including the Pro trial.'
+
 export const pricingFaqs = [
+    {
+        question: 'Can I run member tools during the trial or on a paid plan?',
+        answer: `No. Member tools are preview-only. ${toolPreviewLimitation}`,
+    },
     {
         question: 'Can I change plans or cancel anytime?',
         answer: 'Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time. You keep access until the end of your billing period, and Pro includes a 7-day free trial before paid billing begins.',
@@ -160,7 +166,8 @@ function MembershipContent() {
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
                             Pro is the fastest way to evaluate real firm options, inspect the training library, and
-                            use readiness resources before paid billing begins. Member tools remain preview-only.
+                            use readiness resources before paid billing begins. Member tools remain preview-only on every plan,
+                            including during the Pro trial.
                         </p>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -315,6 +322,10 @@ function MembershipContent() {
                                         </ul>
 
                                         <div className="mt-auto">
+                                            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
+                                                <p className="font-semibold">Member tools: preview only</p>
+                                                <p className="mt-1">{toolPreviewLimitation}</p>
+                                            </div>
                                             <PricingPlanButton plan={plan} />
                                         </div>
                                     </article>
@@ -350,8 +361,8 @@ function MembershipContent() {
                                     by pay clues, requirements, and regions that match your life.
                                 </li>
                                 <li>
-                                    <span className="font-semibold text-slate-900">Day 4 to 5.</span> Apply to your short list
-                                    and track responses in one place.
+                                    <span className="font-semibold text-slate-900">Day 4 to 5.</span> Review the application
+                                    steps for your short list and prepare your applications.
                                 </li>
                                 <li>
                                     <span className="font-semibold text-slate-900">Day 6 to 7.</span> Use starter kits and
@@ -399,6 +410,10 @@ function MembershipContent() {
                     Ready to build routes that actually pay for your time?
                 </h2>
                 <PricingFinalCtaCopy />
+
+                <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-amber-100">
+                    Member tools are preview-only. {toolPreviewLimitation}
+                </p>
 
                 <PricingFinalCta proPlan={proPlan} />
 
