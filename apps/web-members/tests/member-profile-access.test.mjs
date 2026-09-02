@@ -237,9 +237,11 @@ test('middleware denies visitors and marks member responses private/nonindexable
 })
 
 test('individual onboarding points to the actual hiring-firms route, not the private member directory', () => {
-  const source = readFileSync(new URL('../components/onboarding/onboarding-widget.tsx', import.meta.url), 'utf8')
-  assert.match(source, /href: '\/hiring-firms'/)
-  assert.doesNotMatch(source, /href: '\/members'/)
+  const widget = readFileSync(new URL('../components/onboarding/onboarding-widget.tsx', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../components/onboarding/inspector-start-guide.tsx', import.meta.url), 'utf8')
+  assert.match(widget, /<InspectorStartGuide\s*\/>/)
+  assert.match(source, /href="\/hiring-firms"/)
+  assert.doesNotMatch(source, /href(?:: |=)["']\/members/)
   assert.ok(readFileSync(new URL('../app/hiring-firms/page.tsx', import.meta.url), 'utf8').length > 0)
 })
 

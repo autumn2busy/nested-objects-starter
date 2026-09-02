@@ -1,72 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Circle, PartyPopper } from 'lucide-react'
-import Link from 'next/link'
-import { completeOnboardingAction } from '@/actions/onboarding'
+import { InspectorStartGuide } from './inspector-start-guide'
 
 export function OnboardingWidget() {
-    const [isVisible, setIsVisible] = useState(true)
-    const [isCompleting, setIsCompleting] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
-    if (!isVisible) return null
-
-    const steps = [
-        { label: 'Complete your profile', href: '/profile', icon: Circle },
-        { label: 'Find firms to work with', href: '/hiring-firms', icon: Circle },
-        { label: 'Preview planned resume support', href: '/tools', icon: Circle },
-    ]
-
-    const handleDismiss = async () => {
-        setIsCompleting(true)
-        await completeOnboardingAction()
-        setIsVisible(false)
-    }
-
-    return (
-        <div className="mb-8 rounded-xl border border-blue-100 bg-blue-50/50 p-6">
-            <div className="flex items-start justify-between">
-                <div>
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-blue-900">
-                        <PartyPopper className="h-5 w-5 text-blue-600" />
-                        Welcome to the Hub!
-                    </h2>
-                    <p className="mt-1 text-sm text-blue-700">
-                        Get started with these quick steps to get the most out of your membership.
-                    </p>
-                </div>
-                <button
-                    onClick={handleDismiss}
-                    disabled={isCompleting}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline disabled:opacity-50"
-                >
-                    {isCompleting ? 'Saving...' : 'Dismiss'}
-                </button>
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {steps.map((step) => (
-                    <Link
-                        key={step.label}
-                        href={step.href}
-                        className="group flex items-center gap-3 rounded-lg bg-white p-4 shadow-sm transition-all hover:shadow-md hover:ring-1 hover:ring-blue-200"
-                    >
-                        <div className="rounded-full bg-blue-100 p-2 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <step.icon className="h-5 w-5" />
-                        </div>
-                        <span className="font-medium text-slate-700">{step.label}</span>
-                    </Link>
-                ))}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-                <button
-                    onClick={handleDismiss}
-                    className="text-xs text-blue-400 hover:text-blue-600"
-                >
-                    Mark all as done
-                </button>
-            </div>
-        </div>
-    )
+  // Hiding guidance is not completing onboarding. No profile write or marketing
+  // tag belongs here; the member can reopen the guide during this visit.
+  return (
+    <section aria-label="Getting started as an inspector">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium text-slate-600">Your next step</p>
+        <button
+          type="button"
+          onClick={() => setIsVisible((visible) => !visible)}
+          aria-expanded={isVisible}
+          className="min-h-11 rounded-md px-3 text-sm font-medium text-slate-600 underline-offset-4 hover:text-slate-900 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+        >
+          {isVisible ? 'Hide for now' : 'Show getting-started guide'}
+        </button>
+      </div>
+      {isVisible && <InspectorStartGuide />}
+    </section>
+  )
 }
