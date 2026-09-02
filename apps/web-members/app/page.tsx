@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Calculator, Search, Sparkles } from 'lucide-react'
+import { Calculator, Search } from 'lucide-react'
+import { FreeSignupCta } from '@/components/FreeSignupCta'
 import { RoleCarousel } from '@/components/RoleCarousel'
 import { TechHero } from '@/components/TechHero'
 import { TestimonialsSection, TestimonialStrip } from '@/components/TestimonialsSection'
@@ -138,13 +139,10 @@ export default function HomePage() {
               Start here
             </p>
             <div className="mt-3 grid gap-2">
-              <Link
-                href="/membership-pricing"
-                className="flex min-h-14 items-center gap-3 border border-brand-copper bg-brand-copper px-4 py-3 text-sm font-semibold text-white shadow-sm"
-              >
-                <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
-                <span>Start the 7-day Pro trial</span>
-              </Link>
+              <FreeSignupCta
+                placement="home_mobile"
+                className="min-h-14 border border-brand-copper bg-brand-copper px-4 py-3 text-sm font-semibold text-white shadow-sm"
+              />
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   href="/hiring-firms"
@@ -163,8 +161,11 @@ export default function HomePage() {
               </div>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-slate-500">
-              Pro includes a 7-day free trial. Paid digital memberships are non-refundable after billing begins.
+              Free account. No credit card required. Compare paid options when you are ready.
             </p>
+            <Link href="/membership-pricing" className="mt-1 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-brand-copper underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-copper">
+              Compare membership plans
+            </Link>
           </div>
         </section>
 
@@ -488,12 +489,10 @@ export default function HomePage() {
                   <li>• Learn what tools and certifications matter first.</li>
                   <li>• Get checklists for your first inspections.</li>
                 </ul>
-                <Link
-                  href="/membership-pricing"
-                  className="mt-4 inline-flex text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
-                >
-                  Start Free →
-                </Link>
+                <FreeSignupCta
+                  placement="home_starter"
+                  className="mt-4 px-2 text-sm font-semibold text-brand-copper hover:text-brand-copperDark"
+                />
               </div>
 
               <div className="rounded-2xl border border-brand-copper/30 bg-brand-dark p-6 text-slate-50">
@@ -536,11 +535,15 @@ export default function HomePage() {
               chasing scattered posts and rumors.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <FreeSignupCta
+                placement="home_final"
+                className="bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
+              />
               <Link
                 href="/membership-pricing"
-                className="inline-flex items-center justify-center rounded-full bg-brand-copper px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-brand-copper/50 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                Explore membership options
+                Compare membership plans
               </Link>
               <Link
                 href="/hiring-firms"
