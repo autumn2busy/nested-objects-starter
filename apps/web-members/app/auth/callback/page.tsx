@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { safeAuthRedirect } from '@/lib/auth-redirect'
 
 function CallbackContent() {
   const router = useRouter()
@@ -9,16 +10,14 @@ function CallbackContent() {
   const [status, setStatus] = useState<string>('Processing...')
 
   useEffect(() => {
+    if (searchParams.get('error')) {
+      setStatus('Error: Your sign-in could not be verified. Please return home and try logging in again.')
+      return
+    }
     const handleCallback = async () => {
       try {
-        console.log('🟢 Callback page loaded')
-        console.log('🟢 Full URL:', window.location.href)
-        console.log('🟢 Search params:', window.location.search)
-
         // Get the access token from URL query params
         const accessToken = searchParams.get('access_token')
-
-        console.log('🟢 Access token found?', !!accessToken)
 
         if (!accessToken) {
           setStatus('No access token received. Checking Outseta...')
@@ -28,7 +27,6 @@ function CallbackContent() {
             if (window.Outseta) {
               const token = window.Outseta.getAccessToken()
               if (token) {
-                console.log('🟢 Got token from Outseta directly')
                 proceedWithToken(token)
               } else {
                 setStatus('Error: No access token found. Please try logging in again.')
@@ -42,14 +40,11 @@ function CallbackContent() {
         proceedWithToken(accessToken)
 
       } catch (err) {
-        console.error('🔴 Auth callback error:', err)
-        setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        setStatus('Error: Sign-in could not be completed. Please try again.')
       }
     }
 
     const proceedWithToken = async (accessToken: string) => {
-      console.log('🟢 Processing token...')
-
       try {
         // Exchange token for HttpOnly cookie via server endpoint
         const response = await fetch('/api/auth/session', {
@@ -64,12 +59,9 @@ function CallbackContent() {
           throw new Error('Failed to create session')
         }
 
-        console.log('🟢 Session created.')
-
         // Initialize Outseta with the token if it's loaded (still needed for client widgets)
         if (window.Outseta) {
           window.Outseta.setAccessToken(accessToken)
-          console.log('🟢 Token set in Outseta')
         }
 
         setStatus('Success! Redirecting...')
@@ -78,16 +70,13 @@ function CallbackContent() {
         try { sessionStorage.setItem('outseta_just_logged_in', '1') } catch { }
 
         // Redirect to directory
-        const redirectTo = searchParams.get('redirect') || '/inspector-dashboard'
-
-        console.log('🟢 Redirecting to:', redirectTo)
+        const redirectTo = safeAuthRedirect(searchParams.get('redirect'))
 
         // Small delay to ensure state is settled
         setTimeout(() => {
           window.location.href = redirectTo
         }, 500)
       } catch (err) {
-        console.error('Session creation failed:', err)
         setStatus('Error: Failed to create session. Please try again.')
       }
     }

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeAuthRedirect } from './lib/auth-redirect'
 
 const securityHeaders: Record<string, string> = {
   'X-DNS-Prefetch-Control': 'on',
@@ -26,15 +27,42 @@ export function middleware(request: NextRequest) {
   const hasSessionCookie = Boolean(request.cookies.get('outseta_access_token')?.value)
   const isDisabledToolRoute = pathname.startsWith('/tools/')
 
-  const response = isProtectedPortalRoute && !hasSessionCookie
-    ? NextResponse.redirect(OUTSETA_LOGIN_URL, 307)
-    : isDisabledToolRoute
-      ? NextResponse.redirect(new URL('/tools', request.url), 307)
-      : NextResponse.next()
+  // Hosted login returns to a protected page before its HttpOnly session exists.
+  // Rewrite to verification, never render the portal just because a token is present.
+  const isLoginReturn = request.method === 'GET'
+    && request.nextUrl.searchParams.has('access_token')
+    && (isProtectedPortalRoute || pathname === '/auth/callback')
+  let response: NextResponse
+  if (isLoginReturn) {
+    const destination = pathname === '/auth/callback'
+      ? safeAuthRedirect(request.nextUrl.searchParams.get('redirect'))
+      : safeAuthRedirect(pathname + request.nextUrl.search)
+    const completionUrl = new URL('/api/auth/complete', request.url)
+    completionUrl.searchParams.set('redirect', destination)
+    const tokens = request.nextUrl.searchParams.getAll('access_token')
+    const forwardedHeaders = new Headers(request.headers)
+    // Next exposes the rewrite URL as a response header. Keep credentials out of it.
+    // Always overwrite incoming values; the handler still verifies the JWT.
+    const token = tokens.length === 1 && tokens[0].length <= 16_384
+      && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(tokens[0]) ? tokens[0] : ''
+    forwardedHeaders.set('x-outseta-login-token', token)
+    response = NextResponse.rewrite(completionUrl, { request: { headers: forwardedHeaders } })
+  } else {
+    response = isProtectedPortalRoute && !hasSessionCookie
+      ? NextResponse.redirect(OUTSETA_LOGIN_URL, 307)
+      : isDisabledToolRoute
+        ? NextResponse.redirect(new URL('/tools', request.url), 307)
+        : NextResponse.next()
+  }
 
   Object.entries(securityHeaders).forEach(([key, value]) => {
     response.headers.set(key, value)
   })
+
+  if (isLoginReturn || pathname.startsWith('/auth/')) {
+    response.headers.set('Cache-Control', 'private, no-store, max-age=0')
+    response.headers.set('Referrer-Policy', 'no-referrer')
+  }
 
   if (request.nextUrl.protocol === 'https:') {
     response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
