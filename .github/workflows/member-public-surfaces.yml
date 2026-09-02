@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           log_file="$RUNNER_TEMP/member-tools-next.log"
-          npm run dev -- --hostname 127.0.0.1 --port 3018 >"$log_file" 2>&1 &
+          npm run dev -- --hostname localhost --port 3018 >"$log_file" 2>&1 &
           server_pid=$!
           cleanup() {
             kill "$server_pid" 2>/dev/null || true
@@ -55,7 +55,7 @@ jobs:
 
           ready=0
           for attempt in {1..60}; do
-            if curl --silent --show-error --fail http://127.0.0.1:3018/tools >/dev/null; then
+            if curl --silent --show-error --fail http://localhost:3018/tools >/dev/null; then
               ready=1
               break
             fi
@@ -71,4 +71,4 @@ jobs:
             exit 1
           fi
 
-          MEMBER_SURFACE_BASE_URL=http://127.0.0.1:3018 npm run verify:member-tools-runtime
+          MEMBER_SURFACE_BASE_URL=http://localhost:3018 npm run verify:member-tools-runtime
