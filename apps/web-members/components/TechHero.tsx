@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { FreeSignupCta } from '@/components/FreeSignupCta'
 // Icons
-import { MapPin, TrendingUp, ShieldCheck, ArrowRight, Activity } from 'lucide-react'
+import { MapPin, TrendingUp, ShieldCheck, Activity } from 'lucide-react'
 
 // Dummy data for the ticker - in real app, fetch this from Supabase
 const TICKER_ITEMS = [
@@ -72,13 +73,11 @@ export function TechHero() {
                 {/* CTA Buttons */}
                 <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4">
                     <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
-                        <Link
-                            href="/membership-pricing"
-                            className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-8 py-3 text-base font-bold text-slate-950 transition-colors hover:bg-emerald-400 sm:w-auto sm:py-4 sm:text-lg sm:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                        >
-                            Start free <ArrowRight className="w-5 h-5" />
-                        </Link>
-                        <p className="text-xs font-medium text-text-muted">No credit card required</p>
+                        <FreeSignupCta
+                            placement="home_hero"
+                            className="w-full min-h-12 bg-emerald-500 px-8 py-3 text-base font-bold text-slate-950 transition-colors hover:bg-emerald-400 sm:w-auto sm:py-4 sm:text-lg sm:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                        />
+                        <p className="text-xs font-medium text-slate-300">Free account · No credit card required</p>
                     </div>
 
                     <Link
@@ -89,6 +88,9 @@ export function TechHero() {
                         Browse firms
                     </Link>
                 </div>
+                <Link href="/membership-pricing" className="mt-3 inline-flex min-h-11 items-center rounded-md px-3 text-sm text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    Compare membership plans
+                </Link>
 
             </div>
 
