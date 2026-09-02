@@ -11,7 +11,6 @@ import {
 
 import { useAuth } from '@/components/auth-provider'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
@@ -679,17 +678,13 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
                     Profile Visibility
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">
-                    Turn this on to publish your profile. When published, hiring firms can discover you in the directory and view your qualifications.
+                    Only you can view your profile. Other members and visitors cannot see it. Sharing with firms is not available yet.
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-sm font-medium ${formData.is_published ? 'text-green-600' : 'text-slate-500'}`}>
-                    {formData.is_published ? 'Published' : 'Hidden'}
+                  <span className="text-sm font-medium text-slate-600">
+                    Private
                   </span>
-                  <Switch
-                    checked={formData.is_published}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
-                  />
                 </div>
               </div>
             </Card>

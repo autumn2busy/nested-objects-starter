@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { Camera, Loader2, Menu, X } from 'lucide-react'
 
 import { useAuth } from './auth-provider'
-import { useProfile } from '@/lib/use-profile'
 import { Button, buttonVariants } from './ui/button'
 
 type SiteHeaderProps = {
@@ -48,11 +47,6 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
 
-  const userEmail =
-    (user?.email as string | undefined) ?? (user?.Email as string | undefined) ?? null
-
-  const { profile } = useProfile(userEmail)
-
   const displayName = useMemo(() => {
     return (
       (profileDisplayName as string | null) ??
@@ -65,7 +59,7 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   }, [profileDisplayName, user])
 
   const initials = displayName.charAt(0).toUpperCase()
-  const avatarUrl = profileAvatarUrl ?? profile?.avatar_url ?? null
+  const avatarUrl = profileAvatarUrl
 
   const activeLink = (href: string) => {
     if (!pathname) return false

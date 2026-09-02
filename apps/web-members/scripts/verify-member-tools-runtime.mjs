@@ -30,6 +30,8 @@ if (
 for (const route of [
   '/inspector-dashboard?access_token=synthetic-login-regression',
   '/profile?access_token=synthetic-login-regression',
+  '/members?access_token=synthetic-login-regression',
+  '/members/11111111-1111-1111-1111-111111111111?access_token=synthetic-login-regression',
   '/auth/callback?access_token=synthetic-login-regression',
 ]) {
   const response = await request(route, { redirect: 'manual' })
@@ -48,6 +50,27 @@ for (const route of [
   }
   if ([...response.headers].some(([, value]) => value.includes('synthetic-login-regression'))) {
     failures.push('Login response headers echo the supplied token')
+  }
+}
+
+// Check the real Next.js router as well as the signed-identity unit fixtures.
+// A cookie's presence alone must never grant access to member payloads.
+for (const route of ['/members', '/members/11111111-1111-1111-1111-111111111111']) {
+  for (const forgedCookie of [false, true]) {
+    const response = await request(route, {
+      redirect: 'manual',
+      headers: forgedCookie ? { cookie: 'outseta_access_token=synthetic-invalid' } : {},
+    })
+    const location = response.headers.get('location')
+    if (response.status !== 307 || !location?.startsWith('https://nested-objects.outseta.com/auth?widgetMode=login')) {
+      failures.push(`${route} exposed a member view without verified identity (status=${response.status})`)
+    }
+    if (!response.headers.get('cache-control')?.includes('no-store')) {
+      failures.push(`${route} is missing no-store`)
+    }
+    if (response.headers.get('x-robots-tag') !== 'noindex, nofollow, noarchive') {
+      failures.push(`${route} is missing private indexing headers`)
+    }
   }
 }
 

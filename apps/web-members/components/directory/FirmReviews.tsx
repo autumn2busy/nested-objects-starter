@@ -14,7 +14,7 @@ function getSupabase() {
 export async function FirmReviews({ firmId }: { firmId: string }) {
     const { data: reviews, error } = await getSupabase()
         .from('firm_reviews')
-        .select('rating, comment, created_at, profiles(display_name, avatar_url)')
+        .select('rating, comment, created_at')
         .eq('firm_id', firmId)
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
@@ -31,7 +31,7 @@ export async function FirmReviews({ firmId }: { firmId: string }) {
 
     const reviewSchema = getReviewSchema(
         reviews.map((r: any) => ({
-            author: Array.isArray(r.profiles) ? r.profiles[0]?.display_name || 'Anonymous' : r.profiles?.display_name || 'Anonymous',
+            author: 'Member',
             rating: r.rating,
             body: r.comment,
             datePublished: r.created_at
@@ -49,23 +49,14 @@ export async function FirmReviews({ firmId }: { firmId: string }) {
 
             <div className="p-6 sm:p-8 space-y-8">
                 {reviews.map((r: any, i: number) => {
-                    const author = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
-                    const name = author?.display_name || 'Anonymous Member'
-                    const initial = name.charAt(0).toUpperCase()
-
                     return (
                         <div key={i} className="border-b border-border-subtle pb-8 last:border-0 last:pb-0">
                             <div className="flex items-center gap-3 mb-3">
-                                {author?.avatar_url ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={author.avatar_url} alt={name} className="h-10 w-10 rounded-full object-cover bg-surface-muted ring-1 ring-border-subtle" />
-                                ) : (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500 ring-1 ring-border-subtle">
-                                        {initial}
-                                    </div>
-                                )}
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500 ring-1 ring-border-subtle" aria-hidden="true">
+                                    M
+                                </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-text-primary">{name}</p>
+                                    <p className="text-sm font-semibold text-text-primary">Member</p>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <div className="flex gap-0.5">
                                             {[1, 2, 3, 4, 5].map(star => (

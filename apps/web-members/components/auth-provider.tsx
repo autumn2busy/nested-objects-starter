@@ -35,9 +35,6 @@ type AuthContextValue = {
   updateProfileAvatarUrl: (url: string | null) => void
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const deriveDisplayName = (payload: JwtPayload | null): string | null => {
@@ -355,61 +352,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isLoading, loadUser])
 
-  const fetchProfileDisplayName = useCallback(async () => {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
-    if (!isAuthenticated || !user) return
-
-    const userEmail =
-      (user?.email as string | undefined) ??
-      (user?.Email as string | undefined) ??
-      null
-
-    if (!userEmail) return
+  const fetchProfileDisplayName = useCallback(async (signal?: AbortSignal) => {
+    if (isLoading || !isAuthenticated || !user) return
 
     try {
-      const encodedEmail = encodeURIComponent(userEmail)
-      const url =
-        `${SUPABASE_URL}/rest/v1/profiles` +
-        `?user_email=eq.${encodedEmail}` +
-        `&select=display_name,avatar_url`
-
-      const res = await fetch(url, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
+      const res = await fetch('/api/profile', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        signal,
       })
 
+      if (signal?.aborted) return
+
       if (!res.ok) {
-        // Fall back to derived name if Supabase doesn't have one yet
+        // Profile hydration is optional; the verified session remains authoritative.
         persistProfileDisplayName(deriveDisplayName(user))
+        persistProfileAvatarUrl(null)
         return
       }
 
-      const rows = (await res.json()) as { display_name: string | null; avatar_url: string | null }[]
-      const row = rows[0]
-      const nameFromDb = row?.display_name?.trim() || null
-      const avatarFromDb = row?.avatar_url?.trim() || null
-
-      if (nameFromDb) {
-        persistProfileDisplayName(nameFromDb)
-      } else {
-        persistProfileDisplayName(deriveDisplayName(user))
+      const data = (await res.json()) as {
+        profile?: { display_name?: string | null; avatar_url?: string | null } | null
       }
+      if (signal?.aborted) return
 
-      if (avatarFromDb) {
-        persistProfileAvatarUrl(avatarFromDb)
-      }
+      const nameFromDb = data.profile?.display_name?.trim() || null
+      const avatarFromDb = data.profile?.avatar_url?.trim() || null
+      persistProfileDisplayName(nameFromDb || deriveDisplayName(user))
+      persistProfileAvatarUrl(avatarFromDb)
     } catch (error) {
+      if (signal?.aborted) return
       console.error('Error loading profile display name', error)
       persistProfileDisplayName(deriveDisplayName(user))
+      persistProfileAvatarUrl(null)
     }
-  }, [isAuthenticated, persistProfileAvatarUrl, persistProfileDisplayName, user])
+  }, [isAuthenticated, isLoading, persistProfileAvatarUrl, persistProfileDisplayName, user])
 
-  // hydrate profile name from Supabase once auth is ready
+  // Hydrate only the current member's profile through the authenticated API.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      void fetchProfileDisplayName()
+      const controller = new AbortController()
+      void fetchProfileDisplayName(controller.signal)
+      return () => controller.abort()
     }
   }, [fetchProfileDisplayName, isAuthenticated, isLoading])
 

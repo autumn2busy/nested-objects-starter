@@ -13,7 +13,7 @@ export function OnboardingWidget() {
 
     const steps = [
         { label: 'Complete your profile', href: '/profile', icon: Circle },
-        { label: 'Explore the member directory', href: '/members', icon: Circle },
+        { label: 'Find firms to work with', href: '/hiring-firms', icon: Circle },
         { label: 'Preview planned resume support', href: '/tools', icon: Circle },
     ]
 
