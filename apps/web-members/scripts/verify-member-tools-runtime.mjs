@@ -25,6 +25,32 @@ if (
   )
 }
 
+// A login return must reach token verification before either portal auth guard.
+// These are invalid synthetic values, never a real member token.
+for (const route of [
+  '/inspector-dashboard?access_token=synthetic-login-regression',
+  '/profile?access_token=synthetic-login-regression',
+  '/auth/callback?access_token=synthetic-login-regression',
+]) {
+  const response = await request(route, { redirect: 'manual' })
+  const location = response.headers.get('location')
+  if (response.status !== 303 || location !== `${baseUrl.origin}/auth/callback?error=invalid_session`) {
+    failures.push(`Login return did not reach verification (status=${response.status})`)
+  }
+  if (response.headers.get('set-cookie')?.includes('outseta_access_token=')) {
+    failures.push('An invalid login token created a session cookie')
+  }
+  if (!response.headers.get('cache-control')?.includes('no-store')) {
+    failures.push('Login return is missing no-store')
+  }
+  if (response.headers.get('referrer-policy') !== 'no-referrer') {
+    failures.push('Login return is missing no-referrer')
+  }
+  if ([...response.headers].some(([, value]) => value.includes('synthetic-login-regression'))) {
+    failures.push('Login response headers echo the supplied token')
+  }
+}
+
 const disabledToolRoutes = [
   '/tools/ai-concierge',
   '/tools/ai-resume',

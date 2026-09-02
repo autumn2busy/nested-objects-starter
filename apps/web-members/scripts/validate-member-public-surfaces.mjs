@@ -59,6 +59,14 @@ for (const required of [
 }
 
 for (const required of [
+  "searchParams.has('access_token')",
+  "new URL('/api/auth/complete', request.url)",
+  'NextResponse.rewrite(completionUrl,',
+]) {
+  requireText(middlewareSource, required, `middleware is missing the verified login-return handoff ${JSON.stringify(required)}`)
+}
+
+for (const required of [
   "import { getCurrentUser } from \"@/lib/auth-server\"",
   'const user = await getCurrentUser()',
   'if (!user)',
