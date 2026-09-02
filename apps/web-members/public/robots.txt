@@ -4,6 +4,8 @@ Allow: /
 # Block private/authenticated areas
 Disallow: /dashboard/
 Disallow: /inspector-dashboard/
+Disallow: /members
+Disallow: /profile
 Disallow: /api/
 Disallow: /partners/
 

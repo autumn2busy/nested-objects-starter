@@ -104,7 +104,7 @@ test('valid hosted return verifies JWT, sets cookie, strips token, then passes B
 })
 
 test('all protected destinations and direct callback use the same verified handoff, even with an old cookie', () => {
-  for (const path of ['/admin/intelligence-os', '/directory-preview', '/profile', '/security', '/inspector-dashboard', '/auth/callback']) {
+  for (const path of ['/admin/intelligence-os', '/directory-preview', '/profile', '/security', '/inspector-dashboard', '/members', '/members/11111111-1111-1111-1111-111111111111', '/auth/callback']) {
     const response = middleware(new NextRequest(`${origin}${path}?access_token=synthetic`, {
       headers: { cookie: 'outseta_access_token=old-expired-cookie' },
     }))

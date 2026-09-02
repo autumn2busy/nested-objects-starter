@@ -3,11 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Search, GraduationCap, ShieldCheck, Briefcase, Star, TrendingUp } from 'lucide-react'
+import { MapPin, GraduationCap, ShieldCheck, Briefcase, Star, TrendingUp } from 'lucide-react'
 
-import { useAuth } from '@/components/auth-provider'
 import { Card } from '@/components/ui/card'
-import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
+import { FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge'
 import { StarRating } from '@/components/ui/StarRating'
@@ -96,7 +95,6 @@ type FilterBarProps = {
     stateFilter: string
     search: string
     eliteOnly: boolean
-    isAuthenticated: boolean
     onStateChange: (value: string) => void
     onSearchChange: (value: string) => void
     onEliteOnlyChange: (value: boolean) => void
@@ -106,7 +104,6 @@ function FilterBar({
     stateFilter,
     search,
     eliteOnly,
-    isAuthenticated,
     onSearchChange,
     onStateChange,
     onEliteOnlyChange,
@@ -131,20 +128,13 @@ function FilterBar({
 
                 <div className="space-y-1">
                     <FieldLabel htmlFor="keyword-filter">NAME / KEYWORD</FieldLabel>
-                    <div className="relative">
-                        <Input
-                            id="keyword-filter"
-                            type="text"
-                            value={search}
-                            disabled={!isAuthenticated}
-                            onChange={(e) => onSearchChange(e.target.value)}
-                            placeholder={!isAuthenticated ? "Login to search..." : "Search by name, role, or skills..."}
-                            className={!isAuthenticated ? "cursor-not-allowed opacity-70" : ""}
-                        />
-                        {!isAuthenticated && (
-                            <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
-                        )}
-                    </div>
+                    <Input
+                        id="keyword-filter"
+                        type="text"
+                        value={search}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        placeholder="Search by name, role, or skills..."
+                    />
                 </div>
 
                 <div className="flex items-center gap-2 pb-2.5 h-full">
@@ -164,24 +154,6 @@ function FilterBar({
                     </label>
                 </div>
             </div>
-            {!isAuthenticated && (
-                <FieldHelperText className="mt-2 text-amber-900">
-                    <a
-                        href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                        className="font-semibold underline"
-                    >
-                        Log in
-                    </a>{' '}
-                    or{' '}
-                    <a
-                        href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                        className="font-semibold underline"
-                    >
-                        Create an account
-                    </a>{' '}
-                    to search the full directory.
-                </FieldHelperText>
-            )}
         </Card>
     )
 }
@@ -215,7 +187,7 @@ function MemberCard({ member }: MemberCardProps) {
                         </div>
                         <div className="min-w-0 flex-1">
                             <h3 className="font-semibold text-slate-900 truncate">
-                                {member.display_name || 'Verified Member'}
+                                {member.display_name || 'Member'}
                             </h3>
                             <p className="text-sm text-slate-500 truncate">
                                 {member.role || 'Field Inspector'}
@@ -224,14 +196,13 @@ function MemberCard({ member }: MemberCardProps) {
                                 {isElite && (
                                     <div className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded">
                                         <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                                        <span>ELITE</span>
+                                        <span>Elite member</span>
                                     </div>
                                 )}
                                 {member.verified_at ? (
                                     <VerifiedBadge date={member.verified_at} />
                                 ) : (
                                     <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded">
-                                        <BadgeCheck className="w-3 h-3" />
                                         <span>MEMBER</span>
                                     </div>
                                 )}
@@ -316,8 +287,6 @@ interface MembersDirectoryViewProps {
 }
 
 export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewProps) {
-    const { isAuthenticated, isLoading } = useAuth()
-    const [members] = useState<Member[]>(initialMembers)
     const [stateFilter, setStateFilter] = useState<string>('ALL')
     const [search, setSearch] = useState<string>('')
     const [eliteOnly, setEliteOnly] = useState<boolean>(false)
@@ -352,7 +321,7 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
         return member.subscription_tier === 'elite' || member.subscription_tier === 'agency'
     }
 
-    const filteredMembers = members
+    const filteredMembers = initialMembers
         .filter(matchesStateFilter)
         .filter(matchesSearch)
         .filter(matchesElite)
@@ -364,9 +333,6 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
         if (aElite !== bElite) return bElite - aElite
         return 0
     })
-
-    // Guest Preview: Show limited set (e.g. 6) if not authenticated
-    const displayedMembers = !isAuthenticated ? sortedMembers.slice(0, 6) : sortedMembers
 
     return (
         <main className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -390,58 +356,26 @@ export function MembersDirectoryView({ initialMembers }: MembersDirectoryViewPro
                 stateFilter={stateFilter}
                 search={search}
                 eliteOnly={eliteOnly}
-                isAuthenticated={isAuthenticated}
                 onSearchChange={setSearch}
                 onStateChange={setStateFilter}
                 onEliteOnlyChange={setEliteOnly}
             />
 
-            {!isAuthenticated && (
-                <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900 rounded-md">
-                    <h3 className="font-semibold text-slate-900">Preview Mode</h3>
-                    <p className="mt-1 mb-3">
-                        You are viewing a limited preview of our member directory.
-                        Firms can log in to search the full directory of verified professionals.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                        <a
-                            href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
-                            className="inline-flex border border-slate-900 bg-slate-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white hover:bg-slate-800"
-                        >
-                            FIRM LOGIN
-                        </a>
-                        <a
-                            href="https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous"
-                            className="inline-flex border border-slate-300 bg-white px-4 py-2 text-xs font-semibold tracking-[0.16em] text-slate-900 hover:bg-slate-50"
-                        >
-                            CREATE ACCOUNT
-                        </a>
-                    </div>
-                </div>
-            )}
-
             <section className="grid gap-6">
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                    {displayedMembers.map((member) => (
+                    {sortedMembers.map((member) => (
                         <MemberCard
                             key={member.id}
                             member={member}
                         />
                     ))}
-                    {displayedMembers.length === 0 && (
+                    {sortedMembers.length === 0 && (
                         <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded border border-dashed border-slate-200">
                             No members found matching your criteria.
                         </div>
                     )}
                 </div>
             </section>
-
-            {!isAuthenticated && filteredMembers.length > displayedMembers.length && (
-                <p className="mt-6 text-center text-sm text-slate-600">
-                    Showing {displayedMembers.length} of {filteredMembers.length} active members.
-                    <a href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous" className="ml-1 font-semibold text-blue-600 hover:underline">Log in to view all.</a>
-                </p>
-            )}
         </main>
     )
 }
