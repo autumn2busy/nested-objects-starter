@@ -303,7 +303,7 @@ export function PricingFinalCtaCopy() {
     <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
       {isAuthenticated && planUid === PLAN_UIDS.PRO
         ? 'Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews.'
-        : 'Start Pro with $0 due today so you can see firms, intel, and tools in one place before paid billing begins.'}
+        : 'Start Pro with $0 due today so you can see firms, intel, and training in one place before paid billing begins.'}
     </p>
   )
 }

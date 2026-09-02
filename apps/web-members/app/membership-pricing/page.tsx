@@ -3,7 +3,6 @@ import { generatePageMetadata, getFAQPageSchema, getProductSchema } from '@/lib/
 import type { Metadata } from 'next'
 import { membershipPlans } from '@/lib/ai-datasets'
 import { isPublicPlanUid } from '@/lib/plan-config'
-import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Field Inspector Membership Plans | Nested Objects',
@@ -23,21 +22,6 @@ const productSchemas = membershipPlans
     })
   )
 
-// AggregateRating for rich snippets in search results
-const aggregateRatingSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Nested Objects',
-  url: 'https://members.nestedobjects.com',
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: getAverageRating(),
-    bestRating: 5,
-    worstRating: 1,
-    reviewCount: TESTIMONIALS.length,
-  },
-}
-
 const faqSchema = getFAQPageSchema(pricingFaqs)
 
 export default function MembershipPage() {
@@ -46,10 +30,6 @@ export default function MembershipPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchemas) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
       />
       <script
         type="application/ld+json"

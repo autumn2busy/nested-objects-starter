@@ -63,7 +63,7 @@ export function ToolsView() {
           <div className="inline-flex items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-200">
             Preview mode
           </div>
-          <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
             Practical tools for running a stronger field inspection business.
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
@@ -102,7 +102,7 @@ export function ToolsView() {
                   Locked preview
                 </span>
               </div>
-              <h2 className="mt-6 text-2xl font-bold">{tool.name}</h2>
+              <h2 className="mt-6 text-2xl font-bold text-white">{tool.name}</h2>
               <p className="mt-3 leading-7 text-slate-300">{tool.description}</p>
               <p className="mt-5 border-t border-white/10 pt-5 text-sm font-semibold text-sky-200">
                 {tool.outcome}
@@ -123,12 +123,12 @@ export function ToolsView() {
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6 sm:p-8">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-300">Access boundary</p>
-          <h2 className="mt-3 text-3xl font-black">Every tool remains locked until its access decision is implemented.</h2>
+          <h2 className="mt-3 text-3xl font-black text-white">Every tool remains locked until its access decision is implemented.</h2>
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
             {accessRows.map((row) => (
               <div key={row.audience} className="rounded-2xl border border-white/10 bg-black/20 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-lg font-bold">{row.audience}</h3>
+                  <h3 className="text-lg font-bold text-white">{row.audience}</h3>
                   <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white">{row.access}</span>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-300">{row.detail}</p>
