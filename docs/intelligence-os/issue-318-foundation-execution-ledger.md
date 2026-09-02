@@ -15,6 +15,7 @@ This checkpoint supersedes the historical blocked, draft, and unmerged statuses 
 - Applied the five merged migrations (`20260827090000`, `20260827110000`, `20260827120000`, `20260827130000`, `20260827140000`) through the verified staging SQL editor. C3, C5, C6 and C7 rollback-safe validations passed.
 - C8 validation initially failed with SQLSTATE `42883`: the restricted `trace_agent_action_decision()` search path could not resolve `digest`, because staging installs pgcrypto in `extensions`. The C8 schema had committed; its failed synthetic validation left no member/action rows. No validation failure was reported as a pass.
 - Applied the focused follow-up `20260902023000_fix_agent_decision_trace_hash.sql`, using schema-qualified PostgreSQL built-in SHA-256 without widening the function search path or granting privileges. C8 then passed, including a new checksum assertion; C7 approval/rejection/replay validation also passed again with the C8 trigger active. Final synthetic action and trace counts were both zero.
+- Reran C3/C5/C6 validations against the final repaired C8 schema: all passed. Post-rollback counts for members, runs, actions, sensor observations, owners, and destination bindings were all zero.
 - Local acceptance: 64 Node tests, 7 real Workflow fixture tests, both TypeScript configurations, formatting, all migration/static checks, Preview safety checks, specialist checks, and `git diff --check` passed. Workflow tests initially failed under the Windows filesystem sandbox, then passed outside it with no dependency changes. No Next.js production build was run.
 - Owner identity: the user supplied their login email; a single read-only exact-email Outseta lookup resolved Person UID `9P66YMPm`. Outseta documents Person UID as the stable JWT `sub`. Exact-ID confirmation was requested before granting staging owner access. No Outseta mutation occurred.
 - Remaining: owner/sentinel registration, server-only Preview configuration, deployed durable/protected smoke, and the report-parity cycle. These are pending, not passed. Agent Runtime Production activation, real-member exports, models, email, external executors, and schedules remain disabled.
@@ -31,7 +32,7 @@ References: [Outseta stable user identity](https://go.outseta.com/support/kb/art
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
 | Current increment | Staging acceptance and approval-trace SQL repair |
 | Current branch | `codex/318-staging-acceptance` from merged main |
-| Current draft PR | Pending publication; previous #326-#333 stack is merged |
+| Current draft PR | [#334](https://github.com/autumn2busy/nested-objects-starter/pull/334), implementation commit `2c26d4f`; previous #326-#333 stack is merged |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
 | Consequential-action approver | Autumn only |
