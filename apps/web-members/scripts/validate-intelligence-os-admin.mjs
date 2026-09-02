@@ -9,11 +9,28 @@ const paths = {
   actions: path.join(appRoot, 'app/(portal)/admin/intelligence-os/actions.ts'),
   page: path.join(appRoot, 'app/(portal)/admin/intelligence-os/page.tsx'),
   auth: path.join(appRoot, 'lib/auth-server.ts'),
+  layout: path.join(appRoot, 'app/layout.tsx'),
+  tracking: path.join(appRoot, 'lib/ac-event-tracking.ts'),
+  conversion: path.join(appRoot, 'app/api/conversion-events/route.ts'),
 }
 const sources = Object.fromEntries(await Promise.all(Object.entries(paths).map(async ([key, filePath]) => (
   [key, await readFile(filePath, 'utf8')]
 ))))
 const failures = []
+
+requireFragments('staging analytics isolation', sources.layout, [
+  "process.env.VERCEL_ENV === 'preview'",
+  "process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true'",
+  'intelligenceStaging ? undefined : process.env.NEXT_PUBLIC_AC_ACTID',
+  '!intelligenceStaging && <noscript>',
+  '!intelligenceStaging && <DeferredGoogleTagManager />',
+  '!intelligenceStaging && <ActiveCampaignTracker />',
+])
+for (const key of ['tracking', 'conversion']) {
+  requireFragments(`staging ${key} isolation`, sources[key], [
+    "process.env.VERCEL_ENV === 'preview' && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true'",
+  ])
+}
 
 requireFragments('server helper', sources.helper, [
   "const subject = user?.sub?.trim()",
@@ -26,6 +43,10 @@ requireFragments('server helper', sources.helper, [
   "process.env.VERCEL_ENV?.trim().toLowerCase() === 'production'",
   'AbortSignal.timeout(REQUEST_TIMEOUT_MS)',
   "'x-intelligence-body-sha256'",
+  "'x-vercel-protection-bypass': configuration.protectionBypassSecret",
+  'process.env.INTELLIGENCE_OS_AGENT_RUNTIME_BYPASS_SECRET',
+  "hostname.endsWith('.vercel.app')",
+  "redirect: 'error'",
 ])
 requireFragments('Server Actions', sources.actions, [
   "'use server'",

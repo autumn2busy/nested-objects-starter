@@ -99,7 +99,9 @@ export default function RootLayout({
   })
   const homeBreadcrumbSchema = getBreadcrumbSchema([{ name: 'Home', url: SITE_URL }])
 
-  const acActId = process.env.NEXT_PUBLIC_AC_ACTID
+  const intelligenceStaging = process.env.VERCEL_ENV === 'preview'
+    && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true'
+  const acActId = intelligenceStaging ? undefined : process.env.NEXT_PUBLIC_AC_ACTID
 
   return (
     <html lang="en" className="w-full overflow-x-clip" suppressHydrationWarning>
@@ -143,14 +145,14 @@ export default function RootLayout({
       </head>
 
       <body className={cn(plusJakarta.variable, 'w-full overflow-x-clip font-sans text-text-primary')}>
-        <noscript>
+        {!intelligenceStaging && <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-5HPX4VTQ"
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}
           />
-        </noscript>
+        </noscript>}
         {/* Skip Link for Accessibility (WCAG 2.4.1) */}
         <a
           href="#main-content"
@@ -161,8 +163,8 @@ export default function RootLayout({
 
         <AuthProvider>
           <DeferredOutsetaLoader />
-          <DeferredGoogleTagManager />
-          <ActiveCampaignTracker />
+          {!intelligenceStaging && <DeferredGoogleTagManager />}
+          {!intelligenceStaging && <ActiveCampaignTracker />}
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>

@@ -237,9 +237,14 @@ async function adminRuntimeRequest<T>(
         'x-intelligence-origin': configuration.allowedOrigin,
         'x-intelligence-body-sha256': bodyDigest,
         'x-intelligence-signature': signature,
+        ...(configuration.protectionBypassSecret
+          ? { 'x-vercel-protection-bypass': configuration.protectionBypassSecret }
+          : {}),
       },
       body: body === null ? undefined : bodyText,
       cache: 'no-store',
+      // Never forward service credentials through a platform sign-in redirect.
+      redirect: 'error',
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   } catch {
@@ -268,6 +273,7 @@ function loadWebAdminConfiguration(): {
   autumnSubjectId: string
   allowedOrigin: string
   runtimeOrigin: string
+  protectionBypassSecret: string | null
 } {
   if (process.env.VERCEL_ENV?.trim().toLowerCase() === 'production') {
     throw new IntelligenceAdminRequestError('ADMIN_PRODUCTION_DISABLED', 'Intelligence OS controls are disabled in Production.')
@@ -282,7 +288,13 @@ function loadWebAdminConfiguration(): {
   const autumnSubjectId = requiredEnvironment('INTELLIGENCE_OS_AUTUMN_SUBJECT_ID')
   const allowedOrigin = normalizeOrigin(requiredEnvironment('INTELLIGENCE_OS_ADMIN_ALLOWED_ORIGIN'))
   const runtimeOrigin = normalizeOrigin(requiredEnvironment('INTELLIGENCE_OS_AGENT_RUNTIME_URL'))
-  return { sharedSecret, autumnSubjectId, allowedOrigin, runtimeOrigin }
+  const protectionBypassSecret = process.env.INTELLIGENCE_OS_AGENT_RUNTIME_BYPASS_SECRET?.trim() || null
+  if (protectionBypassSecret && (
+    !runtimeOrigin.startsWith('https://') || !new URL(runtimeOrigin).hostname.endsWith('.vercel.app')
+  )) {
+    throw new IntelligenceAdminRequestError('ADMIN_CONFIGURATION_INVALID', 'The protected staging control plane is unavailable.')
+  }
+  return { sharedSecret, autumnSubjectId, allowedOrigin, runtimeOrigin, protectionBypassSecret }
 }
 
 function formSignature(
