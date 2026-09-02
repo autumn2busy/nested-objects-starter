@@ -2,7 +2,9 @@
 
 ## Status and boundary
 
-The repository implementation is complete and deny-by-default. Live staging application is intentionally blocked because the committed destination allowlist is empty and this checkout has no reviewed staging project reference or server-only credential.
+The repository implementation is complete and deny-by-default. On 2026-09-02 the Supabase dashboard positively identified the healthy dedicated `nested-objects-staging` project as `wqstirwszdbsygstnvbn`, separate from Production (`lzzghrjjsyzlvofpidis`). The staging acceptance branch pins only that staging reference. This code binding alone does not enable persistence: the database sentinel and server-only Preview configuration remain required.
+
+The destination fingerprint for policy `phase-c3-v1` is `be8e4a36f85fbecf5109502e9acfc0830a4d4258a25c518cfdbf700d8b8f7954`. See the execution ledger for the current live migration and acceptance results; project verification is not a claim that those checks passed.
 
 Phase C3 is synthetic-only and Preview-only. It does not authorize a Production migration, Production environment variables, Production deployment or promotion, a schedule, model execution, email, content publication, or ActiveCampaign mutation. Existing reports and collectors remain active.
 
@@ -101,4 +103,10 @@ npm run migration:check
 npm run preview:check
 ```
 
-The tests use only reserved synthetic identities and an injected in-memory staging policy. No staging credential is required for repository acceptance. Live migration and Preview smoke remain an explicit external gate.
+The tests use only reserved synthetic identities and an injected in-memory staging policy. No staging credential is required for repository acceptance. The committed destination test separately pins the verified staging reference and fingerprint. Preview smoke remains a separate gate.
+
+## Staging SQL acceptance (2026-09-02 UTC)
+
+The C3/C5/C6/C7/C8 migrations and their rollback-safe validations were exercised in the verified staging project. C8 exposed an extension-search-path failure in the approval trace trigger. Apply `20260902023000_fix_agent_decision_trace_hash.sql` after the original C8 migration before running the C8 validation. It replaces only that trigger function, preserves its restricted search path and permissions, and uses PostgreSQL's built-in SHA-256. The updated C8 validation also checks the decision checksum. C7 was rerun successfully after the repair to cover approval and rejection with the trace trigger active.
+
+Database validation does not activate the runtime or grant owner access. Consult the current execution-ledger checkpoint before configuring the separate sentinel, owner registry, and Preview environments.

@@ -32,7 +32,7 @@ const binding = {
 const correlationId = '31800000-0000-5000-8000-000000000318'
 
 test('committed staging policy denies Production and unreviewed runtime destinations', () => {
-  assert.equal(STAGING_DESTINATION_POLICY.reviewedProjectRefs.length, 0)
+  assert.deepEqual(STAGING_DESTINATION_POLICY.reviewedProjectRefs, ['wqstirwszdbsygstnvbn'])
   assert.throws(
     () => assertReviewedStagingDestination({
       supabaseUrl: 'https://lzzghrjjsyzlvofpidis.supabase.co',
@@ -49,6 +49,31 @@ test('committed staging policy denies Production and unreviewed runtime destinat
       runtimeEnvironment: 'preview',
       vercelEnvironment: 'preview',
     }),
+    StagingDestinationBindingError,
+  )
+})
+
+test('committed staging binding accepts the verified project only outside Production', () => {
+  const input = {
+    supabaseUrl: 'https://wqstirwszdbsygstnvbn.supabase.co',
+    configuredProjectRef: 'wqstirwszdbsygstnvbn',
+    runtimeEnvironment: 'preview',
+    vercelEnvironment: 'preview',
+  }
+  assert.equal(
+    assertReviewedStagingDestination(input).destinationFingerprint,
+    'be8e4a36f85fbecf5109502e9acfc0830a4d4258a25c518cfdbf700d8b8f7954',
+  )
+  assert.throws(
+    () => assertReviewedStagingDestination({ ...input, vercelEnvironment: 'production' }),
+    StagingDestinationBindingError,
+  )
+  assert.throws(
+    () => assertReviewedStagingDestination({ ...input, runtimeEnvironment: 'production' }),
+    StagingDestinationBindingError,
+  )
+  assert.throws(
+    () => assertReviewedStagingDestination({ ...input, configuredProjectRef: projectRef }),
     StagingDestinationBindingError,
   )
 })

@@ -7,6 +7,7 @@ const runtimeRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const repositoryRoot = path.resolve(runtimeRoot, '../..')
 const paths = {
   migration: path.join(repositoryRoot, 'supabase/migrations/20260827140000_create_traceability_and_projection_hardening.sql'),
+  hashRepair: path.join(repositoryRoot, 'supabase/migrations/20260902023000_fix_agent_decision_trace_hash.sql'),
   validation: path.join(repositoryRoot, 'supabase/validation/20260827_validate_traceability_and_projection_hardening.sql'),
   projection: path.join(runtimeRoot, 'src/projections/member-projection.ts'),
   projectionStore: path.join(runtimeRoot, 'src/persistence/projection-store.ts'),
@@ -23,6 +24,19 @@ const sources = Object.fromEntries(await Promise.all(Object.entries(paths).map(a
   [key, await readFile(filePath, 'utf8')]
 ))))
 const failures = []
+
+requireFragments('decision trace hash repair', sources.hashRepair, [
+  'CREATE OR REPLACE FUNCTION public.trace_agent_action_decision()',
+  'SECURITY DEFINER',
+  'SET search_path = public, pg_temp',
+  'pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(',
+  "'UTF8'",
+  'REVOKE ALL ON FUNCTION public.trace_agent_action_decision() FROM PUBLIC, anon, authenticated, service_role',
+  'COMMIT;',
+])
+if (/\bdigest\s*\(/i.test(sources.hashRepair)) {
+  failures.push('decision trace hash repair must not depend on pgcrypto schema lookup')
+}
 
 requireFragments('migration', sources.migration, [
   'CREATE TABLE IF NOT EXISTS public.agent_trace_links',
@@ -44,6 +58,7 @@ requireFragments('rollback validation', sources.validation, [
   'Stale identity link was not auditably revoked while the current link remained active',
   'Changed trace content reused an idempotency key',
   'Approval state did not preserve the action correlation',
+  'Approval trace checksum did not match the decision identity',
   'Owner correlation trace omitted part of the operating thread',
   'A private chain-of-thought storage column exists',
   'Synthetic Phase C8 records were rolled back',
@@ -115,7 +130,7 @@ for (const [label, source] of Object.entries(sources)) {
     if (source.includes(forbidden)) failures.push(`${label} contains forbidden C8 boundary fragment: ${forbidden}`)
   }
 }
-for (const [label, source] of [['migration', sources.migration], ['validation', sources.validation]]) {
+for (const [label, source] of [['migration', sources.migration], ['hash repair', sources.hashRepair], ['validation', sources.validation]]) {
   for (const error of validateSqlShape(source)) failures.push(`${label}: ${error}`)
 }
 

@@ -284,6 +284,15 @@ BEGIN
           AND correlation_id = correlation_uuid
     ) THEN RAISE EXCEPTION 'Approval state did not preserve the action correlation'; END IF;
 
+    IF NOT EXISTS (
+        SELECT 1 FROM public.agent_trace_links
+        WHERE relationship = 'action_has_approval_state'
+          AND from_id = action_uuid::TEXT
+          AND record_checksum = pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(
+              action_uuid::TEXT || '|approved|1|' || owner_subject, 'UTF8'
+          )), 'hex')
+    ) THEN RAISE EXCEPTION 'Approval trace checksum did not match the decision identity'; END IF;
+
     trace_result := public.get_agent_correlation_trace(owner_subject, correlation_uuid);
     IF jsonb_array_length(trace_result->'links') < 5
        OR jsonb_array_length(trace_result->'outcomes') <> 1

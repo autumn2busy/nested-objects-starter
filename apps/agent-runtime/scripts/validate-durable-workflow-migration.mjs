@@ -77,7 +77,7 @@ requireFragments('workflow', workflow, [
   'signalCount !== output.persistedSignalCount',
 ])
 requireFragments('destination', destination, [
-  "reviewedProjectRefs: Object.freeze([])",
+  "reviewedProjectRefs: Object.freeze(['wqstirwszdbsygstnvbn'])",
   "deniedProjectRefs: Object.freeze([MEMBER_SITE_PRODUCTION_PROJECT_REF])",
   'configuredProjectRef !== urlProjectRef',
   '!policy.reviewedProjectRefs.includes(configuredProjectRef)',

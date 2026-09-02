@@ -1,19 +1,37 @@
 # Issue #318 Intelligence OS Foundation execution ledger
 
-Last updated: 2026-08-27, America/New_York
+Last updated: 2026-09-01, America/New_York (2026-09-02 UTC)
 
 This is the durable source of truth for the remaining Issue #318 program. Update it in every stacked increment. Chat history is not authoritative.
+
+## Current staging acceptance checkpoint
+
+This checkpoint supersedes the historical blocked, draft, and unmerged statuses in the increment history below. Issue #318 remains open; database acceptance is not end-to-end Preview acceptance.
+
+- Verified `origin/main`: `3183b4d73f9ea39af7bdb64bb6e2e9e402d7990a` (PR #333 merged). C3-C8 are merged, not awaiting publication.
+- Supabase dashboard positively identifies `nested-objects-staging`, project `wqstirwszdbsygstnvbn`, Healthy, AWS us-east-2. Production project `lzzghrjjsyzlvofpidis` remains denied and was not changed.
+- The code allowlist pins only that staging reference. Fingerprint: `be8e4a36f85fbecf5109502e9acfc0830a4d4258a25c518cfdbf700d8b8f7954`.
+- Before application, the 13 C3-C8 tables were absent; baseline tables were present; `canonical_members` and `agent_runs` were empty.
+- Applied the five merged migrations (`20260827090000`, `20260827110000`, `20260827120000`, `20260827130000`, `20260827140000`) through the verified staging SQL editor. C3, C5, C6 and C7 rollback-safe validations passed.
+- C8 validation initially failed with SQLSTATE `42883`: the restricted `trace_agent_action_decision()` search path could not resolve `digest`, because staging installs pgcrypto in `extensions`. The C8 schema had committed; its failed synthetic validation left no member/action rows. No validation failure was reported as a pass.
+- Applied the focused follow-up `20260902023000_fix_agent_decision_trace_hash.sql`, using schema-qualified PostgreSQL built-in SHA-256 without widening the function search path or granting privileges. C8 then passed, including a new checksum assertion; C7 approval/rejection/replay validation also passed again with the C8 trigger active. Final synthetic action and trace counts were both zero.
+- Local acceptance: 64 Node tests, 7 real Workflow fixture tests, both TypeScript configurations, formatting, all migration/static checks, Preview safety checks, specialist checks, and `git diff --check` passed. Workflow tests initially failed under the Windows filesystem sandbox, then passed outside it with no dependency changes. No Next.js production build was run.
+- Owner identity: the user supplied their login email; a single read-only exact-email Outseta lookup resolved Person UID `9P66YMPm`. Outseta documents Person UID as the stable JWT `sub`. Exact-ID confirmation was requested before granting staging owner access. No Outseta mutation occurred.
+- Remaining: owner/sentinel registration, server-only Preview configuration, deployed durable/protected smoke, and the report-parity cycle. These are pending, not passed. Agent Runtime Production activation, real-member exports, models, email, external executors, and schedules remain disabled.
+- PR #324 is still open and superseded by the merged correction; do not merge it. No PR was merged or closed during this checkpoint.
+
+References: [Outseta stable user identity](https://go.outseta.com/support/kb/articles/XQYMXqQP/the-jwt-access-token), [PostgreSQL built-in SHA-256](https://www.postgresql.org/docs/current/functions-binarystring.html).
 
 ## Repository and stack state
 
 | Item | Verified state |
 | --- | --- |
 | Repository | `autumn2busy/nested-objects-starter` |
-| Latest fetched `origin/main` | `7e1eab8100b80f42c274816fbb7bf254edaa7545` |
+| Latest fetched `origin/main` | `3183b4d73f9ea39af7bdb64bb6e2e9e402d7990a` |
 | Phase C2 verification head / corrective-increment stack base | `7e5bd39b69361dbd75c983dce7fcf96b65337b9b` |
-| Current increment | Phase C8 foundation hardening and completion audit |
-| Current branch | `feature/318-c8-foundation-hardening` at C7 base `7f8cb39` |
-| Current draft PR | C8 draft PR #333; dependency stack is PRs #326 -> #327 -> #328 -> #329 -> #330 -> #331 -> #332 -> #333 |
+| Current increment | Staging acceptance and approval-trace SQL repair |
+| Current branch | `codex/318-staging-acceptance` from merged main |
+| Current draft PR | Pending publication; previous #326-#333 stack is merged |
 | Production-disabled runtime branch | `deploy/agent-runtime-production-disabled`, intentionally pinned to `1ace8ec942044493e3e4e1e0cd5dee0c4081c8bc` |
 | Production deployment/migration authorization | Not granted |
 | Consequential-action approver | Autumn only |
