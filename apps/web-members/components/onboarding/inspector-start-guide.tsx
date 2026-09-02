@@ -32,6 +32,9 @@ export function InspectorStartGuide() {
           <p className="mt-4 max-w-md text-base leading-7 text-emerald-50/90">
             Start with the hiring directory. Compare the firm details available with your plan, then check a firm&apos;s requirements before deciding where to apply.
           </p>
+          <p className="mt-3 max-w-md text-sm leading-6 text-emerald-100">
+            Free includes up to 3 sample listings with no search or filters. Pro and higher include full directory search and firm intel.
+          </p>
           <Link
             href="/hiring-firms"
             className="mt-6 inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-white px-5 py-3 text-sm font-bold text-[#173f39] transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"

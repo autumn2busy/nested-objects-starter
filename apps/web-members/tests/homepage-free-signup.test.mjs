@@ -109,7 +109,7 @@ test('visitor CTA is a native direct Free registration link with no SDK or plan-
   assert.equal(planConfig.PLAN_UIDS.FREE, 'L9nbKV9Z')
   assert.equal(link.type, 'a')
   assert.equal(link.props.href, freeSignupUrl)
-  assert.match(content(link), /^Start free/)
+  assert.match(content(link), /^Preview Free sample/)
   assert.match(link.props.className, /synthetic-cta-style/)
   assert.match(link.props.className, /focus-visible:/)
   const html = renderToStaticMarkup(link)
@@ -211,7 +211,7 @@ test('real homepage and hero mount four consistent Free entry points with separa
       } else {
         assert.equal(cta.type, 'a')
         assert.equal(cta.props.href, auth.isAuthenticated ? '/inspector-dashboard' : freeSignupUrl)
-        assert.match(content(cta), auth.isAuthenticated ? /^Open my dashboard/ : /^Start free/)
+        assert.match(content(cta), auth.isAuthenticated ? /^Open my dashboard/ : /^Preview Free sample/)
       }
     }
     const comparisons = nodes(tree, node => node.type === 'a' && node.props.href === '/membership-pricing')
@@ -224,4 +224,62 @@ test('real homepage and hero mount four consistent Free entry points with separa
       assert.deepEqual(harness.events.map(event => event.source), placements)
     }
   }
+})
+
+test('each Free entry point discloses the sample size and unavailable search before signup', () => {
+  const tree = createHarness().homepage()
+  for (const placement of placements) {
+    const sections = nodes(tree, node => node.type === 'section' &&
+      nodes(node.props.children, child => child.props['data-cta-placement'] === placement).length > 0)
+    assert.ok(sections.length > 0, `${placement} must have a surrounding offer section`)
+    const offer = content(sections.at(-1)).replace(/\s+/g, ' ')
+    assert.match(offer, /up to 3 sample (?:firm )?listings/i, placement)
+    assert.match(offer, /(?:no (?:directory )?search (?:or|and|\/) filters|search and filters (?:are not included|are unavailable|require)|without (?:directory )?search (?:or|and) filters)/i, placement)
+  }
+})
+
+test('the hero presents paid comparison before the explicitly limited Free sample', () => {
+  const tree = createHarness().homepage()
+  const hero = nodes(tree, node => node.type === 'section' &&
+    nodes(node.props.children, child => child.props['data-cta-placement'] === 'home_hero').length > 0).at(-1)
+  assert.ok(hero)
+  const links = nodes(hero, node => node.type === 'a')
+  const paidIndex = links.findIndex(node => node.props.href === '/membership-pricing' && /Compare membership plans/.test(content(node)))
+  const freeIndex = links.findIndex(node => node.props['data-cta-placement'] === 'home_hero')
+  assert.ok(paidIndex >= 0 && paidIndex < freeIndex, 'Paid comparison must precede the Free sample choice')
+  assert.match(content(hero), /Pro/)
+})
+
+test('homepage no longer promises Free search, personalized matching, or unsupported hiring results', () => {
+  const tree = createHarness().homepage()
+  const rendered = content(tree).replace(/\s+/g, ' ')
+  const structured = nodes(tree, node => node.type === 'script')
+    .map(node => node.props.dangerouslySetInnerHTML?.__html ?? '').join(' ')
+  const unsupported = /Included with Free|Hiring Now in Your Area|filters firms and routes around where you actually drive|500\+ verified|Added \$600\/week|\+\$600\/wk|Hired in 14 Days|3 New Clients|New job in Austin|Live: 124|Rates: Updated|exact zip code|hire through Nested Objects|AI-powered firm matching/i
+  assert.doesNotMatch(rendered, unsupported)
+  assert.doesNotMatch(structured, unsupported)
+})
+
+test('visible Free-offer FAQs and structured answers agree exactly', () => {
+  const tree = createHarness().homepage()
+  const schemas = nodes(tree, node => node.type === 'script' && node.props.type === 'application/ld+json')
+    .map(node => JSON.parse(node.props.dangerouslySetInnerHTML.__html))
+  const faq = schemas.find(schema => schema['@type'] === 'FAQPage')
+  assert.ok(faq, 'Homepage must retain a FAQPage schema')
+  assert.ok(faq.mainEntity.length >= 3)
+  const normalized = value => value.replace(/\s+/g, ' ').trim()
+  const headings = nodes(tree, node => typeof node.type === 'string' && /^h[2-6]$/.test(node.type))
+    .map(node => normalized(content(node)))
+  const paragraphs = nodes(tree, node => node.type === 'p').map(node => normalized(content(node)))
+  for (const question of faq.mainEntity) {
+    assert.equal(question['@type'], 'Question')
+    assert.equal(question.acceptedAnswer['@type'], 'Answer')
+    assert.ok(headings.includes(normalized(question.name)), `FAQ question must be visible: ${question.name}`)
+    assert.ok(paragraphs.includes(normalized(question.acceptedAnswer.text)), `FAQ answer must be visible: ${question.name}`)
+  }
+  const answers = faq.mainEntity.map(question => question.acceptedAnswer.text).join(' ')
+  assert.match(answers, /up to 3 sample (?:firm )?listings/i)
+  assert.match(answers, /(?:no (?:directory )?search|search and filters (?:are not included|require))/i)
+  assert.match(answers, /Pro/)
+  assert.match(answers, /not (?:personalized|selected|tailored|matched)|same sample/i)
 })
