@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { verifyOutsetaToken, getOutsetaUserId, getCurrentUser } from '@/lib/auth-server'
-import { rateLimit } from '@/lib/rate-limit'
+import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -43,7 +43,13 @@ export async function POST(req: NextRequest) {
     if (userId) {
       try {
         await limiter.check(userId);
-      } catch {
+      } catch (error) {
+        if (isRateLimitUnavailableError(error)) {
+          return NextResponse.json(
+            { error: 'Request protection is temporarily unavailable. Please try again.' },
+            { status: 503, headers: { 'Retry-After': '30' } },
+          )
+        }
         return NextResponse.json(
           { error: 'Too many upload attempts. Please wait a minute.' },
           { status: 429 }

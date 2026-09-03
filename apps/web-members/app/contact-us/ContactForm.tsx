@@ -122,7 +122,7 @@ export default function ContactForm() {
           >
             {isSubmitting ? 'Sending...' : 'Send Message'}
           </button>
-          <p className="text-xs text-brand-steel">We reply within one business day. Priority routing for Pro, Elite, and Agency members.</p>
+          <p className="text-xs text-brand-steel">Please include enough detail for the support team to follow up.</p>
         </form>
       )}
     </div>

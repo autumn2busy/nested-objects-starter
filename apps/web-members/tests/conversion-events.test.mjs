@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import test from 'node:test'
 import vm from 'node:vm'
-import ts from 'typescript'
 
 const require = createRequire(import.meta.url)
+const ts = require('typescript')
 const clone = value => JSON.parse(JSON.stringify(value))
 
 function load(relativePath, imports = {}, globals = {}) {
@@ -58,6 +58,8 @@ function createHarness({ user = null, storageError = null, environment = {}, rat
         calls.limits.push(key)
         if (rateLimitError) throw rateLimitError
       } }),
+      isRateLimitExceededError: error => error?.code === 'RATE_LIMIT_EXCEEDED',
+      isRateLimitUnavailableError: error => error?.code === 'RATE_LIMIT_BACKEND_UNAVAILABLE',
     },
     '@/lib/supabase-server': {
       createServiceRoleClient: () => { calls.clients++; return supabase },
@@ -214,11 +216,28 @@ test('invalid client identifiers are omitted and cannot replace session-derived 
 })
 
 test('rate-limit rejection stops all downstream work and keeps the address out of the key', async () => {
-  const harness = createHarness({ rateLimitError: new Error('Rate limit exceeded') })
+  const rateLimitError = Object.assign(new Error('Rate limit exceeded'), { code: 'RATE_LIMIT_EXCEEDED' })
+  const harness = createHarness({ rateLimitError })
   const response = await harness.post({}, { 'x-forwarded-for': '192.0.2.1' })
   assert.equal(response.status, 429)
   assert.match(harness.calls.limits[0], /^conversion:[a-f0-9]{24}$/)
   assert.equal(harness.calls.auth, 0)
   assert.equal(harness.calls.clients, 0)
+  assert.equal(harness.calls.campaigns.length, 0)
+})
+
+test('rate-limit backend failure is temporary unavailability, not client throttling', async () => {
+  const rateLimitError = Object.assign(new Error('Rate limit service unavailable'), {
+    code: 'RATE_LIMIT_BACKEND_UNAVAILABLE',
+  })
+  const harness = createHarness({ rateLimitError })
+  const response = await harness.post({}, { 'x-forwarded-for': '192.0.2.2' })
+
+  assert.equal(response.status, 503)
+  assert.equal(response.headers.get('retry-after'), '30')
+  assert.deepEqual(await response.json(), { error: 'Request protection is temporarily unavailable' })
+  assert.equal(harness.calls.auth, 0)
+  assert.equal(harness.calls.clients, 0)
+  assert.equal(harness.calls.writes.length, 0)
   assert.equal(harness.calls.campaigns.length, 0)
 })

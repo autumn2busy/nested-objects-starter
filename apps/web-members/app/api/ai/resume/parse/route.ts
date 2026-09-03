@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
-import { rateLimit } from '@/lib/rate-limit';
+import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
 import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability';
 
@@ -146,7 +146,13 @@ export async function POST(req: Request) {
 
     try {
       await limiter.check(ip);
-    } catch {
+    } catch (error) {
+      if (isRateLimitUnavailableError(error)) {
+        return NextResponse.json(
+          { error: 'Request protection is temporarily unavailable. Please try again.' },
+          { status: 503, headers: { 'Retry-After': '30' } },
+        );
+      }
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
