@@ -26,8 +26,9 @@ function createClientId(prefix: string): string {
     return `${prefix}:${randomPart}`
 }
 
-function getStoredId(storage: Storage, key: string, prefix: string): string {
+function getStoredId(storageName: 'localStorage' | 'sessionStorage', key: string, prefix: string): string {
     try {
+        const storage = window[storageName]
         const existing = storage.getItem(key)
         if (existing) return existing
 
@@ -83,8 +84,8 @@ export function trackEvent(eventName: string, eventData?: EventData): void {
         ...getAttributionContext(),
         ...eventData,
     })
-    const anonymousId = getStoredId(window.localStorage, ANONYMOUS_ID_KEY, 'anon')
-    const sessionId = getStoredId(window.sessionStorage, SESSION_ID_KEY, 'session')
+    const anonymousId = getStoredId('localStorage', ANONYMOUS_ID_KEY, 'anon')
+    const sessionId = getStoredId('sessionStorage', SESSION_ID_KEY, 'session')
     const occurredAt = new Date().toISOString()
     const clientEventId = createClientId('event')
 

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 import { getCurrentUser, getOutsetaUserId, getPlanName } from '@/lib/auth-server'
 import { trackACServerEvent } from '@/lib/ac-event-tracking'
-import { isConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
+import { isBrowserConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
 import { rateLimit } from '@/lib/rate-limit'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     await limiter.check(rateLimitKey(request))
 
     const body = await request.json().catch(() => null)
-    if (!body || !isConversionEventName(body.event)) {
+    if (!body || !isBrowserConversionEventName(body.event)) {
       return NextResponse.json({ error: 'Unsupported event name' }, { status: 400 })
     }
 

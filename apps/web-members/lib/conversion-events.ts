@@ -28,6 +28,14 @@ export type ConversionEventName = (typeof CONVERSION_EVENT_NAMES)[number]
 
 const EVENT_NAMES = new Set<string>(CONVERSION_EVENT_NAMES)
 
+// Paid lifecycle signals are written by the existing server webhook flow.
+// Browser telemetry cannot establish a subscription or payment outcome.
+const SERVER_ONLY_EVENT_NAMES = new Set<ConversionEventName>([
+  'purchase',
+  'subscription_created',
+  'subscription_upgraded',
+])
+
 export type ConversionEventInput = {
   eventName: ConversionEventName
   clientEventId?: string | null
@@ -43,6 +51,10 @@ export type ConversionEventInput = {
 
 export function isConversionEventName(value: unknown): value is ConversionEventName {
   return typeof value === 'string' && EVENT_NAMES.has(value)
+}
+
+export function isBrowserConversionEventName(value: unknown): value is ConversionEventName {
+  return isConversionEventName(value) && !SERVER_ONLY_EVENT_NAMES.has(value)
 }
 
 function textValue(value: unknown, maxLength = 255): string | null {

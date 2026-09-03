@@ -1,3 +1,5 @@
+import { PAID_PLANS } from './plan-config'
+
 export type ConversionEventRow = {
   id: string
   event_name: string
@@ -26,8 +28,8 @@ type FunnelStageDefinition = {
 export const FUNNEL_STAGES: FunnelStageDefinition[] = [
   {
     key: 'signup',
-    label: 'Free signups',
-    description: 'Created a member account',
+    label: 'Signup recorded',
+    description: 'Recorded an account creation signal',
     eventNames: ['signup_completed'],
   },
   {
@@ -38,47 +40,45 @@ export const FUNNEL_STAGES: FunnelStageDefinition[] = [
   },
   {
     key: 'value',
-    label: 'Value experienced',
-    description: 'Viewed the directory or a firm',
+    label: 'Directory or firm viewed',
+    description: 'Recorded a page view; does not establish value received',
     eventNames: ['directory_viewed', 'firm_view'],
   },
   {
     key: 'paywall',
-    label: 'Paid need reached',
-    description: 'Encountered a paid-only detail or action',
+    label: 'Access restriction signal',
+    description: 'May fire when a restriction is displayed, without a click',
     eventNames: ['paywall_hit'],
   },
   {
     key: 'pricing',
     label: 'Pricing viewed',
-    description: 'Evaluated plan options',
+    description: 'Recorded a pricing page view',
     eventNames: ['pricing_view'],
   },
   {
     key: 'intent',
     label: 'Upgrade intent',
-    description: 'Clicked a paid plan or started a trial',
+    description: 'Clicked a known paid plan or its trial offer',
     eventNames: ['pricing_cta_click', 'upgrade_clicked', 'upgrade_started', 'start_trial'],
   },
   {
     key: 'checkout',
-    label: 'Checkout opened',
-    description: 'Opened Outseta registration or plan change',
+    label: 'Paid checkout attempted',
+    description: 'Requested paid registration or plan change; opening is not confirmed',
     eventNames: ['outseta_modal_open'],
   },
   {
     key: 'paid',
-    label: 'Became paid',
-    description: 'Paid subscription confirmed by Outseta',
+    label: 'Paid-plan signal',
+    description: 'Unverified plan lifecycle signal; may include trials and does not confirm payment',
     eventNames: ['purchase', 'subscription_created', 'subscription_upgraded'],
   },
 ]
 
 export type FunnelStageResult = FunnelStageDefinition & {
   count: number
-  conversionRate: number
-  previousStageRate: number
-  dropOff: number
+  observedShare: number
 }
 
 export type StuckMember = {
@@ -109,8 +109,26 @@ function getSource(row: ConversionEventRow) {
   return row.source || row.utm_source || signupSource || row.source_page || 'Direct / unknown'
 }
 
-function stageIndex(eventName: string) {
-  return FUNNEL_STAGES.findIndex((stage) => stage.eventNames.includes(eventName))
+const PAID_PLAN_NAMES = new Set(['starter', 'founders', 'pro', 'elite', 'agency'])
+const CHECKOUT_MODES = new Set(['register', 'register_redirect', 'profile_plan_change'])
+
+function hasPaidTarget(row: ConversionEventRow) {
+  const targetUid = row.event_data?.targetPlanUid
+  if (typeof targetUid === 'string') return PAID_PLANS.includes(targetUid)
+
+  const targetPlan = row.event_data?.targetPlan
+  return typeof targetPlan === 'string' && PAID_PLAN_NAMES.has(targetPlan.trim().toLowerCase())
+}
+
+function stageIndex(row: ConversionEventRow) {
+  const index = FUNNEL_STAGES.findIndex((stage) => stage.eventNames.includes(row.event_name))
+  const stage = FUNNEL_STAGES[index]
+  if (stage?.key === 'intent' && !hasPaidTarget(row)) return -1
+  if (stage?.key === 'checkout') {
+    const mode = row.event_data?.mode
+    if (!hasPaidTarget(row) || typeof mode !== 'string' || !CHECKOUT_MODES.has(mode)) return -1
+  }
+  return index
 }
 
 function percentage(numerator: number, denominator: number) {
@@ -121,10 +139,14 @@ export function buildConversionFunnel(
   rows: ConversionEventRow[],
   filters: { source?: string; plan?: string } = {},
 ) {
-  const anonymousToMember = new Map<string, string>()
+  const anonymousToMember = new Map<string, string | null>()
   for (const row of rows) {
     const key = memberKey(row)
-    if (key && row.anonymous_id) anonymousToMember.set(row.anonymous_id, key)
+    if (!key || !row.anonymous_id) continue
+    const previous = anonymousToMember.get(row.anonymous_id)
+    // Shared browser identifiers cannot safely attribute anonymous actions to
+    // either member. Once ambiguous, the identifier stays unstitched.
+    anonymousToMember.set(row.anonymous_id, previous === undefined || previous === key ? key : null)
   }
 
   const actorKey = (row: ConversionEventRow) =>
@@ -145,8 +167,8 @@ export function buildConversionFunnel(
     const signupEvents = ordered.filter((row) => row.event_name === 'signup_completed')
     if (signupEvents.length === 0) continue
 
-    // The Outseta webhook guarantees the cohort denominator, while the browser
-    // signup event usually has the more useful campaign or page attribution.
+    // A recorded webhook can supply signup evidence, while browser events often
+    // have better attribution. Neither establishes complete collection coverage.
     const signup = signupEvents.find((row) => {
       const source = getSource(row)
       return source !== 'outseta' && source !== 'Direct / unknown'
@@ -169,20 +191,17 @@ export function buildConversionFunnel(
 
   for (const [key, cohort] of cohorts) {
     for (const row of cohort.events) {
-      const index = stageIndex(row.event_name)
+      const index = stageIndex(row)
       if (index >= 0) stageActors[index].add(key)
     }
   }
 
   const stages: FunnelStageResult[] = FUNNEL_STAGES.map((definition, index) => {
     const count = stageActors[index].size
-    const previousCount = index === 0 ? cohortSize : stageActors[index - 1].size
     return {
       ...definition,
       count,
-      conversionRate: percentage(count, cohortSize),
-      previousStageRate: percentage(count, previousCount),
-      dropOff: Math.max(0, previousCount - count),
+      observedShare: percentage(count, cohortSize),
     }
   })
 
@@ -191,7 +210,7 @@ export function buildConversionFunnel(
     if (!key.startsWith('member:') && !key.startsWith('email:')) continue
 
     const stagedEvents = cohort.events
-      .map((row) => ({ row, index: stageIndex(row.event_name) }))
+      .map((row) => ({ row, index: stageIndex(row) }))
       .filter((entry) => entry.index >= 0)
       .sort((a, b) => a.index - b.index || Date.parse(a.row.occurred_at) - Date.parse(b.row.occurred_at))
 
@@ -217,5 +236,6 @@ export function buildConversionFunnel(
   const sources = [...new Set([...cohorts.values()].map((cohort) => getSource(cohort.signup)))].sort()
   const plans = [...new Set([...cohorts.values()].map((cohort) => getPlan(cohort.signup)))].sort()
 
-  return { cohortSize, stages, stuckMembers, sources, plans }
+  const ambiguousAnonymousIds = [...anonymousToMember.values()].filter((key) => key === null).length
+  return { cohortSize, stages, stuckMembers, sources, plans, ambiguousAnonymousIds }
 }
