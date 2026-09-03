@@ -102,8 +102,7 @@ export async function createSupabaseControlPlaneStore(
   configuration: SupabaseControlPlaneConfiguration,
 ): Promise<ControlPlaneStore> {
   assertServerOnlyControlPlaneAccess(configuration)
-  const packageName = '@supabase/supabase-js'
-  const supabaseModule = (await import(packageName)) as {
+  const supabaseModule = (await import('@supabase/supabase-js')) as unknown as {
     createClient?: (
       url: string,
       key: string,

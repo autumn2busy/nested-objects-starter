@@ -51,8 +51,7 @@ export async function createSupabaseProjectionStore(
   configuration: SupabaseControlPlaneConfiguration,
 ): Promise<ProjectionPersistenceStore> {
   assertServerOnlyControlPlaneAccess(configuration)
-  const packageName = '@supabase/supabase-js'
-  const module = (await import(packageName)) as {
+  const module = (await import('@supabase/supabase-js')) as unknown as {
     createClient?: (url: string, key: string, options: Record<string, unknown>) => SupabaseClientLike
   }
   if (typeof module.createClient !== 'function') {
