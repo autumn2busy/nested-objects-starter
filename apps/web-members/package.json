@@ -14,6 +14,7 @@
     "audit:free-to-pro": "node ./scripts/audit-free-to-pro-funnel.mjs",
     "audit:member-surfaces": "node ./scripts/validate-member-public-surfaces.mjs",
     "audit:intelligence-os-admin": "node ./scripts/validate-intelligence-os-admin.mjs",
+    "audit:legacy-script-secrets": "node --test ./tests/legacy-supabase-scripts-security.test.mjs",
     "verify:member-tools-runtime": "node ./scripts/verify-member-tools-runtime.mjs"
   },
   "dependencies": {
