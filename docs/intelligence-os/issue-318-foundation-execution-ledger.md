@@ -18,11 +18,11 @@ Nested Objects is building an inspector-first membership business that helps fie
 
 ### What has been implemented in plain English
 
-The member site now has clearer Free-offer language, a three-firm Free preview, direct Free signup, an onboarding guide, owner-only member profiles, and a private conversion-event ledger. The Intelligence OS has a separate runtime, durable staging tables, deterministic specialist logic, three operating-review workflows, read-only sensor adapters, an owner-only review screen, duplicate-run protection, approval/rejection records, and trace links. Synthetic Preview acceptance proved the main review path without using real member data, models, email, or external mutations. The current local review branch also hardens rate-limit/contact failure truth, removes embedded Supabase credentials from 34 tracked maintenance scripts, and replaces the blanket tool lock with two conservative browser-only calculators; those branch changes are not deployed yet.
+The member site now has clearer Free-offer language, a three-firm Free preview, direct Free signup, an onboarding guide, owner-only member profiles, and a private conversion-event ledger. The Intelligence OS has a separate runtime, durable staging tables, deterministic specialist logic, three operating-review workflows, read-only sensor adapters, an owner-only review screen, duplicate-run protection, approval/rejection records, and trace links. Synthetic Preview acceptance proved the main review path without using real member data, models, email, or external mutations. Draft #347 also hardens rate-limit/contact failure truth, removes embedded Supabase credentials from 34 tracked maintenance scripts, and replaces the blanket tool lock with two conservative browser-only calculators; its Vercel Preview build and signed-out boundaries are verified, while authenticated plan behavior and Production remain unverified.
 
 ### What has changed for members
 
-Visitors are no longer promised broad Free directory search. Free members see at most three actionable firm records and locked/sanitized previews beyond that. New inspectors can register directly and receive a first-use guide. Inspector profile browsing is restricted so a member sees only their own profile, and the login regression introduced during those access changes was repaired. Current Production still applies the blanket member-tool lock. The local `ACCESS-001` repair makes the income scenario planner available to every recognized signed-in member plan and route economics available to Elite/Agency while keeping unverified connected tools off; it requires Preview and Production verification before it changes member experience. The member-side Agency offer remains visible locally, but new purchase is paused until its seats, roles, and admin controls are verified; existing Agency members retain their reviewed calculator access.
+Visitors are no longer promised broad Free directory search. Free members see at most three actionable firm records and locked/sanitized previews beyond that. New inspectors can register directly and receive a first-use guide. Inspector profile browsing is restricted so a member sees only their own profile, and the login regression introduced during those access changes was repaired. Current Production still applies the blanket member-tool lock. Preview `ACCESS-001` presents the income scenario planner to every recognized signed-in member plan and route economics to Elite/Agency while keeping unverified connected tools off; signed-out protection is verified, but real Free/Pro/Elite/Agency sessions and Production remain unverified. The member-side Agency offer is visible in Preview with new purchase disabled until seats, roles, and admin controls are verified; existing Agency calculator entitlement remains a code-and-test claim until an authenticated Preview session proves it.
 
 ### What has changed behind the scenes
 
@@ -42,7 +42,7 @@ The Issue #318 database/control-plane migrations, one owner registration, destin
 
 ### What is Preview-only
 
-The protected Intelligence OS admin experience and durable runtime were accepted on Vercel Preview with synthetic inputs. Four application runs were verified: conversion review, daily business health, weekly operating review, and a representative integration-failure event. The agent-runtime project currently has a READY deployment at `e6ede5f` with no Production target and no custom domain.
+The protected Intelligence OS admin experience and durable runtime were accepted on Vercel Preview with synthetic inputs. Four application runs were verified: conversion review, daily business health, weekly operating review, and a representative integration-failure event. The agent-runtime project currently has a READY deployment at `e6ede5f` with no Production target and no custom domain. Draft #347's member Preview is READY at `https://nested-objects-starter-git-cod-bf17ec-autumns-projects-246e052c.vercel.app`: the tools catalog rendered the two intended utilities, direct signed-out Income access redirected to hosted Outseta login, disabled Weather returned to the catalog, and Agency checkout was visibly disabled. Authenticated plan-session behavior is still unverified.
 
 ### What is not connected yet
 
@@ -54,7 +54,7 @@ Autumn has resolved the credential-rotation, legacy ActiveCampaign webhook, paym
 
 ### The next ten implementation priorities
 
-1. `ACCESS-001` — verify draft #347 for visitor, Free, Pro, Elite, and Agency behavior in Vercel Preview before any Production release.
+1. `ACCESS-001` — complete draft #347's authenticated Free, Pro, Elite, and Agency Preview matrix before any Production release; visitor and signed-out boundaries already passed.
 2. `SEC-001` — keep draft #347's 34-script redacted regression scan green through hosted review; do not rotate credentials under the current decision.
 3. `DATA-007` and `DATA-008` — verify draft #347's Upstash/contact hardening in Preview, then request bounded read-only live-source checks.
 4. `DATA-005` — use the new tool matrix as the first server-enforced entitlement slice, then reconcile the remaining server/client entitlement drift.
@@ -112,7 +112,7 @@ The user-visible checkout was inspected first and was not modified, reset, clean
 | Tool-access implementation commit | `6c0da72cf332c7151019fe7e8801a86738b6d685` — two guarded calculators, pricing/catalog truth, Agency purchase safety, and ledger evidence |
 | CI-harness compatibility commit | `9880b43` — loads the new default-deny tool policy in the existing authentication and member-privacy middleware harnesses |
 | Review surface | Draft PR #347; no merge or Production promotion performed |
-| Current local verification | 63 of 63 focused feature tests and the exact 77-of-77 member public-surface CI suite passed; focused ESLint, full TypeScript, public-surface validation, local route/runtime checks, and browser smoke also passed through `9880b43` |
+| Current verification | 63 of 63 focused feature tests and the exact 77-of-77 member public-surface CI suite passed locally; focused ESLint, full TypeScript, public-surface validation, local route/runtime checks, and browser smoke passed; refreshed canonical-ledger, member-public-surface, and agent-runtime hosted checks passed; Vercel marked all four Preview builds successful; visitor, signed-out tool protection, disabled Weather, and Agency purchase pause were browser-verified on the member Preview through `baed72f` |
 
 ### Live Issue #318 and controlling comment
 
@@ -153,7 +153,7 @@ Live GitHub state and each material PR body, files, checks, and merge record wer
 | #344 | merged | `dcac5ba` | Completed synthetic Preview acceptance; left non-owner, exact-nonce, and fresh SEO/AEO parity unclaimed. |
 | #345 | merged | `e6ede5f` | Applied and restricted the Production conversion ledger to the server role. |
 | #346 | merged | `1662f4c` | Established this canonical ledger, mandatory repository instructions, PR checklist, and automated enforcement. |
-| #347 | open draft | None | Locally validated source-health hardening, 34-script cleanup, and per-tool repair. The first hosted run exposed a PR-body contract mismatch and two stale middleware test harnesses; the body was corrected and commit `9880b43` repaired the harnesses with the exact 77-of-77 CI suite passing locally. Refreshed hosted checks and Vercel Preview behavior remain evidence requirements; no merge or Production action is authorized. |
+| #347 | open draft | None | Source-health hardening, 34-script cleanup, and per-tool repair are locally validated. The first hosted run exposed a PR-body contract mismatch and two stale middleware test harnesses; the body was corrected and commit `9880b43` repaired the harnesses. Refreshed canonical-ledger, member-public-surface, agent-runtime, and all four Vercel checks passed. Member Preview visitor/signed-out boundaries, disabled Weather, and Agency purchase pause passed browser verification; authenticated plan sessions remain unverified. No merge or Production action is authorized. |
 
 ### Live Vercel readback
 
@@ -471,6 +471,7 @@ Entries are appended; a later reversal links to the earlier entry instead of edi
 
 ### Preview verifications
 
+- 2026-09-03 — Draft #347 refreshed successfully at `baed72f`: canonical-ledger, member-public-surface, and agent-runtime checks passed, and Vercel marked the member, public, firms, and agent-runtime Preview builds successful. On the member Preview, the signed-out catalog showed Income and Route Economics as the only available tools; direct Income access redirected to hosted Outseta login; `/tools/weather` returned to the catalog; and the Agency plan remained visible with its new-purchase button disabled. Authenticated Free, Pro, Elite, and Agency sessions were not available, so their end-to-end entitlement matrix remains unverified.
 - 2026-09-03 — Exact Runtime health succeeded and unauthenticated admin snapshot returned `401`; normal Outseta owner sign-in rendered the protected Members Preview.
 - 2026-09-03 — `conversion_review`, `daily_business_health`, `weekly_operating_review`, and a representative critical-integration event succeeded and were durably verified with synthetic data.
 - 2026-09-03 — A fresh owner-form duplicate produced two trigger requests but one business-key run. This is not an exact signed-nonce replay proof.
@@ -498,11 +499,11 @@ Entries are appended; a later reversal links to the earlier entry instead of edi
 - 2026-09-03 — Local commit `5537522` removes contact PII logging, makes durable-receipt failure truthful, bounds the optional webhook, and makes partial/failed Upstash configuration fail closed. These repairs are local/review-bound and do not establish live source health.
 - 2026-09-03 — Autumn declined credential rotation and approved current-tree cleanup of the 34 tracked legacy scripts. The local cleanup now requires guarded server-only environment values and passed redacted regression checks; the earlier exposure and Git history remain risks, not a closed incident.
 - 2026-09-03 — Audit confirmed #327 intentionally imposed one global member-tool lock: ten child pages redirected to `/tools`, six connected API groups returned `503`, every plan saw disabled cards, and CI enforced the lock. `ACCESS-001` has now locally validated two safe browser-only calculators behind explicit per-plan rules while leaving incomplete connected tools disabled.
-- 2026-09-03 — Draft PR #347's first hosted check run rejected the PR-body field wording and exposed two existing VM harnesses that did not supply the new middleware import. The PR body was corrected to the canonical checklist labels; commit `9880b43` repaired the test harnesses and the exact hosted test command passed locally. Refreshed hosted checks remain pending evidence and are not recorded as passed here.
+- 2026-09-03 — Draft PR #347's first hosted check run rejected the PR-body field wording and exposed two existing VM harnesses that did not supply the new middleware import. The PR body was corrected to the canonical checklist labels; commit `9880b43` repaired the test harnesses and the exact hosted test command passed locally. The refreshed canonical-ledger, member-public-surface, and agent-runtime checks then passed; the superseded failed run remains visible as incident history rather than being erased.
 
 ### Open blockers
 
-- `ACCESS-001`: local implementation and verification passed and draft #347 is published; refreshed hosted checks, Preview plan-matrix verification, and a separately approved Production release remain.
+- `ACCESS-001`: local implementation, refreshed hosted checks, Vercel builds, and signed-out Preview boundaries passed; authenticated Free/Pro/Elite/Agency Preview sessions and a separately approved Production release remain.
 - `SEC-002`: non-script credential-like files and repository-history exposure remain unresolved; rotation is explicitly not authorized.
 - `DATA-007`, `DATA-008`, `OPS-001`: Upstash/contact source truth is unresolved and the required 48-hour healthy observation cannot start.
 - `DATA-004`: Stripe/Outseta authority is decided, but no approved live reconciliation exists and activation milestones are undefined.
