@@ -1,5 +1,7 @@
 # Issue #318 acceptance resume evidence
 
+> **Superseded for current status on 2026-09-03.** This remains the authoritative dated evidence record for the synthetic Preview/staging acceptance described below. Current program status, decisions, priorities, and handoff live only in the [canonical execution ledger](issue-318-foundation-execution-ledger.md).
+
 Checked through 2026-09-03 ET. Issue #318 remains open. This is an acceptance checkpoint, not a Production launch or a completed same-cycle SEO/AEO parity claim.
 
 ## Live synthetic staging acceptance: 2026-09-03 ET

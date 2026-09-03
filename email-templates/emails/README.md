@@ -1,6 +1,8 @@
 # NESTED OBJECTS — Email Template Package
 ## ActiveCampaign Automation Sequences
 
+> Historical template catalog only. Do not import, wire, schedule, or send these sequences from this guide. Current ActiveCampaign inventory, suppression, parity, approval, and rollout status lives exclusively in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 **Generated:** February 12, 2026  
 **Design System:** Techwear / Utility  
 **Compatibility:** Gmail, Outlook (desktop + 365), Apple Mail, Yahoo, AOL, Samsung Mail, Dark Mode

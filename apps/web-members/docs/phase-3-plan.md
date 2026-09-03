@@ -1,5 +1,7 @@
 # Phase 3: Member Experience, Automation, and Product Polish
 
+> **Superseded for current implementation status on 2026-09-03.** Preserve this as historical planning input. Current tasks, decisions, evidence, and handoff live only in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 ## Overview
 Phase 3 focuses on refining the user experience for both Members and Guests, hardening automation reliability, improving performance, and establishing enterprise-grade configuration boundaries. This phase explicitly **excludes** building Firm-specific features (billing, plans, tooling), except for necessary scaffolding to prevent broken UX.
 

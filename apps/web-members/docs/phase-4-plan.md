@@ -1,5 +1,7 @@
 # Phase 4: Firms, Monetization & Enterprise Features
 
+> **Superseded on 2026-09-03.** Autumn has deferred this firm-side lane until Nested Objects has a surplus of inspectors. Preserve this as historical planning input; current status and any restart decision live only in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 ## Overview
 Phase 4 transforms the platform from a single-player "Inspector" tool into a multi-player "Firm" management system. This enables business owners to claim their directory listings, manage a team of inspectors, and access premium features (Agency Plan).
 

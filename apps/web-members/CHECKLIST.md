@@ -1,5 +1,7 @@
 ﻿# ðŸš€ Deployment Checklist
 
+> **Superseded on 2026-09-03.** Do not use this legacy copy/install/deploy checklist. Preserve it only as history; current implementation status, deployment gates, and handoff belong in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 ## Pre-Deployment (Local Setup)
 
 ### â˜ 1. Copy All Files

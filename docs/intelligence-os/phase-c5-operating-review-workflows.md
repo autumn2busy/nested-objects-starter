@@ -1,5 +1,7 @@
 # Phase C5 operating-review workflows
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 ## Outcome and boundary
 
 The three required operating workflows are implemented as real Workflow DevKit functions with C3 durable run/step claims and C4 specialist invocation. Repository acceptance uses deterministic fixtures and in-memory stores. Live staging migration and smoke remain blocked by the same empty C3 destination allowlist and missing Autumn-reviewed staging credential.

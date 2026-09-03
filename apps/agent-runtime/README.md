@@ -2,6 +2,8 @@
 
 Issue #318 foundation for the Nested Objects Intelligence OS.
 
+Current program status, decisions, environment evidence, and rollout gates live only in the [canonical execution ledger](../../docs/intelligence-os/issue-318-foundation-execution-ledger.md). This README documents package behavior and must not be used as a deployment-status source.
+
 This package is intentionally isolated from `apps/web-members`. It has its own Node, TypeScript, Zod, Supabase, and OpenAI Agents SDK dependency boundary so the Next.js 14 member application does not need a dependency upgrade to host agent code.
 
 ## Implemented foundation
@@ -55,7 +57,7 @@ Strict dry-run execution with no Supabase credentials, database writes, or persi
 - Signal persistence uses one bounded batch of at most 50 records and preserves existing signal review state on recurrence.
 - The runtime rejects Vercel Production, the known production Supabase project, URL/project-reference mismatches, non-service credentials, and every staging project not reviewed in the committed allowlist.
 - The database independently verifies a service-role-only destination sentinel before a workflow can claim a run. Runtime credentials cannot create or alter the sentinel.
-- The committed allowlist is intentionally empty. The code, migration, rollback-safe validation, and synthetic tests are complete, while live staging application remains blocked until Autumn reviews the exact nonsecret staging project reference and supplies its server-only credential through the approved environment channel.
+- The committed allowlist contains the single staging project reviewed on 2026-09-02. The database sentinel, server-only credential, runtime environment, and Vercel target remain independent gates; an environment variable cannot approve another destination. Production remains explicitly denied.
 - No queue package, model execution, ActiveCampaign mutation, email send, content publication, Production schedule, or Production deployment was added.
 
 ### Phase C4. Core specialist agents
@@ -155,7 +157,7 @@ The runtime rejects:
 
 This endpoint accepts the same bounded synthetic fixture contract and uses a separate bearer token, `AGENT_STAGING_WORKFLOW_TOKEN`. It returns `202` only after the committed staging policy and server-only credential shape pass. The workflow's first durable step then verifies the matching database sentinel before any run or signal write.
 
-Until a reviewed staging project is committed, the endpoint deliberately returns a sanitized `503` and `/api/health` reports the C3 configuration as invalid. A configured environment variable cannot approve its own destination.
+When the configured project, reviewed code allowlist, database sentinel, credential shape, or Preview-only runtime gate does not match, the endpoint deliberately returns a sanitized failure and `/api/health` reports the C3 configuration as invalid. A configured environment variable cannot approve its own destination.
 
 ### Protected C7 admin endpoints
 
@@ -164,7 +166,7 @@ Until a reviewed staging project is committed, the endpoint deliberately returns
 - `POST /api/admin/triggers`
 - `POST /api/admin/actions/:actionId/decision`
 
-These endpoints are staging-only and require the complete `nested-objects-admin-v1` service signature. The browser-facing page is documented in `docs/intelligence-os/phase-c7-protected-admin-approval.md`. The owner registry is intentionally empty after migration; repository code alone cannot activate access.
+These endpoints are staging-only and require the complete `nested-objects-admin-v1` service signature. The browser-facing page is documented in `docs/intelligence-os/phase-c7-protected-admin-approval.md`. The migration creates an empty owner registry; the reviewed staging activation operation registered one owner for acceptance. Repository code alone still cannot activate access in another environment.
 
 ## Local validation
 

@@ -1,5 +1,7 @@
 # ActiveCampaign and MCP governance decision
 
+> Historical decision evidence only. Current ActiveCampaign status, decisions, owners, and next actions are maintained exclusively in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. Do not use this file as a current implementation plan or authorization to mutate ActiveCampaign.
+
 Status: Confirmed by Autumn for Issue #318
 
 ## Purpose

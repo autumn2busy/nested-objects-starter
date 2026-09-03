@@ -1,5 +1,7 @@
 # Issue #318 Phase B staging validation record
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 Validation date: 2026-08-25, America/New_York
 
 Branch: `feature/318-phase-b-agent-runtime-foundation`

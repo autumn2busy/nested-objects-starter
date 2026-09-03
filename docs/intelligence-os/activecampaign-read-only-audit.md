@@ -1,5 +1,7 @@
 # ActiveCampaign read-only audit. Phase C input
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 Audit date: 2026-08-25
 
 ## Purpose

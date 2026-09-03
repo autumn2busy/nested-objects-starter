@@ -1,5 +1,7 @@
 # Nested Objects Intelligence OS agent control plane
 
+> **Superseded for implementation status on 2026-09-03.** Preserve this document as the architecture and safety design record. Its dated rollout, empty-allowlist, and unapplied-migration statements are historical. The only current plan, status ledger, decision record, and handoff is the [canonical execution ledger](intelligence-os/issue-318-foundation-execution-ledger.md).
+
 Status: Issue #318 foundation implementation, staging-first, 2026-08-27.
 
 This document describes the reviewable Intelligence OS foundation. It is an operating control plane, not an autonomous production operator. Deterministic logic, durable evidence, idempotency, source authority, and explicit owner approval take precedence over model calls. Model execution is disabled by default, consequential actions stop at `approved`, and no external mutation executor is installed.

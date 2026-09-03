@@ -1,5 +1,7 @@
 # Phase C4 core specialist agents
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 ## Outcome
 
 Five v1 agents are implemented as typed deterministic functions rather than registrations or prose placeholders. They are disabled by default, require no OpenAI key, do not persist private reasoning, expose no mutation tools, and emit only structured operational artifacts suitable for later durable workflow persistence.

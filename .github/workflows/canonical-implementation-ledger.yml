@@ -1,0 +1,51 @@
+name: Canonical Implementation Ledger
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-canonical-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node 22.16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Select the trusted validator
+        shell: bash
+        run: |
+          if git cat-file -e "origin/${{ github.base_ref }}:scripts/validate-canonical-implementation-ledger.mjs" 2>/dev/null; then
+            git show "origin/${{ github.base_ref }}:scripts/validate-canonical-implementation-ledger.mjs" > "$RUNNER_TEMP/trusted-ledger-validator.mjs"
+            echo "LEDGER_VALIDATOR=$RUNNER_TEMP/trusted-ledger-validator.mjs" >> "$GITHUB_ENV"
+          else
+            echo "LEDGER_VALIDATOR=scripts/validate-canonical-implementation-ledger.mjs" >> "$GITHUB_ENV"
+          fi
+
+      - name: Validate canonical ledger structure and pull-request coupling
+        env:
+          LEDGER_VALIDATION_ROOT: ${{ github.workspace }}
+        run: node "$LEDGER_VALIDATOR" --base "origin/${{ github.base_ref }}"
+
+      - name: Validate required pull-request evidence
+        env:
+          LEDGER_VALIDATION_ROOT: ${{ github.workspace }}
+        run: node "$LEDGER_VALIDATOR" --base "origin/${{ github.base_ref }}" --github-event "$GITHUB_EVENT_PATH"
+
+      - name: Exercise validator rejection cases
+        env:
+          LEDGER_VALIDATION_ROOT: ${{ github.workspace }}
+        run: node "$LEDGER_VALIDATOR" --self-test
+
+      - name: Check patch whitespace
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"

@@ -1,5 +1,7 @@
 # Phase C3 durable staging workflow operator guide
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 ## Status and boundary
 
 The repository implementation is complete and deny-by-default. On 2026-09-02 the Supabase dashboard positively identified the healthy dedicated `nested-objects-staging` project as `wqstirwszdbsygstnvbn`, separate from Production (`lzzghrjjsyzlvofpidis`). The staging acceptance branch pins only that staging reference. This code binding alone does not enable persistence: the database sentinel and server-only Preview configuration remain required.
