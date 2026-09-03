@@ -1,5 +1,7 @@
 # Issue #318 Phase C2 Preview Deployment Verification
 
+> Superseded for current status by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file preserves dated Preview evidence; its pull-request and rollout wording reflects the 2026-08-26 checkpoint and must not be treated as current.
+
 Date: 2026-08-26
 
 Status: COMPLETE for the isolated Vercel Preview deployment and live HTTP verification. No Production deployment reached `READY` or became live; one failed Production-target attempt is recorded below. Pull request #326 remains draft, and Issue #318 remains open.

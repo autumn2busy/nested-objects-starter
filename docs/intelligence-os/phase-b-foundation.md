@@ -1,5 +1,7 @@
 # Issue #318 Phase B architecture and implementation report
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 Branch: `feature/318-phase-b-agent-runtime-foundation`
 
 Verified branch base at implementation start: `ac909c6ded28e39a19ac7b9d8d5956763f6eee29`

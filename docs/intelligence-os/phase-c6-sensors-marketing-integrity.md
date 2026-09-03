@@ -1,5 +1,7 @@
 # Phase C6 durable sensors and marketing integrity
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 ## Outcome and boundary
 
 Phase C6 preserves every working collector and adds a typed, provenance-aware ingestion boundary between collector output and the Intelligence OS. SEO and AEO observations can now enter `weekly_operating_review` in the same invocation that produced them, be stored idempotently, and become evidence-backed signals before the C5 operating artifacts are persisted.

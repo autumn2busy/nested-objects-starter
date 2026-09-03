@@ -1,5 +1,7 @@
 # Hosted Outseta login handoff hotfix
 
+> **Superseded for current status on 2026-09-03.** Preserve this as dated PR #335/#336 incident evidence only. Current status and remaining work live in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 Date: 2026-09-02. Branch: `codex/fix-outseta-login-handoff`, based on merged main `3183b4d`. This branch excludes PR #334 staging activation/configuration.
 
 ## Incident and cause

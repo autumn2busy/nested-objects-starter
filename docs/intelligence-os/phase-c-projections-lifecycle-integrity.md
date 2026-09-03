@@ -1,5 +1,7 @@
 # Issue #318 Phase C. Projections, lifecycle integrity, and marketing classification
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 Branch: `feature/318-phase-c-projections-lifecycle-integrity`
 
 Base commit: `59b6a4ae8c95c594479b10e2bea2f7a06373ef7b`

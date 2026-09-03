@@ -1,5 +1,7 @@
 # Free directory offer accuracy and conversion priority
 
+> **Superseded for current status on 2026-09-03.** Preserve this as PR #342's dated evidence only. Current status, ownership, and remaining work live in the [canonical execution ledger](issue-318-foundation-execution-ledger.md).
+
 Date: 2026-09-02
 Branch: `codex/free-directory-offer-clarity`
 Base: `a7d3161df6f8daf4f605ad715beb5b8b88d24a29` (main after #341)

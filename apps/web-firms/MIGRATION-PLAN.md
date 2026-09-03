@@ -1,4 +1,6 @@
 # nestedobjects.com Migration Plan
+
+> **Superseded for current implementation status on 2026-09-03.** Preserve this as historical domain-migration evidence. Current SEO, deployment, and deferred firm-lane work lives only in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
 ## GoDaddy → Vercel (Zero SEO Drop)
 
 ---

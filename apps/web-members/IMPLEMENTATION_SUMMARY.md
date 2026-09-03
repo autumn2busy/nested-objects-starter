@@ -1,5 +1,7 @@
 ﻿# Auth Implementation Complete âœ…
 
+> **Superseded on 2026-09-03.** This legacy auth handoff contains obsolete file-copy, credential, deployment, plan, and completion instructions. Do not execute it. Preserve it only as history; current implementation status and work belong in `docs/intelligence-os/issue-318-foundation-execution-ledger.md`.
+
 ## What Was Built
 
 ### 7 New Files

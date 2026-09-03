@@ -1,5 +1,7 @@
 # Homepage direct Free signup: Preview handoff
 
+> **Superseded for current status on 2026-09-03.** Preserve this as PR #341's dated evidence only. Current status and remaining work live in the [canonical execution ledger](issue-318-foundation-execution-ledger.md).
+
 Date: 2026-09-02
 Branch: `codex/homepage-free-signup`
 Base: `1e7c92ebe717f895d98a0d1560a5051d1673b249` (main after #339)

@@ -1,5 +1,7 @@
 # Phase C7 protected admin and approval surface
 
+> Superseded for current status, ownership, decisions, and next actions by `docs/intelligence-os/issue-318-foundation-execution-ledger.md`. This file remains dated technical evidence only and is not a competing implementation plan.
+
 Phase C7 adds one small owner-only staging surface for inspecting and triggering the durable Intelligence OS. It does not add an execution engine, Production endpoint, Production schedule, live connector, or delegated approver.
 
 ## Security boundary

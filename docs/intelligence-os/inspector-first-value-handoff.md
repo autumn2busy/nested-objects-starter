@@ -1,5 +1,7 @@
 # Inspector first-value guide: Preview handoff
 
+> **Superseded for current status on 2026-09-03.** Preserve this as PR #339's dated evidence only. Current status and remaining work live in the [canonical execution ledger](issue-318-foundation-execution-ledger.md).
+
 Date: 2026-09-02
 Branch: `codex/inspector-first-value`
 Base: `bb3d6a3e12983301e7d17e7d12f3664b32f92154` (main after #338)

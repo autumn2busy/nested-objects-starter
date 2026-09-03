@@ -36,6 +36,43 @@ If you add or update dependencies remember to:
 | `npm run test`     | Execute the test suite (if present).               |
 | `npm run build`    | **Production build – _do not run during agent sessions_** |
 
+## 5. Canonical Nested Objects Implementation Ledger
+
+The single implementation plan, status ledger, decision record, and handoff for the Nested Objects improvement program is:
+
+`docs/intelligence-os/issue-318-foundation-execution-ledger.md`
+
+This rule applies to every Codex task that touches any of the following:
+
+- `apps/agent-runtime/**`;
+- member lifecycle, pricing, tools, opportunities, SEO/AEO/CRO, admin, directory access, profile access, or entitlements in `apps/web-members/**`;
+- public positioning, landing pages, SEO/AEO/CRO, analytics, or conversion surfaces in `apps/web-public/**`;
+- firm-product, firm-directory, or firm-acquisition work in `apps/web-firms/**`, including work that changes the current deferral boundary;
+- `supabase/**`;
+- database/privacy operations in `infra/sql/**` and messaging/opportunity artifacts in `email-templates/**`;
+- operational scripts, monitors, ActiveCampaign integrations, Vercel workflows, or GitHub workflows;
+- `docs/intelligence-os/**` or GitHub Issue #318.
+
+Before changing an in-scope area, the task must:
+
+1. Read the canonical ledger.
+2. State the stable ledger task IDs it owns.
+3. Verify and record the current branch, `HEAD`, and base SHA.
+4. Check for staged, unstaged, and untracked work and preserve unrelated active-branch ownership.
+
+Before finishing an in-scope change, the task must:
+
+1. Update the owned ledger rows in the same pull request as the implementation.
+2. Add exact repository, migration, test, commit, pull-request, and environment evidence that actually exists.
+3. Use only the ledger's allowed status values and never infer completion from a filename, registration, interface, placeholder, pull-request title, merge, or deployment alone.
+4. Avoid rewriting rows owned by unrelated active branches.
+5. Reconcile ledger merge conflicts from evidence; never choose one side blindly.
+6. Preserve append-only decision, migration, deployment, incident, and blocker history.
+7. Never create another competing roadmap, implementation plan, status ledger, progress report, or handoff. Scope-specific evidence documents may remain historical inputs, but current status belongs only in the canonical ledger.
+8. Include the canonical-ledger validation check and pull-request checklist results in the pull request.
+
+If an in-scope pull request cannot update the ledger safely because another active branch owns the same rows, mark the conflict explicitly and coordinate the row update before merge. Code presence alone is never sufficient evidence for `validated_staging`, `verified_preview`, or `production_live`.
+
 ---
 
 Following these practices ensures that the agent-assisted development workflow stays
