@@ -1,6 +1,8 @@
 # Issue #318 Intelligence OS Foundation implementation summary
 
-Status: repository implementation complete with the dependency-ordered draft stack published; live staging activation, one parity cycle, every merge, and every Production action remain explicitly blocked or Autumn-controlled. Issue #318 remains open.
+Current status (2026-09-03 ET): C3-C8 and staging-acceptance PR #334 are merged. Staging migrations, repaired validations, owner registration, and destination activation were completed at the prior checkpoint. The owner has now completed synthetic Preview acceptance for all three operating workflows plus a representative event, fresh-nonce business-key deduplication, one approval, one rejection, and event correlation readback through approval state. A missing Workflow-bundle dependency was found by the first failed attempt, fixed at `1bc2247`, and verified on READY branch Previews. No approved action executed. Authenticated non-owner rejection, exact signed-nonce live replay, and same-cycle SEO/AEO parity remain explicitly unclaimed; the last two require separately reviewed live methods or staging persistence. Production, real-member data, models, email, external actions, promotion, schedules, cleanup, and Issue closure retain explicit gates. Issue #318 remains open. See the [current execution ledger](issue-318-foundation-execution-ledger.md) and [acceptance resume evidence](issue-318-acceptance-2026-09-02.md).
+
+The sections below retain the earlier implementation checkpoint for history. Their draft/unmerged and staging-not-activated statements are superseded by the current execution ledger; do not repeat completed migrations or reset the activated owner registry.
 
 ## Verified repository baseline and implementation stack
 

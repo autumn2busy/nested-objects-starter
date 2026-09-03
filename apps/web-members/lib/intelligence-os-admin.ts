@@ -162,13 +162,51 @@ export function assertIntelligenceAdminSameOrigin(): void {
 export async function fetchIntelligenceAdminSnapshot(
   session: IntelligenceOwnerSession,
 ): Promise<IntelligenceAdminSnapshot> {
-  const response = await adminRuntimeRequest<{ ok: true; snapshot: IntelligenceAdminSnapshot }>(
+  const response = await adminRuntimeRequest<unknown>(
     '/api/admin/snapshot',
     'GET',
     null,
     session.subject,
   )
-  return response.snapshot
+  return parseIntelligenceAdminSnapshotResponse(response)
+}
+
+function parseIntelligenceAdminSnapshotResponse(value: unknown): IntelligenceAdminSnapshot {
+  if (!isRecord(value) || value.ok !== true || !isRecord(value.snapshot)) {
+    throw invalidAdminRuntimeResponse()
+  }
+  const snapshot = value.snapshot
+  for (const field of [
+    'runs',
+    'unresolvedSignals',
+    'awaitingActions',
+    'sourceWarnings',
+    'topPriorities',
+    'experiments',
+    'reviews',
+  ]) {
+    if (!Array.isArray(snapshot[field])) throw invalidAdminRuntimeResponse()
+  }
+  if (
+    typeof snapshot.generatedAt !== 'string'
+    || !Number.isFinite(Date.parse(snapshot.generatedAt))
+    || snapshot.delegationEnabled !== false
+    || snapshot.executionEnabled !== false
+  ) {
+    throw invalidAdminRuntimeResponse()
+  }
+  return snapshot as unknown as IntelligenceAdminSnapshot
+}
+
+function invalidAdminRuntimeResponse(): IntelligenceAdminRequestError {
+  return new IntelligenceAdminRequestError(
+    'ADMIN_RUNTIME_RESPONSE_INVALID',
+    'The protected staging control plane returned an invalid response.',
+  )
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 export async function startSyntheticIntelligenceWorkflow(

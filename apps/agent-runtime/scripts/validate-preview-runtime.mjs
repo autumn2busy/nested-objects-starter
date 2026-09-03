@@ -20,6 +20,7 @@ const [
   evaluationRuntimeSource,
   webSource,
   indexSource,
+  nitroSource,
 ] = await Promise.all([
   read('package.json'),
   read('tsconfig.json'),
@@ -35,6 +36,7 @@ const [
   read('src/runtime/preview-evaluation.ts'),
   read('src/http/web.ts'),
   read('src/index.ts'),
+  read('nitro.config.ts'),
 ])
 
 const failures = []
@@ -132,6 +134,14 @@ if (vercelJson) {
   if (vercelJson.functions) failures.push('Nitro owns function packaging; raw Vercel Function globs are not allowed')
   if (vercelJson.crons) failures.push('Issue #318 must not activate a Production schedule')
   if (vercelJson.routes || vercelJson.rewrites) failures.push('The runtime must not add public routing aliases')
+}
+
+for (const fragment of [
+  "default: '2026-08-27'",
+  "vercel: '2025-07-14'",
+  'routing Vercel requests through the single Nitro dispatcher',
+]) {
+  if (!nitroSource.includes(fragment)) failures.push(`Nitro Vercel route-dispatch safeguard is missing ${fragment}`)
 }
 
 if (robotsSource.trim() !== 'User-agent: *\nDisallow: /') {

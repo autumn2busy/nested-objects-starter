@@ -33,8 +33,7 @@ export async function createSupabaseSensorObservationStore(configuration: {
   serviceRoleKey: string
 }): Promise<SensorObservationStore> {
   assertServerOnlyControlPlaneAccess(configuration)
-  const packageName = '@supabase/supabase-js'
-  const supabaseModule = (await import(packageName)) as {
+  const supabaseModule = (await import('@supabase/supabase-js')) as {
     createClient?: (url: string, key: string, options: Record<string, unknown>) => SupabaseRpcClientLike
   }
   if (typeof supabaseModule.createClient !== 'function') {

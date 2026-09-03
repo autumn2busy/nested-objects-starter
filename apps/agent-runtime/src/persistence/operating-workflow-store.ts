@@ -73,8 +73,7 @@ export async function createSupabaseOperatingWorkflowStore(configuration: {
   serviceRoleKey: string
 }): Promise<OperatingWorkflowStore> {
   assertServerOnlyControlPlaneAccess(configuration)
-  const packageName = '@supabase/supabase-js'
-  const supabaseModule = (await import(packageName)) as {
+  const supabaseModule = (await import('@supabase/supabase-js')) as {
     createClient?: (url: string, key: string, options: Record<string, unknown>) => SupabaseRpcClientLike
   }
   if (typeof supabaseModule.createClient !== 'function') {
