@@ -1,10 +1,37 @@
 # Issue #318 Intelligence OS Foundation execution ledger
 
-Last updated: 2026-09-01, America/New_York (2026-09-02 UTC)
+Last updated: 2026-09-03, America/New_York
 
 This is the durable source of truth for the remaining Issue #318 program. Update it in every stacked increment. Chat history is not authoritative.
 
-## Current staging acceptance checkpoint
+## Current acceptance resume checkpoint
+
+- 2026-09-03 synthetic staging acceptance is complete for owner access, the three operating workflows plus a representative event, business-key duplicate protection, one approval, one rejection, and event correlation readback through approval state. Autumn signed in through the normal Outseta flow; the protected Preview rendered the owner controls. Authenticated non-owner rejection is still unavailable for lack of a suitable non-owner account.
+- The first conversion attempt, Vercel Workflow run `wrun_01M1M6WHH11TE1EENDEETZB7RS`, failed before application-run persistence because the Workflow step bundle omitted `@supabase/supabase-js`. This is a failed acceptance attempt, not a pass. Seven stores now use literal lazy imports and a dependency smoke guard rejects the untraceable form.
+- Fix commit `1bc22473208148f7344e6ab126e377cf8d2f2b78` is pushed only to `codex/318-staging-acceptance`. READY Previews at that SHA are Runtime `dpl_HRNwS4H1uYgwhgw4SQa9PqFxfx8Q` and Members `dpl_3eTUifAArGhxqExog7xmkhCDSqb6`. Exact-deployment Runtime health succeeded; unauthenticated admin snapshot returned `401`.
+- Four application runs are succeeded and verified: conversion `fb1ef4d5-19ec-4051-a090-bcfab1dd3818`, daily `57a85cf4-0499-4cc1-8879-98fcd134a4c2`, weekly `5cf564c2-e7f4-4c74-9a90-92f2c2a6302d`, and event `00f48de3-53bd-45b3-9f69-6977857dc3ef`. The first three were quiet; the event produced one priority, one Autumn decision, one task, and one recommendation. All stayed synthetic with models and external mutation disabled.
+- A fresh owner-form delivery of the same event business key produced two trigger request records but one durable business run. This proves deployed business-level duplicate protection. It is not exact signed-nonce replay, which remains local/SQL evidence unless a separate server-side live method is reviewed and authorized.
+- The guarded insert-only operation `20260903_seed_issue318_acceptance_proposals.sql` created exactly two `synthetic_noop` proposals tied to the successful event. Autumn approved `31800000-0000-4000-8000-202609030001` and rejected `31800000-0000-4000-8000-202609030002`. Both reached decision version 1 with owner `9P66YMPm`; no executor or execution timestamp/result exists, awaiting count is zero, and four lifecycle audit events plus both decision nonces were read back.
+- The event correlation `4b7cedb9-56b0-5eea-aa33-a1ebccaaf0b9` returned seven checksum-bearing links spanning observation, signal, investigation, recommendation, persisted artifact, and two action approval states. Outcomes, measurements, and learnings remain zero.
+- The synthetic operating-review comparison contains four succeeded/verified reviews, each with one persisted-review event. Three quiet runs have zero priorities; the event has one, so the maximum-three bound holds. This does not establish same-cycle SEO/AEO parity; a reviewed non-PII snapshot and staging persistence remain separately approval-gated.
+- Fresh post-fix checks passed 25/25 current-source tests plus the protected-admin audit, dependency, typecheck, migration, Preview, format, and diff checks. The `test:workflow` wrapper stopped before tests because the isolated Windows junction was unreadable and is classified unavailable, not pass/fail. No production build ran.
+- Production, real-member data, models, email, external actions, live-report persistence, merges, promotion, schedules, and cleanup remain outside this approval. Bounded synthetic evidence remains in staging for review.
+
+The bullets below record the immediately preceding reconciliation pass; the completed live acceptance above supersedes their stale-Preview/access/pending-write status.
+
+- Scope: Issue #318 owner-only review, evidence, duplicate-run protection, and operating-review comparison. Inspector acquisition owns conversion storage, signup-to-payment review, and PR #342 follow-up; none of that work is duplicated here.
+- Fetched `origin/main`: `44f37b1c0bae18f4e9eb9c64ead3abc504a78ac5`. PR #334 is merged as `edbe2c99646ca18af06ad9636f0e8e45da9556b1`; its staging branch head is `0fe13467f4dd26ac11f1eed13763abc04f97ff6f`.
+- Retain the completed migrations, repaired rollback validations, sole owner, and destination binding recorded below. These were not reapplied, reset, or independently reverified against the database in this resume.
+- Both branch-specific acceptance Previews are READY at `0fe1346`. However, Members Preview predates the PR #336 login-handoff repair. Refreshing that Preview with the merged repair is a prerequisite to fresh owner sign-in acceptance; READY is not an authentication pass.
+- Vercel UI confirms Runtime Production still tracks `deploy/agent-runtime-production-disabled`, Members Production tracks `main`, and acceptance variable names/scopes remain on `codex/318-staging-acceptance`. Secret values and effective destination/flag values were not exposed or reverified.
+- New local pass: 19 Runtime Node tests, 7 real Workflow fixture tests, 5 Members transport/isolation tests, and the protected-admin static audit. No production build, install, migration, or live data/model call was used. These are focused current-source checks, not deployed durable acceptance.
+- Actual checked-in SEO/AEO baseline normalization also passed in memory: 5/5 SEO and 12/12 AEO candidates, stable references/checksums, deterministic repeat output, and correct stale-source warnings. The June reports are baselines, not current live weekly parity evidence.
+- Signed-out access to the Members acceptance owner route redirected to hosted login and showed no owner controls. Authenticated owner/non-owner checks are pending. Runtime health inspection did not reach the handler: the connector returned a platform redirect and the browser reported `ERR_BLOCKED_BY_CLIENT`.
+- Owner snapshot/run/trace reads do not consume database nonces. Queue, approve, and reject controls do write staging records and remain approval-gated. Full correlation readback exists through owner-checked SQL; the minimal screen does not offer a full trace-navigation UI.
+- Remaining: refresh the stale Members acceptance Preview, safely finish effective configuration/readback, complete authenticated synthetic durable/decision/replay smoke after explicit staging-write approval, and compare one approved same-window operating-review cycle. No existing collector is retired.
+- Detailed evidence, commands, limits, and gate order: [Acceptance resume evidence](issue-318-acceptance-2026-09-02.md). This checkpoint supersedes stale stack/activation statements in the historical sections and final implementation summary.
+
+## Prior staging activation checkpoint (2026-09-01 ET)
 
 This checkpoint supersedes the historical blocked, draft, and unmerged statuses in the increment history below. Issue #318 remains open; database acceptance is not end-to-end Preview acceptance.
 
