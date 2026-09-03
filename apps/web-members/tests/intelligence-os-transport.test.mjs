@@ -11,7 +11,23 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText
 
-function loadHelper(overrides = {}, fetchImpl = async () => Response.json({ ok: true, snapshot: {} })) {
+function validSnapshot(overrides = {}) {
+  return {
+    generatedAt: '2026-09-03T16:00:00.000Z',
+    runs: [],
+    unresolvedSignals: [],
+    awaitingActions: [],
+    sourceWarnings: [],
+    topPriorities: [],
+    experiments: [],
+    reviews: [],
+    delegationEnabled: false,
+    executionEnabled: false,
+    ...overrides,
+  }
+}
+
+function loadHelper(overrides = {}, fetchImpl = async () => Response.json({ ok: true, snapshot: validSnapshot() })) {
   const exports = {}
   const environment = {
     VERCEL_ENV: 'preview',
@@ -39,7 +55,7 @@ test('server request preserves HMAC and keeps the protection credential out of t
   let captured
   const helper = loadHelper({ INTELLIGENCE_OS_AGENT_RUNTIME_BYPASS_SECRET: 'synthetic-bypass' }, async (url, options) => {
     captured = { url, options }
-    return Response.json({ ok: true, snapshot: { fixture: true } })
+    return Response.json({ ok: true, snapshot: validSnapshot({ fixture: true }) })
   })
   const result = await helper.fetchIntelligenceAdminSnapshot({ subject: 'synthetic-owner' })
   assert.equal(result.fixture, true)
@@ -55,7 +71,7 @@ test('unprotected local runtime does not receive a bypass header', async () => {
   let captured
   const helper = loadHelper({ INTELLIGENCE_OS_AGENT_RUNTIME_URL: 'http://localhost:3001' }, async (_, options) => {
     captured = options
-    return Response.json({ ok: true, snapshot: {} })
+    return Response.json({ ok: true, snapshot: validSnapshot() })
   })
   await helper.fetchIntelligenceAdminSnapshot({ subject: 'synthetic-owner' })
   assert.equal('x-vercel-protection-bypass' in captured.headers, false)
@@ -82,6 +98,22 @@ test('transport failures are sanitized', async () => {
     assert.equal(error.message.includes('private transport details'), false)
     return true
   })
+})
+
+test('successful HTTP responses reject health and malformed snapshot envelopes', async () => {
+  for (const payload of [
+    { ok: true, service: 'nested-objects-agent-runtime' },
+    { ok: true, snapshot: null },
+    { ok: true, snapshot: validSnapshot({ executionEnabled: true }) },
+    { ok: true, snapshot: validSnapshot({ runs: null }) },
+  ]) {
+    const helper = loadHelper({}, async () => Response.json(payload))
+    await assert.rejects(helper.fetchIntelligenceAdminSnapshot({ subject: 'synthetic-owner' }), error => {
+      assert.equal(error.code, 'ADMIN_RUNTIME_RESPONSE_INVALID')
+      assert.equal(error.message, 'The protected staging control plane returned an invalid response.')
+      return true
+    })
+  }
 })
 
 test('acceptance Preview suppresses marketing events and tags, while Production behavior stays available', async () => {

@@ -8,7 +8,14 @@ const workflow: ModuleOptions = {
 }
 
 const config = {
-  compatibilityDate: '2026-08-27',
+  compatibilityDate: {
+    default: '2026-08-27',
+    // Nitro 3's newer Vercel route splitting aliases every API path to the
+    // same function in this project, causing non-health routes to serve the
+    // health handler. Keep the application compatibility date current while
+    // routing Vercel requests through the single Nitro dispatcher.
+    vercel: '2025-07-14',
+  },
   modules: ['workflow/nitro'],
   serverDir: './server',
   workflow,

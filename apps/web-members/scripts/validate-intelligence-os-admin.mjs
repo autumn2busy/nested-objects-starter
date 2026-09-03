@@ -47,6 +47,8 @@ requireFragments('server helper', sources.helper, [
   'process.env.INTELLIGENCE_OS_AGENT_RUNTIME_BYPASS_SECRET',
   "hostname.endsWith('.vercel.app')",
   "redirect: 'error'",
+  'parseIntelligenceAdminSnapshotResponse',
+  'ADMIN_RUNTIME_RESPONSE_INVALID',
 ])
 requireFragments('Server Actions', sources.actions, [
   "'use server'",
