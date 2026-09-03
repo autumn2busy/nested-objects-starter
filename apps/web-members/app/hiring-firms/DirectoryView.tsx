@@ -626,17 +626,17 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
       {access.isRestricted && (
         <div className="mb-6 border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
           <h2 className="text-sm font-semibold">
-            {!access.isAuthenticated ? 'Guest access is restricted.' : 'Free members see a preview.'}
+            {!access.isAuthenticated ? 'Choose the directory access you need.' : 'Your Free directory sample: up to 3 listings.'}
           </h2>
           <p className="mt-1 text-xs">
             {!access.isAuthenticated
-              ? 'Log in to view hiring firms. Full directory access is available on paid tiers.'
-              : 'You are viewing a small sample of firms. Upgrade to Pro or higher to unlock the full directory and deeper intel.'}
+              ? 'Sign in to use your existing plan. Free includes up to 3 sample listings with no search or filters. Pro and higher include full directory search and firm intel.'
+              : 'Free includes up to 3 sample firm listings with no search or filters. The sample is not matched to your state or inspection type. Locked previews are not additional accessible listings. Pro and higher include full directory search and firm intel.'}
           </p>
           <div className="flex flex-wrap gap-3">
             {!access.isAuthenticated ? (
               <DirectoryLoginLink className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white">
-                LOGIN FOR FULL ACCESS
+                SIGN IN TO YOUR PLAN
               </DirectoryLoginLink>
             ) : (
               <DirectoryUpgradeLink
@@ -645,7 +645,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
                 className="mt-3 inline-flex border border-amber-900 bg-amber-900 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-white"
                 eventData={{ feature: 'directory_preview_limit' }}
               >
-                UPGRADE FOR FULL ACCESS
+                COMPARE PAID DIRECTORY ACCESS
               </DirectoryUpgradeLink>
             )}
           </div>
@@ -678,10 +678,10 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
 
           {teaserFirms.length > 0 && (
             <div className="col-span-full rounded-md border-2 border-dashed border-amber-400 bg-amber-50/80 px-6 py-8 text-center">
-              <p className="text-lg font-bold text-slate-900">{totalCount - FREE_VISIBLE_COUNT}+ more firms are waiting</p>
+              <p className="text-lg font-bold text-slate-900">Need to research beyond the Free sample?</p>
               <p className="mt-2 text-sm text-slate-600">
-                You are seeing {FREE_VISIBLE_COUNT} of {totalCount} verified firms. Unlock the full directory with pay rates,
-                contact info, and AI-powered firm matching.
+                You can view up to {FREE_VISIBLE_COUNT} sample listings. The {teaserFirms.length} locked previews are not additional accessible listings.
+                Free has no search or filters. Pro and higher add full directory search, filters and firm intel.
               </p>
               <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <DirectoryUpgradeLink
@@ -697,7 +697,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
                   See Plans & Unlock Directory
                   <span aria-hidden="true">-&gt;</span>
                 </DirectoryUpgradeLink>
-                <span className="text-xs text-slate-500">Starting at $37/year</span>
+                <span className="text-xs text-slate-500">See current pricing and included features before upgrading.</span>
               </div>
             </div>
           )}

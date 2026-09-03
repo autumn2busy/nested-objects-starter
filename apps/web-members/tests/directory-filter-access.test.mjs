@@ -14,13 +14,13 @@ let events = []
 // Exercise the actual view, actions and native form components. These fixtures
 // replace only Next's image/link adapters and analytics; no auth or data service
 // is contacted. Free teaser fixtures represent the already-sanitized server data.
-function load(relativePath, imports = {}) {
+function load(relativePath, imports = {}, globals = {}) {
   const code = ts.transpileModule(readFileSync(new URL(relativePath, import.meta.url), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText
   const exports = {}
   vm.runInNewContext(code, {
-    exports, URL, URLSearchParams, console,
+    exports, URL, URLSearchParams, console, ...globals,
     require(name) {
       if (name === 'react') return React
       if (name === 'react/jsx-runtime') return jsxRuntime
@@ -61,6 +61,9 @@ const scenarios = [
   { name: 'Free', access: { isAuthenticated: true, isFree: true, isRestricted: true, planUid: 'L9nbKV9Z' } },
   { name: 'Pro', access: { isAuthenticated: true, isFree: false, isRestricted: false, planUid: 'rQVqlLm6' } },
   { name: 'Founders', access: { isAuthenticated: true, isFree: false, isRestricted: false, planUid: 'pWrBRnWn' } },
+  { name: 'Elite', access: { isAuthenticated: true, isFree: false, isRestricted: false, planUid: 'NmdnNO90' } },
+  { name: 'Agency', access: { isAuthenticated: true, isFree: false, isRestricted: false, planUid: 'rmk5Xk9g' } },
+  { name: 'Starter', access: { isAuthenticated: true, isFree: false, isRestricted: false, planUid: 'zWZD0rQp' } },
 ]
 const firms = Array.from({ length: 8 }, (_, index) => ({
   id: `fixture-${index + 1}`, slug: `fixture-${index + 1}`, name: `Fixture Firm ${index + 1}`,
@@ -197,7 +200,7 @@ test('visitors still receive no rendered firm cards or details even when fixture
   assert.equal(events.length, 0, 'Server rendering must not send analytics')
 })
 
-test('Free retains three full cards and four sanitized teasers without extra profile links', () => {
+test('Free retains three sample cards and four sanitized teasers without extra profile links', () => {
   const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, propsFor(scenarios[1])))
   assert.equal([...html.matchAll(/<article\b/g)].length, 3)
   assert.deepEqual([...html.matchAll(/href="\/firms\/([^"]+)"/g)].map(match => match[1]),
@@ -208,6 +211,82 @@ test('Free retains three full cards and four sanitized teasers without extra pro
   assert.equal([...html.matchAll(/Upgrade to view/g)].length, 4)
   assert.doesNotMatch(html, /aria-label="Next page"|aria-label="Previous page"/)
 })
+
+test('Free directory copy distinguishes the three-listing sample from locked cards and paid search', () => {
+  const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, propsFor(scenarios[1])))
+  const copy = plain(html)
+  assert.match(copy, /up to 3 sample (?:firm )?listings/i)
+  assert.match(copy, /(?:no (?:directory )?search (?:or|and|\/) filters|search and filters (?:are not included|are unavailable|require))/i)
+  assert.match(copy, /locked.{0,100}(?:not|aren.t|isn.t).{0,80}(?:additional|extra|accessible|included)|(?:not|aren.t|isn.t).{0,80}(?:additional|extra|accessible).{0,80}locked/i)
+  assert.match(copy, /Pro/)
+  assert.doesNotMatch(copy, /\$37|AI-powered firm matching|LOGIN FOR FULL ACCESS/i)
+})
+
+test('guest and paid directory handoffs do not advertise a retired checkout price or live AI matching', () => {
+  for (const scenario of scenarios) {
+    const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, propsFor(scenario)))
+    assert.doesNotMatch(plain(html), /\$37|AI-powered firm matching|LOGIN FOR FULL ACCESS/i, scenario.name)
+  }
+})
+
+for (const scenario of scenarios.slice(0, 2)) {
+  test(`${scenario.name}: actual server route neutralizes URL filters and preserves the Free payload boundary`, async () => {
+    const requests = []
+    const serverFirms = firms.slice(0, 7).map(firm => ({
+      ...firm, url: 'https://fixture.example/website', vendor_page_url: 'https://fixture.example/apply',
+      phone: 'SYNTHETIC_PHONE', email: 'fixture@example.invalid', address: 'SYNTHETIC_ADDRESS',
+      compensation_structure: 'SYNTHETIC_COMPENSATION', client_reviews: 'SYNTHETIC_REVIEW',
+    }))
+    const constants = load('../app/hiring-firms/constants.ts')
+    const stateData = load('../app/hiring-firms/state-data.ts', { './constants': constants })
+    const page = load('../app/hiring-firms/page.tsx', {
+      'next/link': nextLink,
+      './DirectoryView': directory,
+      '@/lib/seo': { generatePageMetadata: value => value, getFAQPageSchema: value => value },
+      './constants': constants,
+      './state-data': stateData,
+      '@/lib/testimonials': { TESTIMONIALS: [], getAverageRating: () => 0 },
+      '@/lib/auth-server': { getCurrentUser: async () => scenario.access.isAuthenticated
+        ? { 'outseta:planUid': scenario.access.planUid } : null },
+      '@/lib/plan-config': load('../lib/plan-config.ts'),
+    }, {
+      process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://fixture.example', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
+      async fetch(url) {
+        requests.push(new URL(url))
+        return {
+          ok: true, headers: { get: name => name === 'content-range' ? '0-6/100' : null },
+          json: async () => serverFirms,
+        }
+      },
+    })
+    const tree = await page.default({ searchParams: Promise.resolve({ ...filters, page: '5', limit: '60' }) })
+    const view = findElement(tree, node => node.type === directory.DirectoryView)
+    assert.ok(view)
+    assert.equal(requests.length, 1, 'The only data request is intercepted by the synthetic fetch')
+    assert.equal(requests[0].hostname, 'fixture.example')
+    assert.equal(requests[0].searchParams.get('limit'), '7')
+    assert.equal(requests[0].searchParams.get('offset'), '0')
+    assert.equal(requests[0].searchParams.has('and'), false)
+    assert.equal(requests[0].searchParams.has('contractor_rating'), false)
+    assert.equal(view.props.page, 1)
+    assert.equal(view.props.limit, 7)
+    assert.deepEqual(normalize(view.props.filters), {
+      state: 'ALL', search: '', rating: 'ALL', industry: 'ALL', source: 'ALL', pay: 'ALL', sort: 'rating_desc',
+    })
+    assert.equal(view.props.access.isRestricted, true)
+    if (!scenario.access.isAuthenticated) {
+      assert.deepEqual(normalize(view.props.initialFirms), [])
+      return
+    }
+    assert.equal(view.props.initialFirms.length, 7)
+    assert.deepEqual(normalize(view.props.initialFirms.slice(0, 3)), serverFirms.slice(0, 3))
+    for (const teaser of view.props.initialFirms.slice(3)) {
+      for (const field of ['url', 'vendor_page_url', 'pay_min', 'pay_max', 'pay_type', 'phone', 'email', 'address', 'compensation_structure', 'client_reviews']) {
+        assert.equal(teaser[field], null, `Locked teaser must sanitize ${field}`)
+      }
+    }
+  })
+}
 
 for (const scenario of scenarios.slice(2)) {
   test(`${scenario.name}: full firm cards and filtered pagination remain available`, () => {

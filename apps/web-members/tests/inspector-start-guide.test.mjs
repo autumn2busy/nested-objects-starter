@@ -148,6 +148,8 @@ test('shared inspector guide starts with firm research and keeps profile prepara
   assert.match(content(tree), /Your profile is private to you/)
   assert.match(content(tree), /not a job guarantee/)
   assert.match(content(tree), /before filling out your profile/)
+  assert.match(content(tree), /Free includes up to 3 sample listings with no search or filters/)
+  assert.match(content(tree), /Pro and higher include full directory search and firm intel/)
   assert.equal(nodes(tree, node => node.type === 'h2').length, 1)
   assert.equal(nodes(tree, node => node.type === 'h3').length, 2)
   assert.equal(nodes(tree, node => node.type === 'button').length, 0)

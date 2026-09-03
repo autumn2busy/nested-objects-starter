@@ -1,17 +1,7 @@
 import Link from 'next/link'
 import { FreeSignupCta } from '@/components/FreeSignupCta'
 // Icons
-import { MapPin, TrendingUp, ShieldCheck, Activity } from 'lucide-react'
-
-// Dummy data for the ticker - in real app, fetch this from Supabase
-const TICKER_ITEMS = [
-    "New job in Austin, TX: Occupancy Check ($45)",
-    "Firm verified: Safeguard Properties (National)",
-    "Rate update: BPO fees in FL up 12%",
-    "New firm added: Amrock (Valuation)",
-    "Inspector joining from Dallas, TX",
-    "Live: 124 firms hiring now",
-]
+import { ShieldCheck } from 'lucide-react'
 
 function MapPlaceholder() {
     return (
@@ -57,61 +47,51 @@ export function TechHero() {
                     <span className="relative flex h-2 w-2">
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    VERIFIED FIRMS: LIVE DIRECTORY
+                    FIELD INSPECTOR FIRM DIRECTORY
                 </div>
 
                 {/* Headline */}
                 <h1 className="mx-auto mb-3 max-w-4xl text-3xl font-bold tracking-tight text-white sm:mb-6 sm:text-6xl md:text-7xl">
-                    See Who Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Hiring Now</span> in <br className="hidden md:block" /> Your Area.
+                    Research firms. <br className="hidden md:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Choose where to apply.</span>
                 </h1>
 
                 {/* Subhead */}
                 <p className="mx-auto mb-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:mb-10 sm:text-xl">
-                    Compare hiring firms, pay clues, route expectations, and starter tools before you spend hours applying to portals that may not fit your lane.
+                    Pro and higher unlock directory search, filters, and detailed firm intel.
+                    Research companies before you spend time applying, and confirm current opportunities directly with each firm.
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4">
+                <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:items-start sm:gap-4">
+                    <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
+                        <Link
+                            href="/membership-pricing"
+                            className="flex w-full min-h-12 items-center justify-center rounded-lg bg-emerald-500 px-8 py-3 text-base font-bold text-slate-950 transition-colors hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:w-auto sm:py-4 sm:text-lg"
+                        >
+                            Compare membership plans
+                        </Link>
+                        <p className="text-xs font-medium text-slate-300">Full directory access requires a paid membership</p>
+                    </div>
                     <div className="flex w-full flex-col items-center gap-2 sm:w-auto">
                         <FreeSignupCta
                             placement="home_hero"
-                            className="w-full min-h-12 bg-emerald-500 px-8 py-3 text-base font-bold text-slate-950 transition-colors hover:bg-emerald-400 sm:w-auto sm:py-4 sm:text-lg sm:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                            className="w-full min-h-12 border border-slate-600 bg-slate-900/70 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-slate-800 sm:w-auto sm:py-4 sm:text-lg"
                         />
-                        <p className="text-xs font-medium text-slate-300">Free account · No credit card required</p>
+                        <p className="max-w-xs text-xs leading-5 text-slate-300">Up to 3 sample listings. No search or filters. No credit card required.</p>
                     </div>
-
-                    <Link
-                        href="/hiring-firms"
-                        className="flex w-full min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900/70 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-slate-800 sm:w-auto sm:py-4 sm:text-lg"
-                    >
-                        <Activity className="w-5 h-5 text-emerald-400" />
-                        Browse firms
-                    </Link>
                 </div>
-                <Link href="/membership-pricing" className="mt-3 inline-flex min-h-11 items-center rounded-md px-3 text-sm text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                    Compare membership plans
+                <Link href="#directory-access" className="mt-3 inline-flex min-h-11 items-center rounded-md px-3 text-sm text-slate-300 underline underline-offset-4 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    See exactly what each option includes
                 </Link>
 
             </div>
 
-            {/* 3. Bottom Ticker Bar */}
-            <div className="relative z-20 hidden h-12 w-full items-center overflow-hidden border-t border-slate-800 bg-slate-900/80 sm:flex">
-                <div className="container mx-auto px-4 flex items-center gap-6 text-xs sm:text-sm font-mono text-emerald-500/80">
-                    <span className="font-bold text-emerald-500 shrink-0 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4" /> VERIFIED SIGNAL
-                    </span>
-                    <div className="h-4 w-px bg-slate-700 shrink-0" />
-
-                    <div className="flex-1 relative overflow-hidden h-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="truncate">{TICKER_ITEMS[0]}</span>
-                        </div>
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-4 text-slate-500 shrink-0">
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> US Coverage</span>
-                        <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> Rates: Updated</span>
-                    </div>
+            {/* Static access summary, not an activity or hiring feed. */}
+            <div className="relative z-20 hidden min-h-12 w-full items-center border-t border-slate-800 bg-slate-900/80 sm:flex">
+                <div className="container mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2 px-4 py-3 text-xs text-slate-300">
+                    <span className="flex items-center gap-2 font-semibold text-emerald-400"><ShieldCheck className="h-4 w-4" aria-hidden="true" /> Clear access before you join</span>
+                    <span>Free: up to 3 sample listings</span>
+                    <span>Directory search and filters: paid membership</span>
                 </div>
             </div>
         </section>

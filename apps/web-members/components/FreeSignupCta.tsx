@@ -53,7 +53,7 @@ export function FreeSignupCta({ placement, className = '' }: FreeSignupCtaProps)
         if (event.button === 1) trackIntent(event)
       }}
     >
-      {isAuthenticated ? 'Open my dashboard' : 'Start free'}
+      {isAuthenticated ? 'Open my dashboard' : 'Preview Free sample'}
       <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
     </a>
   )

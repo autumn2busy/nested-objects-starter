@@ -32,7 +32,7 @@ jobs:
 
       - name: Verify signed login handoff and portal protection
         working-directory: apps/web-members
-        run: node --test tests/auth-login-return.test.mjs tests/auth-provider-session-race.test.mjs tests/member-profile-access.test.mjs tests/inspector-start-guide.test.mjs tests/homepage-free-signup.test.mjs
+        run: node --test tests/auth-login-return.test.mjs tests/auth-provider-session-race.test.mjs tests/member-profile-access.test.mjs tests/inspector-start-guide.test.mjs tests/homepage-free-signup.test.mjs tests/directory-filter-access.test.mjs
 
       - name: Lint and typecheck member app
         working-directory: apps/web-members
