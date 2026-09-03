@@ -243,7 +243,7 @@ test('authenticated new-member welcome preserves existing signup and activation 
   assert.deepEqual(JSON.parse(harness.sideEffects.requests[0].options.body), { tag: 'member-activated' })
 })
 
-test('quick actions describe available work and retain honest tools preview without false map or volume promises', () => {
+test('quick actions describe available work and honest member-tool access without false map or volume promises', () => {
   const cardParts = Object.fromEntries(['Card', 'CardHeader', 'CardTitle', 'CardContent'].map(name => [name, props => element('div', props)]))
   const { QuickActions } = load('../components/dashboard/QuickActions.tsx', { '@/components/ui/card': cardParts })
   const tree = expand(QuickActions())
@@ -251,5 +251,5 @@ test('quick actions describe available work and retain honest tools preview with
   assert.deepEqual(links.map(node => node.props.href), ['/hiring-firms', '/jobs', '/profile', '/tools'])
   assert.doesNotMatch(content(tree), /View Map|Explore firms near you|50\+|new leads/)
   assert.match(content(tree), /private profile/)
-  assert.match(content(links.find(node => node.props.href === '/tools')), /Tools Preview.*planned workflows/)
+  assert.match(content(links.find(node => node.props.href === '/tools')), /Member Tools.*calculators.*access/)
 })

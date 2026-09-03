@@ -218,7 +218,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
 
   const label = (() => {
     if (isCurrentPlan) return 'Current plan'
-    if (plan.waitlist) return 'Join Waitlist'
+    if (plan.waitlist) return plan.name === 'Agency' ? 'Team access in preparation' : 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
     if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Due Today'
     if (isAuthenticated) return `Upgrade to ${plan.name}`

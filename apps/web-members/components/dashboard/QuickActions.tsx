@@ -25,10 +25,10 @@ const ACTIONS = [
         color: "bg-purple-50 text-purple-600",
     },
     {
-        label: "Tools Preview",
+        label: "Member Tools",
         href: "/tools",
         icon: Wrench,
-        description: "See planned workflows",
+        description: "Use calculators and review access",
         color: "bg-indigo-50 text-indigo-600",
     },
 ];

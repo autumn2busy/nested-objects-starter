@@ -3,13 +3,13 @@ import process from 'node:process'
 const baseUrl = new URL(process.env.MEMBER_SURFACE_BASE_URL || process.argv[2] || 'http://localhost:3018')
 const failures = []
 
-const previewResponse = await request('/tools')
-if (previewResponse.status !== 200) {
-  failures.push(`/tools returned ${previewResponse.status}, expected 200`)
+const catalogResponse = await request('/tools')
+if (catalogResponse.status !== 200) {
+  failures.push(`/tools returned ${catalogResponse.status}, expected 200`)
 } else {
-  const previewHtml = await previewResponse.text()
-  for (const marker of ['Preview mode', 'Preview only. No function enabled']) {
-    if (!previewHtml.includes(marker)) failures.push(`/tools response is missing ${JSON.stringify(marker)}`)
+  const catalogHtml = await catalogResponse.text()
+  for (const marker of ['Two tools available now', 'Income scenario planner', 'Route economics calculator']) {
+    if (!catalogHtml.includes(marker)) failures.push(`/tools response is missing ${JSON.stringify(marker)}`)
   }
 }
 
@@ -79,10 +79,8 @@ const disabledToolRoutes = [
   '/tools/ai-resume',
   '/tools/clients',
   '/tools/companies',
-  '/tools/income-calculator',
   '/tools/job-tracker',
   '/tools/job-tracking',
-  '/tools/notary-route-calculator',
   '/tools/routing',
   '/tools/weather',
 ]
@@ -93,6 +91,14 @@ for (const route of disabledToolRoutes) {
   const redirectedPath = location ? new URL(location, baseUrl).pathname : null
   if (![307, 308].includes(response.status) || redirectedPath !== '/tools') {
     failures.push(`${route} did not redirect to /tools (status=${response.status}, location=${location})`)
+  }
+}
+
+for (const route of ['/tools/income-calculator', '/tools/notary-route-calculator']) {
+  const response = await request(route, { redirect: 'manual' })
+  const location = response.headers.get('location')
+  if (response.status !== 307 || !location?.startsWith('https://nested-objects.outseta.com/auth?widgetMode=login')) {
+    failures.push(`${route} did not require a verified member session (status=${response.status}, location=${location})`)
   }
 }
 

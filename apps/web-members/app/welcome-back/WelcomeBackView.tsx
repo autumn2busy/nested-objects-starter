@@ -20,7 +20,7 @@ type TokenState =
 const FEATURES = [
   { icon: Search, title: '200+ Verified Hiring Firms', desc: 'Searchable directory with real pay data, contacts, and coverage areas.' },
   { icon: BookOpen, title: 'Structured Training Tracks', desc: 'Role-based modules, quizzes, and certificates. Earn your Trust Score.' },
-  { icon: Bot, title: 'Member Tools Preview', desc: 'Preview planned guidance for firms, routes, and requirements. Execution remains disabled.' },
+  { icon: Bot, title: 'Member Tools', desc: 'Use the income scenario planner and review plan access for route economics and connected tools.' },
   { icon: FileText, title: 'Resume Workflow Preview', desc: 'Preview the planned inspector resume workflow. Upload and generation remain disabled.' },
   { icon: Briefcase, title: 'Live Job Board', desc: 'Updated listings filtered by location, pay, and specialty.' },
   { icon: Shield, title: 'Trust Score & Badge', desc: 'Complete training, verify background, earn a visible score firms recognize.' },

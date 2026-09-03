@@ -9,7 +9,7 @@ const failures = []
 
 const read = (relativePath) => readFile(path.join(webRoot, relativePath), 'utf8')
 
-const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, availabilitySource, memberToolLinksSource, contentGeneratorSource, blogReviewSource, portalLayoutSource, toolLayoutSource] =
+const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, availabilitySource, memberToolAccessSource, memberToolLinksSource, contentGeneratorSource, blogReviewSource, portalLayoutSource, toolLayoutSource] =
   await Promise.all([
     read('app/tools/ToolsView.tsx'),
     read('middleware.ts'),
@@ -21,6 +21,7 @@ const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSour
     read('components/RoleCarousel.tsx'),
     read('app/sitemap.ts'),
     read('lib/member-tools-availability.ts'),
+    read('lib/member-tool-access.ts'),
     read('lib/member-tool-links.ts'),
     read('lib/content-brief-generator.ts'),
     read('app/blog/review/page.tsx'),
@@ -29,24 +30,25 @@ const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSour
   ])
 
 for (const required of [
-  'Preview mode',
-  'Visitors and Free members',
-  'Preview only. No function enabled',
+  'Two tools available now',
+  'All signed-in member plans',
+  'Elite and Agency',
+  "href: '/tools/income-calculator'",
+  "href: '/tools/notary-route-calculator'",
+  'Not yet enabled',
   'disabled',
   'aria-disabled="true"',
 ]) {
-  requireText(toolsSource, required, `tools preview is missing ${JSON.stringify(required)}`)
-}
-
-if (/href\s*=\s*["'`]\/tools\//.test(toolsSource)) {
-  failures.push('tools preview exposes a functional /tools/* link')
+  requireText(toolsSource, required, `member-tools catalog is missing ${JSON.stringify(required)}`)
 }
 
 for (const required of [
   "pathname.startsWith('/tools/')",
+  'const isEnabledToolRoute = isEnabledMemberToolPath(pathname)',
+  '!isEnabledToolRoute',
   "NextResponse.redirect(new URL('/tools', request.url), 307)",
 ]) {
-  requireText(middlewareSource, required, `middleware is missing the disabled-tool boundary ${JSON.stringify(required)}`)
+  requireText(middlewareSource, required, `middleware is missing the default-deny tool boundary ${JSON.stringify(required)}`)
 }
 
 for (const required of [
@@ -101,8 +103,6 @@ if (pricingSource.includes('.filter((plan) => !plan.hidden)')) {
 }
 
 for (const forbidden of [
-  '/tools/income-calculator',
-  'free calculator',
   'No signup required',
   'Instant results',
   'Calculate your specific area',
@@ -112,7 +112,9 @@ for (const forbidden of [
   }
 }
 
-requireText(homeSource, 'href="/tools"', 'homepage does not link to the locked tools preview')
+requireText(homeSource, 'href="/tools"', 'homepage does not link to the member-tools catalog')
+requireText(homeSource, 'href="/tools/income-calculator"', 'homepage does not link to the available income planner')
+requireText(homeSource, 'Results are estimates, not income promises.', 'homepage income-planner copy omits its estimate boundary')
 requireText(pricingPageSource, 'Field Inspector Membership Plans', 'pricing metadata is not field-inspector-first')
 requireText(pricingPageSource, '.filter((plan) => isPublicPlanUid(plan.planUid))', 'pricing schema does not reuse the public-plan allowlist')
 
@@ -122,7 +124,8 @@ for (const forbidden of ['Full AI tools', 'full access to AI tools', 'Full AI Co
     failures.push(`public Pro checkout copy promises disabled execution: ${JSON.stringify(forbidden)}`)
   }
 }
-requireText(publicProBlock, 'preview-only', 'public Pro checkout copy does not disclose the preview-only tool state')
+requireText(publicProBlock, 'Income scenario planner', 'public Pro checkout copy omits the available income planner')
+requireText(publicProBlock, 'connected workflow tools', 'public Pro checkout copy does not distinguish disabled connected tools')
 
 for (const forbidden of ['test the tools', 'Turn on AI tools', 'unlock AI tools', 'AI tools are non-refundable']) {
   if (pricingSource.toLowerCase().includes(forbidden.toLowerCase())) {
@@ -215,10 +218,8 @@ const disabledToolPages = [
   'ai-resume',
   'clients',
   'companies',
-  'income-calculator',
   'job-tracker',
   'job-tracking',
-  'notary-route-calculator',
   'routing',
   'weather',
 ]
@@ -231,7 +232,28 @@ for (const route of disabledToolPages) {
   }
 }
 
-for (const required of ["href.startsWith('/tools/')", "href: '/tools'"]) {
+for (const [route, marker] of [
+  ['income-calculator', 'MEMBER_TOOL_IDS.INCOME_SCENARIO'],
+  ['notary-route-calculator', 'MEMBER_TOOL_IDS.ROUTE_ECONOMICS'],
+]) {
+  const source = await read(`app/tools/${route}/page.tsx`)
+  requireText(source, marker, `${route} does not enforce its member-tool policy`)
+  requireText(source, 'getCurrentUser()', `${route} does not verify the signed-in member on the server`)
+  if (source.includes('redirectDisabledMemberTool()')) {
+    failures.push(`${route} still redirects through the obsolete blanket tool lock`)
+  }
+}
+
+for (const required of [
+  "'/tools/income-calculator'",
+  "'/tools/notary-route-calculator'",
+  'isEnabledMemberToolPath',
+  'canAccessMemberTool',
+]) {
+  requireText(memberToolAccessSource, required, `member-tool access policy is missing ${JSON.stringify(required)}`)
+}
+
+for (const required of ["href.startsWith('/tools/')", 'isEnabledMemberToolPath', "href: '/tools'"]) {
   requireText(memberToolLinksSource, required, `member-tool link normalizer is missing ${JSON.stringify(required)}`)
 }
 requireText(contentGeneratorSource, 'normalizeMemberToolLink', 'content brief generation does not normalize historical tool links')
@@ -252,8 +274,10 @@ const exposedSourceFiles = [
 
 for (const file of exposedSourceFiles) {
   const source = await readFile(file, 'utf8')
-  if (/(?:href|targetPage)\s*[:=]\s*["'`]\/tools\//.test(source)) {
-    failures.push(`exposed source still links to a disabled tool route: ${path.relative(webRoot, file)}`)
+  for (const match of source.matchAll(/(?:href|targetPage)\s*[:=]\s*["'`](\/tools\/[^"'`?#]*)/g)) {
+    if (!isEnabledToolHref(match[1])) {
+      failures.push(`exposed source links to a disabled tool route: ${path.relative(webRoot, file)} -> ${match[1]}`)
+    }
   }
   if (/fetch\(\s*["'`]\/api\/company-tracker/.test(source)) {
     failures.push(`exposed source still calls the disabled company tracker API: ${path.relative(webRoot, file)}`)
@@ -333,9 +357,15 @@ function inspectStructuredLinks(value, location) {
 
   for (const [key, child] of Object.entries(value)) {
     const childLocation = `${location}.${key}`
-    if ((key === 'href' || key === 'targetPage') && typeof child === 'string' && child.startsWith('/tools/')) {
+    if ((key === 'href' || key === 'targetPage') && typeof child === 'string'
+      && child.startsWith('/tools/') && !isEnabledToolHref(child)) {
       failures.push(`checked-in content targets a disabled tool route: ${childLocation}`)
     }
     inspectStructuredLinks(child, childLocation)
   }
+}
+
+function isEnabledToolHref(href) {
+  const pathname = href.split(/[?#]/, 1)[0].replace(/\/$/, '')
+  return pathname === '/tools/income-calculator' || pathname === '/tools/notary-route-calculator'
 }

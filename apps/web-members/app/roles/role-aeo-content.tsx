@@ -531,7 +531,7 @@ export const roleAeoContent = {
       },
       {
         question: 'How does Nested Objects help inspectors choose firms?',
-        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, training, and readiness resources so inspectors can compare opportunities before spending time on vendor portals. Planned tools remain preview-only.',
+        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, training, readiness resources, and a browser-only income scenario planner so inspectors can compare opportunities before spending time on vendor portals. Connected tools remain unavailable until verified.',
       },
     ],
   },
