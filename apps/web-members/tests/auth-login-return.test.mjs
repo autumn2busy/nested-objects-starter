@@ -32,6 +32,10 @@ function load(relativePath, imports) {
 }
 
 const redirectHelper = load('../lib/auth-redirect.ts', {})
+const planConfig = load('../lib/plan-config.ts', {})
+const memberToolAccess = load('../lib/member-tool-access.ts', {
+  './plan-config': planConfig,
+})
 const auth = load('../lib/auth-server.ts', {
   jose: {
     jwtVerify,
@@ -43,7 +47,9 @@ const auth = load('../lib/auth-server.ts', {
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
 })
 const { middleware } = load('../middleware.ts', {
-  'next/server': { NextResponse }, './lib/auth-redirect': redirectHelper,
+  'next/server': { NextResponse },
+  './lib/auth-redirect': redirectHelper,
+  './lib/member-tool-access': memberToolAccess,
 })
 const { GET: complete } = load('../app/api/auth/complete/route.ts', {
   'next/server': { NextResponse }, '@/lib/auth-server': auth, '@/lib/auth-redirect': redirectHelper,

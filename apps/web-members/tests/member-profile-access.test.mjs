@@ -225,7 +225,15 @@ test('real route components deny access and metadata performs no profile lookup'
 
 test('middleware denies visitors and marks member responses private/nonindexable', () => {
   const redirectHelper = load('../lib/auth-redirect.ts', {})
-  const { middleware } = load('../middleware.ts', { 'next/server': { NextResponse }, './lib/auth-redirect': redirectHelper })
+  const planConfig = load('../lib/plan-config.ts', {})
+  const memberToolAccess = load('../lib/member-tool-access.ts', {
+    './plan-config': planConfig,
+  })
+  const { middleware } = load('../middleware.ts', {
+    'next/server': { NextResponse },
+    './lib/auth-redirect': redirectHelper,
+    './lib/member-tool-access': memberToolAccess,
+  })
   for (const path of ['/members', `/members/${peerId}`]) {
     for (const headers of [{}, { cookie: 'outseta_access_token=synthetic' }]) {
       const response = middleware(new NextRequest(`https://synthetic.example${path}`, { headers }))
