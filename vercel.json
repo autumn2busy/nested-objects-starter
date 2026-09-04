@@ -1,4 +1,6 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "installCommand": "node scripts/vercel-install.mjs",
     "crons": [
         {
             "path": "/api/cron/sync-adzuna",
