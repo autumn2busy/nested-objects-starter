@@ -117,9 +117,9 @@ requireText(homeSource, 'Results are estimates, not income promises.', 'homepage
 requireText(pricingPageSource, 'Field Inspector Membership Plans', 'pricing metadata is not field-inspector-first')
 requireText(pricingPageSource, '.filter((plan) => isPublicPlanUid(plan.planUid))', 'pricing schema does not reuse the public-plan allowlist')
 
-const publicFreeBlock = extractObjectBetween(planDataSource, "name: 'Free'", "name: 'Starter'")
-const publicProBlock = extractObjectBetween(planDataSource, "name: 'Pro'", "name: 'Elite'")
-const publicEliteBlock = extractObjectBetween(planDataSource, "name: 'Elite'", "name: 'Agency'")
+const publicFreeBlock = extractObjectBetween(planDataSource, 'planUid: PLAN_UIDS.FREE', 'planUid: PLAN_UIDS.STARTER')
+const publicProBlock = extractObjectBetween(planDataSource, 'planUid: PLAN_UIDS.PRO', 'planUid: PLAN_UIDS.ELITE')
+const publicEliteBlock = extractObjectBetween(planDataSource, 'planUid: PLAN_UIDS.ELITE', 'planUid: PLAN_UIDS.AGENCY')
 requireText(publicFreeBlock, 'Income scenario planner', 'public Free checkout copy omits the income planner')
 for (const forbidden of ['AI Concierge', 'AI Resume', 'job tracking', 'Weather and route planning']) {
   if (publicFreeBlock.toLowerCase().includes(forbidden.toLowerCase())) failures.push(`public Free checkout copy includes paid tool ${JSON.stringify(forbidden)}`)

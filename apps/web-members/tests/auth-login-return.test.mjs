@@ -45,6 +45,7 @@ const auth = load('../lib/auth-server.ts', {
     },
   },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
+  './plan-config': planConfig,
 })
 const { middleware } = load('../middleware.ts', {
   'next/server': { NextResponse },
