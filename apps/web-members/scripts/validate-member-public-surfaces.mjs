@@ -9,7 +9,7 @@ const failures = []
 
 const read = (relativePath) => readFile(path.join(webRoot, relativePath), 'utf8')
 
-const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, availabilitySource, memberToolAccessSource, memberToolLinksSource, contentGeneratorSource, blogReviewSource, portalLayoutSource, toolLayoutSource] =
+const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSource, planDataSource, homeSource, roleSource, sitemapSource, memberToolAccessSource, memberToolLinksSource, contentGeneratorSource, blogReviewSource, portalLayoutSource, toolLayoutSource] =
   await Promise.all([
     read('app/tools/ToolsView.tsx'),
     read('middleware.ts'),
@@ -20,7 +20,6 @@ const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSour
     read('app/page.tsx'),
     read('components/RoleCarousel.tsx'),
     read('app/sitemap.ts'),
-    read('lib/member-tools-availability.ts'),
     read('lib/member-tool-access.ts'),
     read('lib/member-tool-links.ts'),
     read('lib/content-brief-generator.ts'),
@@ -30,14 +29,14 @@ const [toolsSource, middlewareSource, planSource, pricingSource, pricingPageSour
   ])
 
 for (const required of [
-  'Two tools available now',
+  'Member tools by plan',
   'All signed-in member plans',
-  'Elite and Agency',
+  'Pro, Elite and Agency',
   "href: '/tools/income-calculator'",
   "href: '/tools/notary-route-calculator'",
-  'Not yet enabled',
-  'disabled',
-  'aria-disabled="true"',
+  "href: '/tools/ai-concierge'",
+  "href: '/tools/job-tracker'",
+  'Elite includes every member tool',
 ]) {
   requireText(toolsSource, required, `member-tools catalog is missing ${JSON.stringify(required)}`)
 }
@@ -118,52 +117,17 @@ requireText(homeSource, 'Results are estimates, not income promises.', 'homepage
 requireText(pricingPageSource, 'Field Inspector Membership Plans', 'pricing metadata is not field-inspector-first')
 requireText(pricingPageSource, '.filter((plan) => isPublicPlanUid(plan.planUid))', 'pricing schema does not reuse the public-plan allowlist')
 
+const publicFreeBlock = extractObjectBetween(planDataSource, "name: 'Free'", "name: 'Starter'")
 const publicProBlock = extractObjectBetween(planDataSource, "name: 'Pro'", "name: 'Elite'")
-for (const forbidden of ['Full AI tools', 'full access to AI tools', 'Full AI Concierge access', 'Full AI Resume Builder access']) {
-  if (publicProBlock.toLowerCase().includes(forbidden.toLowerCase())) {
-    failures.push(`public Pro checkout copy promises disabled execution: ${JSON.stringify(forbidden)}`)
-  }
+const publicEliteBlock = extractObjectBetween(planDataSource, "name: 'Elite'", "name: 'Agency'")
+requireText(publicFreeBlock, 'Income scenario planner', 'public Free checkout copy omits the income planner')
+for (const forbidden of ['AI Concierge', 'AI Resume', 'job tracking', 'Weather and route planning']) {
+  if (publicFreeBlock.toLowerCase().includes(forbidden.toLowerCase())) failures.push(`public Free checkout copy includes paid tool ${JSON.stringify(forbidden)}`)
 }
-requireText(publicProBlock, 'Income scenario planner', 'public Pro checkout copy omits the available income planner')
-requireText(publicProBlock, 'connected workflow tools', 'public Pro checkout copy does not distinguish disabled connected tools')
-
-for (const forbidden of ['test the tools', 'Turn on AI tools', 'unlock AI tools', 'AI tools are non-refundable']) {
-  if (pricingSource.toLowerCase().includes(forbidden.toLowerCase())) {
-    failures.push(`pricing support copy promises disabled execution: ${JSON.stringify(forbidden)}`)
-  }
+for (const required of ['AI Concierge', 'AI Resume Builder', 'job tracking tools', 'Weather and route planning tools']) {
+  requireText(publicProBlock, required, `public Pro checkout copy omits ${JSON.stringify(required)}`)
 }
-
-const productTruthSources = new Map(
-  await Promise.all(
-    [
-      'app/about-us/page.tsx',
-      'app/faqs/page.tsx',
-      'app/hiring-firms/[state]/page.tsx',
-      'app/refund-policy/page.tsx',
-      'app/roles/inspector/page.tsx',
-      'app/terms-conditions/page.tsx',
-      'app/welcome-back/WelcomeBackView.tsx',
-      'lib/ai-datasets.ts',
-    ].map(async (file) => [file, await read(file)]),
-  ),
-)
-
-for (const [file, source] of productTruthSources) {
-  for (const forbidden of [
-    'Ask anything about firms, routes, or requirements — grounded answers instantly.',
-    'AI Resume Builder access',
-    'Limited AI Concierge usage',
-    'Limited AI Resume Builder usage',
-    'Use the AI concierge to compare',
-    'AI tools that help you choose',
-    'AI tools, and training resources',
-    'AI tools, templates, and intel is delivered instantly',
-  ]) {
-    if (source.includes(forbidden)) {
-      failures.push(`${file} promises disabled member-tool execution: ${JSON.stringify(forbidden)}`)
-    }
-  }
-}
+requireText(publicEliteBlock, 'Every member tool included', 'public Elite checkout copy does not promise the complete toolset')
 
 const mortgageRoleIndex = roleSource.indexOf("slug: 'mortgage-field-inspector'")
 const lossControlRoleIndex = roleSource.indexOf("slug: 'insurance-loss-control'")
@@ -176,30 +140,25 @@ if (sitemapSource.includes('STATIC_TOOL_SLUGS') || sitemapSource.includes('...to
   failures.push('sitemap still publishes disabled /tools/* execution routes')
 }
 
-for (const required of [
-  'export const MEMBER_TOOL_EXECUTION_ENABLED = false',
-  "export const MEMBER_TOOLS_DISABLED_CODE = 'MEMBER_TOOLS_PREVIEW_ONLY'",
-  'status: 503',
-  "'Cache-Control': 'no-store'",
-]) {
-  requireText(availabilitySource, required, `member-tool server guard is missing ${JSON.stringify(required)}`)
-}
+const protectedToolApis = [
+  'app/api/ai/concierge/route.ts',
+  'app/api/ai/resume/route.ts',
+  'app/api/ai/resume/parse/route.ts',
+  'app/api/ai/resume/generate/route.ts',
+  'app/api/weather/route.ts',
+  'app/api/company-tracker/route.ts',
+  'app/api/client-tracker/route.ts',
+  'app/api/member-jobs/route.ts',
+  'app/api/member-jobs/[id]/route.ts',
+]
 
-const guardedRoutes = new Map([
-  ['app/api/ai/concierge/route.ts', 1],
-  ['app/api/ai/resume/route.ts', 1],
-  ['app/api/ai/resume/parse/route.ts', 2],
-  ['app/api/ai/resume/generate/route.ts', 1],
-  ['app/api/weather/route.ts', 1],
-  ['app/api/company-tracker/route.ts', 4],
-])
-
-for (const [route, expectedGuards] of guardedRoutes) {
+for (const route of protectedToolApis) {
   const source = await read(route)
-  const guardCount = source.match(/memberToolsUnavailableResponse\(\)/g)?.length || 0
-  if (guardCount < expectedGuards) {
-    failures.push(`${route} has ${guardCount} disabled-tool guards; expected at least ${expectedGuards}`)
+  requireText(source, 'getCurrentUser', `${route} does not verify a server session`)
+  if (!source.includes('canAccessMemberTool') && !source.includes('hasAccess')) {
+    failures.push(`${route} does not enforce a server-side plan entitlement`)
   }
+  if (source.includes('memberToolsUnavailableResponse')) failures.push(`${route} still contains the obsolete blanket tool lock`)
 }
 
 for (const sharedRoute of [
@@ -213,23 +172,20 @@ for (const sharedRoute of [
   }
 }
 
-const disabledToolPages = [
+const protectedToolPages = [
   'ai-concierge',
   'ai-resume',
   'clients',
   'companies',
   'job-tracker',
-  'job-tracking',
   'routing',
   'weather',
 ]
 
-for (const route of disabledToolPages) {
+for (const route of protectedToolPages) {
   const source = await read(`app/tools/${route}/page.tsx`)
-  requireText(source, 'redirectDisabledMemberTool()', `${route} lacks a route-local preview redirect`)
-  if (/createClient|\.from\(|fetch\(/.test(source)) {
-    failures.push(`${route} still contains executable data access in its route module`)
-  }
+  requireText(source, 'MemberToolPageAccess', `${route} lacks a server-authoritative tool gate`)
+  requireText(source, 'MEMBER_TOOL_IDS.', `${route} does not identify its central tool entitlement`)
 }
 
 for (const [route, marker] of [
@@ -239,14 +195,14 @@ for (const [route, marker] of [
   const source = await read(`app/tools/${route}/page.tsx`)
   requireText(source, marker, `${route} does not enforce its member-tool policy`)
   requireText(source, 'getCurrentUser()', `${route} does not verify the signed-in member on the server`)
-  if (source.includes('redirectDisabledMemberTool()')) {
-    failures.push(`${route} still redirects through the obsolete blanket tool lock`)
-  }
+  if (source.includes('redirectDisabledMemberTool()')) failures.push(`${route} still redirects through the obsolete blanket tool lock`)
 }
 
 for (const required of [
   "'/tools/income-calculator'",
   "'/tools/notary-route-calculator'",
+  "'/tools/ai-concierge'",
+  "'/tools/weather'",
   'isEnabledMemberToolPath',
   'canAccessMemberTool',
 ]) {
@@ -278,9 +234,6 @@ for (const file of exposedSourceFiles) {
     if (!isEnabledToolHref(match[1])) {
       failures.push(`exposed source links to a disabled tool route: ${path.relative(webRoot, file)} -> ${match[1]}`)
     }
-  }
-  if (/fetch\(\s*["'`]\/api\/company-tracker/.test(source)) {
-    failures.push(`exposed source still calls the disabled company tracker API: ${path.relative(webRoot, file)}`)
   }
 }
 
@@ -367,5 +320,16 @@ function inspectStructuredLinks(value, location) {
 
 function isEnabledToolHref(href) {
   const pathname = href.split(/[?#]/, 1)[0].replace(/\/$/, '')
-  return pathname === '/tools/income-calculator' || pathname === '/tools/notary-route-calculator'
+  return new Set([
+    '/tools/income-calculator',
+    '/tools/notary-route-calculator',
+    '/tools/clients',
+    '/tools/companies',
+    '/tools/ai-concierge',
+    '/tools/ai-resume',
+    '/tools/job-tracker',
+    '/tools/job-tracking',
+    '/tools/weather',
+    '/tools/routing',
+  ]).has(pathname)
 }

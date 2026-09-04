@@ -224,7 +224,7 @@ function getStateFAQs(stateLabel: string) {
         },
         {
             question: `What does Nested Objects Pro unlock for ${stateLabel} firm research?`,
-            answer: `Pro helps you move beyond a simple list with full firm profiles, pay clues, route expectations, contractor feedback, training, readiness resources, and the income scenario planner. Connected tools remain unavailable until verified.`,
+            answer: `Pro helps you move beyond a simple list with full firm profiles, pay clues, route expectations, contractor feedback, training, readiness resources, and the core member toolkit. Elite includes every member tool.`,
         },
     ]
 }
@@ -751,7 +751,7 @@ export default async function StateLandingPage({
                         Ready to start inspecting in {stateInfo.label}?
                     </h2>
                     <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-300">
-                        Join Nested Objects for firm profiles, pay clues, route-fit notes, training, readiness resources, and the income scenario planner. Connected tools remain unavailable until verified.
+                        Join Nested Objects for firm profiles, pay clues, route-fit notes, training, readiness resources, and plan-based member tools.
                         Start free, then upgrade when you are ready to compare firms more seriously.
                     </p>
                     <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">

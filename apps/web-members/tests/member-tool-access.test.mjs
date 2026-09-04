@@ -36,7 +36,7 @@ const plans = load('../lib/plan-config.ts')
 const access = load('../lib/member-tool-access.ts', { './plan-config': plans })
 const knownPlans = Object.values(plans.PLAN_UIDS)
 
-test('only the two reviewed calculator paths are allowlisted, with an optional trailing slash', () => {
+test('only catalogued member-tool paths are allowlisted, with an optional trailing slash', () => {
   for (const path of Object.values(access.MEMBER_TOOL_PATHS)) {
     assert.equal(access.isEnabledMemberToolPath(path), true)
     assert.equal(access.isEnabledMemberToolPath(`${path}/`), true)
@@ -44,7 +44,7 @@ test('only the two reviewed calculator paths are allowlisted, with an optional t
 
   for (const path of [
     '/tools',
-    '/tools/weather',
+    '/tools/unknown',
     '/tools/income-calculator/example',
     '/tools/income-calculator//',
     '/tools/income-calculator?source=test',
@@ -68,6 +68,74 @@ test('route economics allows only Elite and Agency', () => {
     const expected = planUid === plans.PLAN_UIDS.ELITE || planUid === plans.PLAN_UIDS.AGENCY
     assert.equal(access.canAccessMemberTool(planUid, access.MEMBER_TOOL_IDS.ROUTE_ECONOMICS), expected, planUid)
   }
+})
+
+test('Free is calculator-only, Pro receives its core tools, and Elite receives every tool', () => {
+  const allTools = Object.values(access.MEMBER_TOOL_IDS)
+  for (const tool of allTools) {
+    assert.equal(
+      access.canAccessMemberTool(plans.PLAN_UIDS.FREE, tool),
+      tool === access.MEMBER_TOOL_IDS.INCOME_SCENARIO,
+      `Free:${tool}`,
+    )
+  }
+
+  for (const tool of allTools) {
+    assert.equal(
+      access.canAccessMemberTool(plans.PLAN_UIDS.PRO, tool),
+      tool !== access.MEMBER_TOOL_IDS.ROUTE_ECONOMICS,
+      `Pro:${tool}`,
+    )
+    assert.equal(access.canAccessMemberTool(plans.PLAN_UIDS.ELITE, tool), true, `Elite:${tool}`)
+    assert.equal(access.canAccessMemberTool(plans.PLAN_UIDS.AGENCY, tool), true, `Agency:${tool}`)
+  }
+})
+
+test('legacy paid plans retain their promised core tools without receiving current Pro route tools', () => {
+  const legacyCore = new Set([
+    access.MEMBER_TOOL_IDS.INCOME_SCENARIO,
+    access.MEMBER_TOOL_IDS.CLIENT_WORKSPACE,
+    access.MEMBER_TOOL_IDS.COMPANY_TRACKER,
+    access.MEMBER_TOOL_IDS.AI_CONCIERGE,
+    access.MEMBER_TOOL_IDS.AI_RESUME,
+    access.MEMBER_TOOL_IDS.JOB_TRACKER,
+  ])
+
+  for (const planUid of [plans.PLAN_UIDS.STARTER, plans.PLAN_UIDS.FOUNDERS]) {
+    for (const tool of Object.values(access.MEMBER_TOOL_IDS)) {
+      assert.equal(access.canAccessMemberTool(planUid, tool), legacyCore.has(tool), `${planUid}:${tool}`)
+    }
+  }
+})
+
+test('tools catalog renders one Free tool, the Pro subset, and every tool for Elite', () => {
+  let auth = { isAuthenticated: true, isLoading: false, planUid: plans.PLAN_UIDS.FREE, login() {} }
+  const catalog = load('../app/tools/ToolsView.tsx', {
+    'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
+    '@/components/auth-provider': { useAuth: () => auth },
+    '@/components/ui/button': { buttonVariants: () => 'button' },
+    '@/components/ui/card': { Card: ({ children, ...props }) => React.createElement('article', props, children) },
+    '@/lib/member-tool-access': access,
+  })
+
+  const renderCatalog = (planUid) => {
+    auth = { ...auth, planUid }
+    return renderToStaticMarkup(React.createElement(catalog.ToolsView))
+  }
+  const count = (html, label) => (html.match(new RegExp(`>${label}<`, 'g')) ?? []).length
+
+  const free = renderCatalog(plans.PLAN_UIDS.FREE)
+  assert.equal(count(free, 'Open tool'), 1)
+  assert.equal(count(free, 'Compare plans'), 8)
+
+  const pro = renderCatalog(plans.PLAN_UIDS.PRO)
+  assert.equal(count(pro, 'Open tool'), 8)
+  assert.equal(count(pro, 'Compare plans'), 1)
+
+  const elite = renderCatalog(plans.PLAN_UIDS.ELITE)
+  assert.equal(count(elite, 'Open tool'), 9)
+  assert.equal(count(elite, 'Compare plans'), 0)
+  assert.doesNotMatch(elite, /Not yet enabled|Planned/)
 })
 
 test('unknown tool identifiers fail closed at runtime', () => {

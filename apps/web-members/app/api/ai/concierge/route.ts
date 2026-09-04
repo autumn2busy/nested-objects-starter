@@ -3,14 +3,10 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 export async function POST(request: Request) {
-  const unavailable = memberToolsUnavailableResponse();
-  if (unavailable) return unavailable;
-
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -80,20 +76,23 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const prompt = body.messages ? body.messages[body.messages.length - 1].content : body.prompt;
+    const prompt = body.messages ? body.messages[body.messages.length - 1]?.content : body.prompt;
 
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 8_000) {
       return NextResponse.json(
-        { error: 'Prompt is required' },
+        { error: 'Prompt is required and must be 8,000 characters or fewer.' },
         { status: 400 }
       );
+    }
+
+    const n8nWebhookUrl = process.env.N8N_AI_CONCIERGE_WEBHOOK_URL;
+    if (!n8nWebhookUrl) {
+      return NextResponse.json({ error: 'AI Concierge is temporarily unavailable.' }, { status: 503 });
     }
 
     // Track usage *before* sending to n8n to be safe, or concurrent requests could bypass.
     // However, if n8n fails, we "charged" them. Prompt says "Enforce limits... Return friendly 403".
     await trackAIUsage(userId, 'ai_concierge');
-
-    const n8nWebhookUrl = process.env.N8N_AI_CONCIERGE_WEBHOOK_URL!;
 
     const response = await fetch(n8nWebhookUrl, {
       method: 'POST',
@@ -101,8 +100,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        jwt: token, // Send valid token to n8n if needed, or user info
         user_id: userId,
+        plan_uid: planUid,
         prompt: prompt.trim(),
       }),
     });

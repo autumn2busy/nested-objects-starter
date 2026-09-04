@@ -159,6 +159,8 @@ function JobBoardFallback() {
 // ============================================
 export function JobsView() {
     const searchParams = useSearchParams()
+    const { hasAccess } = useAuth()
+    const canTrackJobs = hasAccess('job_tracker')
     const [activeTab, setActiveTab] = useState(() => {
         const tab = searchParams.get('tab')
         return tab === 'tracker' ? 'tracker' : 'find'
@@ -167,10 +169,10 @@ export function JobsView() {
     const [trackerLoading, setTrackerLoading] = useState(true)
 
     useEffect(() => {
-        if (activeTab === 'tracker') {
+        if (activeTab === 'tracker' && canTrackJobs) {
             fetchTrackerJobs()
         }
-    }, [activeTab])
+    }, [activeTab, canTrackJobs])
 
     async function fetchTrackerJobs() {
         setTrackerLoading(true)
@@ -213,15 +215,19 @@ export function JobsView() {
                     </div>
 
                     <TabsContent value="find" className="mt-0">
-                        <FindJobsView onSave={() => setActiveTab('tracker')} />
+                        <FindJobsView canTrackJobs={canTrackJobs} onSave={() => setActiveTab('tracker')} />
                     </TabsContent>
 
                     <TabsContent value="tracker" className="mt-0">
-                        <TrackerView
-                            jobs={trackedJobs}
-                            loading={trackerLoading}
-                            refresh={fetchTrackerJobs}
-                        />
+                        {canTrackJobs ? (
+                            <TrackerView jobs={trackedJobs} loading={trackerLoading} refresh={fetchTrackerJobs} />
+                        ) : (
+                            <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-950">
+                                <h2 className="font-bold">Job tracking is included with paid plans</h2>
+                                <p className="mt-2 text-sm">Free members can browse available jobs, but saving and managing a personal pipeline requires a paid plan.</p>
+                                <Link href="/membership-pricing" className="mt-4 inline-flex rounded-lg bg-brand-copper px-4 py-2 text-sm font-semibold text-white">Compare plans</Link>
+                            </div>
+                        )}
                     </TabsContent>
                 </Tabs>
             </Gate>
@@ -233,7 +239,7 @@ export function JobsView() {
 // ============================================
 // FIND JOBS VIEW — now with search, filters, pagination
 // ============================================
-function FindJobsView({ onSave }: { onSave: () => void }) {
+function FindJobsView({ onSave, canTrackJobs }: { onSave: () => void; canTrackJobs: boolean }) {
     const [jobs, setJobs] = useState<Job[]>([])
     const [loading, setLoading] = useState(true)
     const [savingId, setSavingId] = useState<string | null>(null)
@@ -473,14 +479,15 @@ function FindJobsView({ onSave }: { onSave: () => void }) {
                                         )}
                                         <Button
                                             size="sm"
-                                            onClick={() => saveJobToTracker(job)}
-                                            disabled={savingId === job.id}
+                                            onClick={() => canTrackJobs ? saveJobToTracker(job) : undefined}
+                                            disabled={savingId === job.id || !canTrackJobs}
+                                            title={canTrackJobs ? 'Save to your job tracker' : 'Paid plan required to save jobs'}
                                         >
                                             {savingId === job.id ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
                                             ) : (
                                                 <>
-                                                    <Plus className="w-3.5 h-3.5 mr-1" /> Save
+                                                    <Plus className="w-3.5 h-3.5 mr-1" /> {canTrackJobs ? 'Save' : 'Paid plan'}
                                                 </>
                                             )}
                                         </Button>

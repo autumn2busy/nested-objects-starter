@@ -109,12 +109,12 @@ function getRecommendations(
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'Tools preview',
-                title: 'Preview planned member tools',
+                eyebrow: 'Free tool',
+                title: 'Open the income calculator',
                 description:
-                    'See the planned resume, AI, income, and route workflows. Execution remains disabled.',
-                href: '/tools',
-                badge: 'PREVIEW',
+                    'Compare income and route-cost assumptions without relying on an earnings promise.',
+                href: '/tools/income-calculator',
+                badge: 'FREE',
                 badgeColor: 'bg-brand-copper/10 text-brand-copper',
             },
             {
@@ -143,10 +143,10 @@ function getRecommendations(
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'Tools preview',
-                title: 'Preview planned resume support',
+                eyebrow: 'Paid tools',
+                title: 'Open member tools',
                 description:
-                    'Review the planned resume workflow. Upload and AI execution remain disabled.',
+                    'Use the tools included with your legacy paid membership.',
                 href: '/tools',
             },
             {
@@ -175,21 +175,21 @@ function getRecommendations(
         return [
             {
                 icon: <Sparkles className="w-5 h-5" />,
-                eyebrow: 'Tools preview',
-                title: 'Preview the planned AI workbench',
+                eyebrow: 'AI tool',
+                title: 'Open AI Concierge',
                 description:
-                    'See the planned guidance workflow. Prompts and model execution remain disabled.',
-                href: '/tools',
-                badge: 'PREVIEW',
+                    'Ask structured questions about firms, requirements, and inspection workflows.',
+                href: '/tools/ai-concierge',
+                badge: 'PRO',
                 badgeColor: 'bg-blue-100 text-blue-700',
             },
             {
                 icon: <FileText className="w-5 h-5" />,
-                eyebrow: 'Tools preview',
-                title: 'Preview the planned resume workflow',
+                eyebrow: 'AI tool',
+                title: 'Build a field-services resume',
                 description:
-                    'Review the intended outcome. Upload, generation, and export remain disabled.',
-                href: '/tools',
+                    'Turn your experience, routes, and equipment into a focused resume.',
+                href: '/tools/ai-resume',
             },
             {
                 icon: <Briefcase className="w-5 h-5" />,
@@ -224,11 +224,11 @@ function getRecommendations(
         },
         {
             icon: <Sparkles className="w-5 h-5" />,
-            eyebrow: 'Tools preview',
-            title: 'Preview the planned AI workbench',
+            eyebrow: 'AI tool',
+            title: 'Open AI Concierge',
             description:
-                'Review the intended guidance workflow. Model execution remains disabled.',
-            href: '/tools',
+                'Ask structured questions about firms, requirements, and inspection workflows.',
+            href: '/tools/ai-concierge',
         },
         {
             icon: <Users className="w-5 h-5" />,

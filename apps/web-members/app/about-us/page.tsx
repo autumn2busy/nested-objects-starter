@@ -89,12 +89,12 @@ const faqItems = [
   {
     question: 'Which member tools are available now?',
     answer:
-      'The browser-only income scenario planner is available to every signed-in member plan. Elite and Agency also include route economics. AI, weather, tracking, uploads, and other connected workflows remain disabled until their safeguards are verified.',
+      'Free includes the income scenario planner. Pro includes client, company, and job tracking plus AI, weather, and route planning. Elite includes every member tool, including route economics.',
   },
   {
     question: 'What route support is available today?',
     answer:
-      'Members can use firm profiles, training, and readiness checklists today. Route optimization and multi-market tool execution remain on the preview roadmap.',
+      'Pro, Elite, and Agency members can build an ordered stop list and open it in Google Maps. Elite and Agency also include the route economics calculator.',
   },
   {
     question: 'Is the intel vetted before it is published?',
@@ -303,8 +303,8 @@ export default function AboutPage() {
               <div className="grid gap-4 border border-brand-mist bg-brand-sand px-4 py-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="border border-brand-mist bg-white px-3 py-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Tools preview</p>
-                    <p className="mt-2 text-sm text-brand-dark">Shows the planned guidance workflow without accepting prompts or running models.</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Member tools</p>
+                    <p className="mt-2 text-sm text-brand-dark">Plan-based AI, tracking, weather, route planning, and calculator access.</p>
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Compliance snapshots</p>
@@ -312,11 +312,11 @@ export default function AboutPage() {
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Routing intel</p>
-                    <p className="mt-2 text-sm text-brand-dark">Readiness checklists today, with route optimization still on the preview roadmap.</p>
+                    <p className="mt-2 text-sm text-brand-dark">Route planning, field weather, and route economics based on plan access.</p>
                   </div>
                   <div className="border border-brand-mist bg-white px-3 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-steel">Conversion assets</p>
-                    <p className="mt-2 text-sm text-brand-dark">Templates and outreach guidance available today; calculator execution remains disabled.</p>
+                    <p className="mt-2 text-sm text-brand-dark">Templates, outreach guidance, and calculators available according to plan.</p>
                   </div>
                 </div>
                 <div className="relative h-72 border border-brand-mist bg-brand-dark">
@@ -472,8 +472,8 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-bold sm:text-3xl">Ready to modernize your inspection routes?</h2>
                 <p className="text-base text-brand-slate">
                   Choose the plan that matches your workload today. Current plans focus on firm intel, training, readiness
-                  resources, support, and the income scenario planner. Elite and Agency also include route economics;
-                  connected tools remain unavailable until verified.
+                  resources, support, and plan-based member tools. Pro includes the core tracking, AI, weather, and
+                  routing toolkit; Elite includes every member tool.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link

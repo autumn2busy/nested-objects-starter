@@ -3,7 +3,6 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability';
 
 // ============================================================
 // FIX: Removed `pdf-parse` — it pulls in @napi-rs/canvas which
@@ -110,9 +109,6 @@ function extractRegexData(extractedText: string) {
 }
 
 export async function POST(req: Request) {
-  const unavailable = memberToolsUnavailableResponse();
-  if (unavailable) return unavailable;
-
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -205,7 +201,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    console.log(`[Resume Parse] Extracting text locally from ${file.name} (${file.size} bytes)...`);
+    console.log(`[Resume Parse] Extracting an uploaded ${fileType} file (${file.size} bytes).`);
     let extractedText = await extractTextFromFile(buffer, fileType);
 
     // Fallback logic
@@ -244,10 +240,8 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`[Resume Parse] Text extracted (${extractedText.length} chars). Sending to n8n...`);
-    if (extractedText.length > 0) {
-      console.log(`[Resume Parse] Preview: ${extractedText.substring(0, 100).replace(/\n/g, ' ')}...`);
-    } else {
+    console.log(`[Resume Parse] Text extraction completed (${extractedText.length} chars).`);
+    if (extractedText.length === 0) {
       console.error('[Resume Parse] CRITICAL: Parsed text is EMPTY.');
     }
 
@@ -257,9 +251,7 @@ export async function POST(req: Request) {
     // 7. SEND TEXT TO N8N
     const payload = {
       request_type: 'parse',
-      jwt: token,
       extractedText: extractedText,
-      fileName: file.name,
       fileType: fileType,
       fileSizeBytes: file.size,
       user_id: userId,
@@ -267,7 +259,7 @@ export async function POST(req: Request) {
       tier: tier
     };
 
-    console.log(`[Resume Parse] Sending payload to N8N (${JSON.stringify(payload).length} bytes)`);
+    console.log('[Resume Parse] Sending the validated resume payload to the configured processor.');
 
     const n8nResponse = await fetch(n8nWebhookUrl, {
       method: 'POST',
@@ -343,8 +335,11 @@ export async function POST(req: Request) {
  * GET - Health check
  */
 export async function GET() {
-  const unavailable = memberToolsUnavailableResponse();
-  if (unavailable) return unavailable;
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  if (!hasAccess(user['outseta:planUid'], 'ai_resume')) {
+    return NextResponse.json({ error: 'A paid member plan is required.' }, { status: 403 });
+  }
 
   return NextResponse.json({
     available: !!process.env.N8N_AI_RESUME_WEBHOOK_URL,

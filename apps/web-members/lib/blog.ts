@@ -121,9 +121,9 @@ const BLOG_POSTS: BlogPost[] = [
                 description: 'Find companies that match your region, route type, and experience level.',
             },
             {
-                label: 'Preview the planned routing tool',
-                href: '/tools',
-                description: 'See the planned travel-time and route-density workflow. Execution remains disabled.',
+                label: 'Open the route planner',
+                href: '/tools/routing',
+                description: 'Build an ordered stop list and open it in Google Maps with Pro, Elite, or Agency access.',
             },
             {
                 label: 'Read the beginner guide',
@@ -500,14 +500,14 @@ A field inspection is an on-site visit where an inspector documents facts about 
         },
         internalLinks: [
             {
-                label: 'Preview the planned income tool',
-                href: '/tools',
-                description: 'See the planned route-earnings workflow. Calculation remains disabled.',
+                label: 'Open the income calculator',
+                href: '/tools/income-calculator',
+                description: 'Compare user-entered income and cost assumptions on any signed-in member plan.',
             },
             {
-                label: 'Preview route planning',
-                href: '/tools',
-                description: 'See the planned assignment-grouping workflow. Execution remains disabled.',
+                label: 'Open route planning',
+                href: '/tools/routing',
+                description: 'Build an ordered stop list with Pro, Elite, or Agency access.',
             },
             {
                 label: 'Browse hiring firms',

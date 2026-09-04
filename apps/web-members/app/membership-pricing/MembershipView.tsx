@@ -22,8 +22,8 @@ const proBenefitHighlights = [
         body: 'Compare firms by lane, geography, and assignment type before you spend time applying.',
     },
     {
-        title: 'Templates and readiness',
-        body: 'Use starter kits, checklists, and training resources while you evaluate the full directory.',
+        title: 'Tools that save time',
+        body: 'Use AI, job tracking, weather, routing, starter kits, and checklists while you evaluate the hub.',
     },
 ]
 
@@ -69,20 +69,24 @@ const trustAssuranceItems = [
     },
 ]
 
-const connectedToolLimitation = 'AI, weather, tracker, and other connected tools remain unavailable until their safeguards are verified.'
-
 function memberToolAccessSummary(planUid: string) {
     if (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY) {
-        return 'The income scenario planner and route economics calculator are available after sign-in.'
+        return 'Every member tool is included, including route economics.'
+    }
+    if (planUid === PLAN_UIDS.PRO) {
+        return 'Includes client and company tracking, AI Concierge, AI Resume, job tracking, weather, and route planning.'
+    }
+    if (planUid === PLAN_UIDS.STARTER || planUid === PLAN_UIDS.FOUNDERS) {
+        return 'Legacy paid access includes income, client and company tracking, AI, and job tracking tools.'
     }
 
-    return 'The income scenario planner is available after sign-in.'
+    return 'Free includes the income scenario planner only.'
 }
 
 export const pricingFaqs = [
     {
         question: 'Can I run member tools during the trial or on a paid plan?',
-        answer: `Yes. Every signed-in plan can use the income scenario planner, including during the Pro trial. Elite and Agency also include route economics. ${connectedToolLimitation}`,
+        answer: 'Yes. Free includes the income scenario planner. Pro includes the core tracking, AI, weather, and routing toolkit during the 7-day Pro trial and after billing begins. Elite includes every member tool, including route economics.',
     },
     {
         question: 'Can I change plans or cancel anytime?',
@@ -173,9 +177,8 @@ function MembershipContent() {
                             Use the 7-day trial to decide whether the hub fits your route.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                            Pro is the fastest way to evaluate real firm options, inspect the training library, and
-                            use readiness resources and the income scenario planner before paid billing begins. Connected
-                            tools remain unavailable until their safeguards are verified.
+                            Pro is the fastest way to evaluate real firm options, inspect the training library, and use
+                            the core member toolkit before paid billing begins.
                         </p>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -332,7 +335,7 @@ function MembershipContent() {
                                         <div className="mt-auto">
                                             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
                                                 <p className="font-semibold">Member tools available now</p>
-                                                <p className="mt-1">{memberToolAccessSummary(plan.planUid)} {connectedToolLimitation}</p>
+                                                <p className="mt-1">{memberToolAccessSummary(plan.planUid)}</p>
                                             </div>
                                             <PricingPlanButton plan={plan} />
                                         </div>
@@ -420,8 +423,7 @@ function MembershipContent() {
                 <PricingFinalCtaCopy />
 
                 <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-amber-100">
-                    Use the income scenario planner on every member plan. Elite and Agency also include route economics.
-                    {' '}{connectedToolLimitation}
+                    Free includes the income scenario planner. Pro includes the core toolkit. Elite includes every member tool.
                 </p>
 
                 <PricingFinalCta proPlan={proPlan} />

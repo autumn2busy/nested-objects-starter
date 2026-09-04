@@ -40,7 +40,7 @@ export function HomeOverviewSection() {
   ]
 
   const quickActions = [
-    { label: 'Preview planned tools', href: '/tools' },
+    { label: 'Open member tools', href: '/tools' },
     { label: 'Log mileage', href: '/tools' },
     { label: 'Share availability', href: '/profile' },
     { label: 'Open firm directory', href: '/hiring-firms' },

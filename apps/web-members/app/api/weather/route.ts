@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability'
+import { getCurrentUser } from '@/lib/auth-server'
+import { canAccessMemberTool, MEMBER_TOOL_IDS } from '@/lib/member-tool-access'
 
 // Cache settings: 30 minutes
 export const revalidate = 1800
@@ -18,11 +19,14 @@ async function geocode(location: string) {
 }
 
 export async function GET(req: Request) {
-    const unavailable = memberToolsUnavailableResponse()
-    if (unavailable) return unavailable
+    const user = await getCurrentUser()
+    if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    if (!canAccessMemberTool(user['outseta:planUid'], MEMBER_TOOL_IDS.WEATHER)) {
+        return NextResponse.json({ error: 'Weather is available with Pro, Elite, and Agency.' }, { status: 403 })
+    }
 
     const { searchParams } = new URL(req.url)
-    const q = searchParams.get('q')
+    const q = searchParams.get('q')?.trim().slice(0, 120)
     let lat = parseFloat(searchParams.get('lat') || '0')
     let lon = parseFloat(searchParams.get('lon') || '0')
     let locationName = searchParams.get('name') || ''
@@ -35,6 +39,8 @@ export async function GET(req: Request) {
         lat = coords.lat
         lon = coords.lon
         locationName = coords.name
+    } else if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) {
+        return NextResponse.json({ error: 'Enter a city, state, or postal code.' }, { status: 400 })
     }
 
     // Round to 2 decimal places (approx 1.1km precision) for cache hits

@@ -70,7 +70,7 @@ export function InspectorStartGuide() {
               )
             })}
           </ul>
-          <p className="border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">Use what is available today. Planned tools are not required to get started.</p>
+          <p className="border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">Free includes the income calculator. Pro adds the core member toolkit, and Elite includes every member tool.</p>
         </div>
       </div>
     </div>
