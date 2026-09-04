@@ -70,12 +70,14 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
   training_safety: 'L9nbKV9Z',    // Free+ (safety guides)
 
   // Tools — varies
-  ai_concierge: 'L9nbKV9Z',       // Free+ (quota-limited for Starter/Founders)
+  ai_concierge: 'zWZD0rQp',       // Legacy paid, Pro+
   firm_intel: 'rQVqlLm6',         // Pro+
-  job_tracking: 'L9nbKV9Z',       // Free+
-  job_tracker: 'L9nbKV9Z',        // Free+
-  job_routing: 'NmdnNO90',        // Elite+
-  weather_tool: 'L9nbKV9Z',       // Free+
+  job_tracking: 'zWZD0rQp',       // Legacy paid, Pro+
+  job_tracker: 'zWZD0rQp',        // Legacy paid, Pro+
+  client_workspace: 'zWZD0rQp',   // Legacy paid, Pro+
+  company_tracker: 'zWZD0rQp',    // Legacy paid, Pro+
+  job_routing: 'rQVqlLm6',        // Pro+
+  weather_tool: 'rQVqlLm6',       // Pro+
   ai_resume: 'zWZD0rQp',          // Starter/Founders+ (limited)
   readiness_guides: 'L9nbKV9Z',   // Free+
   tools_templates: 'rQVqlLm6',    // Pro+

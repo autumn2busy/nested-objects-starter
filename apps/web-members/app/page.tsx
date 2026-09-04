@@ -283,11 +283,11 @@ export default function HomePage() {
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                 <h3 className="text-sm font-semibold text-slate-900">Member tools</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Signed-in members can use the income scenario planner now. Elite and Agency members can also use
-                  route economics; connected tools remain clearly labeled until verified.
+                  Free members can use the income scenario planner. Pro adds tracking, AI, weather, and route planning.
+                  Elite includes every member tool, including route economics.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                  Two tools available
+                  Access expands with your plan
                 </p>
                 <Link
                   href="/tools"

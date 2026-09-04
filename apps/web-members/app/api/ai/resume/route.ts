@@ -3,14 +3,10 @@ import { headers } from 'next/headers';
 import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
-import { memberToolsUnavailableResponse } from '@/lib/member-tools-availability';
 
 const limiter = rateLimit({ limit: 10, intervalMs: 60 * 1000 }); // 10 requests per minute
 
 export async function POST(request: Request) {
-  const unavailable = memberToolsUnavailableResponse();
-  if (unavailable) return unavailable;
-
   try {
     // 1. Authentication (Cookie or Header)
     let user = await getCurrentUser(); // Try cookie first
@@ -80,7 +76,7 @@ export async function POST(request: Request) {
 
     const { prompt } = await request.json();
 
-    if (!prompt || prompt.trim().length === 0) {
+    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0 || prompt.length > 12_000) {
       return NextResponse.json(
         { error: 'Prompt is required. Please provide information about your experience and skills.' },
         { status: 400 }
@@ -108,8 +104,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        jwt: token,
         user_id: getOutsetaUserId(user),
+        plan_uid: planUid,
         prompt: prompt.trim(),
       }),
     });
@@ -139,6 +135,11 @@ export async function POST(request: Request) {
 
 // Optional: Add GET method to check if resume builder is available
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+  if (!hasAccess(user['outseta:planUid'], 'ai_resume')) {
+    return NextResponse.json({ error: 'A paid member plan is required.' }, { status: 403 });
+  }
   const webhookUrl = process.env.N8N_AI_RESUME_WEBHOOK_URL;
 
   return NextResponse.json({

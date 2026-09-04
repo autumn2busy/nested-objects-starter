@@ -67,7 +67,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('Referrer-Policy', 'no-referrer')
   }
 
-  if (pathname === '/members' || pathname.startsWith('/members/')) {
+  if (pathname === '/members' || pathname.startsWith('/members/') || pathname.startsWith('/tools/')) {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
   }
 

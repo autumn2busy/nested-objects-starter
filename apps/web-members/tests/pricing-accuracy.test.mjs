@@ -139,10 +139,21 @@ function schemasFrom(html) {
 
 function assertToolAccessCopy(html, planName) {
   const text = plain(html)
-  assert.match(text, /income scenario planner/i)
-  assert.match(text, /available after sign-in|every (?:signed-in|member) plan/i)
-  assert.match(text, /connected tools.*remain unavailable/i)
-  if (planName === 'Elite' || planName === 'Agency') assert.match(text, /route economics/i)
+  if (planName === 'Free') {
+    assert.match(text, /Free includes the income scenario planner only/i)
+  } else if (planName === 'Pro') {
+    for (const tool of ['client and company tracking', 'AI Concierge', 'AI Resume', 'job tracking', 'weather', 'route planning']) {
+      assert.ok(text.includes(tool), `Pro purchase copy omits ${tool}`)
+    }
+  } else if (planName === 'Elite' || planName === 'Agency') {
+    assert.match(text, /every member tool/i)
+    assert.match(text, /route economics/i)
+  } else {
+    assert.match(text, /Free includes the income scenario planner/i)
+    assert.match(text, /Pro includes the core/i)
+    assert.match(text, /Elite includes every member tool/i)
+  }
+  assert.doesNotMatch(text, /connected tools.*remain unavailable/i)
   assert.doesNotMatch(text, /member tools.*preview.only|disabled on every plan|disabled on all plans/i)
 }
 
@@ -151,7 +162,7 @@ test('public plan prices, billing periods and checkout UIDs stay unchanged', () 
 })
 
 for (const scenario of scenarios) {
-  test(`${scenario.name}: each rendered plan states its live and still-disabled tool access before purchase`, () => {
+  test(`${scenario.name}: each rendered plan states its current tool access before purchase`, () => {
     reset(scenario)
     const html = render(membership.MembershipView)
     const cards = [...html.matchAll(/<article\b[^>]*>[\s\S]*?<\/article>/g)]
