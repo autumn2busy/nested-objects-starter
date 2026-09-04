@@ -1,6 +1,6 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
-    "installCommand": "node scripts/vercel-install.mjs",
+    "installCommand": "if [ -f scripts/vercel-install.mjs ]; then node scripts/vercel-install.mjs; else npm install --no-audit --no-fund; fi",
     "crons": [
         {
             "path": "/api/cron/sync-adzuna",
