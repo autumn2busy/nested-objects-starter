@@ -64,8 +64,8 @@ const popularSearchLinks = [
   },
   {
     href: '/tools',
-    label: 'Field inspection tools preview',
-    detail: 'Preview planned route, income, firm-tracking, and preparation tools.',
+    label: 'Field inspection member tools',
+    detail: 'Use the income scenario planner and review plan access for route economics and upcoming tools.',
   },
 ]
 
@@ -153,7 +153,7 @@ export default function HomePage() {
                   className="flex min-h-14 flex-col justify-center border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm"
                 >
                   <Calculator className="mb-1 h-4 w-4 text-brand-copper" aria-hidden />
-                  Preview tools
+                  Member tools
                 </Link>
               </div>
             </div>
@@ -281,19 +281,19 @@ export default function HomePage() {
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <h3 className="text-sm font-semibold text-slate-900">Member tools roadmap</h3>
+                <h3 className="text-sm font-semibold text-slate-900">Member tools</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Preview the planned income, route, firm-tracking, resume, and AI workflows. Tool
-                  execution and data submission remain disabled.
+                  Signed-in members can use the income scenario planner now. Elite and Agency members can also use
+                  route economics; connected tools remain clearly labeled until verified.
                 </p>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Preview only
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  Two tools available
                 </p>
                 <Link
                   href="/tools"
                   className="mt-3 inline-flex text-xs font-semibold text-brand-copper hover:text-brand-copperDark"
                 >
-                  Preview tools →
+                  Open member tools →
                 </Link>
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* INCOME TEASER: non-functional tools preview */}
+        {/* INCOME TOOL: authenticated, browser-only scenario planning */}
         <section className="relative overflow-hidden border-b border-slate-200 bg-slate-900 text-white [content-visibility:auto] [contain-intrinsic-size:0_720px]">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 relative z-10">
@@ -360,26 +360,26 @@ export default function HomePage() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-4">
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Planned scenario tool
+                  Available member tool
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                   What could you earn?
                 </h2>
                 <p className="text-slate-400 text-lg mb-8 leading-relaxed">
                   Field inspection pay varies wildly by region and service type.
-                  Preview how the planned income scenario tool will compare route volume,
-                  service mix, and operating costs before you commit to a target.
+                  Use your own assignment, fee, time, mileage, and operating-cost assumptions to compare a scenario
+                  before you commit to a target. Results are estimates, not income promises.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link
-                    href="/tools"
+                    href="/tools/income-calculator"
                     className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-base font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
                   >
-                    Preview the Income Tool →
+                    Sign in to use the Income Planner →
                   </Link>
                   <div className="flex items-center gap-4 text-sm text-slate-500 px-2">
-                    <span>• No inputs collected</span>
-                    <span>• Execution disabled</span>
+                    <span>• Browser-based calculator</span>
+                    <span>• No intentional input storage</span>
                   </div>
                 </div>
               </div>

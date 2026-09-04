@@ -8,7 +8,7 @@ export function memberToolsUnavailableResponse(): NextResponse | null {
 
   return NextResponse.json(
     {
-      error: 'Member tools are in preview mode. Execution and data submission are disabled.',
+      error: 'This connected member tool is not enabled yet. No data was submitted.',
       code: MEMBER_TOOLS_DISABLED_CODE,
     },
     {

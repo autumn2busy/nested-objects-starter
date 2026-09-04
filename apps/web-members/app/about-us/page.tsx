@@ -87,9 +87,9 @@ const aboutTestimonials = TESTIMONIALS.slice(0, 3)
 
 const faqItems = [
   {
-    question: 'Are the planned member tools available now?',
+    question: 'Which member tools are available now?',
     answer:
-      'Not yet. The tools catalog is preview-only: prompts, uploads, model execution, data submission, and exports remain disabled while access and safeguards are finalized.',
+      'The browser-only income scenario planner is available to every signed-in member plan. Elite and Agency also include route economics. AI, weather, tracking, uploads, and other connected workflows remain disabled until their safeguards are verified.',
   },
   {
     question: 'What route support is available today?',
@@ -177,7 +177,7 @@ export default function AboutPage() {
     },
     serviceType: 'Property inspection enablement',
     description:
-      'Verified firm directory, training, readiness resources, and a preview-only tools roadmap for field inspectors and adjacent property professionals.',
+      'Verified firm directory, training, readiness resources, available browser-only calculators, and a clearly labeled connected-tools roadmap for field inspectors and adjacent property professionals.',
   }
 
   const faqSchema = {
@@ -442,7 +442,7 @@ export default function AboutPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-teal">FAQs</p>
                 <h2 className="text-2xl font-bold sm:text-3xl">Straight answers for field pros.</h2>
                 <p className="text-base text-brand-mist">
-                  From current firm intel to the preview-only tools roadmap, here is what new members ask before they join. Need more detail? Reach out
+                  From current firm intel to available calculators and the connected-tools roadmap, here is what new members ask before they join. Need more detail? Reach out
                   and we will tailor a plan for your routes.
                 </p>
               </div>
@@ -472,7 +472,8 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-bold sm:text-3xl">Ready to modernize your inspection routes?</h2>
                 <p className="text-base text-brand-slate">
                   Choose the plan that matches your workload today. Current plans focus on firm intel, training, readiness
-                  resources, and support; planned member tools remain preview-only.
+                  resources, support, and the income scenario planner. Elite and Agency also include route economics;
+                  connected tools remain unavailable until verified.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link

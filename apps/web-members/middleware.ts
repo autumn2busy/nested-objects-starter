@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { safeAuthRedirect } from './lib/auth-redirect'
+import { isEnabledMemberToolPath } from './lib/member-tool-access'
 
 const securityHeaders: Record<string, string> = {
   'X-DNS-Prefetch-Control': 'on',
@@ -22,11 +23,12 @@ const OUTSETA_LOGIN_URL = 'https://nested-objects.outseta.com/auth?widgetMode=lo
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const isProtectedPortalRoute = protectedPortalPrefixes.some(
+  const isEnabledToolRoute = isEnabledMemberToolPath(pathname)
+  const isProtectedPortalRoute = isEnabledToolRoute || protectedPortalPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   )
   const hasSessionCookie = Boolean(request.cookies.get('outseta_access_token')?.value)
-  const isDisabledToolRoute = pathname.startsWith('/tools/')
+  const isDisabledToolRoute = pathname.startsWith('/tools/') && !isEnabledToolRoute
 
   // Hosted login returns to a protected page before its HttpOnly session exists.
   // Rewrite to verification, never render the portal just because a token is present.

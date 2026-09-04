@@ -234,7 +234,7 @@ export function AIConciergeSection() {
       subtitle="See the planned guidance workflow"
       actions={
         <Link href="/tools" className="text-xs font-semibold text-brand-copper hover:text-brand-copperDark">
-          Preview tools
+          Open tools
         </Link>
       }
     >

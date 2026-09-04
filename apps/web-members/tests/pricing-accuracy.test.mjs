@@ -137,12 +137,13 @@ function schemasFrom(html) {
     .flatMap(match => JSON.parse(match[1]))
 }
 
-function assertDisabledToolsCopy(html) {
+function assertToolAccessCopy(html, planName) {
   const text = plain(html)
-  assert.match(text, /member tools.*preview.only/i)
-  assert.match(text, /tool execution and data submission (?:are|remain) disabled/i)
-  assert.match(text, /every plan|all plans/i)
-  assert.match(text, /Pro trial/i)
+  assert.match(text, /income scenario planner/i)
+  assert.match(text, /available after sign-in|every (?:signed-in|member) plan/i)
+  assert.match(text, /connected tools.*remain unavailable/i)
+  if (planName === 'Elite' || planName === 'Agency') assert.match(text, /route economics/i)
+  assert.doesNotMatch(text, /member tools.*preview.only|disabled on every plan|disabled on all plans/i)
 }
 
 test('public plan prices, billing periods and checkout UIDs stay unchanged', () => {
@@ -150,7 +151,7 @@ test('public plan prices, billing periods and checkout UIDs stay unchanged', () 
 })
 
 for (const scenario of scenarios) {
-  test(`${scenario.name}: each rendered plan discloses disabled tools before its purchase button`, () => {
+  test(`${scenario.name}: each rendered plan states its live and still-disabled tool access before purchase`, () => {
     reset(scenario)
     const html = render(membership.MembershipView)
     const cards = [...html.matchAll(/<article\b[^>]*>[\s\S]*?<\/article>/g)]
@@ -160,7 +161,7 @@ for (const scenario of scenarios) {
       assert.equal(plain(card.match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/)[1]), expectedPlans[index].name)
       assert.ok(plain(card).includes(expectedPlans[index].price))
       const purchaseArea = card.slice(card.lastIndexOf('</ul>') + 5, card.indexOf('<button'))
-      assertDisabledToolsCopy(purchaseArea)
+      assertToolAccessCopy(purchaseArea, expectedPlans[index].name)
     })
   })
 
@@ -172,11 +173,15 @@ for (const scenario of scenarios) {
       const button = findButton(interactions.PricingPlanButton({ plan }))
       assert.ok(button)
       const current = plan.planUid === scenario.planUid
-      assert.equal(button.props.disabled, current)
+      const unavailable = plan.waitlist === true
+      assert.equal(button.props.disabled, current || unavailable)
       button.props.onClick()
-      if (current) {
+      if (current || unavailable) {
         assert.equal(sdkCalls.length, 0)
         assert.equal(analyticsCalls.length, 0)
+        if (unavailable && !current && plan.name === 'Agency') {
+          assert.match(plain(renderToStaticMarkup(button)), /Team access in preparation/)
+        }
         continue
       }
       const intent = analyticsCalls.find(event => event.name === 'trackPricingCtaClick')
@@ -208,18 +213,24 @@ for (const scenario of scenarios) {
     const finalSection = [...html.matchAll(/<section\b[^>]*>[\s\S]*?<\/section>/g)]
       .map(match => match[0]).find(section => section.includes('Ready to build routes'))
     assert.ok(finalSection)
-    assertDisabledToolsCopy(finalSection)
+    assertToolAccessCopy(finalSection)
     assert.doesNotMatch(plain(finalSection), /firms, intel, and tools/i)
   })
 }
 
 test('checkout fallback destinations preserve the public plan UIDs and authenticated billing path', () => {
   browser.Outseta = undefined
-  for (const plan of publicPlans) {
+  for (const plan of publicPlans.filter(plan => !plan.waitlist)) {
     findButton(interactions.PricingPlanButton({ plan })).props.onClick()
     assert.equal(browser.location.href,
       `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`)
   }
+  const agency = publicPlans.find(plan => plan.name === 'Agency')
+  browser.location.href = ''
+  const agencyButton = findButton(interactions.PricingPlanButton({ plan: agency }))
+  assert.equal(agencyButton.props.disabled, true)
+  agencyButton.props.onClick()
+  assert.equal(browser.location.href, '')
   authState = { isAuthenticated: true, isLoading: false, planUid: expectedPlans[0].planUid }
   findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile#o-plan-change')
@@ -254,13 +265,14 @@ test('composed pricing JSON-LD removes unsupported ratings while retaining all b
     expectedPlans.map(plan => ({ name: plan.name, price: plan.price.slice(1) })))
 })
 
-test('visible tool-availability FAQ and FAQ JSON-LD give the same limitation', () => {
+test('visible tool-availability FAQ and FAQ JSON-LD give the same access boundary', () => {
   const html = render(page.default)
   const faqSchema = schemasFrom(html).find(schema => schema['@type'] === 'FAQPage')
   assert.ok(faqSchema)
   const toolFaq = faqSchema.mainEntity.find(question => /tool/i.test(question.name))
   assert.ok(toolFaq, 'A tool-availability question must be present')
-  assertDisabledToolsCopy(toolFaq.acceptedAnswer.text)
+  assertToolAccessCopy(toolFaq.acceptedAnswer.text)
+  assert.match(toolFaq.acceptedAnswer.text, /Pro trial/)
   const visibleHtml = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
   assert.ok(plain(visibleHtml).includes(toolFaq.name))
   assert.ok(plain(visibleHtml).includes(toolFaq.acceptedAnswer.text))

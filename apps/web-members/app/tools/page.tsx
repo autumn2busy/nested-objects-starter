@@ -3,8 +3,8 @@ import { generatePageMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = generatePageMetadata({
-  title: 'Field Inspector Tools Preview | Nested Objects',
-  description: 'Preview planned tools for field inspectors. Tool execution and data submission remain disabled while access and safeguards are finalized.',
+  title: 'Field Inspector Member Tools | Nested Objects',
+  description: 'Use member income and route-economics calculators, and see which connected field-inspector tools are being verified next.',
   path: '/tools',
 })
 

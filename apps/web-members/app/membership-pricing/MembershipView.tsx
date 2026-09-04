@@ -69,12 +69,20 @@ const trustAssuranceItems = [
     },
 ]
 
-const toolPreviewLimitation = 'Tool execution and data submission are disabled on every plan, including the Pro trial.'
+const connectedToolLimitation = 'AI, weather, tracker, and other connected tools remain unavailable until their safeguards are verified.'
+
+function memberToolAccessSummary(planUid: string) {
+    if (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY) {
+        return 'The income scenario planner and route economics calculator are available after sign-in.'
+    }
+
+    return 'The income scenario planner is available after sign-in.'
+}
 
 export const pricingFaqs = [
     {
         question: 'Can I run member tools during the trial or on a paid plan?',
-        answer: `No. Member tools are preview-only. ${toolPreviewLimitation}`,
+        answer: `Yes. Every signed-in plan can use the income scenario planner, including during the Pro trial. Elite and Agency also include route economics. ${connectedToolLimitation}`,
     },
     {
         question: 'Can I change plans or cancel anytime?',
@@ -166,8 +174,8 @@ function MembershipContent() {
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
                             Pro is the fastest way to evaluate real firm options, inspect the training library, and
-                            use readiness resources before paid billing begins. Member tools remain preview-only on every plan,
-                            including during the Pro trial.
+                            use readiness resources and the income scenario planner before paid billing begins. Connected
+                            tools remain unavailable until their safeguards are verified.
                         </p>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -323,8 +331,8 @@ function MembershipContent() {
 
                                         <div className="mt-auto">
                                             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
-                                                <p className="font-semibold">Member tools: preview only</p>
-                                                <p className="mt-1">{toolPreviewLimitation}</p>
+                                                <p className="font-semibold">Member tools available now</p>
+                                                <p className="mt-1">{memberToolAccessSummary(plan.planUid)} {connectedToolLimitation}</p>
                                             </div>
                                             <PricingPlanButton plan={plan} />
                                         </div>
@@ -412,7 +420,8 @@ function MembershipContent() {
                 <PricingFinalCtaCopy />
 
                 <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-amber-100">
-                    Member tools are preview-only. {toolPreviewLimitation}
+                    Use the income scenario planner on every member plan. Elite and Agency also include route economics.
+                    {' '}{connectedToolLimitation}
                 </p>
 
                 <PricingFinalCta proPlan={proPlan} />

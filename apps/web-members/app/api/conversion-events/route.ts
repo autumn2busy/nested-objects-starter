@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId, getPlanName } from '@/lib/auth-server'
 import { trackACServerEvent } from '@/lib/ac-event-tracking'
 import { isBrowserConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
-import { rateLimit } from '@/lib/rate-limit'
+import { isRateLimitExceededError, isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
@@ -97,8 +97,14 @@ export async function POST(request: Request) {
       { status: recorded ? 200 : 202 },
     )
   } catch (error) {
-    if (error instanceof Error && error.message === 'Rate limit exceeded') {
+    if (isRateLimitExceededError(error)) {
       return NextResponse.json({ error: 'Too many events' }, { status: 429 })
+    }
+    if (isRateLimitUnavailableError(error)) {
+      return NextResponse.json(
+        { error: 'Request protection is temporarily unavailable' },
+        { status: 503, headers: { 'Retry-After': '30' } },
+      )
     }
 
     console.error('[Conversion Events] Failed to record event:', error)
