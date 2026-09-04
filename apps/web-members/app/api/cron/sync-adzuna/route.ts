@@ -39,29 +39,32 @@ const EXCLUDED_KEYWORDS = [
 ];
 
 export async function GET(request: Request) {
-    // 1. Verify cron secret to prevent unauthorized scraping
-    const authHeader = request.headers.get('Authorization');
-    if (
-        process.env.CRON_SECRET &&
-        authHeader !== `Bearer ${process.env.CRON_SECRET}` &&
-        request.headers.get('x-vercel-cron') !== '1'
-    ) {
-        if (process.env.NODE_ENV !== 'development') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+    // Vercel Cron sends CRON_SECRET as a bearer token. Missing configuration must
+    // fail closed; x-vercel-cron is a request header, not an authentication proof.
+    const cronSecret = process.env.CRON_SECRET?.trim();
+    if (!cronSecret) {
+        console.error('[ADZUNA_SYNC_BLOCKED]', { reason: 'cron_secret_unconfigured' });
+        return NextResponse.json(
+            { error: 'Cron authentication is not configured.' },
+            { status: 503 }
+        );
+    }
+
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${cronSecret}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!ADZUNA_APP_ID || !ADZUNA_APP_KEY) {
-        return NextResponse.json({ error: 'Adzuna API keys not configured' }, { status: 500 });
+        console.error('[ADZUNA_SYNC_BLOCKED]', { reason: 'adzuna_credentials_unconfigured' });
+        return NextResponse.json({ error: 'Adzuna API keys not configured' }, { status: 503 });
     }
-
-    const supabaseAdmin = createServiceRoleClient();
-    let totalInserted = 0;
-    let totalErrors = 0;
 
     try {
         // 2. We will run multiple API requests to Adzuna for each keyword
         const fetchedJobs: any[] = [];
+        const failedSources: string[] = [];
+        let totalReceived = 0;
 
         // Helper to pause execution for Adzuna rate limits
         const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -73,13 +76,26 @@ export async function GET(request: Request) {
             try {
                 const res = await fetch(url);
                 if (!res.ok) {
-                    console.error(`Adzuna API Error for ${query.what}: ${res.status}`);
-                    continue; // Skip and try next query
-                }
+                    failedSources.push(query.what);
+                    console.error('[ADZUNA_SOURCE_FAILED]', {
+                        source: query.what,
+                        status: res.status,
+                    });
+                } else {
+                    const data = await res.json();
+                    if (!Array.isArray(data.results)) {
+                        failedSources.push(query.what);
+                        console.error('[ADZUNA_SOURCE_FAILED]', {
+                            source: query.what,
+                            reason: 'invalid_payload',
+                        });
+                        continue;
+                    }
 
-                const data = await res.json();
-                if (data.results && Array.isArray(data.results)) {
+                    totalReceived += data.results.length;
                     data.results.forEach((job: any) => {
+                        if (!job || typeof job.title !== 'string') return;
+
                         const cleanTitle = job.title.replace(/<\/?[^>]+(>|$)/g, ""); // strip HTML
                         const lowerTitle = cleanTitle.toLowerCase();
 
@@ -111,22 +127,34 @@ export async function GET(request: Request) {
                         }
                     });
                 }
-
-                // Wait 1 second before firing the next Adzuna webhook to prevent 429 limits
+            } catch {
+                failedSources.push(query.what);
+                console.error('[ADZUNA_SOURCE_FAILED]', {
+                    source: query.what,
+                    reason: 'request_error',
+                });
+            } finally {
+                // Wait before the next source request to respect Adzuna limits.
                 await delay(1000);
-            } catch (e) {
-                console.error(`Failed fetching ${query.what}:`, e);
             }
         }
 
-        // 3. Deactivate old Adzuna jobs so we don't have stale listings
-        // We only deactivate jobs sourced from Adzuna to preserve manual ones
-        await supabaseAdmin
-            .from('jobs')
-            .update({ is_active: false })
-            .eq('source', 'Adzuna');
+        if (failedSources.length > 0) {
+            console.error('[ADZUNA_SYNC_BLOCKED]', {
+                reason: 'partial_source_failure',
+                failedSourceCount: failedSources.length,
+            });
+            return NextResponse.json(
+                {
+                    success: false,
+                    preservedExisting: true,
+                    error: 'Adzuna returned an incomplete source set. Existing jobs were preserved.',
+                },
+                { status: 503 }
+            );
+        }
 
-        // 4. Batch Upsert into Supabase
+        // 3. Deduplicate the complete source set before touching durable jobs.
         // Adzuna can occasionally return the same job across different keyword searches
         // We must deduplicate them in-memory first so the Supabase Upsert payload doesn't conflict with itself
         const uniqueJobsMap = new Map();
@@ -137,30 +165,85 @@ export async function GET(request: Request) {
         });
         const uniqueFetchedJobs = Array.from(uniqueJobsMap.values());
 
-        if (uniqueFetchedJobs.length > 0) {
-            const { error, count } = await supabaseAdmin
-                .from('jobs')
-                .upsert(uniqueFetchedJobs, { onConflict: 'source_id', ignoreDuplicates: false });
-
-            if (error) {
-                console.error('Supabase upsert error:', error);
-                totalErrors++;
-                return NextResponse.json({ error: 'Database upsert failed', details: error }, { status: 500 });
-            }
-
-            totalInserted = uniqueFetchedJobs.length;
+        if (uniqueFetchedJobs.length === 0) {
+            console.error('[ADZUNA_SYNC_BLOCKED]', { reason: 'empty_accepted_source_set' });
+            return NextResponse.json(
+                {
+                    success: false,
+                    preservedExisting: true,
+                    error: 'Adzuna returned no accepted jobs. Existing jobs were preserved.',
+                },
+                { status: 503 }
+            );
         }
+
+        let supabaseAdmin: ReturnType<typeof createServiceRoleClient>;
+        try {
+            supabaseAdmin = createServiceRoleClient();
+        } catch {
+            console.error('[ADZUNA_DB_WRITE_FAILED]', { operation: 'connect' });
+            return NextResponse.json(
+                { success: false, preservedExisting: true, error: 'Job storage is unavailable.' },
+                { status: 503 }
+            );
+        }
+
+        // 4. Upsert the replacement set first. If it fails, no existing job is deactivated.
+        const { error: upsertError } = await supabaseAdmin
+            .from('jobs')
+            .upsert(uniqueFetchedJobs, { onConflict: 'source_id', ignoreDuplicates: false });
+
+        if (upsertError) {
+            console.error('[ADZUNA_DB_WRITE_FAILED]', { operation: 'upsert' });
+            return NextResponse.json(
+                { success: false, preservedExisting: true, error: 'Job synchronization failed.' },
+                { status: 503 }
+            );
+        }
+
+        // 5. Only after a successful upsert, deactivate prior Adzuna rows that are
+        // absent from this complete run. A cleanup failure leaves extra stale rows
+        // visible rather than removing the newly verified source set.
+        const currentSourceIds = uniqueFetchedJobs.map(job => job.source_id);
+        const { error: deactivateError } = await supabaseAdmin
+            .from('jobs')
+            .update({ is_active: false })
+            .eq('source', 'Adzuna')
+            .not('source_id', 'in', `(${currentSourceIds.join(',')})`);
+
+        if (deactivateError) {
+            console.error('[ADZUNA_DB_WRITE_FAILED]', { operation: 'deactivate_stale' });
+            return NextResponse.json(
+                {
+                    success: false,
+                    preservedExisting: true,
+                    insertedOrUpdated: uniqueFetchedJobs.length,
+                    error: 'New jobs were saved, but stale-job cleanup could not be verified.',
+                },
+                { status: 503 }
+            );
+        }
+
+        console.info('[ADZUNA_SYNC_COMPLETED]', {
+            sourceCount: SEARCH_QUERIES.length,
+            received: totalReceived,
+            accepted: fetchedJobs.length,
+            unique: uniqueFetchedJobs.length,
+        });
 
         return NextResponse.json({
             success: true,
-            inserted: totalInserted,
-            errors: totalErrors,
-            message: `Successfully synchronized ${totalInserted} jobs from Adzuna.`
+            insertedOrUpdated: uniqueFetchedJobs.length,
+            sourceCount: SEARCH_QUERIES.length,
+            message: `Successfully synchronized ${uniqueFetchedJobs.length} jobs from Adzuna.`
         });
 
-    } catch (error: any) {
-        console.error('CRON Adzuna Sync Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch {
+        console.error('[ADZUNA_SYNC_FAILED]');
+        return NextResponse.json(
+            { success: false, preservedExisting: true, error: 'Job synchronization failed.' },
+            { status: 503 }
+        );
     }
 }
 
