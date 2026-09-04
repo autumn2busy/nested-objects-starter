@@ -1,4 +1,4 @@
-import { PLAN_UIDS } from './plan-config'
+import { PLAN_NAMES, PLAN_UIDS } from './plan-config'
 
 export type MembershipPlan = {
   name: string
@@ -15,7 +15,7 @@ export type MembershipPlan = {
 
 export const membershipPlans: MembershipPlan[] = [
   {
-    name: 'Founders Directory Annual',
+    name: PLAN_NAMES[PLAN_UIDS.FOUNDERS],
     planUid: PLAN_UIDS.FOUNDERS,
     price: '$37',
     period: 'year',
@@ -34,7 +34,7 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
-    name: 'Free',
+    name: PLAN_NAMES[PLAN_UIDS.FREE],
     planUid: PLAN_UIDS.FREE,
     price: '$0',
     period: 'forever',
@@ -51,7 +51,7 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
-    name: 'Starter',
+    name: PLAN_NAMES[PLAN_UIDS.STARTER],
     planUid: PLAN_UIDS.STARTER,
     price: '$99',
     period: 'quarter',
@@ -71,7 +71,7 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
-    name: 'Pro',
+    name: PLAN_NAMES[PLAN_UIDS.PRO],
     planUid: PLAN_UIDS.PRO,
     price: '$49',
     period: 'month',
@@ -92,7 +92,7 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
-    name: 'Elite',
+    name: PLAN_NAMES[PLAN_UIDS.ELITE],
     planUid: PLAN_UIDS.ELITE,
     price: '$97',
     period: 'month',
@@ -113,7 +113,7 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
-    name: 'Agency',
+    name: PLAN_NAMES[PLAN_UIDS.AGENCY],
     planUid: PLAN_UIDS.AGENCY,
     price: '$297',
     period: 'month',

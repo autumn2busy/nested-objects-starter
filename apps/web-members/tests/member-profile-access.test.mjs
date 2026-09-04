@@ -47,9 +47,11 @@ const navigation = {
   redirect(url) { throw new Error(`redirect:${url}`) },
   notFound() { throw new Error('not-found') },
 }
+const planConfig = load('../lib/plan-config.ts', {})
 const auth = load('../lib/auth-server.ts', {
   jose: { jwtVerify, createRemoteJWKSet: () => localKeys },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
+  './plan-config': planConfig,
 })
 const access = load('../lib/member-profile-access.ts', {
   'server-only': {},
@@ -225,7 +227,6 @@ test('real route components deny access and metadata performs no profile lookup'
 
 test('middleware denies visitors and marks member responses private/nonindexable', () => {
   const redirectHelper = load('../lib/auth-redirect.ts', {})
-  const planConfig = load('../lib/plan-config.ts', {})
   const memberToolAccess = load('../lib/member-tool-access.ts', {
     './plan-config': planConfig,
   })
@@ -258,4 +259,26 @@ test('profile settings describe current private access instead of offering immed
   assert.match(source, /Only you can view your profile/)
   assert.match(source, /Sharing with firms is not available yet/)
   assert.doesNotMatch(source, /hiring firms can discover you|Turn this on to publish|<Switch/)
+})
+
+test('profile subscription labels use the authoritative Outseta plan UID without a stale profile-tier fallback', () => {
+  const expectedLabels = new Map([
+    [planConfig.PLAN_UIDS.FREE, 'Free Plan'],
+    [planConfig.PLAN_UIDS.STARTER, 'Starter Plan'],
+    [planConfig.PLAN_UIDS.FOUNDERS, 'Founders Directory Annual'],
+    [planConfig.PLAN_UIDS.PRO, 'Pro Plan'],
+    [planConfig.PLAN_UIDS.ELITE, 'Elite Plan'],
+    [planConfig.PLAN_UIDS.AGENCY, 'Agency Plan'],
+  ])
+
+  for (const [planUid, label] of expectedLabels) {
+    assert.equal(planConfig.getPlanDisplayLabel(planUid), label)
+  }
+  assert.equal(planConfig.getPlanDisplayLabel('unknown-plan'), null)
+  assert.equal(auth.getPlanName(planConfig.PLAN_UIDS.FOUNDERS), 'Founders Directory Annual')
+
+  const source = readFileSync(new URL('../app/(portal)/profile/ProfileView.tsx', import.meta.url), 'utf8')
+  assert.match(source, /getPlanDisplayLabel\(planUid\)/)
+  assert.match(source, /Membership plan unavailable/)
+  assert.doesNotMatch(source, /const planNames|profile\?\.subscription_tier\) return/)
 })

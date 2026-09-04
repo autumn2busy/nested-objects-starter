@@ -1,5 +1,8 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
+import { PLAN_UIDS, getPlanName as getConfiguredPlanName } from './plan-config'
+
+export { PLAN_UIDS } from './plan-config'
 
 export interface OutsetaJWTPayload {
   email: string
@@ -14,16 +17,6 @@ export interface OutsetaJWTPayload {
   aud: string
   [key: string]: any
 }
-
-// Plan UID mapping (aligned with plan-config.ts)
-export const PLAN_UIDS = {
-  FREE: 'L9nbKV9Z',
-  STARTER: 'zWZD0rQp',
-  PRO: 'rQVqlLm6',
-  ELITE: 'NmdnNO90',
-  AGENCY: 'rmk5Xk9g',
-  FOUNDERS: 'pWrBRnWn'
-} as const
 
 // Feature access rules
 export const FEATURE_ACCESS: Record<string, string[]> = {
@@ -144,18 +137,5 @@ export async function requireFeature(feature: string): Promise<OutsetaJWTPayload
  * Get plan name from UID (for display purposes)
  */
 export function getPlanName(planUid: string): string {
-  switch (planUid) {
-    case PLAN_UIDS.FREE:
-      return 'Free'
-    case PLAN_UIDS.STARTER:
-      return 'Starter'
-    case PLAN_UIDS.PRO:
-      return 'Pro'
-    case PLAN_UIDS.ELITE:
-      return 'Elite'
-    case PLAN_UIDS.AGENCY:
-      return 'Agency'
-    default:
-      return 'Unknown'
-  }
+  return getConfiguredPlanName(planUid) ?? 'Unknown'
 }

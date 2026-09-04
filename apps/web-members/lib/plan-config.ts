@@ -10,6 +10,32 @@ export const PLAN_UIDS = {
     FOUNDERS: 'pWrBRnWn', // $37/yr legacy plan — same access level as Starter
 } as const
 
+export type PlanUid = typeof PLAN_UIDS[keyof typeof PLAN_UIDS]
+
+export const PLAN_NAMES: Record<PlanUid, string> = {
+    [PLAN_UIDS.FREE]: 'Free',
+    [PLAN_UIDS.STARTER]: 'Starter',
+    [PLAN_UIDS.PRO]: 'Pro',
+    [PLAN_UIDS.ELITE]: 'Elite',
+    [PLAN_UIDS.AGENCY]: 'Agency',
+    [PLAN_UIDS.FOUNDERS]: 'Founders Directory Annual',
+}
+
+export function getPlanName(planUid: string | null | undefined): string | null {
+    if (!planUid || !Object.prototype.hasOwnProperty.call(PLAN_NAMES, planUid)) {
+        return null
+    }
+
+    return PLAN_NAMES[planUid as PlanUid]
+}
+
+export function getPlanDisplayLabel(planUid: string | null | undefined): string | null {
+    const planName = getPlanName(planUid)
+    if (!planName) return null
+
+    return planUid === PLAN_UIDS.FOUNDERS ? planName : `${planName} Plan`
+}
+
 // Public checkout is intentionally allowlisted. Legacy plans stay valid for
 // existing members but cannot reappear because a display flag changes.
 export const PUBLIC_PLAN_UIDS: readonly string[] = [

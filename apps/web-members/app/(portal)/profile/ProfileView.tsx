@@ -17,6 +17,7 @@ import { Card } from '@/components/ui/card'
 import { Gate } from '@/components/Gate'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { trackProfileCompleted } from '@/lib/ac-events'
+import { getPlanDisplayLabel } from '@/lib/plan-config'
 
 // --- Types ---
 
@@ -417,7 +418,7 @@ function BackgroundCheckFlow({
 // --- Main Component ---
 
 export default function ProfileView({ initialProfile, initialTrustStats }: { initialProfile: any; initialTrustStats: any }) {
-  const { user, isLoading: authLoading, isAuthenticated, profileAvatarUrl, planUid } = useAuth()
+  const { user, isLoading: authLoading, profileAvatarUrl, planUid } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(initialProfile || null)
   const [isLoading, setIsLoading] = useState(!initialProfile)
   const [isSaving, setIsSaving] = useState(false)
@@ -540,6 +541,7 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
   const trustTier = dashboardTrustSnapshot?.trustTier ?? profile?.trust_tier ?? 'bronze'
   const trustScoreBreakdown = dashboardTrustSnapshot?.trustScoreBreakdown ?? profile?.trust_score_breakdown ?? null
   const backgroundCheckStatus = dashboardTrustSnapshot?.backgroundCheckStatus ?? profile?.background_check_status ?? 'not_started'
+  const subscriptionLabel = getPlanDisplayLabel(planUid) ?? 'Membership plan unavailable'
 
   if (authLoading || isLoading) {
     return (
@@ -722,18 +724,7 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Subscription</label>
-                  <p className="text-slate-900 mt-1 capitalize">{(() => {
-                    const planNames: Record<string, string> = {
-                      'L9nbKV9Z': 'Starter',
-                      'zWZD0rQp': 'Directory Pass',
-                      'rQVqlLm6': 'Pro',
-                      'NmdnNO90': 'Elite',
-                      'rmk5Xk9g': 'Agency',
-                    }
-                    if (planUid && planNames[planUid]) return `${planNames[planUid]} Plan`
-                    if (profile?.subscription_tier) return `${profile.subscription_tier} Plan`
-                    return 'Free Plan'
-                  })()}</p>
+                  <p className="text-slate-900 mt-1">{subscriptionLabel}</p>
                 </div>
               </div>
 
