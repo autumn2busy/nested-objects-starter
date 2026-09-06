@@ -13,6 +13,10 @@ const historicalMigration = readFileSync(new URL(
   '../../../supabase/migrations/20260326000000_create_contact_submissions.sql',
   import.meta.url,
 ), 'utf8')
+const rollbackValidation = readFileSync(new URL(
+  '../../../supabase/validation/20260906_validate_contact_receipt_rollback.sql',
+  import.meta.url,
+), 'utf8')
 const USER_ID = '00000000-0000-4000-8000-000000000001'
 const PROFILE_ID = '00000000-0000-4000-8000-000000000002'
 const RECEIPT_ID = '00000000-0000-4000-8000-000000000003'
@@ -281,4 +285,61 @@ test('unexpected existing policy requires review and rolls back known-policy rem
   })
   await db.exec('rollback')
   assert.deepEqual(await schemaSnapshot(db), before)
+})
+
+test('approved receipt verification proves server access and browser denial, emits only booleans, and rolls back', async t => {
+  const db = await database(t, { historical: true })
+  await seedHistoricalReceipt(db)
+  await db.exec(migration)
+  const before = await schemaSnapshot(db)
+  const results = await db.exec(rollbackValidation)
+  const rows = results.flatMap(result => result.rows ?? [])
+  assert.deepEqual(rows, [{ browser_crud_denials_passed: true, synthetic_receipt_passed: true }])
+  assert.deepEqual(await schemaSnapshot(db), before)
+  assert.equal((await db.query('select current_user')).rows[0].current_user, 'postgres')
+})
+
+test('receipt verification refuses unexpected trigger effects before inserting its synthetic receipt', async t => {
+  const db = await database(t)
+  await db.exec(migration)
+  await db.exec(`create trigger unexpected_receipt_trigger before insert on public.contact_submissions
+    for each row execute function public.set_contact_submissions_updated_at()`)
+  const before = await schemaSnapshot(db)
+  await assert.rejects(db.exec(rollbackValidation), {
+    code: 'P0001',
+    message: 'Receipt verification refused: an unexpected trigger or trigger body could have side effects.',
+  })
+  await db.exec('rollback')
+  assert.deepEqual(await schemaSnapshot(db), before)
+})
+
+test('receipt verification rejects column-level browser grants even when table grants remain absent', async t => {
+  const db = await database(t)
+  await db.exec(migration)
+  await db.exec('grant select (message) on public.contact_submissions to authenticated')
+  await assert.rejects(db.exec(rollbackValidation), {
+    code: 'P0001',
+    message: 'Receipt verification refused: browser column privileges are present.',
+  })
+  await db.exec('rollback')
+  assert.equal((await db.query('select count(*)::integer as count from public.contact_submissions')).rows[0].count, 0)
+})
+
+test('receipt verification refuses unrelated table grants and rewrite rules before any synthetic write', async t => {
+  const db = await database(t)
+  await db.exec(migration)
+  for (const setup of [
+    'create role unrelated_reader; grant select on public.contact_submissions to unrelated_reader;',
+    `revoke select on public.contact_submissions from unrelated_reader;
+      create rule unexpected_receipt_rule as on insert to public.contact_submissions do instead nothing;`,
+  ]) {
+    await db.exec(setup)
+    const before = await schemaSnapshot(db)
+    await assert.rejects(db.exec(rollbackValidation), {
+      code: 'P0001',
+      message: 'Receipt verification refused: unexpected relation, rewrite rule, or explicit grantee.',
+    })
+    await db.exec('rollback')
+    assert.deepEqual(await schemaSnapshot(db), before)
+  }
 })
