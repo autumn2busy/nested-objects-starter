@@ -168,6 +168,8 @@ test('Phase C contact authority joins by stored ActiveCampaign contact ID, never
   const base = profile({ ac_contact_id: 'ac-stable-7' })
   const result = runPhaseCCore({
     profiles: [base],
+    outsetaMembershipTruth: [{ memberId: base.id, email: null, membershipTier: 'pro', membershipStatus: 'active',
+      activeCampaignContactId: 'ac-stable-7', sourceSystem: 'outseta', authoritative: true, identityState: 'verified' }],
     conversionEvents: [],
     activeCampaignContacts: [
       contact('ac-stable-7', 'different@example.com'),
@@ -401,6 +403,8 @@ function contact(contactId, email) {
 function membership(memberId, membershipTier, membershipStatus) {
   return {
     memberId,
+    activeCampaignContactId: memberId.replace('member-', 'ac-'),
+    sourceSystem: 'outseta',
     email: `${memberId}@example.com`,
     membershipTier,
     membershipStatus,

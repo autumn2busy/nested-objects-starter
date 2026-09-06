@@ -23,6 +23,9 @@ export interface PhaseCWorkflowInput extends BuildProjectionBatchInput {
   metricDate: string
   activeCampaignContacts: ActiveCampaignContactSnapshot[]
   marketingConfig: MarketingClassificationConfig
+  // Supplied by a verified Outseta read adapter. A profile carrying Outseta IDs
+  // is still a projection and cannot manufacture authoritative member state.
+  outsetaMembershipTruth?: AuthoritativeMembershipTruth[]
   productAccessByMemberId?: Record<string, ProductAccessSnapshot>
   activeCampaignMirrorByMemberId?: Record<string, ActiveCampaignMembershipMirror>
   sourceRunId?: string | null
@@ -47,14 +50,24 @@ export function runPhaseCCore(input: PhaseCWorkflowInput): PhaseCWorkflowResult 
       && link.identifierType === 'contact_id'
       && link.status === 'active'
     ))
-    const membership = [...projection.memberships].sort((left, right) => right.authorityRank - left.authorityRank)[0]
-    if (!contactLink || !membership) continue
+    if (!contactLink || projection.canonicalMember.identityStatus !== 'resolved') continue
+    const candidates = (input.outsetaMembershipTruth ?? []).filter((truth) => (
+      truth.memberId === projection.memberId || truth.activeCampaignContactId === contactLink.normalizedExternalId
+    ))
+    if (candidates.length !== 1) continue
+    const membership = candidates[0]
+    if (!membership || membership.memberId !== projection.memberId || membership.sourceSystem !== 'outseta'
+      || membership.activeCampaignContactId !== contactLink.normalizedExternalId
+      || membership.authoritative !== true || membership.identityState !== 'verified') continue
     membershipByActiveCampaignContactId.set(contactLink.normalizedExternalId, {
       memberId: projection.memberId,
       email: projection.canonicalMember.primaryEmail,
       membershipTier: membership.membershipTier,
       membershipStatus: membership.membershipStatus,
       authoritative: true,
+      activeCampaignContactId: contactLink.normalizedExternalId,
+      sourceSystem: 'outseta',
+      identityState: 'verified',
     })
   }
 

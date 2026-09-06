@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
 import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 import { recordConversionEvent } from '@/lib/conversion-events';
+import { mapOutsetaBillingStage } from '@/lib/outseta-billing-stage';
 
 // =================================================================
 // TYPES
@@ -102,7 +103,7 @@ export interface ProfileUpdateData {
   display_name: string | null;
   phone: string | null;
   subscription_tier: 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency';
-  subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
+  subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused' | null;
   subscription_start_date: string | null;
   subscription_end_date: string | null;
   plan_uid: string | null;
@@ -142,24 +143,7 @@ function isPersonPayload(payload: OutsetaWebhookPayload): payload is OutsetaPers
 }
 
 function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateData['subscription_status'] {
-  const normalizedLabel = label?.toLowerCase() || '';
-
-  if (normalizedLabel.includes('trial')) return 'trialing';
-  if (normalizedLabel.includes('past due') || normalizedLabel.includes('past_due')) return 'past_due';
-  if (normalizedLabel.includes('cancel')) return 'canceled';
-  if (normalizedLabel.includes('pause')) return 'paused';
-  if (normalizedLabel.includes('subscrib')) return 'active';
-  if (normalizedLabel.includes('active')) return 'active';
-
-  switch (stage) {
-    case 1: return 'trialing';
-    case 2: return 'trialing';
-    case 3: return 'canceled';
-    case 4: return 'canceled';
-    case 5: return 'canceled';
-    case 6: return 'past_due';
-    default: return 'active';
-  }
+  return mapOutsetaBillingStage(stage, label);
 }
 
 function mapPlanToTier(planName?: string, planUid?: string): ProfileUpdateData['subscription_tier'] {
@@ -394,7 +378,7 @@ export async function POST(request: NextRequest) {
       // Only update subscription info if we got it from an Account event
       if (payloadType === 'Account' || profileData.plan_name) {
         updatePayload.subscription_tier = profileData.subscription_tier;
-        updatePayload.subscription_status = profileData.subscription_status;
+        if (profileData.subscription_status) updatePayload.subscription_status = profileData.subscription_status;
       }
 
       const { data, error } = await supabase

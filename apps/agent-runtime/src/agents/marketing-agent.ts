@@ -203,7 +203,14 @@ function buildAudiences(
       id: stableUuid('marketing-audience', 'high-intent-no-confirmed-upgrade'),
       name: 'High intent without confirmed upgrade',
       inclusionRules: ['Aggregate paywall or upgrade-intent behavior is elevated', 'No confirmed authoritative upgrade is attributed'],
-      exclusionRules: ['Already-paid members', 'Canceled members', 'Internal contacts', 'Test contacts'],
+      exclusionRules: [
+        'Already-paid members', 'Canceled members', 'Internal contacts', 'Coworker, test, demo, and hiring-firm contacts',
+        'Unknown or conflicting stable identity, membership, lifecycle, consent, or journey history',
+        'First 30 days, active trial, new paid period, or incomplete onboarding',
+        'Missing approved first value or incomplete profile, geography, experience, or inspection inputs',
+        'Unsubscribe or bounce; another active journey; prior enrollment in this lifecycle cycle; promotional contact within 7 days',
+        'Evaluate the deterministic evaluateMarketingJourneys policy on approved contact evidence before proposing enrollment',
+      ],
       containsDirectIdentifiers: false,
     })
   }

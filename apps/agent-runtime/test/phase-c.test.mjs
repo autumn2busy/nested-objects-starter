@@ -205,7 +205,7 @@ test('authoritative membership wins over cold or Wix marketing markers', () => {
       bounced: false,
       unsubscribed: false,
     },
-    membership: { memberId: profileId, email: 'member@example.com', membershipTier: 'pro', membershipStatus: 'active', authoritative: true },
+    membership: { memberId: profileId, activeCampaignContactId: 'ac-3', sourceSystem: 'outseta', email: 'member@example.com', membershipTier: 'pro', membershipStatus: 'active', authoritative: true },
     config: { internalDomains: ['activecampaign.com'], now: fixedNow },
     correlation,
   })

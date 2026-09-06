@@ -243,15 +243,16 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         }
 
         // 5. Sync Recurring Payment subscription state independently of the order result.
-        // Orders are purchase history; Recurring Payments are the membership source of truth.
-        if (isPaid && syncProfile.plan_uid) {
+        // Both are downstream mirrors. Outseta remains membership authority and
+        // Stripe remains settled-payment authority. Unknown lifecycle cannot be ACTIVE.
+        if (isPaid && syncProfile.plan_uid && syncProfile.subscription_status) {
             const recurringPaymentSynced = await syncRecurringPayment(syncProfile, customerId!, orderId, logs);
             if (recurringPaymentSynced) {
                 const { nextPaymentDate } = getSubscriptionDates(syncProfile);
                 await syncMembershipRenewalField(contactId!, nextPaymentDate, logs);
             }
         } else {
-            logs.push("Skipping Recurring Payment sync (Free plan or no plan UID)");
+            logs.push("Skipping Recurring Payment sync (Free plan, no plan UID, or unknown lifecycle)");
         }
 
         logs.push("Deep Data sync complete.");

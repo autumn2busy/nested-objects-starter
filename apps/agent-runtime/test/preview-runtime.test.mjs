@@ -245,7 +245,10 @@ test('dry-run preview returns aggregate intelligence without returning PII or ex
   assert.equal(first.correlationId, correlationId)
   assert.equal(first.counts.projectedMembers, 1)
   assert.equal(first.counts.marketingClassifications, 1)
-  assert.equal(first.contactClassifications.current_member, 1)
+  // This Preview fixture supplies profiles, not a verified Outseta read. Stored
+  // Outseta IDs alone cannot establish current membership for marketing.
+  assert.equal(first.contactClassifications.unknown, 1)
+  assert.equal(first.contactClassifications.current_member, undefined)
   assert.equal(first.assetCandidateScopes.nested_objects, 1)
   assert.equal(first.safety.activeCampaignMutations, false)
   assert.equal(first.safety.modelExecution, false)

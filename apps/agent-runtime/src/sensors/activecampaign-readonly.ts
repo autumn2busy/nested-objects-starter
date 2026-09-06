@@ -21,6 +21,7 @@ import type {
   SensorSourceHealth,
 } from './contracts.js'
 import { checksumFor } from './report-adapters.js'
+import { evaluateMarketingJourneys, type JourneyEligibilityInput, type JourneyEligibilityDecision } from './marketing-eligibility.js'
 
 export type ActiveCampaignReadResource =
   | 'contact_inventory'
@@ -102,7 +103,7 @@ export class ActiveCampaignReadOnlyClient {
     observedAt: string
   }): Promise<ActiveCampaignReadPage> {
     const externalId = input.externalId.trim()
-    if (!externalId || !this.scopes.has(scopeKey({
+    if (!/^[a-zA-Z0-9_-]+$/.test(externalId) || !this.scopes.has(scopeKey({
       resourceType: input.resourceType,
       externalId,
       readAllowed: true,
@@ -190,6 +191,7 @@ export interface ActiveCampaignContactAuditObservation {
   currentEngagementCount: number | null
   priorEngagementCount: number | null
   highIntentScore: number | null
+  journeyContext?: Omit<JourneyEligibilityInput, 'classification' | 'now'>
 }
 
 export interface ActiveCampaignReadOnlySensorInput {
@@ -208,6 +210,7 @@ export interface ActiveCampaignReadOnlySensorResult {
   observedAt: string
   mutationAllowed: false
   classifications: MarketingContactClassificationResult[]
+  journeyEligibility: Array<{ sourceContactId: string; decisions: JourneyEligibilityDecision[] }>
   metrics: MetricSnapshot[]
   signals: IntelligenceSignal[]
   proposedActions: ProposedAction[]
@@ -248,6 +251,14 @@ export function runActiveCampaignReadOnlySensor(
     classification.sourceContactId,
     classification,
   ]))
+  const journeyEligibility = input.contacts.filter((observation) => observation.journeyContext).map((observation) => ({
+    sourceContactId: observation.contact.contactId,
+    decisions: evaluateMarketingJourneys({
+      ...observation.journeyContext!,
+      classification: classificationByContactId.get(observation.contact.contactId)!,
+      now: input.observedAt,
+    }),
+  })).sort((left, right) => left.sourceContactId.localeCompare(right.sourceContactId))
   const findings = [
     ...input.contacts.flatMap((contact) => contactFindings(
       contact,
@@ -269,6 +280,11 @@ export function runActiveCampaignReadOnlySensor(
       classification: classification.classification,
       engagementState: classification.engagementState,
       membershipTruthState: classification.membershipTruthState,
+      membershipTier: classification.membershipTier,
+      lifecycle: classification.lifecycle,
+      sourceMarkers: classification.sourceMarkers,
+      audienceTraits: classification.audienceTraits,
+      consent: classification.consent,
       excludedFromMarketingAnalysis: classification.excludedFromMarketingAnalysis,
       recommendedDisposition: classification.recommendedDisposition,
     })).sort((left, right) => left.sourceContactId.localeCompare(right.sourceContactId)),
@@ -280,6 +296,7 @@ export function runActiveCampaignReadOnlySensor(
       observedContactCount: item.contactIds.length,
     })).sort((left, right) => left.automationId.localeCompare(right.automationId)),
     findingFingerprints: signals.map((signal) => signal.fingerprint).sort(),
+    journeyEligibility,
   })
   const durableSensorRunId = stableUuid('nested-objects-sensor-run', `activecampaign-readonly:${input.sensorRunId}:${checksum}`)
   const metrics = marketingMetrics(input, findings, durableSensorRunId)
@@ -326,6 +343,7 @@ export function runActiveCampaignReadOnlySensor(
     observedAt: input.observedAt,
     mutationAllowed: false,
     classifications,
+    journeyEligibility,
     metrics,
     signals,
     proposedActions,
@@ -354,10 +372,10 @@ function contactFindings(
     .filter((automation): automation is ActiveCampaignAutomationObservation => Boolean(automation?.active))
   const activeRoles = activeAutomations.map((automation) => automation.lifecycleRole)
   const automationIds = activeAutomations.map((automation) => automation.automationId)
-  const membershipTier = normalizeTier(observation.membership?.membershipTier)
-  const membershipStatus = normalizeStatus(observation.membership?.membershipStatus)
+  const membershipTier = classification.membershipTruthState === 'known' ? classification.membershipTier : 'unknown'
+  const membershipStatus = classification.membershipTruthState === 'known' ? classification.lifecycle : 'unknown'
   const planLabel = normalizeTier(observation.planLabel)
-  const paidRoles = new Set(['paid_nurture', 'member_onboarding'])
+  const paidRoles = new Set(['paid_nurture'])
   const findings: Finding[] = []
   const add = (finding: Omit<Finding, 'contactId' | 'automationIds' | 'sourceRefs'>) => findings.push({
     ...finding,
@@ -400,6 +418,8 @@ function contactFindings(
     observation.membership
     && membershipStatus === 'active'
     && !observation.onboardingEnteredAt
+    && observation.contact.createdAt !== null
+    && Number.isFinite(Date.parse(observation.contact.createdAt))
     && hoursSince(observation.contact.createdAt, observedAt) >= 24
   ) {
     add({
@@ -495,7 +515,8 @@ function automationFindings(
   observedAt: string,
 ): Finding[] {
   return automations.flatMap((automation) => {
-    if (!automation.active || hoursSince(automation.lastActivityAt, observedAt) < 24 * 90) return []
+    if (!automation.active || !automation.lastActivityAt || !Number.isFinite(Date.parse(automation.lastActivityAt))
+      || hoursSince(automation.lastActivityAt, observedAt) < 24 * 90) return []
     const sourceRef: SourceReference = {
       sourceSystem: 'activecampaign',
       sourceType: 'automation',
@@ -671,6 +692,11 @@ function activeCampaignObservations(
       classification: classification.classification,
       engagementState: classification.engagementState,
       membershipTruthState: classification.membershipTruthState,
+      membershipTier: classification.membershipTier,
+      lifecycle: classification.lifecycle,
+      sourceMarkers: classification.sourceMarkers,
+      audienceTraits: classification.audienceTraits,
+      consent: classification.consent,
       canonicalMemberId: classification.canonicalMemberId,
       excludedFromMarketingAnalysis: classification.excludedFromMarketingAnalysis,
       exclusionReason: classification.exclusionReason,
@@ -858,6 +884,7 @@ async function defaultTransport(request: ActiveCampaignReadRequest): Promise<Act
     headers: request.headers,
     signal: request.signal,
     cache: 'no-store',
+    redirect: 'error',
   })
   return response
 }
