@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/web-members/**'
+      - 'supabase/migrations/*contact_submissions*.sql'
       - '.github/workflows/member-public-surfaces.yml'
 
 permissions:
@@ -39,6 +40,10 @@ jobs:
         run: |
           npm run lint
           npx tsc --noEmit
+
+      - name: Verify contact receipt storage and PostgreSQL migration
+        working-directory: apps/web-members
+        run: node --test tests/contact-route.test.mjs tests/contact-submissions-migration.test.mjs
 
       - name: Verify runtime redirects and fail-closed APIs
         working-directory: apps/web-members
