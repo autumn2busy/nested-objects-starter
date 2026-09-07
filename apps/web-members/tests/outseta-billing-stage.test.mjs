@@ -54,7 +54,7 @@ test('real webhook mapping passes correct statuses to sync and preserves stored 
       '@/lib/free-to-pro-lifecycle': { buildPaidLifecycleDecision: () => ({ shouldTrack: false, reason: 'fixture' }) },
       '@/lib/conversion-events': { recordConversionEvent: async () => { throw new Error('Unexpected conversion write') } },
       '@/lib/outseta-billing-stage': mapping,
-      '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async profile => { synchronized = profile; return { logs: [] } } },
+      '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async profile => { synchronized = profile; return { status: 'succeeded', recoveryRequired: false, automaticRetry: false, steps: [], logs: [] } } },
       '@/lib/ac-event-tracking': {},
     }, { process: { env: { NODE_ENV: 'test', SUPABASE_URL: 'synthetic', SUPABASE_SERVICE_ROLE_KEY: 'synthetic' } } })
     const person = { Uid: 'synthetic-person', Email: 'synthetic@example.com', Updated: '2026-09-06T12:00:00.000Z',
@@ -74,22 +74,26 @@ test('unknown lifecycle does not write ACTIVE recurring payment or replace exist
   const sync = load('../lib/active-campaign-deep-data.ts', {
     '@/lib/env': { env: { acApiUrl:'https://synthetic.invalid', acApiKey:'synthetic', acConnectionId:'4' } },
     '@/lib/supabase-admin': { createServiceRoleClient: () => ({ from: () => query }) },
-  }, { fetch: async (url, options = {}) => {
+    '@/lib/active-campaign-sync-result': load('../lib/active-campaign-sync-result.ts'),
+  }, { AbortSignal, fetch: async (url, options = {}) => {
     const body = options.body ? JSON.parse(options.body) : null
     requests.push({ url, method: options.method ?? 'GET', body })
     let data = {}
     if (url.endsWith('/contact/sync')) data = {contact:{id:'1'}}
-    else if (url.endsWith('/ecomCustomers')) data = {ecomCustomer:{id:'2'}}
-    else if (url.includes('/contactTags?')) data = {contactTags:[{id:'old-status',tag:'past-due'}],tags:[{id:'past-due',tag:'status-past_due'}]}
-    else if (url.includes('/tags?search=')) data = {tags:[{id:'tag-1',tag:decodeURIComponent(url.split('search=')[1])}]}
+    else if (url.endsWith('/ecomCustomers/2')) data = {ecomCustomer:{id:'2', externalid:'synthetic-person', connectionid:'4', email:'synthetic@example.com'}}
+    else if (url.includes('/contactTags?')) data = {contactTags:[{id:'10',contact:'1',tag:'805'}],tags:[{id:'805',tag:'status-past_due'}]}
+    else if (url.includes('/tags?search=')) data = {tags:[{id:'11',tag:decodeURIComponent(url.split('search=')[1].split('&')[0])}]}
+    else if (url.endsWith('/contactTags')) data = {contactTag:{id:'12', ...body.contactTag}}
     else if (url.endsWith('/ecomOrders')) data = {ecomOrder:{id:'3'}}
     return {ok:true,status:200,json:async()=>data}
   } })
-  await sync.syncFullProfileDeepData({ outseta_person_uid:'synthetic-person', outseta_account_id:'synthetic-account',
+  const result = await sync.syncFullProfileDeepData({ outseta_person_uid:'synthetic-person', outseta_account_id:'synthetic-account',
     user_email:'synthetic@example.com', email:'synthetic@example.com', subscription_tier:'pro',
     subscription_status:null, plan_uid:'rQVqlLm6', plan_name:'Pro', outseta_data:{} })
   assert.equal(requests.some(r=>r.url.endsWith('/ecom/graphql')), false)
+  assert.equal(result.recoveryRequired, false)
+  assert.equal(requests.some(r=>r.url.endsWith('/ecomOrders')), true)
   assert.equal(requests.some(r=>r.method==='DELETE'), false)
   assert.equal(requests.some(r=>r.url.includes('search=status-')), false)
-  assert.equal(requests.some(r=>r.url.endsWith('/contactLists')), true) // Existing exception remains; consent repair is separately proposed.
+  assert.equal(requests.some(r=>r.url.endsWith('/contactLists')), false) // Membership never supplies marketing opt-in.
 })

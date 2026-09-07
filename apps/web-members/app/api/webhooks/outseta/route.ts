@@ -11,6 +11,7 @@ import { verifyOutsetaSignature } from '@/lib/security';
 import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 import { recordConversionEvent } from '@/lib/conversion-events';
 import { mapOutsetaBillingStage } from '@/lib/outseta-billing-stage';
+import type { SyncResult } from '@/lib/active-campaign-sync-result';
 
 // =================================================================
 // TYPES
@@ -334,7 +335,8 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       // IDEMPOTENCY CHECK
-      // If we have already processed a newer or equal update, skip this one
+      // This only rejects older projection updates. It is not a durable AC
+      // delivery receipt and must not be used to claim duplicate-safe recovery.
       if (existing.outseta_updated_at && profileData.outseta_updated_at) {
         const existingTime = new Date(existing.outseta_updated_at).getTime();
         const incomingTime = new Date(profileData.outseta_updated_at).getTime();
@@ -434,16 +436,22 @@ export async function POST(request: NextRequest) {
     // We await this to ensure it completes before Vercel freezes the lambda.
     // In a high-volume setup, we might push this to a queue. 
     // For now, inline orchestration as requested.
-    let acLogs: string[] = [];
+    let acSync: SyncResult;
     try {
       console.log(`[${requestId}] Starting AC Sync...`);
       const { syncFullProfileDeepData } = await import('@/lib/active-campaign-deep-data');
-      const syncResult = await syncFullProfileDeepData(profileData);
-      acLogs = syncResult.logs;
-      console.log(`[${requestId}] AC Sync Logs:`, acLogs);
-    } catch (syncErr) {
-      console.error(`[${requestId}] AC Sync Failed:`, syncErr);
-      acLogs.push(`Sync failed: ${syncErr}`);
+      acSync = await syncFullProfileDeepData(profileData);
+    } catch {
+      acSync = {
+        status: 'failed', recoveryRequired: true, automaticRetry: false,
+        steps: [{ step: 'orchestration', state: 'failed', code: 'unexpected_failure' }],
+        logs: ['orchestration:failed:unexpected_failure'],
+      };
+    }
+    if (acSync.recoveryRequired) {
+      console.error(`[${requestId}] AC sync requires recovery`, { status: acSync.status, steps: acSync.steps });
+    } else {
+      console.log(`[${requestId}] AC sync result`, { status: acSync.status, steps: acSync.steps });
     }
 
     // Fire AC server-side events only when the subscription actually changes.
@@ -514,12 +522,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      success: true,
+      // Acknowledge the saved membership projection without inviting Outseta to
+      // replay all side effects. AC recovery is explicit and requires readback;
+      // this HTTP 200 is not a claim that every marketing operation completed.
+      success: !acSync.recoveryRequired,
+      profileSynced: true,
       ...result,
-      acSync: {
-        performed: true,
-        logs: acLogs
-      },
+      acSync,
       lifecycleEvents: lifecycleEventLogs,
       requestId,
       duration: `${Date.now() - startTime}ms`
