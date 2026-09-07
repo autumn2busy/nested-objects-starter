@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { NextResponse } from 'next/server';
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server';
 import {
@@ -7,12 +7,12 @@ import {
   rateLimit,
 } from '@/lib/rate-limit';
 import { createServiceRoleClient } from '@/lib/supabase-server';
+import { isContactReplyEmail, type ContactSubmission } from '@/lib/contact-email-message';
+import { notifyContact } from '@/lib/contact-email-sender';
 
 const MAX_REQUEST_LENGTH = 8_192;
 const MAX_NAME_LENGTH = 120;
-const MAX_EMAIL_LENGTH = 254;
 const MAX_MESSAGE_LENGTH = 5_000;
-const NOTIFICATION_TIMEOUT_MS = 5_000;
 const ALLOWED_TOPICS = new Set([
   'Plan comparison',
   'Billing question',
@@ -20,17 +20,7 @@ const ALLOWED_TOPICS = new Set([
   'Training or resources',
   'Something else',
 ]);
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const limiter = rateLimit({ limit: 5, intervalMs: 60_000 });
-
-type ContactSubmission = {
-  name: string;
-  email: string;
-  topic: string;
-  message: string;
-};
-
-type NotificationState = 'webhook_accepted' | 'not_configured' | 'failed';
 
 function failure(status: number, error: string, retryAfter?: string) {
   return NextResponse.json(
@@ -102,9 +92,7 @@ async function readSubmission(req: Request): Promise<
   if (
     !submission.name ||
     submission.name.length > MAX_NAME_LENGTH ||
-    !submission.email ||
-    submission.email.length > MAX_EMAIL_LENGTH ||
-    !EMAIL_PATTERN.test(submission.email) ||
+    !isContactReplyEmail(submission.email) ||
     !ALLOWED_TOPICS.has(submission.topic) ||
     !submission.message ||
     submission.message.length > MAX_MESSAGE_LENGTH
@@ -113,42 +101,6 @@ async function readSubmission(req: Request): Promise<
   }
 
   return { submission };
-}
-
-async function notifySupport(
-  webhookUrl: string | undefined,
-  submission: ContactSubmission
-): Promise<NotificationState> {
-  if (!webhookUrl) return 'not_configured';
-
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        source: 'contact_form',
-        target_email: 'support@nestedobjects.com',
-        submission,
-      }),
-      signal: AbortSignal.timeout(NOTIFICATION_TIMEOUT_MS),
-    });
-
-    if (!response.ok) {
-      console.error('[CONTACT_NOTIFICATION_FAILED]', { status: response.status });
-      return 'failed';
-    }
-
-    return 'webhook_accepted';
-  } catch (error) {
-    const errorName = error && typeof error === 'object' && 'name' in error
-      ? String(error.name)
-      : '';
-    const reason = errorName === 'AbortError' || errorName === 'TimeoutError'
-      ? 'timeout'
-      : 'request_error';
-    console.error('[CONTACT_NOTIFICATION_FAILED]', { reason });
-    return 'failed';
-  }
 }
 
 export async function POST(req: Request) {
@@ -197,10 +149,12 @@ export async function POST(req: Request) {
     }
   }
 
+  const receiptId = randomUUID();
   try {
     const { error: dbError } = await supabase
       .from('contact_submissions')
       .insert({
+        id: receiptId,
         // Outseta subjects are not Supabase auth.users UUIDs.
         user_id: null,
         profile_id: profileId,
@@ -217,10 +171,7 @@ export async function POST(req: Request) {
     return failure(503, 'We could not receive your message. Please try again.');
   }
 
-  const notification = await notifySupport(
-    process.env.N8N_AI_CONCIERGE_WEBHOOK_URL,
-    submission
-  );
+  const notification = await notifyContact(submission, receiptId);
 
   return NextResponse.json(
     {

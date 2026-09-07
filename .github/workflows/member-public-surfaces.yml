@@ -42,9 +42,9 @@ jobs:
           npm run lint
           npx tsc --noEmit
 
-      - name: Verify contact receipt storage and PostgreSQL migration
+      - name: Verify contact receipt, direct email routing, and PostgreSQL migration
         working-directory: apps/web-members
-        run: node --test tests/contact-route.test.mjs tests/contact-submissions-migration.test.mjs
+        run: node --test tests/contact-route.test.mjs tests/contact-submissions-migration.test.mjs tests/contact-email-message.test.mjs tests/contact-email-sender.test.mjs tests/contact-form.test.mjs
 
       - name: Verify runtime redirects and fail-closed APIs
         working-directory: apps/web-members
