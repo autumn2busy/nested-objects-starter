@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web-members/**'
       - 'supabase/migrations/*contact_submissions*.sql'
+      - 'supabase/validation/*contact_receipt*.sql'
       - '.github/workflows/member-public-surfaces.yml'
 
 permissions:
