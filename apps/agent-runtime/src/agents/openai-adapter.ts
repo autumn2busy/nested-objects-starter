@@ -9,10 +9,8 @@ import { assertConfidence, ContractValidationError } from '../contracts.js'
 interface DynamicZod {
   string(): unknown
   number(): { min(value: number): { max(value: number): unknown } }
-  unknown(): unknown
   array(value: unknown): unknown
   object(shape: Record<string, unknown>): unknown
-  record(key: unknown, value: unknown): unknown
   nullable(value?: unknown): unknown
 }
 
@@ -47,6 +45,11 @@ interface ModelOutput {
   conciseRationale: string
 }
 
+interface ModelWireOutput extends Omit<ModelOutput, 'data' | 'proposedActions'> {
+  dataJson: string
+  proposedActions: Array<Omit<ModelOutput['proposedActions'][number], 'payload'> & { payloadJson: string }>
+}
+
 export interface OpenAiSpecialistAdapterConfiguration {
   registration: AgentRegistration
   model: ModelRuntimeConfiguration
@@ -74,6 +77,10 @@ export class OpenAiSpecialistAdapter {
     const agent = new agentsModule.Agent({
       name: this.configuration.registration.displayName,
       model: this.configuration.model.model,
+      // Astra requires reasoning. Keep explicit model overrides on their own SDK defaults.
+      ...(this.configuration.model.model === 'gpt-6-astra'
+        ? { modelSettings: { reasoning: { effort: 'low' } } }
+        : {}),
       instructions: buildInstructions(this.configuration.registration),
       outputType,
       tools: [],
@@ -111,13 +118,14 @@ function createOutputType(z: DynamicZod): unknown {
         recommendedFollowUp: nullableString,
       }),
     ),
-    data: z.record(z.string(), z.unknown()),
+    // Strict Structured Outputs cannot express arbitrary object keys.
+    dataJson: z.string(),
     proposedActions: z.array(
       z.object({
         actionType: z.string(),
         targetSystem: z.string(),
         conciseRationale: z.string(),
-        payload: z.record(z.string(), z.unknown()),
+        payloadJson: z.string(),
       }),
     ),
     conciseRationale: z.string(),
@@ -129,6 +137,7 @@ function buildInstructions(registration: AgentRegistration): string {
     `You are the ${registration.displayName} within the Nested Objects Intelligence OS.`,
     registration.description,
     'Return only the requested structured output.',
+    'Encode the specialist data object in dataJson and each proposed action payload object in payloadJson as valid JSON object strings. Use "{}" for an empty object.',
     'Use only the supplied evidence and source references. Do not invent metrics, identifiers, revenue, membership state, or citations.',
     'Do not expose or store private chain-of-thought. Provide only concise operational rationale.',
     'Do not execute external mutations. Proposed actions are recommendations that must pass policy and approval gates.',
@@ -154,16 +163,18 @@ function assertModelOutput(value: unknown, evidenceCount: number): ModelOutput {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new ContractValidationError('OpenAI Agents SDK returned no structured specialist output')
   }
-  const output = value as Partial<ModelOutput>
+  const output = value as Partial<ModelWireOutput>
   if (typeof output.summary !== 'string' || typeof output.conciseRationale !== 'string') {
     throw new ContractValidationError('Specialist output is missing summary or conciseRationale')
   }
   if (!Array.isArray(output.findings) || !Array.isArray(output.proposedActions)) {
     throw new ContractValidationError('Specialist output is missing findings or proposedActions')
   }
-  if (!output.data || typeof output.data !== 'object' || Array.isArray(output.data)) {
-    throw new ContractValidationError('Specialist output data must be an object')
-  }
+  const data = parseModelJsonObject(output.dataJson, 'dataJson')
+  const proposedActions = output.proposedActions.map(({ payloadJson, ...action }, index) => ({
+    ...action,
+    payload: parseModelJsonObject(payloadJson, `proposedActions[${index}].payloadJson`),
+  }))
 
   for (const finding of output.findings) {
     assertConfidence(finding.confidence, 'finding.confidence')
@@ -172,7 +183,29 @@ function assertModelOutput(value: unknown, evidenceCount: number): ModelOutput {
     }
   }
 
-  return output as ModelOutput
+  return {
+    summary: output.summary,
+    findings: output.findings,
+    data,
+    proposedActions,
+    conciseRationale: output.conciseRationale,
+  }
+}
+
+function parseModelJsonObject(value: unknown, field: string): Record<string, unknown> {
+  if (typeof value !== 'string') {
+    throw new ContractValidationError(`Specialist output ${field} must be a JSON object string`)
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(value)
+  } catch {
+    throw new ContractValidationError(`Specialist output ${field} contains invalid JSON`)
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ContractValidationError(`Specialist output ${field} must decode to an object`)
+  }
+  return parsed as Record<string, unknown>
 }
 
 export class ModelExecutionDisabledError extends Error {

@@ -6,6 +6,20 @@ Current program status, decisions, environment evidence, and rollout gates live 
 
 This package is intentionally isolated from `apps/web-members`. It has its own Node, TypeScript, Zod, Supabase, and OpenAI Agents SDK dependency boundary so the Next.js 14 member application does not need a dependency upgrade to host agent code.
 
+## OpenAI model configuration
+
+The optional OpenAI specialist adapter defaults to `gpt-6-astra` when `OPENAI_AGENT_MODEL` is unset or blank. An explicit model override remains supported. Astra uses `reasoning.effort: low`; other models retain their SDK defaults. The installed Agents SDK uses the Responses API, and the adapter supplies no sampling parameters, tools, or legacy prompt-cache settings.
+
+The model-facing strict schema encodes arbitrary specialist data and proposed-action payloads as JSON object strings (`dataJson` and `payloadJson`). The adapter validates and decodes them into the existing `data` and `payload` objects before returning to callers. This fixes the SDK's rejection of open-ended record schemas without changing the public specialist output contract.
+
+`test/openai-adapter.test.mjs` exercises the installed Agents SDK with synthetic HTTP responses and tracing disabled. It checks the Responses request, Astra reasoning settings, model overrides, nested-object round trips, and malformed JSON rejection without an API key or network request. It does not verify live Astra account access, response quality, latency, or cost.
+
+Model execution still defaults to disabled and requires `AGENT_MODEL_EXECUTION_ENABLED=true` plus `OPENAI_API_KEY` in an approved model-enabled environment. The C2 Preview and C3 durable staging profiles continue to reject model execution. This model migration does not activate those profiles or change deployed environment variables.
+
+The member concierge and resume routes forward to external n8n workflows; their checked-in workflow exports use Groq. The firm-enrichment script also uses Groq. These separate provider integrations are not switched by `OPENAI_AGENT_MODEL`.
+
+Migration reference: [OpenAI GPT-6 Astra migration guidance](https://developers.openai.com/api/docs/guides/latest-model#update-api-and-model-parameters).
+
 ## Implemented foundation
 
 ### Phase B
