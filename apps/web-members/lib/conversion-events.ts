@@ -18,6 +18,7 @@ export const CONVERSION_EVENT_NAMES = [
   'subscription_created',
   'subscription_upgraded',
   'tool_used',
+  'income_scenario_completed',
   'ai_resume_generated',
   'ai_concierge_used',
   'training_started',

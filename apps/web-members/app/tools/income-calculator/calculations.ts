@@ -22,6 +22,25 @@ function nonNegative(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : 0
 }
 
+function isPositiveFinite(value: number): boolean {
+  return Number.isFinite(value) && value > 0
+}
+
+function isNonNegativeFinite(value: number): boolean {
+  return Number.isFinite(value) && value >= 0
+}
+
+export function canCompleteIncomeScenario(input: IncomeScenarioInputs): boolean {
+  return (
+    isPositiveFinite(input.assignmentsPerMonth)
+    && isPositiveFinite(input.averageFeePerAssignment)
+    && isPositiveFinite(input.minutesPerAssignment)
+    && isNonNegativeFinite(input.averageMilesPerAssignment)
+    && isNonNegativeFinite(input.vehicleCostPerMile)
+    && isNonNegativeFinite(input.otherMonthlyCosts)
+  )
+}
+
 export function calculateIncomeScenario(input: IncomeScenarioInputs): IncomeScenarioResults {
   const assignments = nonNegative(input.assignmentsPerMonth)
   const fee = nonNegative(input.averageFeePerAssignment)

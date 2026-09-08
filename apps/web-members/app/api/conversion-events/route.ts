@@ -12,6 +12,27 @@ export const dynamic = 'force-dynamic'
 const limiter = rateLimit({ limit: 120, intervalMs: 60 * 1000 })
 const MAX_BODY_BYTES = 16_384
 const MAX_EVENT_DATA_BYTES = 8_192
+const INCOME_SCENARIO_COMPLETION_EVENT = 'income_scenario_completed'
+const INCOME_SCENARIO_COMPLETION_VERSION = 'v1'
+
+function sessionClaim(value: unknown) {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  return normalized && normalized.length <= 160 ? normalized : null
+}
+
+function incomeScenarioCompletionId(memberUid: string, lifecycleCycleId: string) {
+  const digest = createHash('sha256')
+    .update(JSON.stringify([
+      INCOME_SCENARIO_COMPLETION_EVENT,
+      INCOME_SCENARIO_COMPLETION_VERSION,
+      memberUid,
+      lifecycleCycleId,
+    ]))
+    .digest('hex')
+
+  return `${INCOME_SCENARIO_COMPLETION_EVENT}:${INCOME_SCENARIO_COMPLETION_VERSION}:${digest}`
+}
 
 function rateLimitKey(request: Request) {
   const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -48,6 +69,43 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null)
     if (!body || !isBrowserConversionEventName(body.event)) {
       return NextResponse.json({ error: 'Unsupported event name' }, { status: 400 })
+    }
+
+    if (body.event === INCOME_SCENARIO_COMPLETION_EVENT) {
+      const user = await getCurrentUser()
+      const memberUid = sessionClaim(user?.sub)
+      if (!memberUid) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
+
+      const lifecycleCycleId = sessionClaim(user?.['outseta:subscriptionUid'])
+      if (!lifecycleCycleId) {
+        return NextResponse.json({ error: 'Membership cycle unavailable' }, { status: 409 })
+      }
+
+      const supabase = createServiceRoleClient()
+      let recorded = false
+      try {
+        await recordConversionEvent(supabase, {
+          eventName: INCOME_SCENARIO_COMPLETION_EVENT,
+          clientEventId: incomeScenarioCompletionId(memberUid, lifecycleCycleId),
+          memberUid,
+          eventData: {
+            sourcePage: '/tools/income-calculator',
+            source: 'income_scenarios',
+            completionContract: INCOME_SCENARIO_COMPLETION_VERSION,
+            lifecycleCycleId,
+          },
+        })
+        recorded = true
+      } catch (storageError) {
+        console.error('[Conversion Events] First-party storage failed:', storageError)
+      }
+
+      return NextResponse.json(
+        { recorded, activeCampaignTracked: false },
+        { status: recorded ? 200 : 202 },
+      )
     }
 
     const eventData = safeEventData(body.eventData)

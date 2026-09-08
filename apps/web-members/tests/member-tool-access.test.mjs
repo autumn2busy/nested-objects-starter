@@ -205,16 +205,24 @@ test('route page server-enforces Elite and Agency access', async () => {
   assert.equal(route.page.metadata.robots.index, false)
 })
 
-test('calculator privacy copy discloses normal page analytics and avoids absolute no-tracking claims', () => {
-  const files = [
+test('calculator privacy copy accurately distinguishes input handling and analytics', () => {
+  const unchangedFiles = [
     '../app/tools/ToolsView.tsx',
-    '../app/tools/income-calculator/IncomeScenarioCalculator.tsx',
     '../app/tools/notary-route-calculator/NotaryRouteCalculator.tsx',
   ]
 
-  for (const relativePath of files) {
+  for (const relativePath of unchangedFiles) {
     const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8')
     assert.match(source, /normal site\s+analytics may\s+record/i, relativePath)
     assert.doesNotMatch(source, /values stay in (?:this|your) browser|do not submit the values/i, relativePath)
   }
+
+  const incomeSource = readFileSync(
+    new URL('../app/tools/income-calculator/IncomeScenarioCalculator.tsx', import.meta.url),
+    'utf8',
+  )
+  assert.match(incomeSource, /numeric assumptions and calculated results stay in this browser/i)
+  assert.match(incomeSource, /completion milestone for your member account/i)
+  assert.match(incomeSource, /without those\s+numbers or results/i)
+  assert.match(incomeSource, /normal site analytics may record/i)
 })

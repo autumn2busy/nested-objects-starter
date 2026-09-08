@@ -31,11 +31,18 @@ const conversion = load('../lib/conversion-events.ts')
 // RLS, or uniqueness enforcement. Auth, AC, and rate limiting are isolated stubs.
 function createHarness({ user = null, storageError = null, environment = {}, rateLimitError = null } = {}) {
   const calls = { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] }
+  const storedRows = new Map()
   const supabase = {
     from(table) {
       return {
         async upsert(row, options) {
           calls.writes.push(clone({ table, row, options }))
+          if (!storageError) {
+            const key = row.client_event_id ?? `anonymous:${storedRows.size}`
+            if (!options?.ignoreDuplicates || !storedRows.has(key)) {
+              storedRows.set(key, clone(row))
+            }
+          }
           return { error: storageError }
         },
       }
@@ -80,7 +87,7 @@ function createHarness({ user = null, storageError = null, environment = {}, rat
       }),
     }))
   }
-  return { calls, supabase, route, post }
+  return { calls, storedRows, supabase, route, post }
 }
 
 test('anonymous intent is persisted without caller-supplied member or plan identity', async () => {
@@ -121,6 +128,133 @@ test('authenticated identity and plan come from the server session', async () =>
   assert.equal(harness.calls.campaigns[0].event, 'pricing_view')
 })
 
+test('income completion requires strict signed member and lifecycle-cycle identity', async () => {
+  for (const [user, status] of [
+    [null, 401],
+    [{ uid: 'fallback-member', 'outseta:subscriptionUid': 'cycle-one' }, 401],
+    [{ sub: 'signed-member' }, 409],
+  ]) {
+    const harness = createHarness({ user })
+    const response = await harness.post({ event: 'income_scenario_completed' })
+    assert.equal(response.status, status)
+    assert.equal(harness.calls.auth, 1)
+    assert.equal(harness.calls.clients, 0)
+    assert.equal(harness.calls.writes.length, 0)
+    assert.equal(harness.calls.campaigns.length, 0)
+  }
+})
+
+test('income completion persists only the server-derived member, cycle, and fixed metadata', async () => {
+  const user = {
+    sub: 'signed-member',
+    email: 'private@example.test',
+    'outseta:subscriptionUid': 'signed-cycle',
+    'outseta:planUid': 'synthetic-server-plan',
+  }
+  const harness = createHarness({ user })
+  const response = await harness.post({
+    event: 'income_scenario_completed',
+    clientEventId: 'forged-event-id',
+    anonymousId: 'forged-anonymous-id',
+    sessionId: 'forged-session-id',
+    memberUid: 'forged-member',
+    memberEmail: 'forged@example.test',
+    planUid: 'forged-plan',
+    planName: 'Founders',
+    occurredAt: '2020-01-01T00:00:00.000Z',
+    eventData: {
+      sourcePage: '/forged',
+      source: 'forged',
+      completionContract: 'forged',
+      lifecycleCycleId: 'forged-cycle',
+      assignmentsPerMonth: 99,
+      monthlyNet: 123456,
+    },
+  })
+
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
+
+  const { table, row, options } = harness.calls.writes[0]
+  const expectedDigest = require('node:crypto').createHash('sha256')
+    .update(JSON.stringify(['income_scenario_completed', 'v1', 'signed-member', 'signed-cycle']))
+    .digest('hex')
+  assert.equal(table, 'conversion_events')
+  assert.equal(row.client_event_id, `income_scenario_completed:v1:${expectedDigest}`)
+  assert.equal(row.event_name, 'income_scenario_completed')
+  assert.equal(row.member_uid, 'signed-member')
+  assert.equal(row.member_email, null)
+  assert.equal(row.anonymous_id, null)
+  assert.equal(row.session_id, null)
+  assert.equal(row.plan_uid, null)
+  assert.equal(row.plan_name, null)
+  assert.equal(row.source_page, '/tools/income-calculator')
+  assert.equal(row.source, 'income_scenarios')
+  assert.deepEqual(row.event_data, {
+    sourcePage: '/tools/income-calculator',
+    source: 'income_scenarios',
+    completionContract: 'v1',
+    lifecycleCycleId: 'signed-cycle',
+  })
+  assert.notEqual(row.occurred_at, '2020-01-01T00:00:00.000Z')
+  assert.deepEqual(options, { onConflict: 'client_event_id', ignoreDuplicates: true })
+})
+
+test('income completion retries reuse one key per member lifecycle cycle', async () => {
+  const first = createHarness({ user: {
+    sub: 'signed-member', 'outseta:subscriptionUid': 'cycle-one',
+  } })
+  await first.post({ event: 'income_scenario_completed', clientEventId: 'first-forgery' })
+  await first.post({
+    event: 'income_scenario_completed',
+    clientEventId: 'second-forgery',
+    occurredAt: '2021-01-01T00:00:00.000Z',
+  })
+
+  assert.equal(first.calls.writes.length, 2)
+  assert.equal(first.calls.writes[0].row.client_event_id, first.calls.writes[1].row.client_event_id)
+  assert.equal(first.storedRows.size, 1)
+  assert.deepEqual(first.calls.writes[0].options, {
+    onConflict: 'client_event_id', ignoreDuplicates: true,
+  })
+  assert.deepEqual(first.calls.writes[1].options, first.calls.writes[0].options)
+
+  const nextCycle = createHarness({ user: {
+    sub: 'signed-member', 'outseta:subscriptionUid': 'cycle-two',
+  } })
+  await nextCycle.post({ event: 'income_scenario_completed' })
+  assert.notEqual(
+    nextCycle.calls.writes[0].row.client_event_id,
+    first.calls.writes[0].row.client_event_id,
+  )
+
+  const nextMember = createHarness({ user: {
+    sub: 'different-member', 'outseta:subscriptionUid': 'cycle-one',
+  } })
+  await nextMember.post({ event: 'income_scenario_completed' })
+  assert.notEqual(
+    nextMember.calls.writes[0].row.client_event_id,
+    first.calls.writes[0].row.client_event_id,
+  )
+})
+
+test('income completion storage failure returns 202 without marketing delivery', async () => {
+  const storageError = { code: 'PGRST205', message: 'Synthetic unavailable storage' }
+  const harness = createHarness({
+    storageError,
+    user: { sub: 'signed-member', 'outseta:subscriptionUid': 'signed-cycle', email: 'private@example.test' },
+  })
+  const response = await harness.post({ event: 'income_scenario_completed' })
+  assert.equal(response.status, 202)
+  assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
+  assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
+  assert.equal(harness.calls.errors[0][1], storageError)
+})
+
 test('duplicate deliveries use the same stable key and insert-once conflict policy', async () => {
   const harness = createHarness()
   const occurredAt = new Date().toISOString()
@@ -153,7 +287,7 @@ test('anonymous storage failure never implies successful storage or an AC delive
 
 test('OS acceptance Preview suppresses all persistence, authentication, rate-limit and marketing work', async () => {
   const harness = createHarness({ environment: { VERCEL_ENV: 'preview', INTELLIGENCE_OS_ADMIN_ENABLED: 'true' } })
-  const response = await harness.route.POST({ json() { throw new Error('The Preview guard must run before parsing') } })
+  const response = await harness.post({ event: 'income_scenario_completed' })
   assert.equal(response.status, 204)
   assert.equal(await response.text(), '')
   assert.deepEqual(harness.calls, { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] })
@@ -203,6 +337,11 @@ test('paid lifecycle names remain available to the existing authoritative server
   for (const event of ['purchase', 'subscription_created', 'subscription_upgraded']) {
     assert.equal(conversion.isConversionEventName(event), true)
   }
+})
+
+test('income completion is available to the authenticated browser route', () => {
+  assert.equal(conversion.isConversionEventName('income_scenario_completed'), true)
+  assert.equal(conversion.isBrowserConversionEventName('income_scenario_completed'), true)
 })
 
 test('invalid client identifiers are omitted and cannot replace session-derived identity', async () => {
