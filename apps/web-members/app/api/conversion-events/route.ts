@@ -14,6 +14,7 @@ const MAX_BODY_BYTES = 16_384
 const MAX_EVENT_DATA_BYTES = 8_192
 const INCOME_SCENARIO_COMPLETION_EVENT = 'income_scenario_completed'
 const INCOME_SCENARIO_COMPLETION_VERSION = 'v1'
+const INCOME_SCENARIO_COMPLETION_ID_PREFIX = `${INCOME_SCENARIO_COMPLETION_EVENT}:`
 
 function sessionClaim(value: unknown) {
   if (typeof value !== 'string') return null
@@ -45,6 +46,11 @@ function validIdentifier(value: unknown) {
   const normalized = value.trim()
   if (!normalized || normalized.length > 160 || !/^[a-zA-Z0-9:_-]+$/.test(normalized)) return null
   return normalized
+}
+
+function browserClientEventId(value: unknown) {
+  const identifier = validIdentifier(value)
+  return identifier?.startsWith(INCOME_SCENARIO_COMPLETION_ID_PREFIX) ? null : identifier
 }
 
 function safeEventData(value: unknown): Record<string, unknown> | null {
@@ -124,7 +130,7 @@ export async function POST(request: Request) {
     try {
       await recordConversionEvent(supabase, {
         eventName: body.event,
-        clientEventId: validIdentifier(body.clientEventId),
+        clientEventId: browserClientEventId(body.clientEventId),
         anonymousId: validIdentifier(body.anonymousId),
         sessionId: validIdentifier(body.sessionId),
         memberUid,

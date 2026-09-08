@@ -29,9 +29,14 @@ const conversion = load('../lib/conversion-events.ts')
 // These are boundary tests of real route/writer source. The recording Supabase
 // adapter proves the issued persistence contract, not a deployed DB's schema,
 // RLS, or uniqueness enforcement. Auth, AC, and rate limiting are isolated stubs.
-function createHarness({ user = null, storageError = null, environment = {}, rateLimitError = null } = {}) {
+function createHarness({
+  user = null,
+  storageError = null,
+  environment = {},
+  rateLimitError = null,
+  storedRows = new Map(),
+} = {}) {
   const calls = { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] }
-  const storedRows = new Map()
   const supabase = {
     from(table) {
       return {
@@ -238,6 +243,35 @@ test('income completion retries reuse one key per member lifecycle cycle', async
     nextMember.calls.writes[0].row.client_event_id,
     first.calls.writes[0].row.client_event_id,
   )
+})
+
+test('generic browser events cannot occupy the reserved income completion key', async () => {
+  const storedRows = new Map()
+  const memberUid = 'signed-member'
+  const lifecycleCycleId = 'cycle-one'
+  const digest = require('node:crypto').createHash('sha256')
+    .update(JSON.stringify(['income_scenario_completed', 'v1', memberUid, lifecycleCycleId]))
+    .digest('hex')
+  const reservedKey = `income_scenario_completed:v1:${digest}`
+
+  const generic = createHarness({ storedRows })
+  const genericResponse = await generic.post({
+    event: 'pricing_view',
+    clientEventId: reservedKey,
+  })
+  assert.equal(genericResponse.status, 200)
+  assert.equal(generic.calls.writes[0].row.event_name, 'pricing_view')
+  assert.equal(generic.calls.writes[0].row.client_event_id, null)
+  assert.equal(storedRows.size, 1)
+
+  const completion = createHarness({
+    storedRows,
+    user: { sub: memberUid, 'outseta:subscriptionUid': lifecycleCycleId },
+  })
+  const completionResponse = await completion.post({ event: 'income_scenario_completed' })
+  assert.equal(completionResponse.status, 200)
+  assert.equal(storedRows.size, 2)
+  assert.equal(storedRows.get(reservedKey)?.event_name, 'income_scenario_completed')
 })
 
 test('income completion storage failure returns 202 without marketing delivery', async () => {
