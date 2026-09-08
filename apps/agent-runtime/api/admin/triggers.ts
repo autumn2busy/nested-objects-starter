@@ -4,6 +4,7 @@ import {
   parseAdminTriggerRequest,
   readAdminJson,
   syntheticRequestedAtForKey,
+  syntheticWorkflowIdempotencyKey,
   workflowForTrigger,
 } from '../../src/http/admin-contracts.js'
 import { verifyAdminServiceRequest } from '../../src/http/admin-request-auth.js'
@@ -43,7 +44,7 @@ export default {
       const trigger = parseAdminTriggerRequest(value)
       const workflowName = workflowForTrigger(trigger)
       const requestedAt = syntheticRequestedAtForKey(trigger.businessKey)
-      const idempotencyKey = `phase-c5:${workflowName}:${trigger.businessKey}`
+      const idempotencyKey = syntheticWorkflowIdempotencyKey(trigger)
       const correlationId = stableUuid('phase-c7-protected-trigger', idempotencyKey)
       const causationId = trigger.triggerCategory === 'event'
         ? stableUuid('phase-c7-source-event', trigger.sourceEventId)
@@ -71,6 +72,9 @@ export default {
         correlationId,
         triggerCategory: trigger.triggerCategory,
         fixtureMode: 'synthetic',
+        ...(trigger.triggerCategory === 'weekly' && trigger.fixtureScenario
+          ? { fixtureScenario: trigger.fixtureScenario }
+          : {}),
         mutationAllowed: false,
       }, 202, { 'x-correlation-id': correlationId })
     } catch (error) {

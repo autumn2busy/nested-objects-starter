@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { OperatingWorkflowName } from '../persistence/operating-workflow-store.js'
 
 export const ADMIN_BODY_LIMIT_BYTES = 32 * 1024
+export const SPECIALIST_REVIEW_SCENARIO = 'specialist-review-v1'
 
 export const EVENT_TRIGGER_TYPES = [
   'member_created',
@@ -41,6 +42,7 @@ export const adminTriggerRequestSchema = z.discriminatedUnion('triggerCategory',
     workflowName: z.literal('weekly_operating_review'),
     businessKey: stableKeySchema,
     fixtureMode: z.literal('synthetic'),
+    fixtureScenario: z.literal(SPECIALIST_REVIEW_SCENARIO).optional(),
   }).strict(),
   z.object({
     triggerCategory: z.literal('manual'),
@@ -64,6 +66,16 @@ export type AdminActionDecisionBody = z.infer<typeof adminActionDecisionSchema>
 export function workflowForTrigger(trigger: AdminTriggerRequest): OperatingWorkflowName {
   if (trigger.triggerCategory === 'event') return 'conversion_review'
   return trigger.workflowName
+}
+
+export function syntheticWorkflowIdempotencyKey(trigger: AdminTriggerRequest): string {
+  const workflowName = workflowForTrigger(trigger)
+  // Baseline keys are already persisted in staging. Never reinterpret those runs
+  // when adding a new fixture; the opt-in scenario owns a separate namespace.
+  const scenarioNamespace = trigger.triggerCategory === 'weekly' && trigger.fixtureScenario
+    ? `fixture:${trigger.fixtureScenario}:`
+    : ''
+  return `phase-c5:${workflowName}:${scenarioNamespace}${trigger.businessKey}`
 }
 
 export function syntheticRequestedAtForKey(businessKey: string): string {

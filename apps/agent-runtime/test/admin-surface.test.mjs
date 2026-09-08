@@ -16,6 +16,7 @@ import {
   payloadDigest,
   stableJson,
   syntheticRequestedAtForKey,
+  syntheticWorkflowIdempotencyKey,
   verifyAdminServiceRequest,
   workflowForTrigger,
 } from '../dist/index.js'
@@ -135,6 +136,30 @@ test('admin runtime fails closed before durable configuration in Production', ()
     () => loadAdminRuntimeConfiguration({ VERCEL_ENV: 'production', AGENT_ADMIN_ENABLED: 'true' }),
     AdminRuntimeConfigurationError,
   )
+})
+
+test('nonempty synthetic review is explicitly versioned, weekly-only, and separate from every baseline key', () => {
+  const baseline = {
+    triggerCategory: 'weekly',
+    workflowName: 'weekly_operating_review',
+    businessKey: 'synthetic-weekly:2026-09-08',
+    fixtureMode: 'synthetic',
+  }
+  assert.deepEqual(parseAdminTriggerRequest(baseline), baseline)
+  assert.equal(syntheticWorkflowIdempotencyKey(parseAdminTriggerRequest(baseline)),
+    'phase-c5:weekly_operating_review:synthetic-weekly:2026-09-08')
+  const scenario = parseAdminTriggerRequest({ ...baseline, fixtureScenario: 'specialist-review-v1' })
+  assert.equal(syntheticWorkflowIdempotencyKey(scenario),
+    'phase-c5:weekly_operating_review:fixture:specialist-review-v1:synthetic-weekly:2026-09-08')
+  for (const change of [
+    { fixtureScenario: 'specialist-review-v2' },
+    { fixtureScenario: 'live' },
+    { fixtureScenario: 'specialist-review-v1', metrics: [{ value: 999 }] },
+    { fixtureScenario: 'specialist-review-v1', triggerCategory: 'manual' },
+    { fixtureScenario: 'specialist-review-v1', triggerCategory: 'daily', workflowName: 'daily_business_health' },
+  ]) assert.throws(() => parseAdminTriggerRequest({ ...baseline, ...change }))
+  const daily = parseAdminTriggerRequest({ ...baseline, triggerCategory: 'daily', workflowName: 'daily_business_health' })
+  assert.equal(syntheticWorkflowIdempotencyKey(daily), 'phase-c5:daily_business_health:synthetic-weekly:2026-09-08')
 })
 
 test('owner decisions are replay-safe, compare-and-swap guarded, payload-bound, audited, and non-executing', async () => {

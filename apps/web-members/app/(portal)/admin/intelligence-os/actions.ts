@@ -41,6 +41,11 @@ export async function startSyntheticWorkflow(formData: FormData): Promise<never>
     verifyIntelligenceAdminFormToken(textField(formData, 'formToken'), 'trigger', session.subject)
     const triggerCategory = textField(formData, 'triggerCategory')
     const businessKey = stableKeyField(formData, 'businessKey')
+    const scenarioValues = formData.getAll('fixtureScenario')
+    const fixtureScenario = scenarioValues[0]
+    if (scenarioValues.length > 1 || (scenarioValues.length === 1 && (
+      fixtureScenario !== 'specialist-review-v1' || triggerCategory !== 'weekly'
+    ))) throw new Error('Unsupported synthetic scenario')
     let input: SyntheticTriggerInput
     if (triggerCategory === 'event') {
       const eventType = textField(formData, 'eventType')
@@ -65,12 +70,13 @@ export async function startSyntheticWorkflow(formData: FormData): Promise<never>
         workflowName: workflowName as SyntheticTriggerInput['workflowName'],
         businessKey,
         fixtureMode: 'synthetic',
+        ...(fixtureScenario === 'specialist-review-v1' ? { fixtureScenario } : {}),
       }
     }
     const result = await startSyntheticIntelligenceWorkflow(session, input)
     outcome = {
       kind: 'notice',
-      message: `${result.workflowName.replaceAll('_', ' ')} queued with synthetic evidence only.`,
+      message: `${result.workflowName.replaceAll('_', ' ')} queued with synthetic evidence only${fixtureScenario ? ' (specialist-review-v1; not live business results)' : ''}.`,
     }
   } catch (error) {
     outcome = { kind: 'error', message: intelligenceAdminErrorMessage(error) }
