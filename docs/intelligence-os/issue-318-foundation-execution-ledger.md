@@ -1455,5 +1455,4 @@ The OS read adapter must resolve the event's Outseta person subject to one canon
 
 Under Autumn's request to complete the onboarding, the acquisition owner was asked to prepare this exact local patch, its focused privacy/identity/idempotency/receipt/UI tests and its owned canonical JOURNEY evidence, while preserving unrelated work. No new task was created. No push, Production mutation, new AC event or send was delegated. The AC email-import approval remains pending separately. Producer implementation and adapter readiness remain unverified until their actual commits and tests return; this received contract is not implementation evidence.
 
-This coordination-only addition was made from clean, refreshed main 97a006b. Canonical validation, self-tests, base comparison and whitespace checks passed before publication; application code and live configuration were unchanged.
-
+This coordination-only addition was made from clean, refreshed main 97a006b. Canonical validation, self-tests and base comparison passed. The initial publication included an extra trailing blank line despite a failed whitespace check; the following formatting correction removes it and passes that check. Application code and live configuration were unchanged.
