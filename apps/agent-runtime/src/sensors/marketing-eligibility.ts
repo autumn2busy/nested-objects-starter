@@ -8,6 +8,15 @@ export const JOURNEY_PRIORITY: readonly MarketingJourney[] = [
   'free_to_pro', 'free_to_elite', 'reengagement', 'win_back',
 ]
 
+// The approved read adapter must resolve these IDs; tags and browser assertions
+// alone are not milestone evidence. This contract does not create or store events.
+export interface JourneyMilestoneEvidence {
+  memberId: string
+  lifecycleCycleId: string
+  sourceRecordId: string
+  occurredAt: string
+}
+
 export interface JourneyEligibilityInput {
   classification: MarketingContactClassificationResult
   now: string
@@ -16,7 +25,9 @@ export interface JourneyEligibilityInput {
   paidSince: string | null
   lifecycleCycleId: string | null
   onboarding: 'not_started' | 'active' | 'complete' | 'unknown'
-  activation: { approved: boolean; sourceRecordId: string; occurredAt: string } | null
+  onboardingChannel: 'in_app' | 'marketing_email' | null
+  onboardingCompletion: JourneyMilestoneEvidence | null
+  activation: (JourneyMilestoneEvidence & { approved: boolean }) | null
   profileInputs: { profile: boolean | null; geography: boolean | null; experience: boolean | null; inspectionTypes: boolean | null }
   expressedNeed: 'pro' | 'elite' | 'trial' | null
   offerApproved: boolean
@@ -51,6 +62,17 @@ export function evaluateMarketingJourneys(input: JourneyEligibilityInput): Journ
   const memberAge = daysSince(input.memberSince)
   const paidAge = daysSince(input.paidSince)
   const activationAge = daysSince(input.activation?.occurredAt ?? null)
+  const completionAge = daysSince(input.onboardingCompletion?.occurredAt ?? null)
+  const belongsToMemberCycle = (evidence: JourneyMilestoneEvidence | null): boolean =>
+    !!evidence && evidence.memberId === c.canonicalMemberId
+      && evidence.lifecycleCycleId === input.lifecycleCycleId
+      && !!evidence.sourceRecordId?.trim()
+  const activationVerified = input.activation?.approved === true
+    && belongsToMemberCycle(input.activation) && activationAge !== null
+    && memberAge !== null && activationAge <= memberAge
+  const completionVerified = belongsToMemberCycle(input.onboardingCompletion)
+    && completionAge !== null && memberAge !== null && completionAge <= memberAge
+    && activationVerified && activationAge !== null && completionAge <= activationAge
   const common: string[] = []
   if (!Number.isFinite(Date.parse(input.now))) common.push('invalid_observation_time')
   if (c.membershipTruthState !== 'known' || !c.canonicalMemberId) common.push('unknown_or_conflicting_membership')
@@ -68,8 +90,8 @@ export function evaluateMarketingJourneys(input: JourneyEligibilityInput): Journ
     if (isPromotion) {
       if (c.consent !== 'granted') reasons.push('marketing_consent_not_granted')
       if (memberAge === null || memberAge < 30) reasons.push('first_30_days_or_unknown_member_age')
-      if (input.onboarding !== 'complete') reasons.push('onboarding_incomplete_or_unknown')
-      if (!input.activation?.approved || !input.activation.sourceRecordId.trim() || activationAge === null) reasons.push('approved_first_value_missing')
+      if (input.onboarding !== 'complete' || !completionVerified) reasons.push('onboarding_incomplete_or_unknown')
+      if (!activationVerified) reasons.push('approved_first_value_missing')
       if (Object.values(input.profileInputs).some((value) => value !== true)) reasons.push('profile_inputs_incomplete')
       if (c.lifecycle === 'trialing') reasons.push('active_trial')
       if (!['active', 'canceled', 'inactive'].includes(c.lifecycle)) reasons.push('lifecycle_not_promotional')
@@ -83,6 +105,8 @@ export function evaluateMarketingJourneys(input: JourneyEligibilityInput): Journ
     }
     if (journey === 'payment_recovery' && c.lifecycle !== 'past_due') reasons.push('not_past_due')
     if (journey === 'onboarding') {
+      if (!['in_app', 'marketing_email'].includes(input.onboardingChannel ?? '')) reasons.push('onboarding_channel_unknown')
+      if (input.onboardingChannel === 'marketing_email' && c.consent !== 'granted') reasons.push('marketing_consent_not_granted')
       if (!['active', 'trialing'].includes(c.lifecycle)) reasons.push('not_active_or_trialing')
       if (!['not_started', 'active'].includes(input.onboarding)) reasons.push('onboarding_complete_or_unknown')
     }

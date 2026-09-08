@@ -24,8 +24,9 @@ function classify(contactChanges = {}, membershipChanges = {}, config = {}) {
 function eligibility(changes = {}) {
   return {
     classification: classify(), now, memberSince: dateAgo(60), paidSince: null,
-    lifecycleCycleId: 'synthetic-cycle', onboarding: 'complete',
-    activation: { approved: true, sourceRecordId: 'synthetic-approved-first-value', occurredAt: dateAgo(40) },
+    lifecycleCycleId: 'synthetic-cycle', onboarding: 'complete', onboardingChannel: 'in_app',
+    onboardingCompletion: { memberId: 'synthetic-member', lifecycleCycleId: 'synthetic-cycle', sourceRecordId: 'synthetic-completion', occurredAt: dateAgo(10) },
+    activation: { approved: true, memberId: 'synthetic-member', lifecycleCycleId: 'synthetic-cycle', sourceRecordId: 'synthetic-approved-first-value', occurredAt: dateAgo(20) },
     profileInputs: { profile: true, geography: true, experience: true, inspectionTypes: true },
     expressedNeed: 'pro', offerApproved: true, trialEligible: true, serviceDeliveryAllowed: true,
     meaningfulInactivityDays: 100,
@@ -118,6 +119,66 @@ test('first 30 days permit onboarding but exclude promotions; membership age is 
   assert.equal(decision(eligibility({ memberSince: dateAgo(30) }), 'free_to_pro').eligible, true)
 })
 
+test('day 30 alone never graduates incomplete onboarding or an unsupported completion label', () => {
+  for (const changes of [
+    { onboarding: 'active' }, { onboarding: 'not_started' },
+    { onboardingCompletion: null }, { onboardingCompletion: undefined },
+    { activation: null },
+  ]) {
+    const input = eligibility({ memberSince: dateAgo(30), ...changes })
+    for (const journey of ['free_to_pro', 'free_to_elite', 'trial_offer', 'reengagement', 'win_back']) {
+      assert.equal(decision(input, journey).eligible, false, journey)
+    }
+  }
+  assert.deepEqual(selected(eligibility({ memberSince: dateAgo(45), onboarding: 'active', onboardingCompletion: null, activation: null })), ['onboarding'])
+})
+
+test('graduation evidence must match the exact member and lifecycle cycle', () => {
+  for (const field of ['activation', 'onboardingCompletion']) {
+    for (const changes of [
+      { memberId: 'other-member' }, { memberId: undefined },
+      { lifecycleCycleId: 'prior-cycle' }, { lifecycleCycleId: undefined },
+      { sourceRecordId: '' }, { sourceRecordId: '   ' },
+    ]) {
+      const input = eligibility()
+      input[field] = { ...input[field], ...changes }
+      assert.equal(decision(input, 'free_to_pro').eligible, false, `${field}: ${JSON.stringify(changes)}`)
+    }
+  }
+})
+
+test('milestones must follow signup and completion must follow first value', () => {
+  for (const [field, days] of [
+    ['activation', 61], ['activation', -1], ['activation', NaN],
+    ['onboardingCompletion', 61], ['onboardingCompletion', 21],
+    ['onboardingCompletion', -1], ['onboardingCompletion', NaN],
+  ]) {
+    const input = eligibility()
+    input[field] = { ...input[field], occurredAt: Number.isNaN(days) ? 'invalid' : dateAgo(days) }
+    assert.equal(decision(input, 'free_to_pro').eligible, false, `${field}: ${days}`)
+  }
+  const input = eligibility({ memberSince: dateAgo(30) })
+  input.activation.occurredAt = now
+  input.onboardingCompletion.occurredAt = now
+  assert.equal(decision(input, 'free_to_pro').eligible, true)
+  input.memberSince = dateAgo(30 - 1 / 86400000)
+  assert.equal(decision(input, 'free_to_pro').eligible, false)
+})
+
+test('late completion permits review only after both gates, with all plan and consent exclusions retained', () => {
+  const input = eligibility({ memberSince: dateAgo(45) })
+  input.activation.occurredAt = dateAgo(1)
+  input.onboardingCompletion.occurredAt = now
+  assert.equal(decision(input, 'free_to_pro').eligible, true)
+  for (const tier of ['starter', 'founders', 'pro', 'elite', 'agency']) {
+    assert.equal(decision({ ...input, classification: classify({}, { membershipTier: tier }) }, 'free_to_pro').eligible, false)
+  }
+  for (const contactChanges of [{ unsubscribed: true }, { bounced: true }, { marketingConsent: 'unknown' }]) {
+    assert.equal(decision({ ...input, classification: classify(contactChanges) }, 'free_to_pro').eligible, false)
+  }
+  assert.ok(evaluateMarketingJourneys(input).every(result => result.mutationAllowed === false))
+})
+
 test('promotion guards each fail closed without accidentally blocking necessary service', () => {
   for (const changes of [
     { onboarding: 'active' }, { onboarding: 'unknown' }, { memberSince: null },
@@ -132,6 +193,20 @@ test('promotion guards each fail closed without accidentally blocking necessary 
   const service = eligibility({ classification: classify({ unsubscribed: true }), memberSince: dateAgo(1), onboarding: 'active' })
   assert.deepEqual(selected(service), ['onboarding'])
   assert.deepEqual(selected({ ...service, serviceDeliveryAllowed: false }), [])
+})
+
+test('email onboarding respects consent while in-app guidance remains available', () => {
+  for (const contactChanges of [{ unsubscribed: true }, { bounced: true }, { marketingConsent: 'unknown' }]) {
+    const input = eligibility({ classification: classify(contactChanges), memberSince: dateAgo(1), onboarding: 'active' })
+    assert.equal(decision(input, 'onboarding').eligible, true)
+    assert.equal(decision({ ...input, onboardingChannel: 'marketing_email' }, 'onboarding').eligible, false)
+  }
+  const input = eligibility({ memberSince: dateAgo(1), onboarding: 'active', onboardingChannel: 'marketing_email' })
+  assert.equal(decision(input, 'onboarding').eligible, true)
+  assert.equal(decision({ ...input, serviceDeliveryAllowed: false }, 'onboarding').eligible, false)
+  for (const onboardingChannel of [null, undefined, 'unrecognized']) {
+    assert.equal(decision({ ...input, onboardingChannel }, 'onboarding').eligible, false)
+  }
 })
 
 test('new-paid, trial, past-due and unknown paid age cannot receive promotional reengagement', () => {
@@ -190,7 +265,10 @@ test('sensor integrates eligibility without trusting caller classification or in
     contact: { ...contact(), contactId: id }, membership: { ...membership(), activeCampaignContactId: id, memberId: id },
     planLabel: 'Free', automationIds: [], onboardingEnteredAt: now, purchaseObservedAt: null,
     currentEngagementCount: null, priorEngagementCount: null, highIntentScore: null,
-    journeyContext: { ...eligibility(), classification: classify({}, { membershipTier: 'elite' }) },
+    journeyContext: { ...eligibility(),
+      activation: { ...eligibility().activation, memberId: id },
+      onboardingCompletion: { ...eligibility().onboardingCompletion, memberId: id },
+      classification: classify({}, { membershipTier: 'elite' }) },
   })
   const input = { sensorRunId: 'synthetic-eligibility', provenanceMode: 'fixture', observedAt: now,
     contacts: [makeObservation('synthetic-b'), makeObservation('synthetic-a')], automations: [],
