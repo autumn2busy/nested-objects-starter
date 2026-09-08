@@ -18,12 +18,6 @@ function optionalString(value: string | undefined): string | null {
   return normalized ? normalized : null
 }
 
-function requiredString(value: string | undefined, name: string): string {
-  const normalized = optionalString(value)
-  if (!normalized) throw new ContractValidationError(`${name} is required`, { name })
-  return normalized
-}
-
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
   if (value === undefined || value.trim() === '') return defaultValue
   const normalized = value.trim().toLowerCase()
@@ -85,7 +79,7 @@ export function loadRuntimeConfiguration(
     if (!openAiApiKey) throw new ContractValidationError('OPENAI_API_KEY is required when model execution is enabled')
     model = {
       provider: 'openai',
-      model: requiredString(environment.OPENAI_AGENT_MODEL, 'OPENAI_AGENT_MODEL'),
+      model: optionalString(environment.OPENAI_AGENT_MODEL) ?? 'gpt-6-astra',
       maxTurns: parseInteger(environment.OPENAI_AGENT_MAX_TURNS, 4, 'OPENAI_AGENT_MAX_TURNS'),
       modelExecutionEnabled: true,
       persistPrivateReasoning: false,
