@@ -21,6 +21,7 @@ function loadRoute({
   storageError = null,
   storageThrows = false,
   notification = null,
+  environment = {},
   profileError = null,
   rateLimitError = null,
 } = {}) {
@@ -31,6 +32,7 @@ function loadRoute({
     warnings: [],
     limits: [],
     notifications: [],
+    oauth: [],
     notificationTimeouts: [],
     writes: [],
   }
@@ -56,20 +58,25 @@ function loadRoute({
       }
     },
   }
-  const source = readFileSync(new URL('../app/api/contact/route.ts', import.meta.url), 'utf8')
-  const code = ts.transpileModule(source, {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText
-  const exports = {}
-  vm.runInNewContext(code, {
-    exports,
+  const globals = {
     Request,
     Response,
-    process: { env: notification ? { N8N_AI_CONCIERGE_WEBHOOK_URL: 'https://synthetic.invalid/contact' } : {} },
+    Buffer,
+    URLSearchParams,
+    process: { env: {
+      ...(notification ? {
+        CONTACT_EMAIL_ENABLED: 'true',
+        VERCEL_ENV: 'production',
+        CONTACT_GMAIL_CLIENT_ID: 'synthetic-client',
+        CONTACT_GMAIL_CLIENT_SECRET: 'synthetic-secret',
+        CONTACT_GMAIL_REFRESH_TOKEN: 'synthetic-refresh',
+      } : {}),
+      ...environment,
+    } },
     AbortSignal: {
       timeout(milliseconds) {
         calls.notificationTimeouts.push(milliseconds)
-        return { syntheticTimeoutSignal: true }
+        return { throwIfAborted() {} }
       },
     },
     console: {
@@ -77,12 +84,20 @@ function loadRoute({
       warn: (...args) => calls.warnings.push(clone(args)),
     },
     fetch: async (url, options) => {
+      assert.equal(calls.writes.length, 1, 'storage must precede every provider request')
+      if (url === 'https://oauth2.googleapis.com/token') {
+        calls.oauth.push(url)
+        return Response.json({ access_token: 'synthetic-access', token_type: 'Bearer', expires_in: 3600 })
+      }
+      assert.equal(url, 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send')
       calls.notifications.push(clone({ url, options: { ...options, signal: undefined } }))
       return notification(url, options)
     },
     require(name) {
       const imports = {
-        crypto: { createHash: require('node:crypto').createHash },
+        'server-only': {},
+        crypto: require('node:crypto'),
+        'node:buffer': { Buffer },
         'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
         '@/lib/auth-server': {
           getCurrentUser: async () => {
@@ -108,10 +123,26 @@ function loadRoute({
           isRateLimitUnavailableError: error => error?.code === 'RATE_LIMIT_BACKEND_UNAVAILABLE',
         },
       }
+      const localModules = {
+        '@/lib/contact-email-message': '../lib/contact-email-message.ts',
+        './contact-email-message': '../lib/contact-email-message.ts',
+        '@/lib/contact-email-sender': '../lib/contact-email-sender.ts',
+      }
+      if (Object.hasOwn(localModules, name)) return loadModule(localModules[name])
       assert.ok(Object.hasOwn(imports, name), `Unexpected import: ${name}`)
       return imports[name]
     },
-  })
+  }
+  function loadModule(path) {
+    const source = readFileSync(new URL(path, import.meta.url), 'utf8')
+    const code = ts.transpileModule(source, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText
+    const exports = {}
+    vm.runInNewContext(code, { ...globals, exports })
+    return exports
+  }
+  const exports = loadModule('../app/api/contact/route.ts')
 
   function post(submission = VALID_SUBMISSION, { rawBody, headers = {} } = {}) {
     return exports.POST(new Request('https://synthetic.invalid/api/contact', {
@@ -128,6 +159,8 @@ test('invalid scalar values, email, topic and lengths are rejected before auth o
   const invalidBodies = [
     { ...VALID_SUBMISSION, name: ['Private Person'] },
     { ...VALID_SUBMISSION, email: 'not-an-email' },
+    { ...VALID_SUBMISSION, email: 'private@example.test,second@example.test' },
+    { ...VALID_SUBMISSION, email: 'private@example.test\r\nBcc: second@example.test' },
     { ...VALID_SUBMISSION, topic: 'Unapproved topic' },
     { ...VALID_SUBMISSION, name: 'x'.repeat(121) },
     { ...VALID_SUBMISSION, message: 'x'.repeat(5_001) },
@@ -194,6 +227,7 @@ test('durable storage error returns truthful state and never attempts notificati
     error: 'We could not receive your message. Please try again.',
   })
   assert.equal(harness.calls.notifications.length, 0)
+  assert.equal(harness.calls.oauth.length, 0)
   assert.deepEqual(harness.calls.errors, [['[CONTACT_DB_WRITE_FAILED]']])
 })
 
@@ -221,15 +255,16 @@ test('stored submission uses no Outseta subject as the Supabase auth UUID', asyn
     message: 'Thank you for reaching out. Your message has been received.',
   })
   assert.equal(harness.calls.writes[0].user_id, null)
+  assert.match(harness.calls.writes[0].id, /^[a-f0-9-]{36}$/)
   assert.equal(harness.calls.writes[0].profile_id, 'synthetic-profile')
   assert.deepEqual(harness.calls.errors, [])
 })
 
-test('successful storage awaits the bounded webhook and reports acceptance only', async () => {
+test('successful storage awaits direct email acceptance with the stored receipt ID', async () => {
   let releaseNotification
   let completed = false
   const notification = () => new Promise(resolve => {
-    releaseNotification = () => resolve(new Response(null, { status: 204 }))
+    releaseNotification = () => resolve(Response.json({ id: 'synthetic-message' }))
   })
   const harness = loadRoute({ notification })
   const responsePromise = harness.post().then(response => {
@@ -245,17 +280,20 @@ test('successful storage awaits the bounded webhook and reports acceptance only'
   const body = await response.json()
 
   assert.equal(body.stored, true)
-  assert.equal(body.notification, 'webhook_accepted')
+  assert.equal(body.notification, 'provider_accepted')
   const payload = JSON.parse(harness.calls.notifications[0].options.body)
-  assert.deepEqual(Object.keys(payload.submission), ['name', 'email', 'topic', 'message'])
-  assert.equal('profileId' in payload.submission, false)
-  assert.equal('outsetaId' in payload.submission, false)
+  const mime = Buffer.from(payload.raw, 'base64url').toString('utf8')
+  assert.match(mime, /To: info@nestedobjects\.com\r\n/)
+  assert.match(mime, /Reply-To: private@example\.test\r\n/)
+  assert.ok(mime.includes(`<contact-${harness.calls.writes[0].id}@nestedobjects.com>`))
+  assert.equal(mime.includes('synthetic-profile'), false)
+  assert.equal(mime.includes('synthetic-outseta-subject'), false)
 })
 
 test('notification rejection and timeout preserve stored truth without PII logs', async () => {
-  for (const [error, expectedReason] of [
-    [new Error('private@example.test'), 'request_error'],
-    [Object.assign(new Error('private@example.test'), { name: 'TimeoutError' }), 'timeout'],
+  for (const error of [
+    new Error('private@example.test'),
+    Object.assign(new Error('private@example.test'), { name: 'TimeoutError' }),
   ]) {
     const harness = loadRoute({ notification: async () => { throw error } })
     const response = await harness.post()
@@ -264,12 +302,13 @@ test('notification rejection and timeout preserve stored truth without PII logs'
     assert.equal(response.status, 200)
     assert.equal(body.stored, true)
     assert.equal(body.notification, 'failed')
-    assert.deepEqual(harness.calls.errors, [['[CONTACT_NOTIFICATION_FAILED]', { reason: expectedReason }]])
-    assert.equal(JSON.stringify(harness.calls.errors).includes('private@example.test'), false)
+    assert.deepEqual(harness.calls.warnings, [['[CONTACT_NOTIFICATION]', { state: 'failed', reason: 'request_failed' }]])
+    assert.equal(JSON.stringify([harness.calls.errors, harness.calls.warnings]).includes('private@example.test'), false)
+    assert.equal(harness.calls.notifications.length, 1, 'do not retry ambiguous sends')
   }
 })
 
-test('non-success webhook response is reported without claiming notification delivery', async () => {
+test('non-success provider response is reported without claiming notification delivery', async () => {
   const harness = loadRoute({ notification: async () => new Response(null, { status: 502 }) })
   const response = await harness.post()
   const body = await response.json()
@@ -277,5 +316,33 @@ test('non-success webhook response is reported without claiming notification del
   assert.equal(response.status, 200)
   assert.equal(body.stored, true)
   assert.equal(body.notification, 'failed')
-  assert.deepEqual(harness.calls.errors, [['[CONTACT_NOTIFICATION_FAILED]', { status: 502 }]])
+  assert.deepEqual(harness.calls.warnings, [['[CONTACT_NOTIFICATION]', { state: 'failed', reason: 'send_rejected' }]])
+})
+
+test('retired n8n configuration never receives contact submissions', async () => {
+  const harness = loadRoute({ environment: {
+    N8N_AI_CONCIERGE_WEBHOOK_URL: 'https://retired.invalid/contact',
+  } })
+  const response = await harness.post()
+  assert.equal((await response.json()).notification, 'not_configured')
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.notifications.length, 0)
+  assert.equal(harness.calls.oauth.length, 0)
+})
+
+test('Preview and disabled sending still save receipts without contacting Google', async () => {
+  for (const environment of [
+    { VERCEL_ENV: 'preview' },
+    { CONTACT_EMAIL_ENABLED: 'false' },
+  ]) {
+    const harness = loadRoute({
+      environment,
+      notification: () => { throw new Error('must not send') },
+    })
+    const body = await (await harness.post()).json()
+    assert.equal(body.stored, true)
+    assert.equal(body.notification, 'not_configured')
+    assert.equal(harness.calls.notifications.length, 0)
+    assert.equal(harness.calls.oauth.length, 0)
+  }
 })
