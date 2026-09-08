@@ -1,15 +1,12 @@
-import { ProfileUpdateData } from '@/app/api/webhooks/outseta/route';
+import type { ProfileUpdateData } from '@/app/api/webhooks/outseta/route';
 import { env } from '@/lib/env';
 import { createServiceRoleClient } from '@/lib/supabase-admin';
+import { AcSyncError, AcSyncRun, type SyncResult } from '@/lib/active-campaign-sync-result';
 
 const AC_API_URL = env.acApiUrl;
 const AC_API_KEY = env.acApiKey;
 const AC_CONNECTION_ID = env.acConnectionId;
 const AC_MEMBERSHIP_RENEWAL_FIELD_ID = env.acMembershipRenewalFieldId || '187';
-
-interface SyncResult {
-    logs: string[];
-}
 
 type BillingInterval = 'MONTHLY' | 'YEARLY';
 
@@ -172,379 +169,275 @@ function formatAcDate(value: string) {
 }
 
 /**
- * Main orchestrator: Syncs Contact -> Customer -> Order -> Recurring Payment
+ * Keep the existing webhook's contact/tag/ecommerce path. Membership events
+ * carry no marketing opt-in, so this path never writes list consent.
  */
 export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promise<SyncResult> {
-    const logs: string[] = [];
-    const supabase = createServiceRoleClient();
-
+    const run = new AcSyncRun();
     if (!AC_API_URL || !AC_API_KEY || !AC_CONNECTION_ID) {
-        logs.push("Missing AC credentials in env.");
-        return { logs };
+        run.record('configuration', 'failed', 'missing_configuration');
+        return run.result();
     }
 
-    try {
-        // 0. Fetch existing IDs from Supabase
-        const { data: dbProfile, error: dbError } = await supabase
-            .from('profiles')
-            .select('ac_contact_id, ac_customer_id, outseta_account_id, subscription_tier, subscription_start_date, subscription_end_date, plan_uid, plan_name, billing_renewal_term')
-            .eq('user_email', profile.user_email)
-            .single() as { data: StoredMembershipContext | null; error: any };
+    await run.attempt('orchestration', async () => {
+        const supabase = createServiceRoleClient();
+        const stored = await run.attempt('profile_context', async () => {
+            const { data, error } = await supabase.from('profiles')
+                .select('ac_contact_id, ac_customer_id, outseta_person_uid, outseta_account_id, subscription_tier, subscription_start_date, subscription_end_date, plan_uid, plan_name, billing_renewal_term')
+                .eq('user_email', profile.user_email).single();
+            // The route has already saved this profile. PGRST116 may mean zero
+            // OR multiple rows, so it cannot authorize an identity fallback.
+            if (error || !data) throw new AcSyncError('profile_read_failed');
+            if (data?.outseta_person_uid && data.outseta_person_uid !== profile.outseta_person_uid) {
+                throw new AcSyncError('profile_identity_conflict');
+            }
+            return { profile: data as StoredMembershipContext | null };
+        });
+        if (!stored) {
+            run.record('contact', 'blocked', 'profile_context_unavailable');
+            return;
+        }
+        const dbProfile = stored.profile;
+        const syncProfile = preserveStoredMembershipContext(profile, dbProfile, run.logs);
+        const contactId = await run.attempt('contact', async () => {
+            const id = await syncContact(syncProfile);
+            if (dbProfile?.ac_contact_id && String(dbProfile.ac_contact_id) !== id) {
+                throw new AcSyncError('contact_identity_conflict');
+            }
+            return id;
+        });
+        if (!contactId) {
+            run.record('contact_dependents', 'blocked', 'contact_unavailable');
+            return;
+        }
+        if (String(dbProfile?.ac_contact_id ?? '') !== contactId) {
+            await run.attempt('contact_link', async () => {
+                const { error } = await supabase.from('profiles').update({ ac_contact_id: contactId }).eq('user_email', profile.user_email);
+                if (error) throw new AcSyncError('profile_write_failed');
+            });
+        }
+        run.record('list_consent', 'skipped', 'membership_is_not_opt_in');
 
-        if (dbError && dbError.code !== 'PGRST116') {
-            logs.push(`Error fetching profile from DB: ${dbError.message}`);
+        const customerId = await run.attempt('customer', () => syncEcommerceCustomer(syncProfile, dbProfile?.ac_customer_id));
+        if (customerId && String(dbProfile?.ac_customer_id ?? '') !== customerId) {
+            await run.attempt('customer_link', async () => {
+                const { error } = await supabase.from('profiles').update({ ac_customer_id: customerId }).eq('user_email', profile.user_email);
+                if (error) throw new AcSyncError('profile_write_failed');
+            });
         }
 
-        let contactId = dbProfile?.ac_contact_id;
-        let customerId = dbProfile?.ac_customer_id;
-        const syncProfile = preserveStoredMembershipContext(profile, dbProfile, logs);
-
-        // 1. Sync Contact (if missing ID or just to update)
-        // We always sync to ensure fields are up to date
-        const syncedContactId = await syncContact(syncProfile, logs);
-        if (syncedContactId) {
-            if (contactId !== syncedContactId) {
-                contactId = syncedContactId;
-                await supabase.from('profiles').update({ ac_contact_id: contactId }).eq('user_email', profile.user_email);
-                logs.push(`Saved AC Contact ID to DB: ${contactId}`);
-            }
-        } else if (!contactId) {
-            logs.push("Failed to sync Contact and no ID in DB. Aborting.");
-            return { logs };
-        }
-
-        // 1b. Add Contact to List (list=12, status=1)
-        await addContactToList(contactId!, 12, 1, logs);
-
-        // 2. Sync Ecommerce Customer
-        const syncedCustomerId = await syncEcommerceCustomer(syncProfile, logs);
-        if (syncedCustomerId) {
-            if (customerId !== syncedCustomerId) {
-                customerId = syncedCustomerId;
-                await supabase.from('profiles').update({ ac_customer_id: customerId }).eq('user_email', profile.user_email);
-                logs.push(`Saved AC Customer ID to DB: ${customerId}`);
-            }
+        // Customer failure must not prevent independent membership tag sync.
+        await syncTags(contactId, syncProfile, run);
+        if (!isPaidTier(syncProfile) || !syncProfile.plan_uid) {
+            run.record('order', 'skipped', 'free_or_no_plan');
+            run.record('recurring', 'skipped', 'free_or_no_plan');
         } else if (!customerId) {
-            logs.push("Failed to sync Customer and no ID in DB. Aborting.");
-            return { logs };
-        }
-
-        // 3. Sync Tags
-        await syncTags(contactId!, syncProfile, logs);
-
-        // 4. Sync Order purchase history (if paid). This powers AC ecommerce revenue history.
-        const isPaid = isPaidTier(syncProfile);
-        let orderId: string | null = null;
-
-        if (isPaid && syncProfile.plan_uid) {
-            orderId = await syncEcommerceOrder(syncProfile, customerId!, logs);
+            run.record('order', 'blocked', 'customer_unavailable');
+            run.record('recurring', 'blocked', 'customer_unavailable');
         } else {
-            logs.push("Skipping Order sync (Free plan or no plan UID)");
-        }
-
-        // 5. Sync Recurring Payment subscription state independently of the order result.
-        // Both are downstream mirrors. Outseta remains membership authority and
-        // Stripe remains settled-payment authority. Unknown lifecycle cannot be ACTIVE.
-        if (isPaid && syncProfile.plan_uid && syncProfile.subscription_status) {
-            const recurringPaymentSynced = await syncRecurringPayment(syncProfile, customerId!, orderId, logs);
-            if (recurringPaymentSynced) {
-                const { nextPaymentDate } = getSubscriptionDates(syncProfile);
-                await syncMembershipRenewalField(contactId!, nextPaymentDate, logs);
-            }
-        } else {
-            logs.push("Skipping Recurring Payment sync (Free plan, no plan UID, or unknown lifecycle)");
-        }
-
-        logs.push("Deep Data sync complete.");
-
-    } catch (error: any) {
-        logs.push(`Error in syncFullProfileDeepData: ${error.message}`);
-        console.error(error);
-    }
-
-    return { logs };
-}
-
-async function syncContact(profile: ProfileUpdateData, logs: string[]): Promise<string | null> {
-    const url = `${AC_API_URL}/api/3/contact/sync`;
-
-    // Construct payload
-    const payload = {
-        contact: {
-            email: profile.email,
-            firstName: profile.first_name || '',
-            lastName: profile.last_name || '',
-            phone: profile.phone || '',
-        }
-    };
-
-    try {
-        logs.push(`Syncing Contact: ${profile.email}`);
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.contact) {
-            return data.contact.id; // Returns ID as string or number
-        }
-        logs.push(`AC Contact Sync response: ${JSON.stringify(data)}`);
-        return null;
-    } catch (e) {
-        logs.push(`Error syncing contact: ${e}`);
-        return null;
-    }
-}
-
-async function syncEcommerceCustomer(profile: ProfileUpdateData, logs: string[]): Promise<string | null> {
-    const url = `${AC_API_URL}/api/3/ecomCustomers`;
-    const externalId = profile.outseta_person_uid;
-
-    const payload = {
-        ecomCustomer: {
-            connectionid: AC_CONNECTION_ID,
-            externalid: externalId,
-            email: profile.email,
-            acceptsMarketing: 1,
-        }
-    };
-
-    try {
-        logs.push(`Syncing Customer: ${profile.email}`);
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-
-        if (data.ecomCustomer) {
-            return data.ecomCustomer.id;
-        } else {
-            // Customer likely already exists (duplicate). Try GET by email.
-            logs.push(`Customer create returned non-standard response, trying GET fallback...`);
-            try {
-                const getUrl = `${AC_API_URL}/api/3/ecomCustomers?filters[email]=${encodeURIComponent(profile.email)}`;
-                const getRes = await fetch(getUrl, {
-                    method: 'GET',
-                    headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
-                });
-                const getData = await getRes.json();
-                if (getData.ecomCustomers && getData.ecomCustomers.length > 0) {
-                    const match = getData.ecomCustomers.find((c: any) => String(c.connectionid) === String(AC_CONNECTION_ID));
-                    if (match) {
-                        logs.push(`Found existing customer via GET for connection ${AC_CONNECTION_ID}: ${match.id}`);
-                        return match.id;
-                    } else {
-                        logs.push(`Found customers via GET but none matched connection ${AC_CONNECTION_ID}.`);
-                    }
+            await run.attempt('order', () => syncEcommerceOrder(syncProfile, customerId));
+            if (!syncProfile.subscription_status) {
+                run.record('recurring', 'skipped', 'unknown_lifecycle');
+            } else {
+                // The GraphQL response is a submission receipt, not proof of completion.
+                const submitted = await run.attempt('recurring', () => syncRecurringPayment(syncProfile), 'submitted');
+                if (submitted) {
+                    await run.attempt('renewal_field', () => syncMembershipRenewalField(contactId, getSubscriptionDates(syncProfile).nextPaymentDate));
+                } else {
+                    run.record('renewal_field', 'blocked', 'recurring_not_submitted');
                 }
-            } catch (fetchErr) {
-                logs.push(`Error fetching existing customer: ${fetchErr}`);
             }
-            logs.push(`AC Customer Sync failed: ${JSON.stringify(data)}`);
-            return null;
         }
-    } catch (e) {
-        logs.push(`Error syncing customer: ${e}`);
-        return null;
+    });
+    return run.result();
+}
+
+async function acRequest(path: string, method = 'GET', body?: unknown): Promise<Response> {
+    try {
+        return await fetch(`${AC_API_URL}/api/3/${path}`, {
+            method, redirect: 'error',
+            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+            signal: AbortSignal.timeout(10_000),
+        });
+    } catch {
+        // Includes uncertain write outcomes. A caller must read back before retry.
+        throw new AcSyncError('transport_failure');
     }
 }
 
-async function syncTags(contactId: string, profile: ProfileUpdateData, logs: string[]) {
-    // 1. Determine correct tags
-    // For founders tier, use 'founder' to match AC tag 'plan-founder' exactly
+async function readJson(response: Response): Promise<any> {
+    if (!response.ok) throw new AcSyncError('http_error', response.status);
+    try { return await response.json(); }
+    catch { throw new AcSyncError('invalid_response'); }
+}
+
+async function acJson(path: string, method = 'GET', body?: unknown): Promise<any> {
+    return readJson(await acRequest(path, method, body));
+}
+
+function requireId(value: unknown): string {
+    if (!/^[1-9]\d*$/.test(String(value ?? ''))) throw new AcSyncError('invalid_response_id');
+    return String(value);
+}
+
+async function syncContact(profile: ProfileUpdateData): Promise<string> {
+    const data = await acJson('contact/sync', 'POST', { contact: {
+        email: profile.email, firstName: profile.first_name || '',
+        lastName: profile.last_name || '', phone: profile.phone || '',
+    } });
+    return requireId(data.contact?.id);
+}
+
+async function syncEcommerceCustomer(profile: ProfileUpdateData, storedId?: string | null): Promise<string> {
+    const matchesIdentity = (customer: any) =>
+        String(customer?.externalid) === profile.outseta_person_uid &&
+        String(customer?.connectionid) === String(AC_CONNECTION_ID);
+    const verifyEmailLink = (customer: any) => {
+        // AC attaches an ecommerce customer to a contact by email. This is only
+        // a transport consistency check, never evidence of membership authority.
+        if (typeof customer?.email !== 'string' || customer.email.trim().toLowerCase() !== profile.email.trim().toLowerCase()) {
+            throw new AcSyncError('customer_contact_link_conflict');
+        }
+    };
+    if (storedId) {
+        const data = await acJson(`ecomCustomers/${requireId(storedId)}`);
+        if (!matchesIdentity(data.ecomCustomer)) throw new AcSyncError('customer_identity_conflict');
+        verifyEmailLink(data.ecomCustomer);
+        // Do not overwrite existing acceptsMarketing, including unknown/opted-out.
+        return requireId(data.ecomCustomer.id);
+    }
+    const path = `ecomCustomers?filters[externalid]=${encodeURIComponent(profile.outseta_person_uid)}&filters[connectionid]=${encodeURIComponent(AC_CONNECTION_ID!)}&limit=100&offset=0`;
+    const find = async () => {
+        const data = await acJson(path);
+        if (!Array.isArray(data.ecomCustomers) || data.meta?.total == null ||
+            !/^\d+$/.test(String(data.meta.total)) ||
+            Number(data.meta.total) !== data.ecomCustomers.length) {
+            throw new AcSyncError('customer_lookup_incomplete');
+        }
+        if (data.ecomCustomers.length > 1 || data.ecomCustomers.some((item: any) => !matchesIdentity(item))) {
+            throw new AcSyncError('customer_identity_conflict');
+        }
+        if (data.ecomCustomers[0]) verifyEmailLink(data.ecomCustomers[0]);
+        return data.ecomCustomers[0] ? requireId(data.ecomCustomers[0].id) : null;
+    };
+    const existing = await find();
+    if (existing) return existing;
+
+    // New mirrors get no asserted marketing permission. Only an explicit,
+    // separately approved consent flow may grant it; this webhook never does.
+    const response = await acRequest('ecomCustomers', 'POST', { ecomCustomer: {
+        connectionid: AC_CONNECTION_ID, externalid: profile.outseta_person_uid,
+        email: profile.email, acceptsMarketing: 0,
+    } });
+    if ([400, 409, 422].includes(response.status)) {
+        const concurrent = await find();
+        if (concurrent) return concurrent;
+    }
+    const data = await readJson(response);
+    if (!matchesIdentity(data.ecomCustomer)) throw new AcSyncError('customer_identity_conflict');
+    return requireId(data.ecomCustomer.id);
+}
+
+interface ContactTag { id: string; tag: string; name: string | null }
+
+async function readContactTags(contactId: string): Promise<ContactTag[]> {
+    const data = await acJson(`contacts/${contactId}/contactTags?include=tag`);
+    if (!Array.isArray(data.contactTags)) throw new AcSyncError('tag_read_invalid');
+    const names = new Map<string, string>();
+    if (Array.isArray(data.tags)) {
+        for (const tag of data.tags) if (typeof tag.tag === 'string') names.set(String(tag.id), tag.tag);
+    }
+    return data.contactTags.map((tag: any) => {
+        if (String(tag.contact) !== contactId) throw new AcSyncError('tag_identity_conflict');
+        return { id: requireId(tag.id), tag: requireId(tag.tag), name: names.get(String(tag.tag)) ?? null };
+    });
+}
+
+async function syncTags(contactId: string, profile: ProfileUpdateData, run: AcSyncRun) {
     const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
     const expectedTierTag = shouldSyncPlanTag(profile) ? `plan-${tagTier}` : null;
     const expectedStatusTag = profile.subscription_status ? `status-${profile.subscription_status}` : null;
-
-    // 2. Fetch existing contact tags to remove conflicts
-    try {
-        const getUrl = `${AC_API_URL}/api/3/contacts/${contactId}/contactTags?include=tag`;
-        const res = await fetch(getUrl, {
-            headers: { 'Api-Token': AC_API_KEY! }
-        });
-        const data = await res.json();
-        if (data.contactTags && data.tags) {
-            // Create map of tag ID to tag name
-            const tagsMap = new Map<string, string>();
-            for (const t of data.tags) {
-                tagsMap.set(String(t.id), t.tag);
-            }
-
-            // Loop associations
-            for (const ct of data.contactTags) {
-                const tagName = tagsMap.get(String(ct.tag));
-                if (!tagName) continue;
-
-                const nameLower = tagName.toLowerCase();
-
-                // If it's a plan tag but not the expected one, remove it.
-                // Ambiguous person-only Outseta payloads do not carry plan data, so leave
-                // existing plan tags untouched until a concrete membership payload arrives.
-                if (nameLower.startsWith('plan-') && expectedTierTag && nameLower !== expectedTierTag.toLowerCase()) {
-                    await removeTagFromContact(ct.id, tagName, logs);
-                }
-
-                // If it's a status tag but not the expected one, remove it
-                if (nameLower.startsWith('status-') && expectedStatusTag && nameLower !== expectedStatusTag.toLowerCase()) {
-                    await removeTagFromContact(ct.id, tagName, logs);
-                }
-            }
+    const existing = await run.attempt('tag_read', () => readContactTags(contactId));
+    // Relationship endpoints have no verified pagination total. Positive matches
+    // can prevent redundant writes; missing rows never prove absence.
+    for (const [dimension, expected] of [['plan', expectedTierTag], ['status', expectedStatusTag]] as const) {
+        if (!expected) {
+            run.record(`tag_${dimension}`, 'skipped', 'unknown_membership_dimension');
+            continue;
         }
-    } catch (e) {
-        logs.push(`[Tag Cleanup] Error fetching existing tags: ${e}`);
+        const added = await run.attempt(`tag_${dimension}`, () => addTagToContact(contactId, expected, existing));
+        const conflicts = existing?.filter(tag => tag.name?.toLowerCase().startsWith(dimension + '-') &&
+            tag.name.toLowerCase() !== expected.toLowerCase()) ?? [];
+        if (!added) {
+            if (conflicts.length) run.record(`tag_${dimension}_cleanup`, 'blocked', 'replacement_not_confirmed');
+            continue;
+        }
+        // Preserve the existing narrow cleanup path, but never delete first.
+        for (const conflict of conflicts) {
+            await run.attempt(`tag_${dimension}_cleanup`, async () => {
+                const response = await acRequest(`contactTags/${conflict.id}`, 'DELETE');
+                if (!response.ok) throw new AcSyncError('http_error', response.status);
+            });
+        }
     }
+    if (existing?.some(tag => !tag.name)) run.record('tag_cleanup_coverage', 'blocked', 'tag_names_unavailable');
+    // Do not call partial relationship coverage a complete historical cleanup.
+    run.record('tag_history_coverage', 'skipped', 'unverified_relationship_pagination');
+    await run.attempt('tag_membership_source', () => addTagToContact(contactId, 'antigravity-subscription', existing));
+    await run.attempt('tag_launch', () => addTagToContact(contactId, 'launch-2026-03-01', existing));
 
-    // 3. Add expected tags
-    if (expectedTierTag) {
-        await addTagToContact(contactId, expectedTierTag, logs);
-    } else {
-        logs.push("[Tag] Skipping plan tag sync because the Outseta payload has no concrete plan");
-    }
-
-    if (expectedStatusTag) {
-        await addTagToContact(contactId, expectedStatusTag, logs);
-    }
-
-    // 4. Generic tags
-    await addTagToContact(contactId, 'antigravity-subscription', logs);
-    await addTagToContact(contactId, 'launch-2026-03-01', logs);
-
-    // 5. Persona Tag (Passed from Outseta CustomFields)
     const rawData = profile.outseta_data as any;
-
-    // In Person-centric payloads, it's at root. In Account-centric, it's inside PersonAccount
-    let customFields = null;
-    if (rawData?.CustomFields) {
-        customFields = rawData.CustomFields;
-    } else if (rawData?.PersonAccount && rawData.PersonAccount.length > 0) {
-        // Try to find the primary person
-        const primaryPa = rawData.PersonAccount.find((pa: any) => pa.IsPrimary) || rawData.PersonAccount[0];
-        if (primaryPa?.Person?.CustomFields) {
-            customFields = primaryPa.Person.CustomFields;
-        }
-    }
-
+    const primaryPa = rawData?.PersonAccount?.find((pa: any) => pa.IsPrimary) || rawData?.PersonAccount?.[0];
+    const customFields = rawData?.CustomFields || primaryPa?.Person?.CustomFields;
     if (customFields?.Persona) {
-        // Assume the script already passed it strictly as persona-something
-        // Just in case, we format it:
         const rawPersona = customFields.Persona.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-
-        // If it already starts with persona-, use it, else prepend it
-        const personaTag = rawPersona.startsWith('persona-') ? rawPersona : `persona-${rawPersona}`;
-        await addTagToContact(contactId, personaTag, logs);
+        await run.attempt('tag_persona', () => addTagToContact(contactId, rawPersona.startsWith('persona-') ? rawPersona : `persona-${rawPersona}`, existing));
     }
-
-    // Check if this is a migration from Wix (passed as a custom field or similar)
     if (customFields?.Migration_Source === 'wix') {
-        await addTagToContact(contactId, 'migrate', logs);
+        await run.attempt('tag_migration', () => addTagToContact(contactId, 'migrate', existing));
     }
-
-    // 6. Source tag (if available from Outseta referer)
-    // Outseta passes IPAddress and Referer in Person payload
     const referer = rawData?.Referer || rawData?.referer;
-    if (referer && typeof referer === 'string') {
-        try {
-            const url = new URL(referer);
-            const utmSource = url.searchParams.get('utm_source');
-            if (utmSource) {
-                await addTagToContact(contactId, `utm-${utmSource}`, logs);
-            }
-        } catch {
-            // Not a valid URL, skip
-        }
+    if (typeof referer === 'string') {
+        let source: string | null = null;
+        try { source = new URL(referer).searchParams.get('utm_source'); } catch { /* Invalid referrer has no source tag. */ }
+        if (source) await run.attempt('tag_utm_source', () => addTagToContact(contactId, `utm-${source}`, existing));
     }
 }
 
-// In-memory tag name → ID cache (lives for the duration of a single sync)
-const tagIdCache = new Map<string, string>();
-
-async function addTagToContact(contactId: string, tagName: string, logs: string[]) {
-    try {
-        // Step 1: Find or create the tag
-        let tagId = tagIdCache.get(tagName);
-
-        if (!tagId) {
-            // Search for existing tag
-            const searchRes = await fetch(
-                `${AC_API_URL}/api/3/tags?search=${encodeURIComponent(tagName)}`,
-                { headers: { 'Api-Token': AC_API_KEY! } }
-            );
-            const searchData = await searchRes.json();
-            const existingTag = searchData.tags?.find(
-                (t: any) => t.tag.toLowerCase() === tagName.toLowerCase()
-            );
-
-            if (existingTag) {
-                tagId = existingTag.id;
-            } else {
-                // Create the tag
-                const createRes = await fetch(`${AC_API_URL}/api/3/tags`, {
-                    method: 'POST',
-                    headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tag: { tag: tagName, tagType: 'contact', description: `Auto-created by sync` } })
-                });
-                const createData = await createRes.json();
-                tagId = createData.tag?.id;
-            }
-
-            if (tagId) {
-                tagIdCache.set(tagName, tagId);
-            }
-        }
-
-        if (!tagId) {
-            logs.push(`[Tag] Could not find/create tag '${tagName}'`);
-            return;
-        }
-
-        // Step 2: Associate tag with contact
-        const assocRes = await fetch(`${AC_API_URL}/api/3/contactTags`, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contactTag: { contact: contactId, tag: tagId } })
-        });
-
-        if (assocRes.ok || assocRes.status === 201) {
-            logs.push(`[Tag] Added '${tagName}' to contact ${contactId}`);
-        } else {
-            const errData = await assocRes.json().catch(() => ({}));
-            // 422 often means tag already applied — not an error
-            if (assocRes.status === 422) {
-                // Not logging already-applied.
-            } else {
-                logs.push(`[Tag] Failed to add '${tagName}': ${assocRes.status} ${JSON.stringify(errData)}`);
-            }
-        }
-    } catch (e) {
-        logs.push(`[Tag] Error adding '${tagName}': ${e}`);
+async function addTagToContact(contactId: string, tagName: string, existing: ContactTag[] | null): Promise<boolean> {
+    const known = existing?.find(tag => tag.name?.toLowerCase() === tagName.toLowerCase());
+    if (known) return true;
+    const search = await acJson(`tags?search=${encodeURIComponent(tagName)}&limit=100`);
+    if (!Array.isArray(search.tags)) throw new AcSyncError('tag_lookup_invalid');
+    const matches = search.tags.filter((tag: any) => typeof tag.tag === 'string' && tag.tag.toLowerCase() === tagName.toLowerCase());
+    if (matches.length > 1) throw new AcSyncError('tag_lookup_ambiguous');
+    let tagId = matches[0] ? requireId(matches[0].id) : null;
+    if (!tagId) {
+        if (search.meta?.total == null || !/^\d+$/.test(String(search.meta.total)) ||
+            Number(search.meta.total) !== search.tags.length) throw new AcSyncError('tag_lookup_incomplete');
+        const created = await acJson('tags', 'POST', { tag: { tag: tagName, tagType: 'contact', description: 'Auto-created by sync' } });
+        tagId = requireId(created.tag?.id);
     }
+    if (existing?.some(tag => tag.tag === tagId)) return true;
+    const response = await acRequest('contactTags', 'POST', { contactTag: { contact: contactId, tag: tagId } });
+    if ([400, 409, 422].includes(response.status)) {
+        // 422 may be validation failure. Only exact positive readback proves it
+        // was already applied; an unavailable/partial read cannot prove absence.
+        const readback = await readContactTags(contactId);
+        if (readback.some(tag => tag.tag === tagId)) return true;
+        throw new AcSyncError('tag_association_unconfirmed', response.status);
+    }
+    const data = await readJson(response);
+    requireId(data.contactTag?.id);
+    if (String(data.contactTag?.contact) !== contactId || String(data.contactTag?.tag) !== tagId) {
+        throw new AcSyncError('tag_association_unconfirmed');
+    }
+    return true;
 }
 
-async function removeTagFromContact(contactTagId: string, tagName: string, logs: string[]) {
-    try {
-        const url = `${AC_API_URL}/api/3/contactTags/${contactTagId}`;
-        const res = await fetch(url, {
-            method: 'DELETE',
-            headers: { 'Api-Token': AC_API_KEY! }
-        });
-
-        if (res.ok) {
-            logs.push(`[Tag] Removed conflicting tag '${tagName}' (Assoc ID: ${contactTagId})`);
-        } else {
-            logs.push(`[Tag] Failed to remove '${tagName}': Status ${res.status}`);
-        }
-    } catch (e) {
-        logs.push(`[Tag] Error removing '${tagName}': ${e}`);
-    }
-}
-
-async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string, logs: string[]): Promise<string | null> {
-    const url = `${AC_API_URL}/api/3/ecomOrders`;
-    // Plan UID + Account UID makes a unique "Purchase" ID for this subscription instance
+async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string): Promise<string> {
+    // Existing nominal membership mirror; this is not proof of settled revenue.
     const externalId = `${profile.outseta_account_id}-${profile.plan_uid}`;
 
     // Pricing Map
@@ -572,49 +465,26 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
         }
     };
 
-    try {
-        logs.push(`Syncing Order: ${externalId}`);
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.ecomOrder) {
-            return data.ecomOrder.id;
-        }
 
-        // Order likely already exists (duplicate externalid). Try GET fallback.
-        logs.push(`Order create returned non-standard response, trying GET fallback...`);
-        try {
-            const getUrl = `${AC_API_URL}/api/3/ecomOrders?filters[externalid]=${encodeURIComponent(externalId)}`;
-            const getRes = await fetch(getUrl, {
-                method: 'GET',
-                headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
-            });
-            const getData = await getRes.json();
-            if (getData.ecomOrders && getData.ecomOrders.length > 0) {
-                const match = getData.ecomOrders.find((o: any) => String(o.connectionid) === String(AC_CONNECTION_ID));
-                if (match) {
-                    logs.push(`Found existing order via GET for connection ${AC_CONNECTION_ID}: ${match.id}`);
-                    return match.id;
-                }
-            }
-        } catch (fetchErr) {
-            logs.push(`Error fetching existing order: ${fetchErr}`);
+    const response = await acRequest('ecomOrders', 'POST', payload);
+    if ([400, 409, 422].includes(response.status)) {
+        const data = await acJson(`ecomOrders?filters[externalid]=${encodeURIComponent(externalId)}&filters[connectionid]=${encodeURIComponent(AC_CONNECTION_ID!)}&limit=100`);
+        if (!Array.isArray(data.ecomOrders) || data.meta?.total == null ||
+            !/^\d+$/.test(String(data.meta.total)) || Number(data.meta.total) !== data.ecomOrders.length) {
+            throw new AcSyncError('order_lookup_incomplete');
         }
-
-        logs.push(`AC Order Sync failed: ${JSON.stringify(data)}`);
-        return null;
-    } catch (e) {
-        logs.push(`Error syncing order: ${e}`);
-        return null;
+        const matches = data.ecomOrders.filter((item: any) =>
+            String(item.externalid) === externalId && String(item.connectionid) === String(AC_CONNECTION_ID) &&
+            String(item.customerid) === customerId);
+        if (matches.length === 1 && data.ecomOrders.length === 1) return requireId(matches[0].id);
+        throw new AcSyncError('order_identity_unconfirmed', response.status);
     }
+    const data = await readJson(response);
+    return requireId(data.ecomOrder?.id);
 }
 
-async function syncRecurringPayment(profile: ProfileUpdateData, customerId: string, orderId: string | null, logs: string[]): Promise<boolean> {
+async function syncRecurringPayment(profile: ProfileUpdateData): Promise<boolean> {
     // ActiveCampaign E-Commerce GraphQL endpoint
-    const gqlUrl = `${AC_API_URL}/api/3/ecom/graphql`;
 
     // Mutation: bulkUpsertRecurringPayments takes [RecurringPaymentInput]
     // Discovered via schema introspection on the live AC GraphQL API.
@@ -635,8 +505,7 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
     const legacyConnectionId = Number.parseInt(AC_CONNECTION_ID!, 10);
 
     if (!Number.isFinite(legacyConnectionId)) {
-        logs.push(`Skipping Recurring Payment sync: AC_CONNECTION_ID must be numeric, got '${AC_CONNECTION_ID}'`);
-        return false;
+        throw new AcSyncError('invalid_connection_id');
     }
 
     const variables = {
@@ -668,140 +537,35 @@ async function syncRecurringPayment(profile: ProfileUpdateData, customerId: stri
         }]
     };
 
-    try {
-        logs.push(`Syncing Recurring Payment (GraphQL) to ${gqlUrl}`);
-        logs.push(`storeRecurringPaymentId: ${storeRecurringPaymentId}`);
-        if (orderId) {
-            logs.push(`Recurring Payment linked to ecomOrder ID: ${orderId}`);
-        }
-        const res = await fetch(gqlUrl, {
-            method: 'POST',
-            headers: {
-                'Api-Token': AC_API_KEY!,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: mutation, variables })
-        });
 
-        const data = await res.json();
-        if (!res.ok) {
-            logs.push(`Recurring Payment HTTP ${res.status}: ${JSON.stringify(data)}`);
-            return false;
-        }
-
-        if (data.errors && data.errors.length > 0) {
-            logs.push(`GQL Errors: ${JSON.stringify(data.errors)}`);
-            return false;
-        } else if (data.data?.bulkUpsertRecurringPayments?.recordId) {
-            logs.push(`Recurring Payment bulk upsert submitted. Record ID: ${data.data.bulkUpsertRecurringPayments.recordId}`);
-            return true;
-        } else if (Array.isArray(data.data?.bulkUpsertRecurringPayments)) {
-            logs.push(`Recurring Payment bulk upsert submitted: ${JSON.stringify(data.data.bulkUpsertRecurringPayments)}`);
-            return true;
-        } else {
-            logs.push(`GQL Response: ${JSON.stringify(data)}`);
-            return Boolean(data.data?.bulkUpsertRecurringPayments);
-        }
-
-    } catch (e) {
-        logs.push(`Error syncing Recurring Payment: ${e}`);
-        return false;
+    const data = await acJson('ecom/graphql', 'POST', { query: mutation, variables });
+    if (data.errors?.length) throw new AcSyncError('graphql_error');
+    const receipt = data.data?.bulkUpsertRecurringPayments;
+    const receipts = Array.isArray(receipt) ? receipt : [receipt];
+    if (!receipts.length || receipts.some(item => !item?.recordId)) {
+        throw new AcSyncError('recurring_receipt_missing');
     }
+    return true;
 }
 
-async function syncMembershipRenewalField(contactId: string, nextPaymentDate: string, logs: string[]) {
-    if (!AC_MEMBERSHIP_RENEWAL_FIELD_ID) {
-        logs.push("Skipping AC renewal date field sync (AC_MEMBERSHIP_RENEWAL_FIELD_ID not configured)");
-        return;
-    }
 
+async function syncMembershipRenewalField(contactId: string, nextPaymentDate: string): Promise<void> {
     const fieldValue = formatAcDate(nextPaymentDate);
-
-    try {
-        const existingRes = await fetch(`${AC_API_URL}/api/3/contacts/${contactId}/fieldValues`, {
-            method: 'GET',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' }
-        });
-        const existingData = await existingRes.json();
-        const existingFieldValue = existingData.fieldValues?.find(
-            (fv: any) => String(fv.field) === String(AC_MEMBERSHIP_RENEWAL_FIELD_ID)
-        );
-
-        if (existingFieldValue?.id) {
-            const updateRes = await fetch(`${AC_API_URL}/api/3/fieldValues/${existingFieldValue.id}`, {
-                method: 'PUT',
-                headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    fieldValue: {
-                        contact: contactId,
-                        field: AC_MEMBERSHIP_RENEWAL_FIELD_ID,
-                        value: fieldValue,
-                    }
-                })
-            });
-            const updateData = await updateRes.json().catch(() => ({}));
-
-            if (updateRes.ok) {
-                logs.push(`Updated AC membership renewal date field to ${fieldValue}`);
-            } else {
-                logs.push(`Failed to update AC renewal date field: ${updateRes.status} ${JSON.stringify(updateData)}`);
-            }
-            return;
-        }
-
-        const createRes = await fetch(`${AC_API_URL}/api/3/fieldValues`, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fieldValue: {
-                    contact: contactId,
-                    field: AC_MEMBERSHIP_RENEWAL_FIELD_ID,
-                    value: fieldValue,
-                }
-            })
-        });
-        const createData = await createRes.json().catch(() => ({}));
-
-        if (createRes.ok || createRes.status === 201) {
-            logs.push(`Created AC membership renewal date field value ${fieldValue}`);
-        } else {
-            logs.push(`Failed to create AC renewal date field: ${createRes.status} ${JSON.stringify(createData)}`);
-        }
-    } catch (e) {
-        logs.push(`Error syncing AC membership renewal date field: ${e}`);
+    const data = await acJson(`contacts/${contactId}/fieldValues`);
+    if (!Array.isArray(data.fieldValues)) throw new AcSyncError('field_lookup_invalid');
+    const matches = data.fieldValues.filter((item: any) => String(item.field) === String(AC_MEMBERSHIP_RENEWAL_FIELD_ID));
+    if (matches.length > 1 || matches.some((item: any) => String(item.contact) !== contactId)) {
+        throw new AcSyncError('field_identity_conflict');
     }
-}
-
-/**
- * Add a contact to an ActiveCampaign list.
- * @param contactId - AC contact ID
- * @param listId - AC list ID (e.g. 12)
- * @param status - 1 = subscribed, 2 = unsubscribed
- */
-async function addContactToList(contactId: string, listId: number, status: number, logs: string[]) {
-    const url = `${AC_API_URL}/api/3/contactLists`;
-    const payload = {
-        contactList: {
-            list: listId,
-            contact: contactId,
-            status: status,
-        }
-    };
-
-    try {
-        logs.push(`Adding contact ${contactId} to list ${listId} (status=${status})`);
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Api-Token': AC_API_KEY!, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.contactList) {
-            logs.push(`Contact added to list ${listId} successfully.`);
-        } else {
-            logs.push(`List subscription response: ${JSON.stringify(data)}`);
-        }
-    } catch (e) {
-        logs.push(`Error adding contact to list: ${e}`);
+    const existing = matches[0];
+    if (existing?.value === fieldValue) return;
+    // A missing relationship in an unverified page is not proof it is absent.
+    if (!existing && (data.meta?.total == null || !/^\d+$/.test(String(data.meta.total)) ||
+        Number(data.meta.total) !== data.fieldValues.length)) throw new AcSyncError('field_lookup_incomplete');
+    const updated = await acJson(existing ? `fieldValues/${requireId(existing.id)}` : 'fieldValues',
+        existing ? 'PUT' : 'POST', { fieldValue: { contact: contactId, field: AC_MEMBERSHIP_RENEWAL_FIELD_ID, value: fieldValue } });
+    requireId(updated.fieldValue?.id);
+    if (String(updated.fieldValue?.contact) !== contactId || String(updated.fieldValue?.field) !== String(AC_MEMBERSHIP_RENEWAL_FIELD_ID)) {
+        throw new AcSyncError('field_write_unconfirmed');
     }
 }
