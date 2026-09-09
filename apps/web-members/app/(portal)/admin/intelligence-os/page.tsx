@@ -100,7 +100,7 @@ export default async function IntelligenceOsPage({ searchParams = {} }: PageProp
               </div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">No live customer input</p>
             </div>
-            <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <WorkflowTriggerForm
                 title="Conversion review"
                 description="Run the shared conversion decision path."
@@ -119,11 +119,20 @@ export default async function IntelligenceOsPage({ searchParams = {} }: PageProp
               />
               <WorkflowTriggerForm
                 title="Weekly review"
-                description="Run one unified weekly operating review."
+                description="Run the existing empty-input weekly baseline; it should stay quiet."
                 formToken={formToken}
                 triggerCategory="weekly"
                 workflowName="weekly_operating_review"
                 businessKey={`synthetic-weekly:${dateKey}`}
+              />
+              <WorkflowTriggerForm
+                title="Weekly specialist test"
+                description="Use invented revenue, growth, and industry evidence to test all four specialists. This writes synthetic staging records, not live business results. No model, email, or execution."
+                formToken={formToken}
+                triggerCategory="weekly"
+                workflowName="weekly_operating_review"
+                businessKey={`synthetic-weekly:${dateKey}`}
+                fixtureScenario="specialist-review-v1"
               />
             </div>
             <form action={startSyntheticWorkflow} className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -334,6 +343,7 @@ function WorkflowTriggerForm(props: {
   triggerCategory: 'manual' | 'daily' | 'weekly'
   workflowName: 'conversion_review' | 'daily_business_health' | 'weekly_operating_review'
   businessKey: string
+  fixtureScenario?: 'specialist-review-v1'
 }) {
   return (
     <form action={startSyntheticWorkflow} className="rounded-lg border border-slate-200 p-4">
@@ -341,6 +351,7 @@ function WorkflowTriggerForm(props: {
       <input type="hidden" name="triggerCategory" value={props.triggerCategory} />
       <input type="hidden" name="workflowName" value={props.workflowName} />
       <input type="hidden" name="businessKey" value={props.businessKey} />
+      {props.fixtureScenario ? <input type="hidden" name="fixtureScenario" value={props.fixtureScenario} /> : null}
       <h3 className="font-semibold text-slate-950">{props.title}</h3>
       <p className="mt-1 min-h-10 text-sm text-slate-600">{props.description}</p>
       <button className="mt-3 min-h-11 w-full rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700">

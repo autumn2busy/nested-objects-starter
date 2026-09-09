@@ -42,6 +42,12 @@ jobs:
           npm run lint
           npx tsc --noEmit
 
+      - name: Verify owner-only synthetic review controls and transport
+        working-directory: apps/web-members
+        run: |
+          npm run audit:intelligence-os-admin
+          node --test tests/intelligence-os-transport.test.mjs tests/intelligence-os-synthetic-trigger.test.mjs
+
       - name: Verify contact receipt, direct email routing, and PostgreSQL migration
         working-directory: apps/web-members
         run: node --test tests/contact-route.test.mjs tests/contact-submissions-migration.test.mjs tests/contact-email-message.test.mjs tests/contact-email-sender.test.mjs tests/contact-form.test.mjs

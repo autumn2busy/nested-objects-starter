@@ -9,6 +9,8 @@ import { installOperatingWorkflowTestContext } from '../src/runtime/operating-wo
 import { createStagingDestinationFingerprint } from '../src/runtime/staging-destination.js'
 import { stableUuid } from '../src/stable-id.js'
 import type { AdminTriggerRequest } from '../src/http/admin-contracts.js'
+import { parseAdminTriggerRequest, syntheticRequestedAtForKey, syntheticWorkflowIdempotencyKey } from '../src/http/admin-contracts.js'
+import type { OperationsOrchestratorOutput } from '../src/agents/operations-orchestrator.js'
 import {
   conversionReviewWorkflow,
   dailyBusinessHealthWorkflow,
@@ -245,6 +247,150 @@ describe('Phase C5 operating workflows', () => {
     expect([...operatingStore.signals.values()].some((signal) => (
       signal.signalType === 'operations.event.payment_failure'
     ))).toBe(true)
+  })
+
+  it('opt-in owner review persists substantive four-specialist evidence without changing quiet baseline or repeating artifacts', async () => {
+    const baseline = parseAdminTriggerRequest({
+      triggerCategory: 'weekly',
+      workflowName: 'weekly_operating_review',
+      businessKey: 'synthetic-weekly:2026-08-27:owner-acceptance',
+      fixtureMode: 'synthetic',
+    })
+    const scenario = parseAdminTriggerRequest({ ...baseline, fixtureScenario: 'specialist-review-v1' })
+    const protectedInput = (trigger: AdminTriggerRequest): OperatingReviewWorkflowInput => {
+      const idempotencyKey = syntheticWorkflowIdempotencyKey(trigger)
+      const correlationId = stableUuid('phase-c7-protected-trigger', idempotencyKey)
+      const requestedAt = syntheticRequestedAtForKey(trigger.businessKey)
+      return {
+        fixture: createSyntheticOperatingFixture({ trigger, requestedAt, correlationId }),
+        binding,
+        idempotencyKey,
+        requestedAt,
+        correlation: { correlationId, causationId: null, traceId: 'phase-c7-protected-trigger' },
+      }
+    }
+    const baselineInput = protectedInput(baseline)
+    expect(baselineInput.fixture).toEqual({
+      reviewDate: '2026-08-27', metrics: [], lifecycleSignals: [], sourceHealth: [],
+      industryObservations: [], persistedSignals: [], experiments: [], tasks: [],
+      priorActions: [], sensorReports: [], specialists: {},
+    })
+    const baselineRun = await start(weeklyOperatingReviewWorkflow, [baselineInput])
+    const baselineResult = await baselineRun.returnValue
+    expect(baselineResult.quiet).toBe(true)
+    expect(baselineResult.artifactCounts?.signalCount).toBe(0)
+
+    const input = protectedInput(scenario)
+    expect(input).toEqual(protectedInput(scenario))
+    expect(input.idempotencyKey).not.toBe(baselineInput.idempotencyKey)
+    expect(input.fixture.metrics).toHaveLength(84)
+    expect(input.fixture.metrics.every((item) => item.provenance.notLiveBusinessEvidence === true)).toBe(true)
+    const run = await start(weeklyOperatingReviewWorkflow, [input])
+    const result = await run.returnValue
+    expect(result.state).toBe('succeeded')
+    expect(result.verificationStatus).toBe('verified')
+    expect(result.agentRunId).not.toBe(baselineResult.agentRunId)
+    expect(result.quiet).toBe(false)
+    expect(result.priorityCount).toBeGreaterThan(0)
+    expect(result.priorityCount).toBeLessThanOrEqual(3)
+    expect(result.autumnDecisions.length).toBeLessThanOrEqual(3)
+    expect(result.sensorRunCount).toBe(0)
+    expect(sensorStore.runs.size).toBe(0)
+
+    const evaluation = durableStore.steps.get(`${result.agentRunId}:evaluate-weekly_operating_review`)?.output
+    const orchestrator = evaluation?.orchestrator as OperationsOrchestratorOutput
+    expect(orchestrator).toBeDefined()
+    const { revenue, growth, industry, marketing } = orchestrator.data.specialistOutputs
+    expect(revenue?.data.assessments.find((item) => item.metric === 'subscriptions.upgraded.confirmed')?.delta).toBe(2)
+    expect(revenue?.data.assessments.find((item) => item.metric === 'revenue.mrr')).toMatchObject({
+      currentValue: null, comparisonValue: null, delta: null, dataQualityState: 'unknown',
+    })
+    const paywall = growth?.data.comparisons.find((item) => item.metric === 'product.paywall_hits')
+    expect(paywall?.currentWeek.value).toBe(28)
+    expect(paywall?.priorWeek.value).toBe(7)
+    expect(paywall?.trailingFourWeeks.value).toBe(49)
+    expect(paywall?.trailingTwelveWeeks.value).toBe(105)
+    expect(growth?.data.anomalies.length).toBeGreaterThan(0)
+    expect(industry?.data.routedSignalCount).toBe(1)
+    expect(industry?.data.events[0]).toMatchObject({ publicationDate: '2026-08-26', eventDate: '2026-08-25' })
+    expect(industry?.data.events[0]?.source.uri).toMatch(/^https:\/\/example\.invalid\/fixtures\//)
+    expect(industry?.data.events[0]?.licensingCaveat).toContain('Original invented test content')
+    expect(industry?.data.liveResearchPerformed).toBe(false)
+    expect(marketing?.data.experiments.length).toBeGreaterThan(0)
+    expect(marketing?.data.draftInternalCopy.length).toBeGreaterThan(0)
+    expect(marketing?.data.activeCampaignMutationPerformed).toBe(false)
+    expect(marketing?.data.financialSuccessDeclared).toBe(false)
+    expect(marketing?.data.audiences.every((item) => item.containsDirectIdentifiers === false)).toBe(true)
+    expect(marketing?.data.draftInternalCopy.every((item) => item.requiresApprovalBeforeExternalUse)).toBe(true)
+    for (const output of [orchestrator, revenue, growth, industry, marketing]) {
+      expect(output).toMatchObject({ modelUsed: false, mutationsPerformed: false, toolCalls: [], inputTokens: null, outputTokens: null, estimatedCost: null })
+      expect(output?.evidence.length).toBeGreaterThan(0)
+      expect(output?.sourceRefs.length).toBeGreaterThan(0)
+    }
+
+    const signals = [...operatingStore.signals.values()]
+    // Growth and Marketing describe the same paywall metric; the Orchestrator
+    // deliberately retains one ranked signal rather than double-counting it.
+    expect(new Set(signals.map((item) => item.producer))).toEqual(new Set([
+      'revenue-agent', 'growth-agent', 'industry-intelligence-agent',
+    ]))
+    expect(marketing?.signals.length).toBeGreaterThan(0)
+    expect(operatingStore.experiments.size).toBeGreaterThan(0)
+    expect(signals.every((item) => item.sourceRefs.length > 0 && item.evidence.length > 0)).toBe(true)
+    const traceLinks = [...operatingStore.traceLinks.values()]
+      .filter((item) => item.correlation.correlationId === input.correlation.correlationId)
+    for (const signal of signals) {
+      expect(traceLinks.some((link) => link.relationship === 'observation_produced_signal' && link.toId === signal.id)).toBe(true)
+    }
+    expect(operatingStore.actions.size).toBeGreaterThan(0)
+    expect([...operatingStore.actions.values()].every((action) => (
+      action.actionType === 'internal.record_recommendation' && action.targetSystem === 'intelligence-os'
+      && action.status === 'proposed' && action.approvalRequired === false && action.payload.mutationAllowed === false
+      && action.executorKey === null && action.executionStartedAt === null && action.executedAt === null
+    ))).toBe(true)
+    const countArtifacts = () => ({
+      runs: durableStore.runsById.size, steps: durableStore.steps.size,
+      reviews: operatingStore.reviews.size, states: operatingStore.states.size,
+      signals: operatingStore.signals.size, recommendations: operatingStore.recommendations.size,
+      tasks: operatingStore.tasks.size, experiments: operatingStore.experiments.size,
+      actions: operatingStore.actions.size, traceLinks: operatingStore.traceLinks.size,
+    })
+    const beforeDuplicate = countArtifacts()
+    const duplicateRun = await start(weeklyOperatingReviewWorkflow, [protectedInput(scenario)])
+    const duplicate = await duplicateRun.returnValue
+    expect(duplicate.state).toBe('reused')
+    expect(duplicate.agentRunId).toBe(result.agentRunId)
+    expect(duplicate.artifactCounts).toEqual(result.artifactCounts)
+    expect(countArtifacts()).toEqual(beforeDuplicate)
+    expect(durableStore.runsById.size).toBe(2)
+    expect(operatingStore.reviews.size).toBe(2)
+
+    // A different review key must not overwrite the first synthetic review's
+    // signals or collide with its immutable recommendations/actions.
+    const priorSignals = structuredClone([...operatingStore.signals.values()])
+    const priorActions = structuredClone([...operatingStore.actions.values()])
+    const nextInput = protectedInput(parseAdminTriggerRequest({
+      ...scenario,
+      businessKey: 'synthetic-weekly:2026-08-27:owner-acceptance-second',
+    }))
+    expect(nextInput.fixture.metrics[0]?.scopeKey).not.toBe(input.fixture.metrics[0]?.scopeKey)
+    const nextRun = await start(weeklyOperatingReviewWorkflow, [nextInput])
+    expect((await nextRun.returnValue).state).toBe('succeeded')
+    expect(durableStore.runsById.size).toBe(3)
+    expect(operatingStore.reviews.size).toBe(3)
+    expect([...operatingStore.signals.values()].filter((item) => (
+      item.correlation.correlationId === input.correlation.correlationId
+    ))).toEqual(priorSignals)
+    expect([...operatingStore.actions.values()].filter((item) => (
+      item.correlation.correlationId === input.correlation.correlationId
+    ))).toEqual(priorActions)
+    expect([...operatingStore.signals.values()].some((item) => (
+      item.correlation.correlationId === nextInput.correlation.correlationId
+    ))).toBe(true)
+    const afterSecondReview = countArtifacts()
+    const secondDuplicate = await start(weeklyOperatingReviewWorkflow, [nextInput])
+    expect((await secondDuplicate.returnValue).state).toBe('reused')
+    expect(countArtifacts()).toEqual(afterSecondReview)
   })
 })
 

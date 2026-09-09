@@ -109,6 +109,7 @@ export interface SyntheticTriggerInput {
   workflowName?: 'conversion_review' | 'daily_business_health' | 'weekly_operating_review'
   businessKey: string
   fixtureMode: 'synthetic'
+  fixtureScenario?: 'specialist-review-v1'
 }
 
 export async function getIntelligenceOwnerSession(): Promise<IntelligenceOwnerSession | null> {
