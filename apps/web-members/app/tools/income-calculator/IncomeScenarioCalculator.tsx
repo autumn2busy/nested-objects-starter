@@ -4,9 +4,11 @@ import { useMemo, useState } from 'react'
 import { Calculator, Car, Clock3, DollarSign, FileText } from 'lucide-react'
 
 import {
+  canCompleteIncomeScenario,
   calculateIncomeScenario,
   type IncomeScenarioInputs,
 } from './calculations'
+import { recordIncomeScenarioCompletion } from './completion-event'
 
 const EMPTY_SCENARIO: IncomeScenarioInputs = {
   assignmentsPerMonth: 0,
@@ -69,11 +71,32 @@ function NumberField({
 
 export function IncomeScenarioCalculator() {
   const [inputs, setInputs] = useState<IncomeScenarioInputs>(EMPTY_SCENARIO)
+  const [completionStatus, setCompletionStatus] = useState<'idle' | 'submitting' | 'complete' | 'error'>('idle')
   const results = useMemo(() => calculateIncomeScenario(inputs), [inputs])
+  const canComplete = useMemo(() => canCompleteIncomeScenario(inputs), [inputs])
 
   const update = (key: keyof IncomeScenarioInputs, value: number) => {
     setInputs((current) => ({ ...current, [key]: Number.isFinite(value) && value >= 0 ? value : 0 }))
+    if (completionStatus === 'error') setCompletionStatus('idle')
   }
+
+  const completeCalculation = async () => {
+    if (!canComplete || completionStatus === 'submitting' || completionStatus === 'complete') return
+
+    setCompletionStatus('submitting')
+    const recorded = await recordIncomeScenarioCompletion()
+    setCompletionStatus(recorded ? 'complete' : 'error')
+  }
+
+  const completionMessage = completionStatus === 'submitting'
+    ? 'Recording completion…'
+    : completionStatus === 'complete'
+      ? 'Completion recorded. Your calculation numbers were not submitted.'
+      : completionStatus === 'error'
+        ? 'Completion was not recorded. Try again when you are ready.'
+        : canComplete
+          ? 'Ready to record this calculation as complete.'
+          : 'Enter assignments, average fee, and total minutes above zero to complete this scenario.'
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
@@ -155,10 +178,41 @@ export function IncomeScenarioCalculator() {
           <ResultRow label="Net per assignment" value={currency(results.netPerAssignment)} />
         </dl>
 
+        <div className="mt-6 rounded-xl border border-emerald-300/25 bg-emerald-300/10 p-4">
+          <p className="text-sm font-bold text-emerald-50">Finished reviewing this scenario?</p>
+          <p className="mt-1 text-sm leading-6 text-emerald-50/90">
+            Record the completion milestone when the assignments, average fee, and time assumptions reflect a scenario you reviewed.
+          </p>
+          <button
+            type="button"
+            onClick={completeCalculation}
+            disabled={!canComplete || completionStatus === 'submitting' || completionStatus === 'complete'}
+            aria-describedby="income-scenario-completion-status"
+            className="mt-4 min-h-11 rounded-full bg-emerald-300 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-emerald-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
+          >
+            {completionStatus === 'submitting'
+              ? 'Recording…'
+              : completionStatus === 'complete'
+                ? 'Calculation completed'
+                : completionStatus === 'error'
+                  ? 'Try again'
+                  : 'Complete calculation'}
+          </button>
+          <p
+            id="income-scenario-completion-status"
+            role="status"
+            aria-live="polite"
+            className="mt-3 text-xs leading-5 text-emerald-50/90"
+          >
+            {completionMessage}
+          </p>
+        </div>
+
         <div className="mt-6 rounded-xl border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-50">
           This is a planning estimate, not an earnings promise. It does not add taxes, cancellations, unpaid travel, or
-          costs you did not enter. The calculator code does not intentionally save or submit your entries; normal site
-          analytics may record the page visit.
+          costs you did not enter. Your numeric assumptions and calculated results stay in this browser. If you select
+          Complete calculation, Nested Objects records a completion milestone for your member account without those
+          numbers or results. Normal site analytics may record the page visit.
         </div>
       </section>
     </div>

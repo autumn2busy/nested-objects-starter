@@ -1,0 +1,36 @@
+name: Vercel Cold Install Policy
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'apps/web-members/package.json'
+      - 'apps/web-members/package-lock.json'
+      - 'apps/web-public/package.json'
+      - 'apps/web-public/package-lock.json'
+      - 'vercel.json'
+      - 'scripts/vercel-install*.mjs'
+      - '.github/workflows/vercel-install-policy.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-cold-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node 22.16 without dependency or build caches
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+
+      - name: Verify installer ordering and failure boundaries
+        run: node --test scripts/vercel-install.test.mjs
+
+      - name: Install in a fresh fixture and verify framework detection without building
+        run: node scripts/vercel-install-smoke.mjs
