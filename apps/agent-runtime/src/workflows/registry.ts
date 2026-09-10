@@ -12,6 +12,15 @@ export interface WorkflowRegistration {
 
 export const WORKFLOW_REGISTRATIONS: readonly WorkflowRegistration[] = [
   {
+    name: 'opportunity_review',
+    version: 'opportunity-v1',
+    description: 'Opt-in exact-source no-send Elite opportunity review; production collection and action execution pending.',
+    durability: 'in_memory_test',
+    status: 'foundation',
+    enabledByDefault: false,
+    mutationBoundary: 'proposal_only',
+  },
+  {
     name: 'lifecycle-integrity-check',
     version: 'phase-c3-v1',
     description: 'Durable synthetic staging workflow for identity, membership, lifecycle routing, and source completeness anomalies.',

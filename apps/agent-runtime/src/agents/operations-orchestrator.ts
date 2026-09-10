@@ -10,6 +10,7 @@ import type {
 import { ContractValidationError } from '../contracts.js'
 import { evaluateActionPolicy } from '../policy.js'
 import { stableUuid } from '../stable-id.js'
+import { runOpportunityAgent, type OpportunityAgentInput, type OpportunityAgentOutput } from './opportunity-agent.js'
 import {
   runGrowthAgent,
   type GrowthAgentInput,
@@ -40,6 +41,7 @@ import {
 } from './specialist-contracts.js'
 
 export interface OperationsOrchestratorSpecialistInputs {
+  opportunity?: Omit<OpportunityAgentInput, 'correlation'>
   revenue?: Omit<RevenueAgentInput, 'correlation'>
   growth?: Omit<GrowthAgentInput, 'revenue' | 'correlation'>
   industry?: Omit<IndustryIntelligenceAgentInput, 'correlation'>
@@ -135,6 +137,7 @@ export interface OperationsOrchestratorData extends Record<string, unknown> {
   taskDrafts: OrchestratorTaskDraft[]
   experimentProposals: MarketingExperimentProposal[]
   specialistOutputs: {
+    opportunity: OpportunityAgentOutput | null
     revenue: RevenueAgentOutput | null
     growth: GrowthAgentOutput | null
     industry: IndustryIntelligenceAgentOutput | null
@@ -152,6 +155,9 @@ export async function runOperationsOrchestrator(
 ): Promise<OperationsOrchestratorOutput> {
   assertOrchestratorInput(input)
   const observedAt = input.observedAt ?? new Date().toISOString()
+  const opportunity = input.specialists.opportunity
+    ? runOpportunityAgent({ ...input.specialists.opportunity, correlation: input.correlation, observedAt })
+    : null
   const revenue = input.specialists.revenue
     ? runRevenueAgent({ ...input.specialists.revenue, correlation: input.correlation, observedAt })
     : null
@@ -171,6 +177,7 @@ export async function runOperationsOrchestrator(
     ? runMarketingAgent({ ...input.specialists.marketing, revenue, growth, correlation: input.correlation, observedAt })
     : null
   const missingDependencies = dependencyFailures(input.specialists, { revenue, growth, marketing })
+  if (opportunity?.status === 'blocked') missingDependencies.push(opportunity.summary)
   const allSignals = deduplicateSignals([
     ...input.persistedSignals,
     ...(revenue?.signals ?? []),
@@ -187,11 +194,11 @@ export async function runOperationsOrchestrator(
   const taskDrafts = priorities
     .filter((priority) => !hasOpenTask(priority.signalId, input.tasks))
     .map(taskFromPriority)
-  const proposedActions = enforceActionPolicy(marketing?.proposedActions ?? [])
+  const proposedActions = enforceActionPolicy([...(marketing?.proposedActions ?? []), ...(opportunity?.proposedActions ?? [])])
     .filter((action) => !hasCurrentAction(action.idempotencyKey, input.priorActions))
   const experimentProposals = (marketing?.data.experiments ?? [])
     .filter((proposal) => !hasCurrentExperiment(proposal, input.experiments))
-  const autumnDecisions = meaningfulDecisions(priorities, proposedActions, marketing?.autumnDecisions ?? [])
+  const autumnDecisions = meaningfulDecisions(priorities, proposedActions, [...(marketing?.autumnDecisions ?? []), ...(opportunity?.autumnDecisions ?? [])])
   const status = missingDependencies.length > 0
     ? 'blocked' as const
     : priorities.length === 0 && proposedActions.length === 0
@@ -210,6 +217,7 @@ export async function runOperationsOrchestrator(
       priorActionCount: input.priorActions.length,
     },
     specialistStatuses: {
+      opportunity: opportunity?.status ?? 'not_invoked',
       revenue: revenue?.status ?? 'not_invoked',
       growth: growth?.status ?? 'not_invoked',
       industry: industry?.status ?? 'not_invoked',
@@ -238,7 +246,7 @@ export async function runOperationsOrchestrator(
       priorities,
       taskDrafts,
       experimentProposals,
-      specialistOutputs: { revenue, growth, industry, marketing },
+      specialistOutputs: { revenue, growth, industry, marketing, opportunity },
       operationalState,
       persistenceDisposition,
       quiet: status === 'quiet',

@@ -60,12 +60,12 @@ export const AGENT_REGISTRATIONS: readonly AgentRegistration[] = [
   {
     name: 'opportunity-agent',
     displayName: 'Opportunity Agent',
-    description: 'Future specialist for opportunity ingestion, matching, and prioritization.',
-    implementationStatus: 'placeholder',
-    riskBoundary: 'analytical',
+    description: 'Prepares bounded exact-source Elite opportunity reviews and unscheduled Draft proposals; no live execution.',
+    implementationStatus: 'implemented',
+    riskBoundary: 'proposal_only',
     capabilities: ['opportunity_analysis'],
-    inputContract: 'SpecialistInput',
-    outputContract: 'SpecialistOutput',
+    inputContract: 'OpportunityAgentInput',
+    outputContract: 'OpportunityAgentOutput',
     enabledByDefault: false,
   },
   {
