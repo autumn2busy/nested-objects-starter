@@ -93,8 +93,8 @@ export interface IdentityLinkProjection {
 export interface MembershipProjection {
   sourceSystem: 'outseta' | 'supabase_profiles'
   sourceRecordId: string | null
-  isAuthoritative: true
-  authorityRank: 100 | 80
+  isAuthoritative: boolean
+  authorityRank: 100 | 80 | 0
   membershipTier: ProjectedMembershipTier
   membershipStatus: ProjectedMembershipStatus
   planUid: string | null
@@ -278,7 +278,10 @@ function buildMemberProjection(input: {
       dataQualityDetails: {
         conflicts,
         missingFields: missingProfileFields(profile),
-        authoritativeMembershipSources: memberships.map((membership) => membership.sourceSystem),
+        authoritativeMembershipSources: memberships
+          .filter((membership) => membership.isAuthoritative)
+          .map((membership) => membership.sourceSystem),
+        membershipTruthState: 'unknown',
       },
       profileFacts: {
         createdAt: profile.created_at,
@@ -368,39 +371,31 @@ function buildMemberships(
     revenueState: 'unknown' as const,
     snapshotAt: normalizeTimestamp(profile.outseta_updated_at ?? profile.updated_at) ?? observedAt,
     sourceRefs,
-    provenance: { sourceTable: 'profiles', projectedAt: observedAt, projectionVersion: 'phase-c-v1' },
+    provenance: {
+      sourceTable: 'profiles',
+      projectedAt: observedAt,
+      projectionVersion: 'profile-membership-v2',
+      evidenceKind: 'profile_mirror',
+    },
     dataQuality: {
       revenueReason: 'Profiles do not provide billing-grade revenue amounts.',
+      membershipAuthorityReason: 'Cached profile fields and copied Outseta identifiers are not a verified Outseta subscription read.',
       planPresent: Boolean(normalizeText(profile.plan_uid ?? profile.plan_name)),
     },
   }
 
-  const snapshots: MembershipProjection[] = []
-  if (normalizeText(profile.outseta_person_uid) || normalizeText(profile.outseta_account_id) || normalizeText(profile.plan_uid)) {
-    snapshots.push({
-      ...common,
-      sourceSystem: 'outseta',
-      sourceRecordId: normalizeText(profile.outseta_account_id ?? profile.outseta_person_uid),
-      isAuthoritative: true,
-      authorityRank: 100,
-      completeness: membershipCompleteness(profile, true),
-      confidence: membershipCompleteness(profile, true),
-      idempotencyKey: `membership:${profile.id}:outseta:${common.snapshotAt}`,
-    })
-  }
-
-  snapshots.push({
+  // Retain observed profile values for comparison, not membership decisions.
+  // Stable identifiers link records; they do not prove provider verification.
+  return [{
     ...common,
     sourceSystem: 'supabase_profiles',
     sourceRecordId: profile.id,
-    isAuthoritative: true,
-    authorityRank: 80,
-    completeness: membershipCompleteness(profile, false),
-    confidence: membershipCompleteness(profile, false),
+    isAuthoritative: false,
+    authorityRank: 0,
+    completeness: membershipCompleteness(profile),
+    confidence: membershipCompleteness(profile),
     idempotencyKey: `membership:${profile.id}:supabase_profiles:${common.snapshotAt}`,
-  })
-
-  return snapshots
+  }]
 }
 
 function buildOperationalProfile(
@@ -564,13 +559,13 @@ function profileCompleteness(profile: ProfileSourceRow): number {
   return round4(present / 7)
 }
 
-function membershipCompleteness(profile: ProfileSourceRow, outseta: boolean): number {
+function membershipCompleteness(profile: ProfileSourceRow): number {
   const values = [
     profile.subscription_tier,
     profile.subscription_status,
     profile.plan_uid ?? profile.plan_name,
     profile.subscription_start_date,
-    outseta ? profile.outseta_person_uid ?? profile.outseta_account_id : profile.id,
+    profile.id,
   ]
   return round4(values.filter((value) => normalizeText(value)).length / values.length)
 }
