@@ -14,6 +14,7 @@ export interface OpportunityMemberEvidence {
   // Exact authoritative reads; a profile carrying these IDs is not this contract.
   outseta: {
     source: 'outseta_api'; personId: string; accountId: string; subscriptionId: string
+    livemode: boolean | null; isDemo: boolean | null
     planId: string; status: string; access: boolean; startsAt: string; endsAt: string | null
     observedAt: string; responseChecksum: string
   } | null
@@ -70,6 +71,7 @@ function memberReason(row: OpportunityMemberEvidence, now: number): string | nul
   if (!o || o.source !== 'outseta_api' || o.personId !== link.personId || o.accountId !== link.accountId
     || !o.subscriptionId || !/^[a-f0-9]{64}$/.test(o.responseChecksum)) return 'membership_unverified'
   if (!fresh(o.observedAt, now)) return 'membership_stale'
+  if (o.livemode !== true || o.isDemo !== false) return 'membership_test_demo_or_unknown_mode'
   if (o.planId !== 'NmdnNO90' || o.status !== 'active' || o.access !== true
     || !Number.isFinite(Date.parse(o.startsAt)) || Date.parse(o.startsAt) > now
     || (o.endsAt !== null && (!Number.isFinite(Date.parse(o.endsAt)) || Date.parse(o.endsAt) <= now))) return 'not_active_elite'
