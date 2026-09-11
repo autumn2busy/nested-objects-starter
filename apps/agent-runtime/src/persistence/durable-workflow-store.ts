@@ -286,6 +286,7 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
   readonly runInputsByKey = new Map<string, Record<string, unknown>>()
   readonly steps = new Map<string, DurableStepSnapshot>()
   readonly stepInputs = new Map<string, Record<string, unknown>>()
+  private readonly stepStaleAfter = new Map<string, string>()
 
   constructor(
     private readonly acceptedBinding: StagingDestinationBinding,
@@ -360,8 +361,9 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
       if (existing.status === 'failed' && isFuture(existing.retryAfter, this.now())) {
         return { disposition: 'busy', step: clone(existing) }
       }
-      const run = requiredRun(this.runsById, input.runId)
-      const staleAfter = run.staleAfter
+      // Match claim_agent_workflow_step: the child's own lease controls reclaim.
+      // Renewing a parent run must not extend a crashed child's lease.
+      const staleAfter = this.stepStaleAfter.get(key) ?? null
       if (existing.status === 'running' && !isExpired(staleAfter, this.now())) {
         return { disposition: 'busy', step: clone(existing) }
       }
@@ -376,6 +378,7 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
         retryAfter: null,
       }
       this.steps.set(key, claimed)
+      this.stepStaleAfter.set(key, afterSeconds(this.now(), input.leaseSeconds))
       this.heartbeat(input.runId, input.leaseSeconds)
       return { disposition: 'claimed', step: clone(claimed) }
     }
@@ -395,6 +398,7 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
     }
     this.steps.set(key, step)
     this.stepInputs.set(key, clone(input.input))
+    this.stepStaleAfter.set(key, afterSeconds(this.now(), input.leaseSeconds))
     this.heartbeat(input.runId, input.leaseSeconds)
     return { disposition: 'claimed', step: clone(step) }
   }
@@ -413,6 +417,7 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
       retryAfter: null,
     }
     this.steps.set(key, completed)
+    this.stepStaleAfter.delete(key)
     this.heartbeat(input.runId, 300)
     return clone(completed)
   }
@@ -428,6 +433,7 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
       retryAfter: input.retryAfter,
     }
     this.steps.set(key, failed)
+    this.stepStaleAfter.delete(key)
     return clone(failed)
   }
 

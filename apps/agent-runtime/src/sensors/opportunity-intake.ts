@@ -38,7 +38,7 @@ export interface OpportunityEnvelope {
   internalDateMs: number
   receiverAuthentication: { receiver: 'gmail'; spf: 'pass'; alignedDkim: 'pass'; dmarc: 'pass' } | null
   // Extraction is a separate trust boundary: an LLM/parser success is not a fact review.
-  extraction: { state: 'reviewed'; sourceSha256: string; facts: unknown } | null
+  extraction: { state: 'reviewed'; reviewedAt: string; sourceSha256: string; facts: unknown } | null
 }
 
 export interface NormalizedOpportunity {
@@ -47,6 +47,9 @@ export interface NormalizedOpportunity {
   identityKey: string
   revisionKey: string
   sourceSha256: string
+  sourceReviewedAt: string
+  sourceProvenance: { sourceSystem: 'gmail'; sourceKey: string; policyHash: string }
+  applicationProvenance: { kind: 'reviewed_source'; sourceSha256: string; target: string }
   receivedAt: string
   dueAt: string
   facts: OpportunityFacts
@@ -61,18 +64,25 @@ export function normalizeOpportunity(
   policy: OpportunitySourcePolicy,
   observedAt: string,
 ): NormalizedOpportunity {
+  if (!envelope || !policy || !Array.isArray(policy.applicationHosts) || !Array.isArray(policy.applicationEmails)) {
+    throw new ContractValidationError('Opportunity source policy or envelope is unavailable')
+  }
   const auth = envelope.receiverAuthentication
   if (!policy.mailboxKey || !policy.sender || !policy.subject
     || (!policy.applicationHosts.length && !policy.applicationEmails.length)
     || envelope.mailboxKey !== policy.mailboxKey || envelope.sender !== policy.sender
-    || envelope.subject !== policy.subject || !/^[a-zA-Z0-9_-]{1,200}$/.test(envelope.gmailMessageId)
+    || envelope.subject !== policy.subject || typeof envelope.gmailMessageId !== 'string'
+    || !/^[a-zA-Z0-9_-]{1,200}$/.test(envelope.gmailMessageId)
     || auth?.receiver !== 'gmail' || auth.spf !== 'pass' || auth.alignedDkim !== 'pass' || auth.dmarc !== 'pass'
     || envelope.extraction?.state !== 'reviewed' || !/^[a-f0-9]{64}$/.test(envelope.extraction.sourceSha256)) {
     throw new ContractValidationError('Opportunity source or reviewed extraction is unavailable or outside scope')
   }
   const now = Date.parse(observedAt)
   if (!Number.isFinite(now) || !Number.isSafeInteger(envelope.internalDateMs)
-    || envelope.internalDateMs <= 0 || envelope.internalDateMs > now) {
+    || envelope.internalDateMs <= 0 || envelope.internalDateMs > now
+    || !Number.isFinite(Date.parse(envelope.extraction.reviewedAt))
+    || Date.parse(envelope.extraction.reviewedAt) > now
+    || Date.parse(envelope.extraction.reviewedAt) < envelope.internalDateMs) {
     throw new ContractValidationError('Invalid opportunity receipt time')
   }
   const parsed = factsSchema.safeParse(envelope.extraction.facts)
@@ -100,6 +110,10 @@ export function normalizeOpportunity(
       normalized(facts.applicationInstructions), normalized(facts.requirements),
       normalized(facts.advertisedRate), normalized(facts.paymentTerms), facts.expiresAt, facts.withdrawn]),
     sourceSha256: envelope.extraction.sourceSha256,
+    sourceReviewedAt: envelope.extraction.reviewedAt,
+    sourceProvenance: { sourceSystem: 'gmail', sourceKey: opportunityHash([policy.mailboxKey, envelope.gmailMessageId]),
+      policyHash: opportunityHash(policy) },
+    applicationProvenance: { kind: 'reviewed_source', sourceSha256: envelope.extraction.sourceSha256, target: url.href },
     receivedAt,
     dueAt,
     facts: { ...facts, coverage: [...facts.coverage].sort(), applicationUrl: url.href },
