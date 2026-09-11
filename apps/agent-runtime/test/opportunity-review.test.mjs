@@ -29,6 +29,7 @@ function fixture() {
     audienceCoverageComplete: true,
     members: [{ memberId: 'member-1', link: { personId: 'person-1', accountId: 'account-1', contactId: 'contact-1', state: 'verified' },
       outseta: { source: 'outseta_api', personId: 'person-1', accountId: 'account-1', subscriptionId: 'subscription-1',
+        livemode: true, isDemo: false,
         planId: 'NmdnNO90', status: 'active', access: true, startsAt: '2026-01-01T00:00:00Z', endsAt: null,
         observedAt: now, responseChecksum: checksum },
       activeCampaign: { source: 'activecampaign_api', contactId: 'contact-1', observedAt: now, responseChecksum: checksum,
@@ -141,6 +142,25 @@ test('ambiguous duplicate links withhold both records; partial coverage and over
   assert.equal(r.data.eligibleCount, 26)
   assert.ok(r.data.holds.includes('pilot_cap_exceeded'))
   assert.equal(r.proposedActions.length, 0)
+})
+
+test('test, demo, missing and unknown Outseta modes cannot qualify an otherwise active Elite member', () => {
+  for (const mode of [false, null, undefined]) {
+    const f = fixture()
+    f.members[0].outseta.livemode = mode
+    const r = runOpportunityAgent(f)
+    assert.equal(r.data.eligibleCount, 0)
+    assert.equal(r.data.withheldCounts.membership_test_demo_or_unknown_mode, 1)
+    assert.equal(r.proposedActions.length, 0)
+  }
+  for (const demo of [true, null, undefined]) {
+    const f = fixture()
+    f.members[0].outseta.isDemo = demo
+    const r = runOpportunityAgent(f)
+    assert.equal(r.data.eligibleCount, 0)
+    assert.equal(r.data.withheldCounts.membership_test_demo_or_unknown_mode, 1)
+    assert.equal(r.proposedActions.length, 0)
+  }
 })
 
 test('replays, semantic duplicates and changed terms are held using shared receipt history', () => {
