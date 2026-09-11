@@ -143,7 +143,7 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
 test('shared inspector guide starts with firm research and keeps profile preparation secondary and private', () => {
   const tree = expand(InspectorStartGuide())
   const links = nodes(tree, node => node.type === 'a')
-  assert.deepEqual(links.map(node => node.props.href), ['/hiring-firms', '/roles/inspector', '/profile'])
+  assert.deepEqual(links.map(node => node.props.href), ['/hiring-firms', '/tools/income-calculator', '/roles/inspector', '/profile'])
   assert.match(content(links[0]), /Explore hiring firms/)
   assert.match(content(tree), /Your profile is private to you/)
   assert.match(content(tree), /not a job guarantee/)
@@ -151,9 +151,39 @@ test('shared inspector guide starts with firm research and keeps profile prepara
   assert.match(content(tree), /Free includes up to 3 sample listings with no search or filters/)
   assert.match(content(tree), /Pro and higher include full directory search and firm intel/)
   assert.equal(nodes(tree, node => node.type === 'h2').length, 1)
-  assert.equal(nodes(tree, node => node.type === 'h3').length, 2)
+  assert.equal(nodes(tree, node => node.type === 'h3').length, 3)
   assert.equal(nodes(tree, node => node.type === 'button').length, 0)
-  assert.ok(links.every(node => !/^\/(?:members|tools)(?:\/|$)/.test(node.props.href)))
+  assert.ok(links.every(node => !/^\/members(?:\/|$)/.test(node.props.href)))
+  const toolLinks = links.filter(node => node.props.href.startsWith('/tools/'))
+  assert.equal(toolLinks.length, 1, 'the only tool next action is included on Free')
+  assert.equal(content(toolLinks[0]).trim(), 'Open income calculator')
+  assert.match(content(tree), /Included on Free\. Compare your own fees, mileage, and costs/)
+  assert.match(toolLinks[0].props.className, /min-h-11/)
+  assert.match(toolLinks[0].props.className, /focus-visible:outline-2/)
+})
+
+test('the guide calculator destination keeps real server gates for visitors, unknown plans and every recognized plan', async () => {
+  const planConfig = load('../lib/plan-config.ts')
+  const toolAccess = load('../lib/member-tool-access.ts', { './plan-config': planConfig })
+  let user = null
+  const { default: IncomeCalculatorPage } = load('../app/tools/income-calculator/page.tsx', {
+    'next/navigation': { redirect: url => { throw new Error(`redirect:${url}`) } },
+    '@/lib/auth-server': { getCurrentUser: async () => user },
+    '@/lib/member-tool-access': toolAccess,
+    '../_components/ToolAccessMessage': { ToolAccessMessage: props => element('aside', { children: props.title }) },
+    './IncomeScenarioCalculator': { IncomeScenarioCalculator: () => element('div', { 'data-calculator': true }) },
+  })
+  const calculatorLink = nodes(expand(InspectorStartGuide()), node => node.type === 'a')
+    .find(node => node.props.href === '/tools/income-calculator')
+  assert.ok(calculatorLink, 'the guide points directly at the guarded calculator page')
+  await assert.rejects(IncomeCalculatorPage(), /redirect:https:\/\/nested-objects\.outseta\.com\/auth\?widgetMode=login/)
+  for (const planUid of [null, 'unknown-plan', ...Object.values(planConfig.PLAN_UIDS)]) {
+    user = { 'outseta:planUid': planUid }
+    const tree = expand(await IncomeCalculatorPage())
+    const recognizedPlan = Object.values(planConfig.PLAN_UIDS).includes(planUid)
+    assert.equal(nodes(tree, node => node.props['data-calculator'] === true).length, recognizedPlan ? 1 : 0, `${planUid}`)
+    if (!recognizedPlan) assert.match(content(tree), /could not confirm an eligible member plan/)
+  }
 })
 
 test('onboarding guide can hide and reopen without completion, persistence, or marketing side effects', async () => {
@@ -163,7 +193,7 @@ test('onboarding guide can hide and reopen without completion, persistence, or m
   assert.equal(button.props.type, 'button')
   assert.equal(button.props['aria-expanded'], true)
   assert.equal(content(button), 'Hide for now')
-  assert.equal(nodes(harness.tree, node => node.type === 'a').length, 3)
+  assert.equal(nodes(harness.tree, node => node.type === 'a').length, 4)
   button.props.onClick()
   harness.render()
   button = nodes(harness.tree, node => node.type === 'button')[0]
@@ -173,7 +203,7 @@ test('onboarding guide can hide and reopen without completion, persistence, or m
   button.props.onClick()
   harness.render()
   await harness.settle()
-  assert.equal(nodes(harness.tree, node => node.type === 'a').length, 3)
+  assert.equal(nodes(harness.tree, node => node.type === 'a').length, 4)
   assert.deepEqual(harness.sideEffects, { requests: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] })
   assert.doesNotMatch(content(harness.tree), /Mark all as done|Saving\.\.\./)
   const source = readFileSync(new URL('../components/onboarding/onboarding-widget.tsx', import.meta.url), 'utf8')
@@ -219,7 +249,7 @@ test('authenticated welcome renders shared first-value guide without new-user ma
   harness.render({ isNewUser: false })
   await harness.settle()
   const links = nodes(harness.tree, node => node.type === 'a').map(node => node.props.href)
-  for (const href of ['/hiring-firms', '/roles/inspector', '/profile']) assert.ok(links.includes(href))
+  for (const href of ['/hiring-firms', '/tools/income-calculator', '/roles/inspector', '/profile']) assert.ok(links.includes(href))
   assert.match(content(harness.tree), /Synthetic Inspector/)
   assert.match(content(harness.tree), /Your profile is private to you/)
   assert.equal(harness.sideEffects.requests.length, 0)

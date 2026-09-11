@@ -1,7 +1,14 @@
 import Link from 'next/link'
-import { ArrowRight, BookOpen, Search, ShieldCheck } from 'lucide-react'
+import { ArrowRight, BookOpen, Calculator, Search, ShieldCheck } from 'lucide-react'
 
 const supportingSteps = [
+  {
+    title: 'Estimate income after costs',
+    description: 'Included on Free. Compare your own fees, mileage, and costs before planning a route.',
+    href: '/tools/income-calculator',
+    label: 'Open income calculator',
+    icon: Calculator,
+  },
   {
     title: 'Know what to prepare',
     description: 'Review the work, equipment, and expectations before you apply.',
