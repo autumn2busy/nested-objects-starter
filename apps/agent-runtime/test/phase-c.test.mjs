@@ -52,7 +52,7 @@ function event(id, name, overrides = {}) {
   }
 }
 
-test('projection stitches anonymous events to a canonical member and preserves authority', () => {
+test('projection stitches anonymous events while preserving profile-only provenance', () => {
   const batch = buildMemberProjectionBatch({
     profiles: [profile()],
     conversionEvents: [
@@ -67,8 +67,10 @@ test('projection stitches anonymous events to a canonical member and preserves a
   const projection = batch.projections[0]
   assert.equal(projection.assignedEventIds.length, 3)
   assert.equal(projection.operationalProfile.firmViews, 1)
-  assert.equal(projection.memberships[0].sourceSystem, 'outseta')
-  assert.equal(projection.memberships[0].authorityRank, 100)
+  assert.equal(projection.memberships.length, 1)
+  assert.equal(projection.memberships[0].sourceSystem, 'supabase_profiles')
+  assert.equal(projection.memberships[0].isAuthoritative, false)
+  assert.equal(projection.memberships[0].authorityRank, 0)
   assert.equal(projection.memberships[0].mrr, null)
   assert.equal(projection.memberships[0].revenueState, 'unknown')
   assert.ok(projection.identityLinks.some((link) => link.identifierType === 'anonymous_id'))
@@ -244,13 +246,29 @@ test('daily metrics preserve unknown revenue instead of inventing zero', () => {
   assert.equal(mrr.value, null)
 })
 
-test('lifecycle integrity detects paid access and ActiveCampaign plan mismatches', () => {
+function addOutsetaMembershipFixture(projection) {
+  // Explicit invented provider evidence for the authority-dependent checks.
+  // buildMemberProjectionBatch itself has only profile input.
+  projection.memberships.push({
+    ...projection.memberships[0],
+    sourceSystem: 'outseta',
+    sourceRecordId: 'outseta-account-fixture',
+    subscriptionUid: 'outseta-subscription-fixture',
+    isAuthoritative: true,
+    authorityRank: 100,
+    provenance: { evidenceKind: 'outseta_subscription_fixture' },
+    sourceRefs: [{ sourceSystem: 'outseta', sourceType: 'subscription', observedAt: fixedNow }],
+  })
+}
+
+test('lifecycle integrity detects paid access and ActiveCampaign plan mismatches with explicit authority', () => {
   const projection = buildMemberProjectionBatch({
     profiles: [profile()],
     conversionEvents: [event('event-1', 'signup_completed')],
     correlation,
     observedAt: fixedNow,
   }).projections[0]
+  addOutsetaMembershipFixture(projection)
   const signals = evaluateLifecycleIntegrity({
     projection,
     productAccess: { memberId: profileId, accessTier: 'free', accessStatus: 'active', directoryAccess: false, observedAt: fixedNow },
@@ -271,6 +289,7 @@ test('lifecycle integrity treats inactive access status as a paid-access mismatc
     correlation,
     observedAt: fixedNow,
   }).projections[0]
+  addOutsetaMembershipFixture(projection)
   const signals = evaluateLifecycleIntegrity({
     projection,
     productAccess: { memberId: profileId, accessTier: 'pro', accessStatus: 'disabled', directoryAccess: true, observedAt: fixedNow },

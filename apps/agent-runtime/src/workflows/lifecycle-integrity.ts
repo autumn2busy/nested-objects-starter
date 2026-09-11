@@ -35,6 +35,26 @@ export function evaluateLifecycleIntegrity(input: LifecycleIntegrityInput): Inte
   const authority = authoritativeMembership(input.projection.memberships)
   const signals: IntelligenceSignal[] = []
 
+  if (!authority) {
+    signals.push(makeSignal(input, now, {
+      signalType: 'lifecycle.membership_authority_missing',
+      title: 'Membership authority has not been verified',
+      summary: 'Cached profile values cannot confirm current subscription, paid access, or marketing lifecycle state.',
+      severity: 'medium',
+      priority: 75,
+      confidence: 1,
+      fingerprint: `membership-authority-missing:${input.projection.memberId}`,
+      evidence: [{
+        evidenceType: 'observation',
+        summary: 'No verified membership authority is available in this projection.',
+        sourceRef: profileSourceRef(input.projection.memberId, now),
+        value: { membershipTruthState: 'unknown' },
+        confidence: 1,
+      }],
+      followUp: 'Obtain separately approved, exact Outseta subscription evidence before proposing access or marketing changes.',
+    }))
+  }
+
   for (const conflict of input.projection.identityConflicts) {
     signals.push(makeSignal(input, now, {
       signalType: 'lifecycle.identity_conflict',
@@ -251,7 +271,13 @@ function makeSignal(
 }
 
 function authoritativeMembership(memberships: MembershipProjection[]): MembershipProjection | null {
-  return [...memberships].sort((left, right) => right.authorityRank - left.authorityRank)[0] ?? null
+  return memberships
+    .filter((membership) => membership.isAuthoritative === true
+      && membership.sourceSystem === 'outseta'
+      && membership.provenance.sourceTable !== 'profiles'
+      && membership.provenance.evidenceKind !== 'profile_mirror'
+      && !membership.sourceRefs.some((source) => source.sourceSystem === 'supabase' && source.sourceType === 'profile'))
+    .sort((left, right) => right.authorityRank - left.authorityRank)[0] ?? null
 }
 
 function membershipEvidence(membership: MembershipProjection, memberId: string, observedAt: string): EvidenceReference[] {
