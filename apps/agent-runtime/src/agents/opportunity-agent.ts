@@ -71,7 +71,7 @@ function memberReason(row: OpportunityMemberEvidence, now: number): string | nul
   if (!o || o.source !== 'outseta_api' || o.personId !== link.personId || o.accountId !== link.accountId
     || !o.subscriptionId || !/^[a-f0-9]{64}$/.test(o.responseChecksum)) return 'membership_unverified'
   if (!fresh(o.observedAt, now)) return 'membership_stale'
-  if (o.livemode !== true || o.isDemo !== false) return 'membership_test_demo_or_unknown_mode'
+  if (o.isDemo !== false) return 'membership_demo_or_unknown'
   if (o.planId !== 'NmdnNO90' || o.status !== 'active' || o.access !== true
     || !Number.isFinite(Date.parse(o.startsAt)) || Date.parse(o.startsAt) > now
     || (o.endsAt !== null && (!Number.isFinite(Date.parse(o.endsAt)) || Date.parse(o.endsAt) <= now))) return 'not_active_elite'

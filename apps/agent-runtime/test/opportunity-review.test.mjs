@@ -144,21 +144,20 @@ test('ambiguous duplicate links withhold both records; partial coverage and over
   assert.equal(r.proposedActions.length, 0)
 })
 
-test('test, demo, missing and unknown Outseta modes cannot qualify an otherwise active Elite member', () => {
+test('billing mode does not establish membership; demo or unknown demo provenance is withheld', () => {
   for (const mode of [false, null, undefined]) {
     const f = fixture()
     f.members[0].outseta.livemode = mode
     const r = runOpportunityAgent(f)
-    assert.equal(r.data.eligibleCount, 0)
-    assert.equal(r.data.withheldCounts.membership_test_demo_or_unknown_mode, 1)
-    assert.equal(r.proposedActions.length, 0)
+    assert.equal(r.data.eligibleCount, 1)
+    assert.equal(r.proposedActions.length, 1)
   }
   for (const demo of [true, null, undefined]) {
     const f = fixture()
     f.members[0].outseta.isDemo = demo
     const r = runOpportunityAgent(f)
     assert.equal(r.data.eligibleCount, 0)
-    assert.equal(r.data.withheldCounts.membership_test_demo_or_unknown_mode, 1)
+    assert.equal(r.data.withheldCounts.membership_demo_or_unknown, 1)
     assert.equal(r.proposedActions.length, 0)
   }
 })
