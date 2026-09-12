@@ -27,10 +27,15 @@ interface SupabaseQueryLike<T extends Record<string, unknown> = Record<string, u
 
 interface SupabaseClientLike {
   from(table: string): {
+    select?(columns: string): SupabaseQueryLike
     upsert(values: unknown, options?: Record<string, unknown>): SupabaseQueryLike
     insert(values: unknown): SupabaseQueryLike
     update(values: unknown): SupabaseQueryLike
   }
+}
+
+export interface ImmutableProposalStore {
+  persistProposedActionOnce(action: ProposedAction): Promise<{ id: string; disposition: 'created' | 'reused' }>
 }
 
 export interface ControlPlaneStore {
@@ -100,7 +105,7 @@ export function assertServerOnlyControlPlaneAccess(
 
 export async function createSupabaseControlPlaneStore(
   configuration: SupabaseControlPlaneConfiguration,
-): Promise<ControlPlaneStore> {
+): Promise<ControlPlaneStore & ImmutableProposalStore> {
   assertServerOnlyControlPlaneAccess(configuration)
   const supabaseModule = (await import('@supabase/supabase-js')) as unknown as {
     createClient?: (
@@ -124,7 +129,7 @@ export async function createSupabaseControlPlaneStore(
   return new SupabaseControlPlaneStore(client)
 }
 
-export class SupabaseControlPlaneStore implements ControlPlaneStore {
+export class SupabaseControlPlaneStore implements ControlPlaneStore, ImmutableProposalStore {
   constructor(private readonly client: SupabaseClientLike) {}
 
   async upsertSignal(signal: IntelligenceSignal): Promise<string> {
@@ -154,6 +159,44 @@ export class SupabaseControlPlaneStore implements ControlPlaneStore {
     return response.id
   }
 
+  // A bounded insert followed by readback. Never upsert: a retry must not clear
+  // owner decisions or execution state, even after the insert acknowledgment is lost.
+  async persistProposedActionOnce(action: ProposedAction): Promise<{ id: string; disposition: 'created' | 'reused' }> {
+    if (action.status !== 'proposed' || action.approval !== null || action.rejection !== null
+      || action.executorKey !== null || action.executionStartedAt !== null || action.executedAt !== null
+      || action.executionResult !== null || action.verificationStatus !== 'not_started' || action.verifiedAt !== null) {
+      throw new ContractValidationError('Immutable proposal persistence accepts only unexecuted proposals')
+    }
+    let acknowledged = false
+    try {
+      const id = await this.createAction(action)
+      if (id !== action.id) throw new ControlPlanePersistenceError('Proposal insert returned an unexpected ID')
+      acknowledged = true
+    } catch {
+      // A unique conflict and a lost acknowledgment both require the same exact
+      // readback. No retry or fallback write is made inside this method.
+    }
+    let existing: Record<string, unknown>
+    try {
+      const table = this.client.from('agent_actions')
+      if (!table.select) throw new Error('Readback unavailable')
+      const query = table.select('*')
+      if (!query.eq) throw new Error('Exact-key readback unavailable')
+      const filtered = query.eq('idempotency_key', action.idempotencyKey)
+      if (!filtered.single) throw new Error('Single-row readback unavailable')
+      const result = await filtered.single()
+      if (result.error || !result.data) throw new Error('Readback failed')
+      existing = result.data
+    } catch {
+      throw new ProposalReadbackUnknownError()
+    }
+    const expected = proposalBinding(mapAction(action))
+    if (canonicalJson(proposalBinding(existing)) !== canonicalJson(expected)) {
+      throw new ProposalBindingConflictError()
+    }
+    return { id: action.id, disposition: acknowledged ? 'created' : 'reused' }
+  }
+
   async createRun(run: AgentRun): Promise<string> {
     const response = await resolveQuery<{ id: string }>(
       this.client.from('agent_runs').insert(mapRun(run)),
@@ -172,6 +215,37 @@ export class SupabaseControlPlaneStore implements ControlPlaneStore {
 
   async updateRun(run: AgentRun): Promise<void> {
     await resolveQuery(this.client.from('agent_runs').update(mapRun(run)), false, run.id)
+  }
+}
+
+function proposalBinding(row: Record<string, unknown>): Record<string, unknown> {
+  const keys = ['id', 'action_type', 'target_system', 'requested_by_agent', 'task_id', 'run_id',
+    'experiment_id', 'signal_ids', 'payload', 'evidence', 'source_refs', 'concise_rationale',
+    'risk_level', 'approval_required', 'execution_guard_version', 'idempotency_key',
+    'correlation_id', 'causation_id', 'trace_id']
+  return Object.fromEntries(keys.map((key) => [key, row[key]]))
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`
+  if (value && typeof value === 'object') return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`).join(',')}}`
+  return JSON.stringify(value) ?? 'undefined'
+}
+
+export class ProposalReadbackUnknownError extends Error {
+  readonly code = 'PROPOSAL_READBACK_UNKNOWN'
+  constructor() {
+    super('Proposal persistence outcome is unknown; exact stored readback is required')
+    this.name = 'ProposalReadbackUnknownError'
+  }
+}
+
+export class ProposalBindingConflictError extends Error {
+  readonly code = 'PROPOSAL_BINDING_CONFLICT'
+  constructor() {
+    super('Proposal idempotency key conflicts with a different immutable binding')
+    this.name = 'ProposalBindingConflictError'
   }
 }
 

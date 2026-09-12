@@ -11,6 +11,11 @@ import { deterministicResult, type DeterministicAgentResult } from './specialist
 export interface OpportunityMemberEvidence {
   memberId: string
   link: { personId: string; accountId: string; contactId: string; state: 'verified' | 'ambiguous' }
+  // AC classification excludes delivery only; it is never membership authority.
+  audienceTraits: {
+    source: 'activecampaign_classification'; observedAt: string; responseChecksum: string
+    internal: boolean | null; coworker: boolean | null; test: boolean | null; hiringFirm: boolean | null
+  } | null
   // Exact authoritative reads; a profile carrying these IDs is not this contract.
   outseta: {
     source: 'outseta_api'; personId: string; accountId: string; subscriptionId: string
@@ -68,6 +73,11 @@ function fresh(at: string, now: number): boolean {
 function memberReason(row: OpportunityMemberEvidence, now: number): string | null {
   const { link, outseta: o, activeCampaign: ac } = row
   if (!row.memberId || link.state !== 'verified' || !link.personId || !link.accountId || !link.contactId) return 'identity_unknown'
+  const traits = row.audienceTraits
+  if (!traits || traits.source !== 'activecampaign_classification' || !fresh(traits.observedAt, now)
+    || !/^[a-f0-9]{64}$/.test(traits.responseChecksum)) return 'audience_traits_unverified_or_stale'
+  if (traits.internal !== false || traits.coworker !== false || traits.test !== false
+    || traits.hiringFirm !== false) return 'audience_traits_excluded_or_unknown'
   if (!o || o.source !== 'outseta_api' || o.personId !== link.personId || o.accountId !== link.accountId
     || !o.subscriptionId || !/^[a-f0-9]{64}$/.test(o.responseChecksum)) return 'membership_unverified'
   if (!fresh(o.observedAt, now)) return 'membership_stale'
@@ -102,7 +112,13 @@ export function renderOpportunityEmail(opportunity: NormalizedOpportunity): { su
   return { subject: `Inspection opportunity: ${f.company}`, html, text }
 }
 
-export function runOpportunityAgent(input: OpportunityAgentInput): OpportunityAgentOutput {
+export function runOpportunityAgent(supplied: OpportunityAgentInput): OpportunityAgentOutput {
+  const validMembers = Array.isArray(supplied.members) && supplied.members.every((row) => row && row.link)
+  const suppliedHistory = supplied.history
+  const input = { ...supplied, members: validMembers ? supplied.members : [],
+    audienceCoverageComplete: validMembers && supplied.audienceCoverageComplete,
+    history: suppliedHistory && Array.isArray(suppliedHistory.receipts) && Array.isArray(suppliedHistory.deliveries)
+      ? suppliedHistory : { complete: false, observedAt: '', receipts: [], deliveries: [] } }
   const now = Date.parse(input.observedAt)
   if (!Number.isFinite(now) || input.members.length > 500 || input.history.receipts.length > 5000
     || input.history.deliveries.length > 5000) throw new ContractValidationError('Opportunity review time or read bound is invalid')
@@ -112,13 +128,18 @@ export function runOpportunityAgent(input: OpportunityAgentInput): OpportunityAg
     if (!(error instanceof ContractValidationError)) throw error
     holds.push('source_unverified')
   }
-  if (!input.audienceCoverageComplete) holds.push('audience_coverage_unknown')
-  if (!input.history.complete || !fresh(input.history.observedAt, now)) holds.push('history_unavailable_or_stale')
+  if (input.audienceCoverageComplete !== true) holds.push('audience_coverage_unknown')
+  const validHistory = input.history.receipts.every((receipt) => receipt
+    && [receipt.sourceKey, receipt.identityKey, receipt.revisionKey].every((key) => typeof key === 'string' && /^[a-f0-9]{64}$/.test(key)))
+    && input.history.deliveries.every((delivery) => delivery && typeof delivery.memberId === 'string' && delivery.memberId.length > 0
+      && ['sent', 'scheduled', 'uncertain'].includes(delivery.state) && Number.isFinite(Date.parse(delivery.at)))
+  if (input.history.complete !== true || !validHistory || !fresh(input.history.observedAt, now)) holds.push('history_unavailable_or_stale')
   if (opportunity) {
+    if (!fresh(opportunity.sourceReviewedAt, now)) holds.push('source_review_stale')
     if (opportunity.facts.withdrawn || (opportunity.facts.expiresAt && Date.parse(opportunity.facts.expiresAt) <= now)) holds.push('expired_or_withdrawn')
     if (now > Date.parse(opportunity.dueAt)) holds.push('overdue_requires_owner_decision')
-    if (input.history.receipts.some((r) => r.sourceKey === opportunity.sourceKey || r.revisionKey === opportunity.revisionKey)) holds.push('duplicate_source_or_opportunity')
-    else if (input.history.receipts.some((r) => r.identityKey === opportunity.identityKey)) holds.push('changed_opportunity_requires_review')
+    if (validHistory && input.history.receipts.some((r) => r.sourceKey === opportunity.sourceKey || r.revisionKey === opportunity.revisionKey)) holds.push('duplicate_source_or_opportunity')
+    else if (validHistory && input.history.receipts.some((r) => r.identityKey === opportunity.identityKey)) holds.push('changed_opportunity_requires_review')
   }
   const withheldCounts: Record<string, number> = {}
   const eligible: OpportunityMemberEvidence[] = []
@@ -132,7 +153,7 @@ export function runOpportunityAgent(input: OpportunityAgentInput): OpportunityAg
   if (eligible.length === 0) holds.push('empty_audience')
   if (eligible.length > 25) holds.push('pilot_cap_exceeded')
   const deliveryTime = opportunity ? Date.parse(opportunity.dueAt) : now
-  if (input.history.deliveries.some((d) => eligible.some((row) => row.memberId === d.memberId)
+  if (validHistory && input.history.deliveries.some((d) => eligible.some((row) => row.memberId === d.memberId)
     && (d.state === 'uncertain' || !Number.isFinite(Date.parse(d.at)) || Math.abs(deliveryTime - Date.parse(d.at)) < DAY))) holds.push('opportunity_or_digest_collision')
   const internalCopy = opportunity ? renderOpportunityEmail(opportunity) : null
   const contentHash = internalCopy ? opportunityHash(internalCopy) : null
@@ -146,10 +167,16 @@ export function runOpportunityAgent(input: OpportunityAgentInput): OpportunityAg
     idempotencyKey: `opportunity-draft:${opportunity.revisionKey}:${audienceHash}:${contentHash}`,
     payload: {
       operation: 'create_unscheduled_draft', policyVersion: opportunity.policyVersion,
-      revisionKey: opportunity.revisionKey, sourceKey: opportunity.sourceKey,
-      dueAt: opportunity.dueAt, contentHash, audienceHash, eligibleCount: eligible.length,
+      revisionKey: opportunity.revisionKey, sourceKey: opportunity.sourceKey, identityKey: opportunity.identityKey,
+      sourceSha256: opportunity.sourceSha256, sourceProvenance: opportunity.sourceProvenance,
+      applicationProvenance: opportunity.applicationProvenance,
+      receivedAt: opportunity.receivedAt, observedAt: input.observedAt, sourceReviewedAt: opportunity.sourceReviewedAt,
+      expiresAt: opportunity.facts.expiresAt, dueAt: opportunity.dueAt, contentHash, audienceHash, eligibleCount: eligible.length,
+      historySnapshot: structuredClone(input.history), historyHash: opportunityHash(input.history),
       recipientSnapshot: eligible.map((row) => ({ memberId: row.memberId, contactId: row.link.contactId })),
-      evidenceExpiresAt: new Date(Math.min(...eligible.flatMap((row) => [Date.parse(row.outseta!.observedAt), Date.parse(row.activeCampaign!.observedAt)])) + FRESHNESS).toISOString(),
+      evidenceExpiresAt: new Date(Math.min(Date.parse(opportunity.sourceReviewedAt), Date.parse(input.history.observedAt),
+        ...eligible.flatMap((row) => [Date.parse(row.outseta!.observedAt), Date.parse(row.activeCampaign!.observedAt),
+          Date.parse(row.audienceTraits!.observedAt)])) + FRESHNESS).toISOString(),
       draftCopy: internalCopy, fromName: 'Nested Objects', fromEmail: 'info@nestedobjects.com', replyTo: 'support@nestedobjects.com',
       tracking: { opens: true, links: true, googleAnalytics: true, replies: true },
       schedule: null, requiresExactAudienceTransport: true, requiresSeparateSendAuthorization: true,
