@@ -18,6 +18,7 @@ import { Gate } from '@/components/Gate'
 import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { trackProfileCompleted } from '@/lib/ac-events'
 import { getPlanDisplayLabel } from '@/lib/plan-config'
+import { ELITE_OPPORTUNITY_ALERTS_OPT_IN_URL } from '@/lib/opportunity-alert-consent'
 
 // --- Types ---
 
@@ -417,7 +418,15 @@ function BackgroundCheckFlow({
 
 // --- Main Component ---
 
-export default function ProfileView({ initialProfile, initialTrustStats }: { initialProfile: any; initialTrustStats: any }) {
+export default function ProfileView({
+  initialProfile,
+  initialTrustStats,
+  canOfferEliteOpportunityAlerts = false,
+}: {
+  initialProfile: any
+  initialTrustStats: any
+  canOfferEliteOpportunityAlerts?: boolean
+}) {
   const { user, isLoading: authLoading, profileAvatarUrl, planUid } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(initialProfile || null)
   const [isLoading, setIsLoading] = useState(!initialProfile)
@@ -732,6 +741,34 @@ export default function ProfileView({ initialProfile, initialTrustStats }: { ini
                 Name, email, phone, and billing are managed in your account settings.
               </p>
             </Card>
+
+            {canOfferEliteOpportunityAlerts && (
+              <Card className="p-6 border-slate-200">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-brand-copper/10 p-2 text-brand-copper">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-900">Elite Opportunity Alerts</h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Choose deadline-sensitive inspection opportunity emails. Use the email tied to your Nested Objects membership, then confirm the subscription from your inbox.
+                    </p>
+                    <a
+                      className={buttonVariants({ className: 'mt-4' })}
+                      href={ELITE_OPPORTUNITY_ALERTS_OPT_IN_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Choose opportunity alerts
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                    <p className="mt-3 text-xs text-slate-500">
+                      Alerts begin only after you confirm. Membership, consent, and delivery eligibility are checked again before each approved email. Listings and work are not guaranteed.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Vendor Profile (Editable) */}
             <Card className="p-6 border-slate-200">
