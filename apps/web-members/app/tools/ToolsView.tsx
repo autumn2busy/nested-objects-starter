@@ -109,7 +109,15 @@ export function ToolsView() {
             toolkit. Elite includes every member tool, including route economics.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            {!isLoading && !isAuthenticated ? (
+            {isLoading ? (
+              <button
+                type="button"
+                disabled
+                className={buttonVariants({ variant: 'primary', size: 'lg', shape: 'rounded' })}
+              >
+                Checking member access…
+              </button>
+            ) : !isAuthenticated ? (
               <button
                 type="button"
                 onClick={login}
@@ -117,14 +125,14 @@ export function ToolsView() {
               >
                 Sign in to use member tools
               </button>
-            ) : (
+            ) : canAccessMemberTool(planUid, 'income_scenario') ? (
               <Link
                 href="/tools/income-calculator"
                 className={buttonVariants({ variant: 'primary', size: 'lg', shape: 'rounded' })}
               >
                 Open income planner
               </Link>
-            )}
+            ) : null}
             <Link
               href="/membership-pricing"
               className={buttonVariants({ variant: 'secondary', size: 'lg', shape: 'rounded' })}
@@ -132,13 +140,18 @@ export function ToolsView() {
               Compare plan access
             </Link>
           </div>
+          {!isLoading && isAuthenticated && !canAccessMemberTool(planUid, 'income_scenario') && (
+            <p className="mt-4 text-sm text-slate-300" role="status">
+              We could not confirm your member plan. Review your membership or sign in again to check your access.
+            </p>
+          )}
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {memberTools.map((tool) => {
-            const hasToolAccess = isAuthenticated && canAccessMemberTool(planUid, tool.id)
+            const hasToolAccess = !isLoading && isAuthenticated && canAccessMemberTool(planUid, tool.id)
 
             return (
               <Card
@@ -152,7 +165,7 @@ export function ToolsView() {
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     hasToolAccess ? 'bg-emerald-400/15 text-emerald-200' : 'bg-slate-800 text-slate-300'
                   }`}>
-                    {hasToolAccess ? 'Included' : 'Plan access'}
+                    {isLoading ? 'Checking access' : hasToolAccess ? 'Included' : 'Plan access'}
                   </span>
                 </div>
                 <h2 className="mt-6 text-2xl font-bold text-white">{tool.name}</h2>
