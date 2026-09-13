@@ -59,9 +59,9 @@ test('offers the double-opt-in form only with exact active non-demo Elite eviden
 test('withholds mismatched or incomplete stable identity evidence', () => {
   for (const mutate of [
     (value) => { delete value.viewer.sub },
+    (value) => { delete value.viewer['outseta:subscriptionUid'] },
     (value) => { value.profile.outseta_person_uid = 'different-person' },
     (value) => { value.profile.outseta_account_id = 'different-account' },
-    (value) => { value.profile.outseta_data.CurrentSubscription.Uid = 'different-subscription' },
   ]) {
     const input = fixture()
     mutate(input)
@@ -88,7 +88,7 @@ test('withholds non-Elite, inactive, expired, future, demo, and unknown-demo rec
   }
 })
 
-test('supports person-centric Outseta projection only when the exact account and subscription agree', () => {
+test('supports person-centric projection without a redundant subscription child', () => {
   const input = fixture()
   input.profile.outseta_data = {
     Uid: 'person-fixture',
@@ -97,7 +97,6 @@ test('supports person-centric Outseta projection only when the exact account and
       Account: {
         Uid: 'account-fixture',
         IsDemo: false,
-        LatestSubscription: { Uid: 'subscription-fixture' },
       },
     }],
   }
