@@ -108,8 +108,20 @@ test('legacy paid plans retain their promised core tools without receiving curre
   }
 })
 
-test('tools catalog renders one Free tool, the Pro subset, and every tool for Elite', () => {
-  let auth = { isAuthenticated: true, isLoading: false, planUid: plans.PLAN_UIDS.FREE, login() {} }
+const incomePath = '/tools/income-calculator'
+const legacyPaths = [incomePath, '/tools/clients', '/tools/companies', '/tools/ai-concierge', '/tools/ai-resume', '/tools/job-tracker']
+const proPaths = [...legacyPaths, '/tools/weather', '/tools/routing']
+const allPaths = [...proPaths, '/tools/notary-route-calculator']
+const roleMatrix = [
+  { name: 'Free', planUid: plans.PLAN_UIDS.FREE, paths: [incomePath] },
+  { name: 'Pro', planUid: plans.PLAN_UIDS.PRO, paths: proPaths },
+  { name: 'Elite', planUid: plans.PLAN_UIDS.ELITE, paths: allPaths },
+  { name: 'Agency', planUid: plans.PLAN_UIDS.AGENCY, paths: allPaths },
+  { name: 'Starter', planUid: plans.PLAN_UIDS.STARTER, paths: legacyPaths },
+  { name: 'Founders', planUid: plans.PLAN_UIDS.FOUNDERS, paths: legacyPaths },
+]
+
+function loadCatalog(auth) {
   const catalog = load('../app/tools/ToolsView.tsx', {
     'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
     '@/components/auth-provider': { useAuth: () => auth },
@@ -118,24 +130,60 @@ test('tools catalog renders one Free tool, the Pro subset, and every tool for El
     '@/lib/member-tool-access': access,
   })
 
-  const renderCatalog = (planUid) => {
-    auth = { ...auth, planUid }
-    return renderToStaticMarkup(React.createElement(catalog.ToolsView))
+  return {
+    element: catalog.ToolsView(),
+    html: renderToStaticMarkup(React.createElement(catalog.ToolsView)),
   }
-  const count = (html, label) => (html.match(new RegExp(`>${label}<`, 'g')) ?? []).length
+}
 
-  const free = renderCatalog(plans.PLAN_UIDS.FREE)
-  assert.equal(count(free, 'Open tool'), 1)
-  assert.equal(count(free, 'Compare plans'), 8)
+const countLabel = (html, label) => (html.match(new RegExp(`>${label}<`, 'g')) ?? []).length
+const toolLinks = (html) => [...html.matchAll(/href="(\/tools\/[^"?#]+)"/g)].map((match) => match[1])
 
-  const pro = renderCatalog(plans.PLAN_UIDS.PRO)
-  assert.equal(count(pro, 'Open tool'), 8)
-  assert.equal(count(pro, 'Compare plans'), 1)
+for (const role of roleMatrix) {
+  test(`${role.name} catalog links match its exact supported routes`, () => {
+    const { html } = loadCatalog({ isAuthenticated: true, isLoading: false, planUid: role.planUid, login() {} })
+    assert.deepEqual(toolLinks(html), [incomePath, ...role.paths], 'Header and card destinations')
+    assert.equal(countLabel(html, 'Included'), role.paths.length)
+    assert.equal(countLabel(html, 'Compare plans'), 9 - role.paths.length)
+    assert.doesNotMatch(html, /Not yet enabled|Planned|Checking member access/)
+  })
+}
 
-  const elite = renderCatalog(plans.PLAN_UIDS.ELITE)
-  assert.equal(count(elite, 'Open tool'), 9)
-  assert.equal(count(elite, 'Compare plans'), 0)
-  assert.doesNotMatch(elite, /Not yet enabled|Planned/)
+for (const planUid of [null, 'unknown-plan']) {
+  test(`unconfirmed plan ${planUid} never offers an open-tool header or card`, () => {
+    const { html } = loadCatalog({ isAuthenticated: true, isLoading: false, planUid, login() {} })
+    assert.deepEqual(toolLinks(html), [])
+    assert.match(html, /We could not confirm your member plan/)
+    assert.match(html, /href="\/membership-pricing"/)
+    assert.equal(countLabel(html, 'Included'), 0)
+  })
+}
+
+for (const isAuthenticated of [false, true]) {
+  test(`loading catalog with authenticated=${isAuthenticated} offers no premature access`, () => {
+    const { html } = loadCatalog({ isAuthenticated, isLoading: true, planUid: plans.PLAN_UIDS.ELITE, login() {} })
+    assert.deepEqual(toolLinks(html), [])
+    assert.equal((html.match(/disabled=""/g) ?? []).length, 10, 'Header and all nine cards wait')
+    assert.equal(countLabel(html, 'Included'), 0, 'Stale plan claims do not appear confirmed while loading')
+    assert.doesNotMatch(html, /Sign in to use/)
+  })
+}
+
+test('visitor catalog keeps every sign-in action wired to the existing login handler', () => {
+  let logins = 0
+  const { element, html } = loadCatalog({
+    isAuthenticated: false, isLoading: false, planUid: plans.PLAN_UIDS.ELITE, login() { logins += 1 },
+  })
+  assert.deepEqual(toolLinks(html), [], 'Untrusted stale plan cannot offer tool access')
+  assert.equal(countLabel(html, 'Sign in to use'), 9)
+  assert.equal(countLabel(html, 'Sign in to use member tools'), 1)
+  const visit = (node) => {
+    if (!React.isValidElement(node)) return
+    if (node.type === 'button') node.props.onClick()
+    React.Children.forEach(node.props.children, visit)
+  }
+  visit(element)
+  assert.equal(logins, 10)
 })
 
 test('unknown tool identifiers fail closed at runtime', () => {
@@ -203,6 +251,93 @@ test('route page server-enforces Elite and Agency access', async () => {
   assert.equal(route.page.dynamic, 'force-dynamic')
   assert.equal(route.page.revalidate, 0)
   assert.equal(route.page.metadata.robots.index, false)
+})
+
+// Exercise each real route and the shared server gate. Tool bodies are inert
+// markers: this matrix cannot contact providers or imply hosted acceptance.
+const routeBodies = {
+  '/tools/income-calculator': ['./IncomeScenarioCalculator', 'IncomeScenarioCalculator'],
+  '/tools/clients': ['./ClientWorkspace', 'ClientWorkspace'],
+  '/tools/companies': ['./CompanyTracker', 'CompanyTracker'],
+  '/tools/ai-concierge': ['@/components/ChatWidget', 'default'],
+  '/tools/ai-resume': ['@/components/tools/ResumeBuilder', 'default'],
+  '/tools/weather': ['./WeatherWorkspace', 'WeatherWorkspace'],
+  '/tools/routing': ['./RoutePlanner', 'RoutePlanner'],
+  '/tools/notary-route-calculator': ['./NotaryRouteCalculator', 'NotaryRouteCalculator'],
+}
+
+async function resolveServerTree(node) {
+  if (!React.isValidElement(node)) return node
+  if (typeof node.type === 'function') return resolveServerTree(await node.type(node.props))
+  const children = []
+  for (const child of React.Children.toArray(node.props.children)) children.push(await resolveServerTree(child))
+  return React.cloneElement(node, undefined, ...children)
+}
+
+for (const path of allPaths) {
+  test(`${path} preserves the complete role and recovery navigation matrix`, async (t) => {
+    let currentUser = null
+    let bodyRenders = 0
+    const commonImports = {
+      'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
+      'next/navigation': { redirect(url) { throw new Error(`redirect:${url}`) } },
+      '@/lib/auth-server': { getCurrentUser: async () => currentUser },
+      '@/lib/member-tool-access': access,
+    }
+    const message = load('../app/tools/_components/ToolAccessMessage.tsx', { ...commonImports, react: React })
+    const gate = load('../app/tools/_components/MemberToolPageAccess.tsx', {
+      ...commonImports, './ToolAccessMessage': message,
+    })
+    const body = routeBodies[path]
+    const page = load(`../app${path}/page.tsx`, {
+      ...commonImports,
+      '../_components/ToolAccessMessage': message,
+      '../_components/MemberToolPageAccess': gate,
+      ...(body ? { [body[0]]: { [body[1]]: () => {
+        bodyRenders += 1
+        return React.createElement('div', { 'data-tool-body': path })
+      } } } : {}),
+    })
+    assert.equal(page.dynamic, 'force-dynamic')
+    assert.equal(page.revalidate, 0)
+
+    const cases = [
+      { name: 'visitor', visitor: true, paths: [] },
+      { name: 'missing plan', planUid: null, paths: [] },
+      { name: 'unknown plan', planUid: 'unknown-plan', paths: [] },
+      ...roleMatrix,
+    ]
+    for (const role of cases) {
+      await t.test(role.name, async () => {
+        currentUser = role.visitor ? null : { sub: 'invented-member', 'outseta:planUid': role.planUid }
+        bodyRenders = 0
+        const render = async () => renderToStaticMarkup(await resolveServerTree(await page.default()))
+        if (role.visitor) {
+          await assert.rejects(render(), /redirect:https:\/\/nested-objects\.outseta\.com\/auth/)
+          assert.equal(bodyRenders, 0)
+        } else if (!role.paths.includes(path)) {
+          const html = await render()
+          assert.equal(bodyRenders, 0, 'Denied tools never render their body')
+          assert.match(html, /href="\/tools"[^>]*>Back to tools</)
+          assert.match(html, /href="\/membership-pricing"/)
+          assert.doesNotMatch(html, /data-tool-body/)
+        } else if (path === '/tools/job-tracker') {
+          await assert.rejects(render(), /^Error: redirect:\/jobs\?tab=tracker$/)
+        } else {
+          const html = await render()
+          assert.equal(bodyRenders, 1)
+          assert.ok(html.includes(`data-tool-body="${path}"`))
+        }
+      })
+    }
+  })
+}
+
+test('legacy job-tracking URL leads to the same guarded catalog destination', () => {
+  const page = load('../app/tools/job-tracking/page.tsx', {
+    'next/navigation': { redirect(url) { throw new Error(`redirect:${url}`) } },
+  })
+  assert.throws(() => page.default(), /^Error: redirect:\/tools\/job-tracker$/)
 })
 
 test('calculator privacy copy accurately distinguishes input handling and analytics', () => {
