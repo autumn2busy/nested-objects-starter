@@ -27,7 +27,6 @@ export type OpportunityAlertConsentOffer = {
     | 'identity_unverified'
     | 'membership_projection_unavailable'
     | 'not_elite'
-    | 'subscription_unverified'
     | 'membership_inactive'
     | 'membership_window_invalid'
     | 'demo_or_unknown'
@@ -56,11 +55,6 @@ function findProjectedAccount(profile: NonNullable<OpportunityAlertProfile>) {
   }
 
   return null
-}
-
-function findProjectedSubscription(account: Record<string, unknown> | null) {
-  if (!account) return null
-  return record(account.CurrentSubscription) ?? record(account.LatestSubscription)
 }
 
 function parseOptionalDate(value: unknown): number | null | 'invalid' {
@@ -101,11 +95,7 @@ export function evaluateEliteOpportunityAlertConsentOffer(
   }
 
   const account = findProjectedAccount(profile)
-  const subscription = findProjectedSubscription(account)
-  if (!account || exactId(subscription?.Uid) !== subscriptionId) {
-    return { allowed: false, reason: 'subscription_unverified' }
-  }
-  if (account.IsDemo !== false) {
+  if (!account || account.IsDemo !== false) {
     return { allowed: false, reason: 'demo_or_unknown' }
   }
   if (profile.subscription_status !== 'active') {
