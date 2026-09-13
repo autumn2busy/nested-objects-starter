@@ -10,6 +10,7 @@ import {
 } from '@/lib/intelligence-os-admin'
 
 import { startSyntheticWorkflow, submitIntelligenceActionDecision } from './actions'
+import { OperatingReviewComparison } from './OperatingReviewComparison'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -310,8 +311,14 @@ export default async function IntelligenceOsPage({ searchParams = {} }: PageProp
             )}
           </section>
 
+          <OperatingReviewComparison
+            reviews={snapshot.reviews}
+            selectedId={typeof searchParams.selectedReview === 'string' ? searchParams.selectedReview : undefined}
+            referenceId={typeof searchParams.referenceReview === 'string' ? searchParams.referenceReview : undefined}
+          />
+
           <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-950">Operating reviews</h2>
+            <h2 className="text-xl font-bold text-slate-950">Operating review archive</h2>
             {snapshot.reviews.length === 0 ? <Empty label="No operating review artifact is available." /> : (
               <div className="mt-4 space-y-3">
                 {snapshot.reviews.slice(0, 8).map((review) => (
