@@ -12,6 +12,8 @@ const compile = (path, jsx = false) => ts.transpileModule(readFileSync(new URL(p
 const helperCode = compile('../lib/intelligence-os-admin.ts')
 const actionCode = compile('../app/(portal)/admin/intelligence-os/actions.ts')
 const pageCode = compile('../app/(portal)/admin/intelligence-os/page.tsx', true)
+const comparisonCode = compile('../app/(portal)/admin/intelligence-os/OperatingReviewComparison.tsx', true)
+const comparisonHelperCode = compile('../lib/intelligence-review-comparison.ts')
 const scenario = 'specialist-review-v1'
 
 function harness() {
@@ -57,6 +59,17 @@ function harness() {
   })
   const page = {}
   const jsx = (type, props) => ({ type, props })
+  const comparisonHelper = {}
+  vm.runInNewContext(comparisonHelperCode, { exports: comparisonHelper })
+  const comparison = {}
+  vm.runInNewContext(comparisonCode, {
+    exports: comparison,
+    require(name) {
+      if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'fragment' }
+      if (name === '@/lib/intelligence-review-comparison') return comparisonHelper
+      throw new Error(`Unexpected comparison dependency: ${name}`)
+    },
+  })
   vm.runInNewContext(pageCode, {
     exports: page,
     require(name) {
@@ -65,6 +78,7 @@ function harness() {
       if (name === 'next/navigation') return { redirect }
       if (name === 'next/link') return { default: 'a' }
       if (name === './actions') return actions
+      if (name === './OperatingReviewComparison') return comparison
       throw new Error(`Unexpected page dependency: ${name}`)
     },
   })
@@ -165,6 +179,8 @@ test('owner page presents one clearly synthetic option and preserves quiet basel
   assert.match(copy, /empty-input weekly baseline/)
   assert.match(copy, /writes synthetic staging records, not live business results/)
   assert.match(copy, /No model, email, or execution/)
+  assert.match(copy, /What changed between reviews\?/)
+  assert.match(copy, /Two saved reviews/)
   h.state.user = { sub: 'synthetic-nonowner' }
   h.requests.length = 0
   await assert.rejects(h.page.default({}), error => error.location === '/profile')
