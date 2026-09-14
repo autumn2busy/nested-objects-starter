@@ -91,7 +91,7 @@ function harness() {
     if (fixtureScenario !== undefined) data.set('fixtureScenario', fixtureScenario)
     return data
   }
-  return { env, state, requests, actions, page, form }
+  return { env, state, requests, actions, page, form, snapshot }
 }
 
 async function submit(actions, data) {
@@ -190,4 +190,35 @@ test('owner page presents one clearly synthetic option and preserves quiet basel
   const productionNodes = flatten(await h.page.default({}))
   assert.equal(productionNodes.some(node => node?.type === 'form'), false)
   assert.equal(h.requests.length, 0)
+})
+
+test('owner-page comparison preserves exact GET selections and rejects empty or repeated parameters without writes', async () => {
+  const h = harness()
+  const review = id => ({
+    id, workflowName: 'weekly_operating_review', reviewDate: '2026-09-12', status: 'completed',
+    executiveSummary: `Invented ${id} review.`, priorities: [], autumnDecisions: [],
+    correlationId: `synthetic-${id}`,
+  })
+  h.snapshot.reviews.push(review('reference'), review('selected'))
+  const read = async searchParams => {
+    const nodes = flatten(await h.page.default({ searchParams }))
+    const section = nodes.find(node => node?.props?.id === 'review-comparison')
+    return flatten(section)
+  }
+  const valid = await read({ selectedReview: 'selected', referenceReview: 'reference' })
+  assert.ok(valid.some(node => node?.type === 'form' && node.props.method === 'GET'))
+  for (const [name, expected] of [['selectedReview', 'selected'], ['referenceReview', 'reference']]) {
+    assert.equal(valid.find(node => node?.type === 'select' && node.props.name === name).props.defaultValue, expected)
+  }
+  for (const field of ['selectedReview', 'referenceReview']) {
+    for (const value of ['', ['reference', 'selected']]) {
+      const nodes = await read({ selectedReview: 'selected', referenceReview: 'reference', [field]: value })
+      const copy = nodes.filter(node => typeof node === 'string').join(' ')
+      assert.match(copy, /review is no longer in this snapshot/, `${field} must not silently default`)
+      assert.equal(nodes.some(node => node?.type === 'article'), false)
+    }
+  }
+  assert.equal(h.requests.length, 5)
+  assert.ok(h.requests.every(request => request.options.method === 'GET'))
+  assert.ok(h.requests.every(request => !request.url.includes('selectedReview') && !request.url.includes('referenceReview')))
 })

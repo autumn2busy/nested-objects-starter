@@ -8,8 +8,8 @@ import {
 
 export function OperatingReviewComparison({ reviews, selectedId, referenceId }: {
   reviews: IntelligenceReviewSummary[]
-  selectedId?: string
-  referenceId?: string
+  selectedId?: string | string[]
+  referenceId?: string | string[]
 }) {
   const selection = selectOperatingReviews(reviews, selectedId, referenceId)
   const { selected, reference, unavailable } = selection

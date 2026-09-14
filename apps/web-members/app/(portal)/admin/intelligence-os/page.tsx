@@ -313,8 +313,8 @@ export default async function IntelligenceOsPage({ searchParams = {} }: PageProp
 
           <OperatingReviewComparison
             reviews={snapshot.reviews}
-            selectedId={typeof searchParams.selectedReview === 'string' ? searchParams.selectedReview : undefined}
-            referenceId={typeof searchParams.referenceReview === 'string' ? searchParams.referenceReview : undefined}
+            selectedId={searchParams.selectedReview}
+            referenceId={searchParams.referenceReview}
           />
 
           <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

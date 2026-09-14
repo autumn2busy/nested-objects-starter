@@ -15,25 +15,27 @@ export type ReviewItemComparison = {
 // This module compares stored review artifacts only. It performs no reads or writes.
 export function selectOperatingReviews(
   input: unknown,
-  selectedId?: string,
-  referenceId?: string,
+  selectedId?: string | string[],
+  referenceId?: string | string[],
 ) {
   const records = Array.isArray(input) ? input.slice(0, 100).filter(isReview) : []
   const ids = new Map<string, number>()
   for (const review of records) ids.set(review.id, (ids.get(review.id) ?? 0) + 1)
   const reviews = records.filter(review => ids.get(review.id) === 1)
     .sort((a, b) => b.reviewDate.localeCompare(a.reviewDate) || a.id.localeCompare(b.id))
-  const selected = selectedId
+  // Only an absent parameter permits defaults. Empty/repeated query values are
+  // explicit but invalid selections and must never select a different record.
+  const selected = selectedId !== undefined
     ? reviews.find(review => review.id === selectedId) ?? null
     : reviews.find(review => review.workflowName === 'weekly_operating_review') ?? reviews[0] ?? null
-  const reference = referenceId
+  const reference = referenceId !== undefined
     ? reviews.find(review => review.id === referenceId) ?? null
     : reviews.find(review => review.id !== selected?.id && review.workflowName === selected?.workflowName
       && review.reviewDate <= selected.reviewDate) ?? null
 
   let unavailable: string | null = null
-  if (selectedId && !selected) unavailable = 'The selected review is no longer in this snapshot. Choose an available review.'
-  else if (referenceId && !reference) unavailable = 'The reference review is no longer in this snapshot. Choose an available review.'
+  if (selectedId !== undefined && !selected) unavailable = 'The selected review is no longer in this snapshot. Choose an available review.'
+  else if (referenceId !== undefined && !reference) unavailable = 'The reference review is no longer in this snapshot. Choose an available review.'
   else if (!selected || !reference) unavailable = 'Two saved reviews of the same workflow are needed for a comparison.'
   else if (selected.id === reference.id) unavailable = 'Choose two different reviews.'
   else if (selected.workflowName !== reference.workflowName) unavailable = 'Choose two reviews of the same workflow.'
