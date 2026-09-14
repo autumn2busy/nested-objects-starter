@@ -182,9 +182,9 @@ export async function commitJsonToGitHub({
     }
   }
 
-  let repoInfo: GitHubRepoResponse
+  let repoInfo: unknown
   try {
-    repoInfo = (await repoResponse.json()) as GitHubRepoResponse
+    repoInfo = await repoResponse.json()
   } catch {
     return {
       committed: false,
@@ -193,7 +193,20 @@ export async function commitJsonToGitHub({
     }
   }
 
-  const defaultBranch = repoInfo.default_branch?.trim()
+  if (
+    !repoInfo ||
+    typeof repoInfo !== 'object' ||
+    !('default_branch' in repoInfo) ||
+    typeof (repoInfo as { default_branch?: unknown }).default_branch !== 'string'
+  ) {
+    return {
+      committed: false,
+      branch,
+      reason: 'Could not determine repository default branch.',
+    }
+  }
+
+  const defaultBranch = (repoInfo as { default_branch: string }).default_branch.trim()
   if (!defaultBranch) {
     return {
       committed: false,
@@ -232,9 +245,29 @@ export async function commitJsonToGitHub({
   let currentContent: string | null = null
 
   if (currentFileResponse.ok) {
-    const currentFile = (await currentFileResponse.json()) as GitHubContentResponse
-    sha = currentFile.sha
-    currentContent = decodeGitHubContent(currentFile.content)
+    try {
+      const currentFile = (await currentFileResponse.json()) as unknown
+      if (
+        !currentFile ||
+        typeof currentFile !== 'object' ||
+        typeof (currentFile as { content?: unknown }).content !== 'string'
+      ) {
+        return {
+          committed: false,
+          branch,
+          reason: `Could not read ${path}: invalid response`,
+        }
+      }
+      const validFile = currentFile as { content: string; sha?: unknown }
+      sha = typeof validFile.sha === 'string' ? validFile.sha : undefined
+      currentContent = decodeGitHubContent(validFile.content)
+    } catch {
+      return {
+        committed: false,
+        branch,
+        reason: `Could not read ${path}: invalid response`,
+      }
+    }
   } else if (currentFileResponse.status !== 404) {
     // Fixed sanitized message: never include raw provider response text or excerpts
     return {
@@ -281,11 +314,29 @@ export async function commitJsonToGitHub({
     }
   }
 
-  const updateResult = (await updateResponse.json()) as GitHubUpdateResponse
+  let commitUrl: string | null = null
+  try {
+    const updateResult = (await updateResponse.json()) as unknown
+    if (
+      updateResult &&
+      typeof updateResult === 'object' &&
+      'commit' in updateResult &&
+      updateResult.commit &&
+      typeof updateResult.commit === 'object' &&
+      'html_url' in updateResult.commit &&
+      typeof (updateResult.commit as { html_url?: unknown }).html_url === 'string'
+    ) {
+      commitUrl = (updateResult.commit as { html_url: string }).html_url
+    }
+  } catch {
+    // Write succeeded, but response body was unreadable/malformed.
+    // Do NOT claim committed: false since the write actually completed.
+    commitUrl = null
+  }
 
   return {
     committed: true,
     branch,
-    commitUrl: updateResult.commit?.html_url || null,
+    commitUrl,
   }
 }

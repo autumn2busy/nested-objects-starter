@@ -488,6 +488,63 @@ test('SEO-004: Default branch determination & fail-closed behavior', async (t) =
     assert.strictEqual(result.committed, false)
     assert.match(result.reason, /Could not determine repository default branch/i)
   })
+
+  await t.test('fails closed when repository metadata is JSON null', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return new Response('null', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+
+  await t.test('fails closed when default_branch is a number (e.g. 42)', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ default_branch: 42 })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+
+  await t.test('fails closed when default_branch is whitespace', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ default_branch: '   ' })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
 })
 
 // ============================================================
@@ -604,6 +661,43 @@ test('SEO-004: Sanitized error messages & leak prevention', async (t) => {
     assert.strictEqual(result.reason, `GitHub write failed for ${VALID_REPORT_PATH}: network error`)
     assert.strictEqual(result.reason.includes(INVENTED_SECRET), false)
   })
+  await t.test('read error returns fixed sanitized failure when content-read JSON is malformed', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        return new Response('{ this is not valid json', { status: 200 })
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not read ${VALID_REPORT_PATH}: invalid response`)
+  })
+
+  await t.test('read error returns fixed sanitized failure when content-read JSON is null or missing content string', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        return Response.json({ no_content: true })
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not read ${VALID_REPORT_PATH}: invalid response`)
+  })
 })
 
 // ============================================================
@@ -639,6 +733,60 @@ test('SEO-004: commitJsonToGitHub success & no-op', async (t) => {
     assert.strictEqual(result.branch, 'content/seo-reports')
     assert.ok(result.commitUrl)
     assert.strictEqual(fetchCalls.length, 3) // Repo check + GET contents + PUT contents
+  })
+
+  await t.test('commits successfully when write succeeds even if write response body is unreadable/malformed JSON', async () => {
+    const mockFetch = async (url, options) => {
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
+      if (options.method === 'GET') {
+        return new Response('Not Found', { status: 404 })
+      }
+      if (options.method === 'PUT') {
+        // Write succeeded with 201 Created, but body is malformed JSON
+        return new Response('{ malformed json body', { status: 201 })
+      }
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { score: 90 },
+      message: 'Update SEO report',
+    })
+
+    // Must NOT claim failure since the write completed
+    assert.strictEqual(result.committed, true)
+    assert.strictEqual(result.branch, 'content/seo-reports')
+    assert.strictEqual(result.commitUrl, null)
+  })
+
+  await t.test('commits successfully when write succeeds even if write response body is null', async () => {
+    const mockFetch = async (url, options) => {
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
+      if (options.method === 'GET') {
+        return new Response('Not Found', { status: 404 })
+      }
+      if (options.method === 'PUT') {
+        return new Response('null', { status: 200, headers: { 'content-type': 'application/json' } })
+      }
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { score: 90 },
+      message: 'Update SEO report',
+    })
+
+    assert.strictEqual(result.committed, true)
+    assert.strictEqual(result.branch, 'content/seo-reports')
+    assert.strictEqual(result.commitUrl, null)
   })
 
   await t.test('no-ops when report content has not changed', async () => {
