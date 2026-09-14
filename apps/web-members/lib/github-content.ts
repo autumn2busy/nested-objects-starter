@@ -9,6 +9,10 @@ type GitHubUpdateResponse = {
   }
 }
 
+type GitHubRepoResponse = {
+  default_branch?: string
+}
+
 type CommitJsonResult =
   | {
       committed: true
@@ -23,7 +27,7 @@ type CommitJsonResult =
 
 /**
  * Branches that must never receive automated monitor commits.
- * The repository default branch is also rejected dynamically when discoverable.
+ * The repository default branch is also verified and rejected dynamically.
  */
 const PROTECTED_BRANCH_NAMES = ['main', 'master']
 
@@ -87,7 +91,8 @@ export function getGitHubConfig(): GitHubContentConfig | string {
 }
 
 /**
- * Returns a rejection reason if the branch is protected, or null if the branch is acceptable.
+ * Returns a rejection reason if the branch is a known protected default branch name,
+ * or null if the branch passes static checks.
  */
 export function rejectProtectedBranch(branch: string): string | null {
   const normalized = branch.trim().toLowerCase()
@@ -121,22 +126,6 @@ function encodeGitHubContent(content: string) {
   return Buffer.from(content).toString('base64')
 }
 
-/**
- * Redacts provider error bodies to prevent leaking tokens, secrets, or member data.
- * Returns a bounded error string safe for inclusion in API responses.
- */
-function redactErrorDetail(rawText: string, context: string): string {
-  // Never include the raw provider response body.
-  // Return only the fact of failure and the context.
-  const truncated = rawText.length > 200 ? rawText.slice(0, 200) + '…' : rawText
-  // Strip anything that looks like a token or credential
-  const redacted = truncated.replace(/ghp_[A-Za-z0-9]+/g, '[REDACTED]')
-    .replace(/gho_[A-Za-z0-9]+/g, '[REDACTED]')
-    .replace(/github_pat_[A-Za-z0-9_]+/g, '[REDACTED]')
-    .replace(/Bearer\s+\S+/gi, 'Bearer [REDACTED]')
-  return `${context}: ${redacted}`
-}
-
 export async function commitJsonToGitHub({
   path,
   data,
@@ -167,6 +156,60 @@ export async function commitJsonToGitHub({
     }
   }
 
+  // Determine and reject the configured repository's actual default branch.
+  // Fails closed if the check is unavailable or fails.
+  const repoUrl = `https://api.github.com/repos/${owner}/${repo}`
+  let repoResponse: Response
+  try {
+    repoResponse = await fetch(repoUrl, {
+      method: 'GET',
+      headers: githubHeaders(token),
+      cache: 'no-store',
+    })
+  } catch {
+    return {
+      committed: false,
+      branch,
+      reason: 'Could not verify repository default branch: network error',
+    }
+  }
+
+  if (!repoResponse.ok) {
+    return {
+      committed: false,
+      branch,
+      reason: `Could not verify repository default branch: HTTP ${repoResponse.status}`,
+    }
+  }
+
+  let repoInfo: GitHubRepoResponse
+  try {
+    repoInfo = (await repoResponse.json()) as GitHubRepoResponse
+  } catch {
+    return {
+      committed: false,
+      branch,
+      reason: 'Could not verify repository default branch: invalid response',
+    }
+  }
+
+  const defaultBranch = repoInfo.default_branch?.trim()
+  if (!defaultBranch) {
+    return {
+      committed: false,
+      branch,
+      reason: 'Could not determine repository default branch.',
+    }
+  }
+
+  if (branch.trim().toLowerCase() === defaultBranch.toLowerCase()) {
+    return {
+      committed: false,
+      branch,
+      reason: `Branch '${branch}' is the repository default branch (${defaultBranch}) and cannot receive automated monitor commits.`,
+    }
+  }
+
   const nextContent = `${JSON.stringify(data, null, 2)}\n`
   const fileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`
 
@@ -177,14 +220,11 @@ export async function commitJsonToGitHub({
       headers: githubHeaders(token),
       cache: 'no-store',
     })
-  } catch (err) {
+  } catch {
     return {
       committed: false,
       branch,
-      reason: redactErrorDetail(
-        err instanceof Error ? err.message : String(err),
-        `GitHub read failed for ${path}`
-      ),
+      reason: `GitHub read failed for ${path}: network error`,
     }
   }
 
@@ -196,16 +236,11 @@ export async function commitJsonToGitHub({
     sha = currentFile.sha
     currentContent = decodeGitHubContent(currentFile.content)
   } else if (currentFileResponse.status !== 404) {
-    let errorText: string
-    try {
-      errorText = await currentFileResponse.text()
-    } catch {
-      errorText = `HTTP ${currentFileResponse.status}`
-    }
+    // Fixed sanitized message: never include raw provider response text or excerpts
     return {
       committed: false,
       branch,
-      reason: redactErrorDetail(errorText, `Could not read ${path}`),
+      reason: `Could not read ${path}: HTTP ${currentFileResponse.status}`,
     }
   }
 
@@ -229,28 +264,20 @@ export async function commitJsonToGitHub({
         ...(sha ? { sha } : {}),
       }),
     })
-  } catch (err) {
+  } catch {
     return {
       committed: false,
       branch,
-      reason: redactErrorDetail(
-        err instanceof Error ? err.message : String(err),
-        `GitHub write failed for ${path}`
-      ),
+      reason: `GitHub write failed for ${path}: network error`,
     }
   }
 
   if (!updateResponse.ok) {
-    let errorText: string
-    try {
-      errorText = await updateResponse.text()
-    } catch {
-      errorText = `HTTP ${updateResponse.status}`
-    }
+    // Fixed sanitized message: never include raw provider response text or excerpts
     return {
       committed: false,
       branch,
-      reason: redactErrorDetail(errorText, `Could not commit ${path}`),
+      reason: `Could not commit ${path}: HTTP ${updateResponse.status}`,
     }
   }
 
