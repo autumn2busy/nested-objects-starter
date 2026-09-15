@@ -113,6 +113,11 @@ test('holds missing, duplicate, stale, future or wrong-list opportunity consent 
 })
 
 test('holds stale review evidence, overdue opportunities and any changed proposal binding', () => {
+  const beforeReview = preparation()
+  beforeReview.preparedAt = '2026-09-07T16:59:59.999Z'
+  beforeReview.opportunityAlertConsent[0].observedAt = beforeReview.preparedAt
+  assert.ok(prepareActiveCampaignOpportunityDraftPlan(beforeReview).holds.includes('preparation_precedes_review'))
+
   const stale = preparation()
   stale.preparedAt = '2026-09-07T17:15:00.001Z'
   stale.opportunityAlertConsent[0].observedAt = stale.preparedAt

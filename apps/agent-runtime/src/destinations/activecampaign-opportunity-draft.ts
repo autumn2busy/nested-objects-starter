@@ -40,6 +40,7 @@ export type ActiveCampaignOpportunityDraftHold =
   | 'opportunity_expired_or_overdue'
   | 'opportunity_review_not_ready'
   | 'opportunity_specific_consent_missing_or_stale'
+  | 'preparation_precedes_review'
   | 'recipient_binding_mismatch'
 
 export interface ActiveCampaignMessageRequest {
@@ -168,6 +169,8 @@ export function prepareActiveCampaignOpportunityDraftPlan(
 
   const evidenceExpiresAt = timestamp(payload.evidenceExpiresAt)
   if (evidenceExpiresAt === null || preparedAt > evidenceExpiresAt) holds.add('evidence_expired')
+  const observedAt = timestamp(payload.observedAt)
+  if (observedAt === null || preparedAt < observedAt) holds.add('preparation_precedes_review')
   const dueAt = timestamp(payload.dueAt)
   const expiresAt = payload.expiresAt === null ? null : timestamp(payload.expiresAt)
   if (dueAt === null || preparedAt > dueAt || (payload.expiresAt !== null && (expiresAt === null || preparedAt >= expiresAt))) {
