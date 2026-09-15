@@ -2,7 +2,8 @@
  * Shared authentication and publication-gate logic for SEO/AEO/content monitor cron routes.
  *
  * SEO-004 hardening requirements:
- * - Fail closed when the dedicated secret (SEO_MONITOR_CRON_SECRET) is missing.
+ * - Fail closed when neither SEO_MONITOR_CRON_SECRET nor CRON_SECRET is configured.
+ * - Accept Bearer token matching either SEO_MONITOR_CRON_SECRET or CRON_SECRET (Vercel automatic cron compatibility).
  * - Never accept secrets via query parameters.
  * - Never treat x-vercel-cron header as authentication.
  * - Never bypass authentication in development mode.
@@ -24,25 +25,31 @@ export interface PublicationGateResult {
 /**
  * Authenticates a monitor cron request.
  *
+ * Compatible with Vercel's automatic cron invocation (Authorization: Bearer <CRON_SECRET>)
+ * as well as dedicated monitor secret (SEO_MONITOR_CRON_SECRET).
+ *
  * Requires:
- * - SEO_MONITOR_CRON_SECRET environment variable to be configured
- * - Authorization: Bearer <secret> header with the exact secret value
+ * - SEO_MONITOR_CRON_SECRET or CRON_SECRET environment variable to be configured
+ * - Authorization: Bearer <secret> header with exact match
  *
  * Rejects:
- * - Missing or empty SEO_MONITOR_CRON_SECRET
+ * - Missing or empty secrets in environment (fails closed)
  * - Missing or wrong Bearer token
  * - Secrets provided via query parameters (even if correct)
- * - x-vercel-cron header alone (not authentication)
+ * - x-vercel-cron header alone without valid Bearer token
  * - NODE_ENV=development without valid credentials
  */
 export function authenticateMonitorRequest(request: Request): MonitorAuthResult {
-  const dedicatedSecret = process.env.SEO_MONITOR_CRON_SECRET
+  const allowedSecrets = [
+    process.env.SEO_MONITOR_CRON_SECRET,
+    process.env.CRON_SECRET,
+  ].filter((s): s is string => Boolean(s && s.trim().length > 0))
 
-  // Fail closed: dedicated secret must be configured
-  if (!dedicatedSecret) {
+  // Fail closed: at least one secret must be configured
+  if (allowedSecrets.length === 0) {
     return {
       authorized: false,
-      reason: 'Monitor cron secret is not configured.',
+      reason: 'Monitor cron secret is not configured. Set SEO_MONITOR_CRON_SECRET or CRON_SECRET.',
     }
   }
 
@@ -74,8 +81,9 @@ export function authenticateMonitorRequest(request: Request): MonitorAuthResult 
 
   const providedToken = match[1]
 
-  // Use timing-safe comparison to prevent timing attacks
-  if (!timingSafeEqual(providedToken, dedicatedSecret)) {
+  // Use timing-safe comparison against any configured allowed secret
+  const matched = allowedSecrets.some((secret) => timingSafeEqual(providedToken, secret))
+  if (!matched) {
     return {
       authorized: false,
       reason: 'Invalid bearer token.',
@@ -84,7 +92,7 @@ export function authenticateMonitorRequest(request: Request): MonitorAuthResult 
 
   return {
     authorized: true,
-    reason: 'Authenticated via dedicated cron secret.',
+    reason: 'Authenticated via cron secret.',
   }
 }
 

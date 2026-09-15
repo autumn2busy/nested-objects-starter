@@ -12,6 +12,8 @@ const compile = (path, jsx = false) => ts.transpileModule(readFileSync(new URL(p
 const helperCode = compile('../lib/intelligence-os-admin.ts')
 const actionCode = compile('../app/(portal)/admin/intelligence-os/actions.ts')
 const pageCode = compile('../app/(portal)/admin/intelligence-os/page.tsx', true)
+const comparisonCode = compile('../app/(portal)/admin/intelligence-os/OperatingReviewComparison.tsx', true)
+const comparisonHelperCode = compile('../lib/intelligence-review-comparison.ts')
 const scenario = 'specialist-review-v1'
 
 function harness() {
@@ -57,6 +59,17 @@ function harness() {
   })
   const page = {}
   const jsx = (type, props) => ({ type, props })
+  const comparisonHelper = {}
+  vm.runInNewContext(comparisonHelperCode, { exports: comparisonHelper })
+  const comparison = {}
+  vm.runInNewContext(comparisonCode, {
+    exports: comparison,
+    require(name) {
+      if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'fragment' }
+      if (name === '@/lib/intelligence-review-comparison') return comparisonHelper
+      throw new Error(`Unexpected comparison dependency: ${name}`)
+    },
+  })
   vm.runInNewContext(pageCode, {
     exports: page,
     require(name) {
@@ -65,6 +78,7 @@ function harness() {
       if (name === 'next/navigation') return { redirect }
       if (name === 'next/link') return { default: 'a' }
       if (name === './actions') return actions
+      if (name === './OperatingReviewComparison') return comparison
       throw new Error(`Unexpected page dependency: ${name}`)
     },
   })
@@ -77,7 +91,7 @@ function harness() {
     if (fixtureScenario !== undefined) data.set('fixtureScenario', fixtureScenario)
     return data
   }
-  return { env, state, requests, actions, page, form }
+  return { env, state, requests, actions, page, form, snapshot }
 }
 
 async function submit(actions, data) {
@@ -165,6 +179,8 @@ test('owner page presents one clearly synthetic option and preserves quiet basel
   assert.match(copy, /empty-input weekly baseline/)
   assert.match(copy, /writes synthetic staging records, not live business results/)
   assert.match(copy, /No model, email, or execution/)
+  assert.match(copy, /What changed between reviews\?/)
+  assert.match(copy, /Two saved reviews/)
   h.state.user = { sub: 'synthetic-nonowner' }
   h.requests.length = 0
   await assert.rejects(h.page.default({}), error => error.location === '/profile')
@@ -174,4 +190,35 @@ test('owner page presents one clearly synthetic option and preserves quiet basel
   const productionNodes = flatten(await h.page.default({}))
   assert.equal(productionNodes.some(node => node?.type === 'form'), false)
   assert.equal(h.requests.length, 0)
+})
+
+test('owner-page comparison preserves exact GET selections and rejects empty or repeated parameters without writes', async () => {
+  const h = harness()
+  const review = id => ({
+    id, workflowName: 'weekly_operating_review', reviewDate: '2026-09-12', status: 'completed',
+    executiveSummary: `Invented ${id} review.`, priorities: [], autumnDecisions: [],
+    correlationId: `synthetic-${id}`,
+  })
+  h.snapshot.reviews.push(review('reference'), review('selected'))
+  const read = async searchParams => {
+    const nodes = flatten(await h.page.default({ searchParams }))
+    const section = nodes.find(node => node?.props?.id === 'review-comparison')
+    return flatten(section)
+  }
+  const valid = await read({ selectedReview: 'selected', referenceReview: 'reference' })
+  assert.ok(valid.some(node => node?.type === 'form' && node.props.method === 'GET'))
+  for (const [name, expected] of [['selectedReview', 'selected'], ['referenceReview', 'reference']]) {
+    assert.equal(valid.find(node => node?.type === 'select' && node.props.name === name).props.defaultValue, expected)
+  }
+  for (const field of ['selectedReview', 'referenceReview']) {
+    for (const value of ['', ['reference', 'selected']]) {
+      const nodes = await read({ selectedReview: 'selected', referenceReview: 'reference', [field]: value })
+      const copy = nodes.filter(node => typeof node === 'string').join(' ')
+      assert.match(copy, /review is no longer in this snapshot/, `${field} must not silently default`)
+      assert.equal(nodes.some(node => node?.type === 'article'), false)
+    }
+  }
+  assert.equal(h.requests.length, 5)
+  assert.ok(h.requests.every(request => request.options.method === 'GET'))
+  assert.ok(h.requests.every(request => !request.url.includes('selectedReview') && !request.url.includes('referenceReview')))
 })
