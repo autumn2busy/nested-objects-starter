@@ -1,6 +1,6 @@
 /**
- * SEO-004: Focused tests for hardened monitor cron authentication, publication gate,
- * and GitHub content helper.
+ * SEO-004: Comprehensive unit tests for hardened monitor cron authentication,
+ * publication gate, default-branch determination, and sanitized GitHub content error handling.
  *
  * Uses node:test and vm-based module loading to test the TypeScript modules
  * without a full bundler, consistent with the repository's existing test pattern.
@@ -75,26 +75,63 @@ function makeRequest(options = {}) {
   return new Request(url, { method, headers })
 }
 
-const VALID_SECRET = 'test-dedicated-cron-secret-value-1234'
+const VALID_DEDICATED_SECRET = 'test-dedicated-cron-secret-value-1234'
+const VALID_VERCEL_CRON_SECRET = 'test-vercel-cron-secret-value-5678'
 
 // ============================================================
-// Monitor Authentication Tests
+// Monitor Authentication & Vercel CRON_SECRET Compatibility Tests
 // ============================================================
 
-test('SEO-004: Monitor authentication', async (t) => {
-  await t.test('rejects when dedicated cron secret is not configured', () => {
+test('SEO-004: Monitor authentication & Vercel CRON_SECRET compatibility', async (t) => {
+  await t.test('rejects when neither cron secret is configured', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({})
-    const req = makeRequest({ headers: { Authorization: `Bearer ${VALID_SECRET}` } })
+    const req = makeRequest({ headers: { Authorization: `Bearer ${VALID_DEDICATED_SECRET}` } })
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
     assert.match(result.reason, /not configured/i)
   })
 
-  await t.test('rejects wrong bearer token', () => {
+  await t.test('accepts dedicated SEO_MONITOR_CRON_SECRET', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
     })
-    const req = makeRequest({ headers: { Authorization: 'Bearer wrong-token' } })
+    const req = makeRequest({
+      headers: { Authorization: `Bearer ${VALID_DEDICATED_SECRET}` },
+    })
+    const result = authenticateMonitorRequest(req)
+    assert.strictEqual(result.authorized, true)
+  })
+
+  await t.test('accepts Vercel automatic CRON_SECRET authorization', () => {
+    const { authenticateMonitorRequest } = loadMonitorAuth({
+      CRON_SECRET: VALID_VERCEL_CRON_SECRET,
+    })
+    const req = makeRequest({
+      headers: { Authorization: `Bearer ${VALID_VERCEL_CRON_SECRET}` },
+    })
+    const result = authenticateMonitorRequest(req)
+    assert.strictEqual(result.authorized, true)
+  })
+
+  await t.test('accepts either secret when both are configured', () => {
+    const { authenticateMonitorRequest } = loadMonitorAuth({
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
+      CRON_SECRET: VALID_VERCEL_CRON_SECRET,
+    })
+
+    const req1 = makeRequest({ headers: { Authorization: `Bearer ${VALID_DEDICATED_SECRET}` } })
+    assert.strictEqual(authenticateMonitorRequest(req1).authorized, true)
+
+    const req2 = makeRequest({ headers: { Authorization: `Bearer ${VALID_VERCEL_CRON_SECRET}` } })
+    assert.strictEqual(authenticateMonitorRequest(req2).authorized, true)
+  })
+
+  await t.test('rejects wrong bearer token when both secrets are configured', () => {
+    const { authenticateMonitorRequest } = loadMonitorAuth({
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
+      CRON_SECRET: VALID_VERCEL_CRON_SECRET,
+    })
+    const req = makeRequest({ headers: { Authorization: 'Bearer wrong-secret-token' } })
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
     assert.match(result.reason, /invalid bearer token/i)
@@ -102,11 +139,11 @@ test('SEO-004: Monitor authentication', async (t) => {
 
   await t.test('rejects query-string secret (even if correct)', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
     })
     const req = makeRequest({
-      url: `https://example.com/api/cron/seo-content-monitor?secret=${VALID_SECRET}`,
-      headers: { Authorization: `Bearer ${VALID_SECRET}` },
+      url: `https://example.com/api/cron/seo-content-monitor?secret=${VALID_DEDICATED_SECRET}`,
+      headers: { Authorization: `Bearer ${VALID_DEDICATED_SECRET}` },
     })
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
@@ -115,11 +152,11 @@ test('SEO-004: Monitor authentication', async (t) => {
 
   await t.test('rejects query-string token parameter', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      CRON_SECRET: VALID_VERCEL_CRON_SECRET,
     })
     const req = makeRequest({
-      url: `https://example.com/api/cron/seo-content-monitor?token=${VALID_SECRET}`,
-      headers: { Authorization: `Bearer ${VALID_SECRET}` },
+      url: `https://example.com/api/cron/seo-content-monitor?token=${VALID_VERCEL_CRON_SECRET}`,
+      headers: { Authorization: `Bearer ${VALID_VERCEL_CRON_SECRET}` },
     })
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
@@ -128,7 +165,7 @@ test('SEO-004: Monitor authentication', async (t) => {
 
   await t.test('rejects spoofed x-vercel-cron header without bearer token', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      CRON_SECRET: VALID_VERCEL_CRON_SECRET,
     })
     const req = makeRequest({
       headers: { 'x-vercel-cron': '1' },
@@ -141,37 +178,15 @@ test('SEO-004: Monitor authentication', async (t) => {
   await t.test('rejects development mode without authentication', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
       NODE_ENV: 'development',
-      // No SEO_MONITOR_CRON_SECRET configured
     })
     const req = makeRequest({})
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
-  })
-
-  await t.test('rejects development mode with cron secret but without bearer header', () => {
-    const { authenticateMonitorRequest } = loadMonitorAuth({
-      NODE_ENV: 'development',
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
-    })
-    const req = makeRequest({})
-    const result = authenticateMonitorRequest(req)
-    assert.strictEqual(result.authorized, false)
-  })
-
-  await t.test('accepts valid bearer token with dedicated secret', () => {
-    const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
-    })
-    const req = makeRequest({
-      headers: { Authorization: `Bearer ${VALID_SECRET}` },
-    })
-    const result = authenticateMonitorRequest(req)
-    assert.strictEqual(result.authorized, true)
   })
 
   await t.test('rejects missing Authorization header entirely', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
     })
     const req = makeRequest({ headers: {} })
     const result = authenticateMonitorRequest(req)
@@ -181,10 +196,10 @@ test('SEO-004: Monitor authentication', async (t) => {
 
   await t.test('rejects non-Bearer authorization scheme', () => {
     const { authenticateMonitorRequest } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
+      SEO_MONITOR_CRON_SECRET: VALID_DEDICATED_SECRET,
     })
     const req = makeRequest({
-      headers: { Authorization: `Basic ${VALID_SECRET}` },
+      headers: { Authorization: `Basic ${VALID_DEDICATED_SECRET}` },
     })
     const result = authenticateMonitorRequest(req)
     assert.strictEqual(result.authorized, false)
@@ -204,8 +219,7 @@ test('SEO-004: Publication gate', async (t) => {
     assert.match(result.reason, /not enabled/i)
   })
 
-  await t.test('query commit=1 does not grant publication authority (gate controls publication)', () => {
-    // Publication is controlled by MONITOR_PUBLICATION_ENABLED, not by commit=1
+  await t.test('query commit=1 does not grant publication authority', () => {
     const { checkPublicationGate } = loadMonitorAuth({
       MONITOR_PUBLICATION_ENABLED: 'false',
     })
@@ -285,7 +299,7 @@ test('SEO-004: GitHub content configuration', async (t) => {
     assert.match(result, /not permitted/i)
   })
 
-  await t.test('rejects branch "main"', () => {
+  await t.test('rejects branch "main" statically', () => {
     const { getGitHubConfig } = loadGitHubContent({
       BLOG_GITHUB_TOKEN: 'test-token',
       BLOG_GITHUB_OWNER: 'test-owner',
@@ -297,7 +311,7 @@ test('SEO-004: GitHub content configuration', async (t) => {
     assert.match(result, /protected default branch/i)
   })
 
-  await t.test('rejects branch "master"', () => {
+  await t.test('rejects branch "master" statically', () => {
     const { getGitHubConfig } = loadGitHubContent({
       BLOG_GITHUB_TOKEN: 'test-token',
       BLOG_GITHUB_OWNER: 'test-owner',
@@ -367,7 +381,7 @@ test('SEO-004: Report path restrictions', async (t) => {
 })
 
 // ============================================================
-// commitJsonToGitHub Integration Tests (with mocked fetch)
+// Default Branch Verification & Sanitized Error Tests
 // ============================================================
 
 const VALID_GITHUB_ENV = {
@@ -379,33 +393,325 @@ const VALID_GITHUB_ENV = {
 
 const VALID_REPORT_PATH = 'apps/web-members/content/seo-content-opportunities.json'
 
-test('SEO-004: commitJsonToGitHub', async (t) => {
-  await t.test('rejects missing GitHub configuration', async () => {
-    const { commitJsonToGitHub } = loadGitHubContent({})
+test('SEO-004: Default branch determination & fail-closed behavior', async (t) => {
+  await t.test('rejects when configured branch matches repository default branch (e.g. trunk)', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ default_branch: 'trunk' })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent({
+      ...VALID_GITHUB_ENV,
+      BLOG_GITHUB_BRANCH: 'trunk',
+    }, mockFetch)
+
     const result = await commitJsonToGitHub({
       path: VALID_REPORT_PATH,
       data: { test: true },
       message: 'test commit',
     })
     assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /BLOG_GITHUB_TOKEN/i)
+    assert.match(result.reason, /repository default branch/i)
+    assert.match(result.reason, /trunk/i)
   })
 
-  await t.test('rejects unexpected report path', async () => {
-    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV)
+  await t.test('fails closed when default branch check API returns HTTP 401', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return new Response('Unauthorized', { status: 401 })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
     const result = await commitJsonToGitHub({
-      path: 'some/unexpected/path.json',
+      path: VALID_REPORT_PATH,
       data: { test: true },
       message: 'test commit',
     })
     assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /not an allowed monitor report path/i)
+    assert.strictEqual(result.reason, 'Could not verify repository default branch: HTTP 401')
   })
 
-  await t.test('commits successfully with mocked GitHub (new file)', async () => {
+  await t.test('fails closed when default branch check API returns HTTP 500', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return new Response('Internal Server Error', { status: 500 })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, 'Could not verify repository default branch: HTTP 500')
+  })
+
+  await t.test('fails closed when default branch check throws network error', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        throw new Error('ECONNRESET')
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, 'Could not verify repository default branch: network error')
+  })
+
+  await t.test('fails closed when default_branch is missing from repository response', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ name: 'test-repo' }) // no default_branch
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+
+  await t.test('fails closed when repository metadata is JSON null', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return new Response('null', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+
+  await t.test('fails closed when default_branch is a number (e.g. 42)', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ default_branch: 42 })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+
+  await t.test('fails closed when default_branch is whitespace', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo')) {
+        return Response.json({ default_branch: '   ' })
+      }
+      throw new Error('Should not reach contents')
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+    assert.strictEqual(result.committed, false)
+    assert.match(result.reason, /Could not determine repository default branch/i)
+  })
+})
+
+// ============================================================
+// Sanitized Error Handling & PII/Secret Leak Prevention Tests
+// ============================================================
+
+test('SEO-004: Sanitized error messages & leak prevention', async (t) => {
+  const INVENTED_SECRET = 'ghp_fake_invented_secret_token_123456789'
+  const INVENTED_EMAIL = 'member.confidential@example.org'
+  const INVENTED_PHONE = '+1 (555) 867-5309'
+  const INVENTED_PAYLOAD = JSON.stringify({
+    token: INVENTED_SECRET,
+    email: INVENTED_EMAIL,
+    phone: INVENTED_PHONE,
+    member: 'John Doe Sensitive Account',
+  })
+
+  await t.test('read error returns fixed message and contains no secrets or contact PII', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        return new Response(INVENTED_PAYLOAD, { status: 403 })
+      }
+      // Repo check passes with default_branch: 'main'
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not read ${VALID_REPORT_PATH}: HTTP 403`)
+    // Assert strictly that neither secret nor contact-like data appears in reason
+    assert.strictEqual(result.reason.includes(INVENTED_SECRET), false)
+    assert.strictEqual(result.reason.includes(INVENTED_EMAIL), false)
+    assert.strictEqual(result.reason.includes(INVENTED_PHONE), false)
+    assert.strictEqual(result.reason.includes('John Doe'), false)
+  })
+
+  await t.test('commit error returns fixed message and contains no secrets or contact PII', async () => {
+    const mockFetch = async (url, options) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        if (options.method === 'GET') {
+          return new Response('Not Found', { status: 404 })
+        }
+        if (options.method === 'PUT') {
+          return new Response(INVENTED_PAYLOAD, { status: 422 })
+        }
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not commit ${VALID_REPORT_PATH}: HTTP 422`)
+    assert.strictEqual(result.reason.includes(INVENTED_SECRET), false)
+    assert.strictEqual(result.reason.includes(INVENTED_EMAIL), false)
+    assert.strictEqual(result.reason.includes(INVENTED_PHONE), false)
+    assert.strictEqual(result.reason.includes('John Doe'), false)
+  })
+
+  await t.test('thrown network error returns fixed message and contains no secrets or contact PII', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        throw new Error(`Connection failed with credentials: ${INVENTED_SECRET} for ${INVENTED_EMAIL}`)
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `GitHub read failed for ${VALID_REPORT_PATH}: network error`)
+    assert.strictEqual(result.reason.includes(INVENTED_SECRET), false)
+    assert.strictEqual(result.reason.includes(INVENTED_EMAIL), false)
+    assert.strictEqual(result.reason.includes(INVENTED_PHONE), false)
+  })
+
+  await t.test('thrown write network error returns fixed message without raw details', async () => {
+    const mockFetch = async (url, options) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        if (options.method === 'GET') {
+          return new Response('Not Found', { status: 404 })
+        }
+        if (options.method === 'PUT') {
+          throw new Error(`Write failed with credentials: ${INVENTED_SECRET}`)
+        }
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `GitHub write failed for ${VALID_REPORT_PATH}: network error`)
+    assert.strictEqual(result.reason.includes(INVENTED_SECRET), false)
+  })
+  await t.test('read error returns fixed sanitized failure when content-read JSON is malformed', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        return new Response('{ this is not valid json', { status: 200 })
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not read ${VALID_REPORT_PATH}: invalid response`)
+  })
+
+  await t.test('read error returns fixed sanitized failure when content-read JSON is null or missing content string', async () => {
+    const mockFetch = async (url) => {
+      if (url.includes('/repos/test-owner/test-repo/contents/')) {
+        return Response.json({ no_content: true })
+      }
+      return Response.json({ default_branch: 'main' })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { test: true },
+      message: 'test commit',
+    })
+
+    assert.strictEqual(result.committed, false)
+    assert.strictEqual(result.reason, `Could not read ${VALID_REPORT_PATH}: invalid response`)
+  })
+})
+
+// ============================================================
+// Successful commit & unchanged content tests
+// ============================================================
+
+test('SEO-004: commitJsonToGitHub success & no-op', async (t) => {
+  await t.test('commits successfully when default branch is verified and content is new', async () => {
     const fetchCalls = []
     const mockFetch = async (url, options) => {
       fetchCalls.push({ url, options })
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
       if (options.method === 'GET') {
         return new Response('Not Found', { status: 404 })
       }
@@ -420,21 +726,78 @@ test('SEO-004: commitJsonToGitHub', async (t) => {
     const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
     const result = await commitJsonToGitHub({
       path: VALID_REPORT_PATH,
-      data: { score: 85 },
+      data: { score: 90 },
       message: 'Update SEO report',
     })
     assert.strictEqual(result.committed, true)
     assert.strictEqual(result.branch, 'content/seo-reports')
     assert.ok(result.commitUrl)
-    assert.strictEqual(fetchCalls.length, 2) // GET + PUT
+    assert.strictEqual(fetchCalls.length, 3) // Repo check + GET contents + PUT contents
+  })
+
+  await t.test('commits successfully when write succeeds even if write response body is unreadable/malformed JSON', async () => {
+    const mockFetch = async (url, options) => {
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
+      if (options.method === 'GET') {
+        return new Response('Not Found', { status: 404 })
+      }
+      if (options.method === 'PUT') {
+        // Write succeeded with 201 Created, but body is malformed JSON
+        return new Response('{ malformed json body', { status: 201 })
+      }
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { score: 90 },
+      message: 'Update SEO report',
+    })
+
+    // Must NOT claim failure since the write completed
+    assert.strictEqual(result.committed, true)
+    assert.strictEqual(result.branch, 'content/seo-reports')
+    assert.strictEqual(result.commitUrl, null)
+  })
+
+  await t.test('commits successfully when write succeeds even if write response body is null', async () => {
+    const mockFetch = async (url, options) => {
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
+      if (options.method === 'GET') {
+        return new Response('Not Found', { status: 404 })
+      }
+      if (options.method === 'PUT') {
+        return new Response('null', { status: 200, headers: { 'content-type': 'application/json' } })
+      }
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
+    const result = await commitJsonToGitHub({
+      path: VALID_REPORT_PATH,
+      data: { score: 90 },
+      message: 'Update SEO report',
+    })
+
+    assert.strictEqual(result.committed, true)
+    assert.strictEqual(result.branch, 'content/seo-reports')
+    assert.strictEqual(result.commitUrl, null)
   })
 
   await t.test('no-ops when report content has not changed', async () => {
-    const existingData = { score: 85 }
+    const existingData = { score: 90 }
     const existingContent = JSON.stringify(existingData, null, 2) + '\n'
     const encodedContent = Buffer.from(existingContent).toString('base64')
 
     const mockFetch = async (url, options) => {
+      if (url === 'https://api.github.com/repos/test-owner/test-repo') {
+        return Response.json({ default_branch: 'main' })
+      }
       if (options.method === 'GET') {
         return Response.json({
           sha: 'existing-sha-123',
@@ -452,119 +815,5 @@ test('SEO-004: commitJsonToGitHub', async (t) => {
     })
     assert.strictEqual(result.committed, false)
     assert.match(result.reason, /no content changes/i)
-  })
-
-  await t.test('handles GitHub read failure with redacted output', async () => {
-    const mockFetch = async (url, options) => {
-      if (options.method === 'GET') {
-        return new Response('{"message":"Bad credentials","documentation_url":"https://docs.github.com"}', {
-          status: 401,
-        })
-      }
-      throw new Error('Should not reach PUT')
-    }
-
-    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
-    const result = await commitJsonToGitHub({
-      path: VALID_REPORT_PATH,
-      data: { test: true },
-      message: 'test commit',
-    })
-    assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /could not read/i)
-    // Must not contain raw token
-    assert.ok(!result.reason.includes('ghp_test_token_1234567890'))
-  })
-
-  await t.test('handles GitHub write failure with redacted output', async () => {
-    const mockFetch = async (url, options) => {
-      if (options.method === 'GET') {
-        return new Response('Not Found', { status: 404 })
-      }
-      if (options.method === 'PUT') {
-        return new Response('{"message":"Bad credentials ghp_leaked_token"}', { status: 401 })
-      }
-      return new Response('Bad Request', { status: 400 })
-    }
-
-    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
-    const result = await commitJsonToGitHub({
-      path: VALID_REPORT_PATH,
-      data: { test: true },
-      message: 'test commit',
-    })
-    assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /could not commit/i)
-    // Token patterns must be redacted
-    assert.ok(!result.reason.includes('ghp_leaked_token'))
-    assert.match(result.reason, /\[REDACTED\]/)
-  })
-
-  await t.test('handles GitHub read network error with redacted output', async () => {
-    const mockFetch = async () => {
-      throw new Error('connect ECONNREFUSED 127.0.0.1:443 with token ghp_secret_value')
-    }
-
-    const { commitJsonToGitHub } = loadGitHubContent(VALID_GITHUB_ENV, mockFetch)
-    const result = await commitJsonToGitHub({
-      path: VALID_REPORT_PATH,
-      data: { test: true },
-      message: 'test commit',
-    })
-    assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /github read failed/i)
-    assert.ok(!result.reason.includes('ghp_secret_value'))
-  })
-
-  await t.test('rejects main branch even with valid token', async () => {
-    const { commitJsonToGitHub } = loadGitHubContent({
-      ...VALID_GITHUB_ENV,
-      BLOG_GITHUB_BRANCH: 'main',
-    })
-    const result = await commitJsonToGitHub({
-      path: VALID_REPORT_PATH,
-      data: { test: true },
-      message: 'test commit',
-    })
-    assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /protected default branch/i)
-  })
-
-  await t.test('rejects generic GITHUB_TOKEN alone', async () => {
-    const { commitJsonToGitHub } = loadGitHubContent({
-      GITHUB_TOKEN: 'generic-token',
-      BLOG_GITHUB_OWNER: 'test-owner',
-      BLOG_GITHUB_REPO: 'test-repo',
-      BLOG_GITHUB_BRANCH: 'review-branch',
-    })
-    const result = await commitJsonToGitHub({
-      path: VALID_REPORT_PATH,
-      data: { test: true },
-      message: 'test commit',
-    })
-    assert.strictEqual(result.committed, false)
-    assert.match(result.reason, /BLOG_GITHUB_TOKEN/i)
-  })
-})
-
-// ============================================================
-// Authenticated dry run test
-// ============================================================
-
-test('SEO-004: Authenticated dry run', async (t) => {
-  await t.test('authenticated request with publication gate disabled returns dry run', () => {
-    const { authenticateMonitorRequest, checkPublicationGate } = loadMonitorAuth({
-      SEO_MONITOR_CRON_SECRET: VALID_SECRET,
-    })
-
-    const req = makeRequest({
-      headers: { Authorization: `Bearer ${VALID_SECRET}` },
-    })
-
-    const auth = authenticateMonitorRequest(req)
-    assert.strictEqual(auth.authorized, true)
-
-    const pub = checkPublicationGate()
-    assert.strictEqual(pub.publish, false)
   })
 })
