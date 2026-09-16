@@ -41,6 +41,10 @@ const actions = load('../app/hiring-firms/DirectoryActions.tsx', {
     'trackDirectoryViewed', 'trackOutsetaModalOpen', 'trackPaywallHit', 'trackUpgradeClicked',
   ].map(name => [name, (...args) => events.push({ name, args })])),
 })
+const firmReputation = load('../lib/firm-reputation.ts')
+const firmReputationNotice = load('../components/directory/FirmReputationNotice.tsx', {
+  '@/lib/firm-reputation': firmReputation,
+})
 const directory = load('../app/hiring-firms/DirectoryView.tsx', {
   'next/link': nextLink,
   'next/image': { default: ({ fill: _fill, ...props }) => React.createElement('img', props) },
@@ -48,6 +52,8 @@ const directory = load('../app/hiring-firms/DirectoryView.tsx', {
   '@/components/ui/input': load('../components/ui/input.tsx', uiImports),
   '@/components/ui/select': load('../components/ui/select.tsx', uiImports),
   '@/components/ui/StarRating': load('../components/ui/StarRating.tsx'),
+  '@/components/directory/FirmReputationNotice': firmReputationNotice,
+  '@/lib/firm-reputation': firmReputation,
   './constants': load('../app/hiring-firms/constants.ts'),
   './DirectoryActions': actions,
 })
@@ -227,6 +233,42 @@ test('guest and paid directory handoffs do not advertise a retired checkout pric
     const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, propsFor(scenario)))
     assert.doesNotMatch(plain(html), /\$37|AI-powered firm matching|LOGIN FOR FULL ACCESS/i, scenario.name)
   }
+})
+
+test('suppressed firms stay visible with attributed evidence and no contact path', () => {
+  const suppressedFirm = {
+    ...firms[0],
+    email: 'private-contact@example.invalid',
+    phone: '555-0100',
+    url: 'https://suppressed-firm.example',
+    vendor_page_url: 'https://suppressed-firm.example/apply',
+    recommendation_status: 'suppressed',
+    reputation_notice: 'Recommendation paused while Nested Objects reviews a reported payment dispute.',
+    reputation_reviewed_at: '2026-09-16T12:00:00Z',
+    reputation_sources: [{
+      publisher: 'Fixture Publisher',
+      title: 'Fixture evidence report',
+      url: 'https://evidence.example/report',
+      published_at: '2026-09-15',
+      summary: 'The report contains an allegation that remains under review.',
+      verification_status: 'unverified_third_party_report',
+    }],
+  }
+  const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, {
+    ...propsFor(scenarios[2]),
+    initialFirms: [suppressedFirm],
+    totalCount: 1,
+  }))
+  const copy = plain(html)
+
+  assert.match(copy, /Recommendation paused/)
+  assert.match(copy, /reported payment dispute/)
+  assert.match(copy, /not been independently verified by Nested Objects/)
+  assert.match(copy, /Fixture Publisher: Fixture evidence report/)
+  assert.match(html, /href="https:\/\/evidence\.example\/report"/)
+  assert.match(html, /href="\/firms\/fixture-1"/)
+  assert.match(copy, /contact path hidden/)
+  assert.doesNotMatch(copy, /private-contact@example\.invalid|555-0100|suppressed-firm\.example/)
 })
 
 for (const scenario of scenarios.slice(0, 2)) {
