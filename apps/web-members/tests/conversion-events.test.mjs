@@ -300,6 +300,48 @@ test('duplicate deliveries use the same stable key and insert-once conflict poli
   assert.deepEqual(harness.calls.writes[0].options, { onConflict: 'client_event_id', ignoreDuplicates: true })
 })
 
+test('signup start retries reuse one client key and retain one stored intent', async () => {
+  const storedRows = new Map()
+  const harness = createHarness({ storedRows })
+  const payload = {
+    event: 'signup_started',
+    clientEventId: 'event:signup-start-synthetic',
+    occurredAt: new Date().toISOString(),
+    eventData: { sourcePage: '/membership-pricing', plan: 'Pro' },
+  }
+
+  const first = await harness.post(payload)
+  const second = await harness.post(payload)
+
+  assert.equal(first.status, 200)
+  assert.deepEqual(await first.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(second.status, 200)
+  assert.deepEqual(await second.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 2)
+  assert.deepEqual(harness.calls.writes[0], harness.calls.writes[1])
+  assert.equal(storedRows.size, 1)
+  assert.equal(storedRows.get(payload.clientEventId)?.event_name, 'signup_started')
+  assert.deepEqual(storedRows.get(payload.clientEventId)?.event_data, payload.eventData)
+})
+
+test('signup start storage failure returns 202 without claiming a recorded anonymous intent', async () => {
+  const storageError = { code: 'PGRST205', message: 'Synthetic unavailable conversion ledger' }
+  const harness = createHarness({ storageError })
+  const response = await harness.post({
+    event: 'signup_started',
+    clientEventId: 'event:signup-start-unavailable',
+    eventData: { sourcePage: '/membership-pricing', plan: 'Elite' },
+  })
+
+  assert.equal(response.status, 202)
+  assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
+  assert.equal(harness.storedRows.size, 0)
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
+  assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
+  assert.equal(harness.calls.errors[0][1], storageError)
+})
+
 test('unavailable storage is reported as unrecorded even when the AC stub accepts the event', async () => {
   const storageError = { code: 'PGRST205', message: 'Synthetic missing conversion_events table' }
   const harness = createHarness({ storageError, user: { uid: 'synthetic-member', email: 'synthetic@example.test' } })

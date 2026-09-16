@@ -442,12 +442,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const Outseta = window.Outseta
 
     try {
+      trackSignupStarted()
       trackOutsetaModalOpen({
         sourcePage: pathname ?? 'unknown',
         mode: 'register',
       })
 
-      trackSignupStarted()
       if (Outseta?.auth?.open) {
         Outseta.auth.open({ widgetMode: 'register' })
       } else {
