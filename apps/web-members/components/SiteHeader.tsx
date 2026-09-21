@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { Camera, Loader2, Menu, X } from 'lucide-react'
 
 import { useAuth } from './auth-provider'
+import { FreeSignupCta } from './FreeSignupCta'
 import { Button, buttonVariants } from './ui/button'
 
 type SiteHeaderProps = {
@@ -304,16 +305,18 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
               >
                 Login
               </a>
-              <a
-                href="https://nested-objects.outseta.com/auth?widgetMode=register&planFamilyUid=L9nbKV9Z&planPaymentTerm=month&skipPlanOptions=true#o-anonymous"
+              <FreeSignupCta
+                placement="site_header"
+                sourcePage={pathname ?? 'unknown'}
+                label="Join free"
+                compact
+                showArrow={false}
                 className={buttonVariants({
                   variant: 'primary',
                   size: 'sm',
                   className: 'w-20 sm:w-auto',
                 })}
-              >
-                Join free
-              </a>
+              />
               <p className="hidden text-[11px] leading-none text-text-muted sm:block">No credit card required</p>
             </div>
           )}

@@ -50,7 +50,7 @@ const auth = {
 }
 const analytics = Object.fromEntries([
   'trackJoinFreeClick', 'trackOutsetaModalOpen', 'trackPricingCtaClick',
-  'trackPricingView', 'trackStartTrial', 'trackUpgradeStarted',
+  'trackPricingView', 'trackSignupStarted', 'trackStartTrial', 'trackUpgradeStarted',
 ].map(name => [name, payload => analyticsCalls.push({ name, payload })]))
 const interactions = load('../app/membership-pricing/PricingInteractions.tsx', {
   '@/components/auth-provider': auth,
@@ -197,6 +197,12 @@ for (const scenario of scenarios) {
       }
       const intent = analyticsCalls.find(event => event.name === 'trackPricingCtaClick')
       assert.equal(intent?.payload.targetPlanUid, plan.planUid)
+      const signupStarts = analyticsCalls.filter(event => event.name === 'trackSignupStarted')
+      if (scenario.planUid === null) {
+        assert.deepEqual(normalized(signupStarts.map(event => event.payload)), [plan.name])
+      } else {
+        assert.equal(signupStarts.length, 0)
+      }
       assert.deepEqual(normalized(sdkCalls), scenario.planUid ? [
         { widget: 'profile', options: { tab: 'planChange' } },
       ] : [
@@ -216,6 +222,9 @@ for (const scenario of scenarios) {
     if (scenario.finalTarget) {
       assert.equal(analyticsCalls.find(event => event.name === 'trackPricingCtaClick')?.payload.targetPlanUid,
         expectedPlans.find(plan => plan.name === scenario.finalTarget).planUid)
+      assert.deepEqual(normalized(analyticsCalls
+        .filter(event => event.name === 'trackSignupStarted')
+        .map(event => event.payload)), scenario.planUid === null ? [scenario.finalTarget] : [])
     } else {
       assert.deepEqual(normalized(sdkCalls), [{ widget: 'profile', options: { tab: 'billing' } }])
     }
@@ -236,6 +245,9 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
     assert.equal(browser.location.href,
       `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`)
   }
+  assert.deepEqual(normalized(analyticsCalls
+    .filter(event => event.name === 'trackSignupStarted')
+    .map(event => event.payload)), ['Free', 'Pro', 'Elite'])
   const agency = publicPlans.find(plan => plan.name === 'Agency')
   browser.location.href = ''
   const agencyButton = findButton(interactions.PricingPlanButton({ plan: agency }))
@@ -245,6 +257,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   authState = { isAuthenticated: true, isLoading: false, planUid: expectedPlans[0].planUid }
   findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile#o-plan-change')
+  assert.equal(analyticsCalls.filter(event => event.name === 'trackSignupStarted').length, 3)
 })
 
 test('composed pricing JSON-LD removes unsupported ratings while retaining all base schemas and public offers', () => {

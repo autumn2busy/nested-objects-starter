@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
-import { trackOutsetaModalOpen } from '@/lib/ac-events'
+import { trackOutsetaModalOpen, trackSignupStarted } from '@/lib/ac-events'
 
 type JwtPayload = {
   email?: string
@@ -442,6 +442,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const Outseta = window.Outseta
 
     try {
+      trackSignupStarted()
       trackOutsetaModalOpen({
         sourcePage: pathname ?? 'unknown',
         mode: 'register',

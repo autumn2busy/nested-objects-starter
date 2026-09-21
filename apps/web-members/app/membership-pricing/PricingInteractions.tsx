@@ -10,6 +10,7 @@ import {
   trackOutsetaModalOpen,
   trackPricingCtaClick,
   trackPricingView,
+  trackSignupStarted,
   trackStartTrial,
   trackUpgradeStarted,
 } from '@/lib/ac-events'
@@ -98,6 +99,8 @@ function usePricingActions() {
       }
       return
     }
+
+    trackSignupStarted(targetPlan)
 
     if (Outseta?.auth?.open) {
       trackOutsetaModalOpen({

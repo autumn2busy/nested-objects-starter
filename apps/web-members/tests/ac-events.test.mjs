@@ -67,6 +67,18 @@ test('events retain visitor and session IDs while each delivery receives its own
   assert.equal(harness.window.dataLayer.length, 2)
 })
 
+test('signup start persists the selected plan as an intent signal', () => {
+  const harness = createHarness()
+  harness.tracker.trackSignupStarted('Pro')
+
+  assert.equal(harness.requests.length, 1)
+  assert.equal(harness.requests[0].body.event, 'signup_started')
+  assert.deepEqual(harness.requests[0].body.eventData, {
+    sourcePage: '/membership-pricing', utm_source: 'synthetic', plan: 'Pro',
+  })
+  assert.equal(harness.window.dataLayer[0].event, 'signup_started')
+})
+
 for (const storage of ['localStorage', 'sessionStorage']) {
   test(`denied ${storage} property preserves the action and best-effort event delivery`, () => {
     const harness = createHarness({ deniedStorage: storage })
