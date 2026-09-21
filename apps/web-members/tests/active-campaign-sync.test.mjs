@@ -235,6 +235,26 @@ test('replacement is confirmed before removal; redelivery does not reapply obser
   assert.equal(f.requests.slice(before).some(req => req.path === 'contactTags' && req.method === 'POST'), false)
 })
 
+test('retired migration and launch tags are not added to future contacts or removed from historical contacts', async () => {
+  const retired = ['antigravity-subscription', 'launch-2026-03-01']
+  const future = fixture({ tags: [] })
+  await future.run()
+  for (const name of retired) {
+    assert.equal(future.requests.some(req => req.path.startsWith('tags?') &&
+      new URL('https://synthetic.invalid/api/3/' + req.path).searchParams.get('search') === name), false)
+    assert.equal(future.requests.some(req => req.path === 'contactTags' && req.method === 'POST' &&
+      req.body.contactTag.tag === tagId(name)), false)
+  }
+
+  const historical = fixture({ tags: [...retired, 'plan-free', 'status-canceled'] })
+  await historical.run()
+  for (const name of retired) {
+    assert.equal(historical.tags.some(tag => tag.tag === tagId(name)), true)
+  }
+  assert.equal(historical.requests.some(req => req.method === 'DELETE' &&
+    ['contactTags/501', 'contactTags/502'].includes(req.path)), false)
+})
+
 test('failed removal reports partial cleanup without removing the replacement', async () => {
   const f = fixture({ intercept: req => req.method === 'DELETE' ? response({}, 503) : undefined })
   const result = await f.run()
