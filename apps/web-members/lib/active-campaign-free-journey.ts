@@ -201,11 +201,23 @@ function validateConsentReceipt(input: FreeJourneyEvidenceInput) {
         && occurredAt <= Date.parse(input.now);
 }
 
+function isMilestoneSourceReference(evidence: FreeJourneyMilestoneEvidence) {
+    const value = evidence.sourceRecordId;
+    if (typeof value !== 'string' || value.length > 255) return false;
+    if (isIdentifier(value)) return true;
+    // The canonical onboarding adapter joins a profile version and a stored calculation receipt.
+    // This grammar is for evidence references only: person/account/subscription IDs stay strict.
+    const match = /^derived:onboarding:profiles:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})@(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\+conversion_events:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec(value);
+    return !!match && match[1] === evidence.memberId
+        && isTimestamp(match[2])
+        && Date.parse(match[2]) <= Date.parse(evidence.occurredAt);
+}
+
 function evidenceMatches(evidence: FreeJourneyMilestoneEvidence | null, input: FreeJourneyEvidenceInput) {
     return !!evidence
         && evidence.memberId === input.membership.canonicalMemberId
         && evidence.lifecycleCycleId === input.membership.subscriptionUid
-        && isIdentifier(evidence.sourceRecordId)
+        && isMilestoneSourceReference(evidence)
         && isTimestamp(evidence.occurredAt)
         && Date.parse(evidence.occurredAt) >= Date.parse(input.membership.memberSince)
         && Date.parse(evidence.occurredAt) >= Date.parse(input.membership.cycleStartedAt)
