@@ -6,10 +6,10 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL('https://firms.nestedobjects.com'),
   title: {
-    default: 'Nested Objects for Firms — Source Vetted Field Inspectors Nationwide',
+    default: 'Nested Objects for Firms — Georgia Coverage Pilot',
     template: '%s | Nested Objects for Firms',
   },
-  description: 'The #1 platform for hiring firms to source, vet, and deploy field inspectors, notaries, and property preservation contractors across all 50 states.',
+  description: 'A proposed owner-assisted pilot for regional firms evaluating one Georgia inspector coverage gap.',
   openGraph: {
     type: 'website',
     siteName: 'Nested Objects for Firms',
@@ -32,9 +32,8 @@ function FirmsHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium text-indigo-200 md:flex">
-          <Link href="/inspectors" className="transition hover:text-white">Browse Inspectors</Link>
-          <Link href="/post-a-job" className="transition hover:text-white">Post a Job</Link>
-          <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
+          <Link href="/#pilot" className="transition hover:text-white">Pilot Scope</Link>
+          <Link href="/post-a-job" className="transition hover:text-white">Coverage Request</Link>
           <a
             href="https://nestedobjects.com/guides"
             className="transition hover:text-white"
@@ -47,13 +46,13 @@ function FirmsHeader() {
             href="https://members.nestedobjects.com"
             className="text-sm font-medium text-indigo-200 transition hover:text-white"
           >
-            Log in
+            Inspector member login
           </a>
           <Link
             href="/post-a-job"
             className="btn-shimmer rounded-lg bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-400"
           >
-            Post a Job
+            Request Review
           </Link>
         </div>
       </div>
@@ -74,16 +73,16 @@ function FirmsFooter() {
               </span>
             </p>
             <p className="mt-2 text-xs text-indigo-300/70">
-              The hiring platform built for field services.<br />
-              Source vetted inspectors across all 50 states.
+              Validating one owner-assisted Georgia coverage pilot.<br />
+              No public inspector directory or placement guarantee.
             </p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">For Firms</p>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><Link href="/post-a-job" className="hover:text-white transition">Post a Job</Link></li>
-              <li><Link href="/inspectors" className="hover:text-white transition">Browse Inspectors</Link></li>
-              <li><Link href="/dashboard" className="hover:text-white transition">Firm Dashboard</Link></li>
+              <li><Link href="/#pilot" className="hover:text-white transition">Pilot Scope</Link></li>
+              <li><Link href="/post-a-job" className="hover:text-white transition">Coverage Request</Link></li>
+              <li><Link href="/inspectors" className="hover:text-white transition">Inspector Privacy</Link></li>
             </ul>
           </div>
           <div>
