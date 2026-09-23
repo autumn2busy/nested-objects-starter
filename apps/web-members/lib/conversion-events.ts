@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export const CONVERSION_EVENT_NAMES = [
   'signup_started',
   'signup_completed',
+  'lifecycle_email_consent_requested',
   'profile_completed',
   'directory_viewed',
   'firm_view',

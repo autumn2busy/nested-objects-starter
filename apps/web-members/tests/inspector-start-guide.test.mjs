@@ -59,6 +59,11 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
   const hooks = []
   const sideEffects = { requests: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] }
   let auth = { isLoading: false, isAuthenticated: false, ...initialAuth }
+  let conversionResponder = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ recorded: true, activeCampaignTracked: false }),
+  })
   let cursor = 0
   let dirty = false
   let pendingEffects = []
@@ -99,13 +104,18 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
     '@/components/onboarding/inspector-start-guide': guideImport,
     '@/components/auth-provider': { useAuth: () => ({ ...auth, login: () => { sideEffects.logins += 1 } }) },
     '@/lib/ac-events': { trackSignupCompleted: plan => sideEffects.signupCompleted.push(plan) },
+    '@/lib/plan-config': { PLAN_UIDS: { FREE: 'L9nbKV9Z' } },
   }, {
     window: {
       Outseta: { getUser() { sideEffects.sdkReads += 1; return { FullName: 'Synthetic Inspector', Email: 'synthetic@example.invalid' } } },
       gtag: (...args) => sideEffects.analytics.push(args),
       setTimeout: (callback, delay) => { sideEffects.timers.push({ callback, delay }); return sideEffects.timers.length },
     },
-    fetch: async (url, options) => { sideEffects.requests.push({ url, options }); return { ok: true } },
+    fetch: async (url, options) => {
+      sideEffects.requests.push({ url, options })
+      if (url === '/api/conversion-events') return conversionResponder()
+      return { ok: true, status: 200, json: async () => ({}) }
+    },
   })
 
   function render(nextProps = props) {
@@ -121,6 +131,7 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
     get tree() { return tree },
     sideEffects,
     setAuth(next) { auth = { ...auth, ...next } },
+    setConversionResponder(next) { conversionResponder = next },
     async settle() {
       for (let attempt = 0; attempt < 20; attempt += 1) {
         const effects = pendingEffects
@@ -258,7 +269,10 @@ test('authenticated welcome renders shared first-value guide without new-user ma
 })
 
 test('authenticated new-member welcome preserves existing signup and activation effects once per mount', async () => {
-  const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', { isAuthenticated: true })
+  const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+    isAuthenticated: true,
+    planUid: 'L9nbKV9Z',
+  })
   harness.render({ isNewUser: true })
   await harness.settle()
   harness.render({ isNewUser: true })
@@ -271,6 +285,97 @@ test('authenticated new-member welcome preserves existing signup and activation 
   assert.equal(harness.sideEffects.requests[0].url, '/api/ac/tag')
   assert.equal(harness.sideEffects.requests[0].options.method, 'POST')
   assert.deepEqual(JSON.parse(harness.sideEffects.requests[0].options.body), { tag: 'member-activated' })
+  assert.equal(harness.sideEffects.requests.filter(request => request.url === '/api/conversion-events').length, 0)
+})
+
+test('authenticated Free welcome requires an unchecked deliberate choice before recording a request', async () => {
+  const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+    isAuthenticated: true,
+    planUid: 'L9nbKV9Z',
+  })
+  harness.render({ isNewUser: false })
+  await harness.settle()
+
+  let checkbox = nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0]
+  let submit = nodes(harness.tree, node => node.type === 'button' && node.props.type === 'submit')[0]
+  assert.ok(checkbox)
+  assert.equal(checkbox.props.checked, false)
+  assert.equal(submit.props.disabled, true)
+  assert.match(content(harness.tree), /records your request only/i)
+  assert.match(content(harness.tree), /remain off unless you complete a separate email confirmation/i)
+  assert.equal(harness.sideEffects.requests.length, 0)
+
+  checkbox.props.onChange({ target: { checked: true } })
+  harness.render({ isNewUser: false })
+  checkbox = nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0]
+  submit = nodes(harness.tree, node => node.type === 'button' && node.props.type === 'submit')[0]
+  assert.equal(checkbox.props.checked, true)
+  assert.equal(submit.props.disabled, false)
+  assert.equal(harness.sideEffects.requests.length, 0, 'checking alone never records a request')
+
+  const form = nodes(harness.tree, node => node.type === 'form')[0]
+  let prevented = false
+  await form.props.onSubmit({ preventDefault() { prevented = true } })
+  harness.render({ isNewUser: false })
+  assert.equal(prevented, true)
+  assert.equal(harness.sideEffects.requests.length, 1)
+  assert.equal(harness.sideEffects.requests[0].url, '/api/conversion-events')
+  assert.deepEqual(JSON.parse(harness.sideEffects.requests[0].options.body), {
+    event: 'lifecycle_email_consent_requested',
+  })
+  assert.equal(harness.sideEffects.requests[0].options.credentials, 'same-origin')
+  assert.equal(nodes(harness.tree, node => node.props.role === 'status').length, 1)
+  assert.match(content(harness.tree), /Request recorded/i)
+  assert.match(content(harness.tree), /remain off until a separate confirmation/i)
+})
+
+test('welcome never presents the Free lifecycle choice for signed-out, loading, paid, or unknown plans', async () => {
+  for (const auth of [
+    { isLoading: true, isAuthenticated: false, planUid: null },
+    { isLoading: false, isAuthenticated: false, planUid: null },
+    { isLoading: false, isAuthenticated: true, planUid: null },
+    { isLoading: false, isAuthenticated: true, planUid: 'rQVqlLm6' },
+  ]) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', auth)
+    harness.render({ isNewUser: false })
+    await harness.settle()
+    assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox').length, 0)
+    assert.equal(
+      harness.sideEffects.requests.filter(request => request.url === '/api/conversion-events').length,
+      0,
+    )
+  }
+})
+
+test('welcome treats 202, 204, malformed, and failed consent responses as unrecorded', async () => {
+  const responses = [
+    async () => ({ status: 202, json: async () => ({ recorded: false }) }),
+    async () => ({ status: 204, json: async () => { throw new Error('No body') } }),
+    async () => ({ status: 200, json: async () => ({ recorded: false }) }),
+    async () => { throw new Error('Synthetic network failure') },
+  ]
+
+  for (const responder of responses) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+      isAuthenticated: true,
+      planUid: 'L9nbKV9Z',
+    })
+    harness.setConversionResponder(responder)
+    harness.render({ isNewUser: false })
+    await harness.settle()
+    let checkbox = nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0]
+    checkbox.props.onChange({ target: { checked: true } })
+    harness.render({ isNewUser: false })
+    const form = nodes(harness.tree, node => node.type === 'form')[0]
+    await form.props.onSubmit({ preventDefault() {} })
+    harness.render({ isNewUser: false })
+
+    assert.equal(nodes(harness.tree, node => node.props.role === 'status').length, 0)
+    assert.equal(nodes(harness.tree, node => node.props.role === 'alert').length, 1)
+    assert.match(content(harness.tree), /Nothing was changed/i)
+    checkbox = nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0]
+    assert.equal(checkbox.props.checked, true, 'the member can retry without the UI claiming success')
+  }
 })
 
 test('quick actions describe available work and honest member-tool access without false map or volume promises', () => {
