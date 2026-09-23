@@ -298,3 +298,36 @@ test('stale snapshots and unsupported expiry never reach ActiveCampaign', async 
     assert.equal(f.requests.length, 0)
   }
 })
+test('canonical profile-version plus receipt references are accepted without broadening identity IDs', async () => {
+  const value = input();
+  const ref = `derived:onboarding:profiles:${member}@2026-09-20T11:00:00.000Z+conversion_events:31800000-0000-4000-8000-000000000922`;
+  value.onboardingCompletion.sourceRecordId = ref;
+  assert.equal(deriveFreeJourneyStage(value), 'conversion_eligible');
+  const f = fixture();
+  const written = await f.run(value);
+  assert.equal(written.status, 'updated');
+  assert.equal(written.desiredStage, 'conversion_eligible');
+  assert.equal(written.confirmedWrites, 2);
+  value.membership.lifecycle = 'trialing';
+  assert.equal(deriveFreeJourneyStage(value), 'onboarding_complete');
+  for (const key of ['outsetaPersonUid', 'outsetaAccountUid', 'subscriptionUid']) {
+    const invalid = input(); invalid.membership[key] = 'member@example.com';
+    const f = fixture();
+    assert.equal((await f.run(invalid)).status, 'withheld');
+    assert.equal(f.requests.length, 0);
+  }
+});
+
+test('derived references reject wrong members, dates, arbitrary at-signs and injected content', () => {
+  const ref = `derived:onboarding:profiles:${member}@2026-09-20T11:00:00.000Z+conversion_events:31800000-0000-4000-8000-000000000922`;
+  for (const sourceRecordId of [
+    ref.replace(member, '31800000-0000-4000-8000-000000000999'),
+    ref.replace('2026-09-20T11:00:00.000Z', '2026-09-22T11:00:00.000Z'),
+    ref.replace('2026-09-20T11:00:00.000Z', 'not-a-date'),
+    ref.replace('conversion_events:', 'untrusted_events:'),
+    ref + '\n', ref + '?email=member@example.com', 'member@example.com',
+  ]) {
+    const value = input(); value.onboardingCompletion.sourceRecordId = sourceRecordId;
+    assert.equal(deriveFreeJourneyStage(value), 'withheld', sourceRecordId);
+  }
+});
