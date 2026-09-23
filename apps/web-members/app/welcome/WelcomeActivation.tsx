@@ -1,17 +1,19 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, LogIn, Mail } from 'lucide-react'
 import { InspectorStartGuide } from '@/components/onboarding/inspector-start-guide'
 import { useAuth } from '@/components/auth-provider'
 import { trackSignupCompleted } from '@/lib/ac-events'
+import { PLAN_UIDS } from '@/lib/plan-config'
 
 type WelcomeActivationProps = {
   isNewUser: boolean
 }
 
 type OutsetaUser = Record<string, any> | null
+type EmailConsentStatus = 'idle' | 'submitting' | 'recorded' | 'error'
 
 declare global {
   interface Window {
@@ -62,10 +64,12 @@ async function readOutsetaUser(): Promise<OutsetaUser> {
 }
 
 export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
-  const { isAuthenticated, isLoading, login } = useAuth()
+  const { isAuthenticated, isLoading, login, planUid } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [isResolvingUser, setIsResolvingUser] = useState(true)
+  const [emailConsentRequested, setEmailConsentRequested] = useState(false)
+  const [emailConsentStatus, setEmailConsentStatus] = useState<EmailConsentStatus>('idle')
   const firedSignUpEvent = useRef(false)
   const firedSignupCompletedEvent = useRef(false)
   const firedMemberActivatedTag = useRef(false)
@@ -173,6 +177,32 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     void applyMemberActivatedTag()
   }, [isAuthenticated, isLoading, isNewUser, isResolvingUser])
 
+  const recordEmailConsentRequest = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!emailConsentRequested || emailConsentStatus === 'submitting' || emailConsentStatus === 'recorded') return
+
+    setEmailConsentStatus('submitting')
+    try {
+      const response = await fetch('/api/conversion-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ event: 'lifecycle_email_consent_requested' }),
+      })
+      const receipt = await response.json().catch(() => null)
+
+      if (response.status !== 200 || receipt?.recorded !== true) {
+        throw new Error('Consent request was not recorded')
+      }
+
+      setEmailConsentRequested(false)
+      setEmailConsentStatus('recorded')
+    } catch (error) {
+      console.warn('[Welcome] Unable to record email preference:', error)
+      setEmailConsentStatus('error')
+    }
+  }
+
   const greeting = name ? `Welcome, ${name}` : isNewUser ? 'Welcome to Nested Objects' : 'Welcome back'
   const shouldShowPendingConfirmation = isNewUser && !isLoading && !isAuthenticated
 
@@ -248,6 +278,59 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
         </header>
 
         <InspectorStartGuide />
+
+        {planUid === PLAN_UIDS.FREE ? (
+          <section
+            className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"
+            aria-labelledby="lifecycle-email-heading"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-copper">Optional email guidance</p>
+            <h2 id="lifecycle-email-heading" className="mt-2 text-xl font-semibold text-slate-900">
+              Request practical member tips by email
+            </h2>
+            <p id="lifecycle-email-description" className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              Ask for onboarding tips and occasional membership guidance at the email tied to your account. This
+              records your request only; email updates remain off unless you complete a separate email confirmation.
+            </p>
+
+            {emailConsentStatus === 'recorded' ? (
+              <p
+                className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
+                role="status"
+              >
+                Request recorded. Email updates remain off until a separate confirmation is completed.
+              </p>
+            ) : (
+              <form className="mt-4" onSubmit={recordEmailConsentRequest} aria-describedby="lifecycle-email-description">
+                <label className="flex max-w-3xl cursor-pointer items-start gap-3 text-sm leading-6 text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 text-brand-copper focus:ring-brand-copper"
+                    checked={emailConsentRequested}
+                    disabled={emailConsentStatus === 'submitting'}
+                    onChange={event => {
+                      setEmailConsentRequested(event.target.checked)
+                      if (emailConsentStatus === 'error') setEmailConsentStatus('idle')
+                    }}
+                  />
+                  <span>I want optional onboarding and membership emails from Nested Objects.</span>
+                </label>
+                <button
+                  type="submit"
+                  disabled={!emailConsentRequested || emailConsentStatus === 'submitting'}
+                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-copper px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-copper disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {emailConsentStatus === 'submitting' ? 'Recording request...' : 'Record my request'}
+                </button>
+                {emailConsentStatus === 'error' ? (
+                  <p className="mt-3 text-sm text-red-700" role="alert">
+                    We could not record that request. Nothing was changed; please try again.
+                  </p>
+                ) : null}
+              </form>
+            )}
+          </section>
+        ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-600">Already know where you are headed?</p>

@@ -1,7 +1,7 @@
 import { createHash } from 'crypto'
 import { NextResponse } from 'next/server'
 
-import { getCurrentUser, getOutsetaUserId, getPlanName } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, getPlanName, PLAN_UIDS } from '@/lib/auth-server'
 import { trackACServerEvent } from '@/lib/ac-event-tracking'
 import { isBrowserConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
 import { isRateLimitExceededError, isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit'
@@ -15,6 +15,10 @@ const MAX_EVENT_DATA_BYTES = 8_192
 const INCOME_SCENARIO_COMPLETION_EVENT = 'income_scenario_completed'
 const INCOME_SCENARIO_COMPLETION_VERSION = 'v1'
 const INCOME_SCENARIO_COMPLETION_ID_PREFIX = `${INCOME_SCENARIO_COMPLETION_EVENT}:`
+const LIFECYCLE_EMAIL_CONSENT_EVENT = 'lifecycle_email_consent_requested'
+const LIFECYCLE_EMAIL_CONSENT_VERSION = 'v1'
+const LIFECYCLE_EMAIL_CONSENT_PURPOSE = 'free_onboarding_and_conversion_email'
+const LIFECYCLE_EMAIL_CONSENT_ID_PREFIX = `${LIFECYCLE_EMAIL_CONSENT_EVENT}:`
 
 function sessionClaim(value: unknown) {
   if (typeof value !== 'string') return null
@@ -35,6 +39,20 @@ function incomeScenarioCompletionId(memberUid: string, lifecycleCycleId: string)
   return `${INCOME_SCENARIO_COMPLETION_EVENT}:${INCOME_SCENARIO_COMPLETION_VERSION}:${digest}`
 }
 
+function lifecycleEmailConsentId(memberUid: string, lifecycleCycleId: string) {
+  const digest = createHash('sha256')
+    .update(JSON.stringify([
+      LIFECYCLE_EMAIL_CONSENT_EVENT,
+      LIFECYCLE_EMAIL_CONSENT_VERSION,
+      memberUid,
+      lifecycleCycleId,
+      LIFECYCLE_EMAIL_CONSENT_PURPOSE,
+    ]))
+    .digest('hex')
+
+  return `${LIFECYCLE_EMAIL_CONSENT_EVENT}:${LIFECYCLE_EMAIL_CONSENT_VERSION}:${digest}`
+}
+
 function rateLimitKey(request: Request) {
   const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
   const address = forwardedFor || request.headers.get('x-real-ip') || 'unknown'
@@ -50,7 +68,12 @@ function validIdentifier(value: unknown) {
 
 function browserClientEventId(value: unknown) {
   const identifier = validIdentifier(value)
-  return identifier?.startsWith(INCOME_SCENARIO_COMPLETION_ID_PREFIX) ? null : identifier
+  if (!identifier) return null
+  if (
+    identifier.startsWith(INCOME_SCENARIO_COMPLETION_ID_PREFIX)
+    || identifier.startsWith(LIFECYCLE_EMAIL_CONSENT_ID_PREFIX)
+  ) return null
+  return identifier
 }
 
 function safeEventData(value: unknown): Record<string, unknown> | null {
@@ -100,6 +123,48 @@ export async function POST(request: Request) {
             sourcePage: '/tools/income-calculator',
             source: 'income_scenarios',
             completionContract: INCOME_SCENARIO_COMPLETION_VERSION,
+            lifecycleCycleId,
+          },
+        })
+        recorded = true
+      } catch (storageError) {
+        console.error('[Conversion Events] First-party storage failed:', storageError)
+      }
+
+      return NextResponse.json(
+        { recorded, activeCampaignTracked: false },
+        { status: recorded ? 200 : 202 },
+      )
+    }
+
+    if (body.event === LIFECYCLE_EMAIL_CONSENT_EVENT) {
+      const user = await getCurrentUser()
+      const memberUid = sessionClaim(user?.sub)
+      if (!memberUid) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
+
+      const lifecycleCycleId = sessionClaim(user?.['outseta:subscriptionUid'])
+      if (!lifecycleCycleId) {
+        return NextResponse.json({ error: 'Membership cycle unavailable' }, { status: 409 })
+      }
+
+      if (sessionClaim(user?.['outseta:planUid']) !== PLAN_UIDS.FREE) {
+        return NextResponse.json({ error: 'Free membership required' }, { status: 403 })
+      }
+
+      const supabase = createServiceRoleClient()
+      let recorded = false
+      try {
+        await recordConversionEvent(supabase, {
+          eventName: LIFECYCLE_EMAIL_CONSENT_EVENT,
+          clientEventId: lifecycleEmailConsentId(memberUid, lifecycleCycleId),
+          memberUid,
+          eventData: {
+            sourcePage: '/welcome',
+            source: 'member_consent',
+            consentContract: LIFECYCLE_EMAIL_CONSENT_VERSION,
+            purpose: LIFECYCLE_EMAIL_CONSENT_PURPOSE,
             lifecycleCycleId,
           },
         })
