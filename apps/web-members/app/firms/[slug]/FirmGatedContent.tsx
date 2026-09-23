@@ -1,25 +1,37 @@
 'use client'
 
 import { BlurGate } from '@/components/BlurGate'
+import { useAuth } from '@/components/auth-provider'
+import { PAID_PLANS } from '@/lib/plan-config'
 
 interface FirmGatedContentProps {
     children: React.ReactNode
 }
 
 /**
- * Wraps firm detail intel sections (tabs, contact, pay stats) in a BlurGate.
- * Glassdoor-style: public visitors see firm name/description/categories,
- * but must sign up to access pay data, requirements, reputation, and contact info.
+ * Keep the firm-detail presentation consistent with the server page's explicit
+ * paid-plan allowlist. Grandfathered Starter/Founders are directory plans, not
+ * Pro subscriptions, and must not be rejected by a Pro-only feature ranking.
  *
- * Uses `firm_intel` so Free members get directory preview but must upgrade
- * for pay data, requirements, reputation, and contact info.
+ * This is a plan-capability check, not subscription-lifecycle verification.
+ * The server remains responsible for authentication and effective expiration.
  */
 export function FirmGatedContent({ children }: FirmGatedContentProps) {
+    const { isAuthenticated, isLoading, planUid } = useAuth()
+
+    if (isLoading) {
+        return <div role="status" aria-live="polite">Checking membership access...</div>
+    }
+
+    if (isAuthenticated && planUid && PAID_PLANS.includes(planUid)) {
+        return <>{children}</>
+    }
+
     return (
         <BlurGate
             feature="firm_intel"
             title="Upgrade to Pro for full firm intel"
-            description="Pay rates, contact info, requirements, and reputation data are available on Pro and higher plans."
+            description="Full firm details are included with Pro, Elite, Agency, and eligible grandfathered directory subscriptions."
             ctaLabel="See Pro plans"
             ctaHref="/membership-pricing"
         >

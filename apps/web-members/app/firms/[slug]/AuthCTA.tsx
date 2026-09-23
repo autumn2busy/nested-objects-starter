@@ -2,22 +2,24 @@
 
 import { useAuth } from '@/components/auth-provider'
 import { trackPaywallHit, trackUpgradeClicked } from '@/lib/ac-events'
+import { PAID_PLANS } from '@/lib/plan-config'
 
 interface AuthCTAProps {
     children: React.ReactNode
 }
 
 /**
- * Wraps firm hero CTAs.
- * Guests are prompted to log in; Free members are sent to pricing; Pro+ members
- * get the real firm contact/apply links.
+ * Wraps firm hero CTAs using the same paid-plan allowlist as the server page.
+ * Eligible grandfathered directory members retain the real contact/apply links
+ * without receiving unrelated Pro or Elite features. Subscription state and
+ * effective expiration must be verified at the server boundary.
  */
 export function AuthCTA({ children }: AuthCTAProps) {
-    const { isAuthenticated, isLoading, login, planUid, hasAccess } = useAuth()
+    const { isAuthenticated, isLoading, login, planUid } = useAuth()
 
     if (isLoading) return null
 
-    if (isAuthenticated && hasAccess('firm_intel')) {
+    if (isAuthenticated && planUid && PAID_PLANS.includes(planUid)) {
         return <>{children}</>
     }
 
