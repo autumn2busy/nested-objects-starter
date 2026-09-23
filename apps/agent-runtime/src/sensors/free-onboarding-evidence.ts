@@ -48,26 +48,21 @@ const serviceTypes = new Set([
 ])
 const nonempty = (value: string | null) => !!value?.trim()
 
-/** Derive completion from saved source rows; no reads, new event store, writes or enrollment. */
-export function adaptFreeOnboardingCompletion(input: FreeOnboardingEvidenceInput): FreeOnboardingEvidenceResult {
-  const withheld = (reasons: string[]): FreeOnboardingEvidenceResult => ({
-    status: 'withheld', reasons, mutationAllowed: false,
-    profileInputs: { profile: null, geography: null, experience: null, inspectionTypes: null },
-    activation: null, onboardingCompletion: null, sourceRecordIds: [],
-  })
-  // Reuse the existing unique stable-identity, current-cycle, chronology and freshness checks.
-  const receipt = adaptIncomeScenarioMilestone(input)
-  if (receipt.status !== 'accepted' || !receipt.evidence) return withheld(receipt.reasons)
-  const parsed = profileSchema.safeParse(input.profiles.rows[0])
-  if (!parsed.success) return withheld(['saved_profile_columns_missing_or_invalid'])
+/** Shared saved-field rules. Caller must verify unique identity, authority and fresh snapshots. */
+export function deriveSavedProfileInputs(
+  row: FreeOnboardingProfileRow,
+  membership: { memberSince: string; cycleStartedAt: string },
+  observedAt: string,
+) {
+  const parsed = profileSchema.safeParse(row)
+  if (!parsed.success) return { status: 'withheld' as const, reasons: ['saved_profile_columns_missing_or_invalid'] }
   const profile = parsed.data
   const savedAt = Date.parse(profile.updated_at)
-  const membership = input.currentMemberships.rows[0]
-  if (!membership) return withheld(['current_outseta_cycle_unverified'])
-  if (savedAt > Date.parse(input.profiles.observedAt)
+  if (![observedAt, membership.memberSince, membership.cycleStartedAt].every(value => timestamp.safeParse(value).success)
+    || savedAt > Date.parse(observedAt)
     || savedAt < Date.parse(membership.memberSince)
     || savedAt < Date.parse(membership.cycleStartedAt)) {
-    return withheld(['saved_profile_chronology_unverified'])
+    return { status: 'withheld' as const, reasons: ['saved_profile_chronology_unverified'] }
   }
   const profileInputs = {
     profile: nonempty(profile.headline) && nonempty(profile.bio),
@@ -78,7 +73,25 @@ export function adaptFreeOnboardingCompletion(input: FreeOnboardingEvidenceInput
   }
   const reasons = Object.entries(profileInputs)
     .filter(([, complete]) => !complete).map(([dimension]) => `saved_${dimension}_incomplete`)
-  const profileRef = `profiles:${receipt.evidence.memberId}@${profile.updated_at}`
+  return { status: 'verified' as const, profileInputs, reasons, savedAt, updatedAt: profile.updated_at }
+}
+
+/** Derive completion from saved source rows; no reads, new event store, writes or enrollment. */
+export function adaptFreeOnboardingCompletion(input: FreeOnboardingEvidenceInput): FreeOnboardingEvidenceResult {
+  const withheld = (reasons: string[]): FreeOnboardingEvidenceResult => ({
+    status: 'withheld', reasons, mutationAllowed: false,
+    profileInputs: { profile: null, geography: null, experience: null, inspectionTypes: null },
+    activation: null, onboardingCompletion: null, sourceRecordIds: [],
+  })
+  // Reuse the existing unique stable-identity, current-cycle, chronology and freshness checks.
+  const receipt = adaptIncomeScenarioMilestone(input)
+  if (receipt.status !== 'accepted' || !receipt.evidence) return withheld(receipt.reasons)
+  const membership = input.currentMemberships.rows[0]
+  if (!membership) return withheld(['current_outseta_cycle_unverified'])
+  const saved = deriveSavedProfileInputs(input.profiles.rows[0]!, membership, input.profiles.observedAt)
+  if (saved.status === 'withheld') return withheld(saved.reasons)
+  const { profileInputs, reasons, savedAt } = saved
+  const profileRef = `profiles:${receipt.evidence.memberId}@${saved.updatedAt}`
   return {
     status: reasons.length ? 'incomplete' : 'complete', profileInputs,
     activation: { ...receipt.evidence, approved: true },
