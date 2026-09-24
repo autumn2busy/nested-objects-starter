@@ -26,25 +26,39 @@ const response = (data, status = 200) => ({ ok: status >= 200 && status < 300, s
 function fixture(options = {}) {
   const requests = []
   const writes = []
-  const lists = [...(options.lists ?? [{ list: '12', status: '2' }])]
+  const lists = [...(options.lists ?? [{ id: '701', contact: '1', list: '12', status: '2' }])]
   const customer = { id: '2', externalid: profile.outseta_person_uid, connectionid: '4', email: profile.email,
     acceptsMarketing: Object.hasOwn(options, 'acceptsMarketing') ? options.acceptsMarketing : '0', ...options.customer }
   const tags = [...(options.tags ?? ['plan-free', 'status-canceled'])].map((name, i) => ({
     id: String(501 + i), contact: '1', tag: tagId(name),
   }))
-  const stored = { ac_contact_id: '1', ac_customer_id: '2', outseta_person_uid: profile.outseta_person_uid, ...options.stored }
+  const stored = { ac_contact_id: '1', ac_customer_id: '2', outseta_person_uid: profile.outseta_person_uid, outseta_account_id: profile.outseta_account_id, ...options.stored }
   const db = { from: () => {
     const query = { select: () => query, eq: () => query,
       single: async () => ({ data: stored, error: options.readError ?? null }),
-      update: value => { writes.push(value); return { eq: async () => ({ error: options.writeError ?? null }) } } }
+      update: value => { writes.push(value); return { eq: async () => {
+        if (!options.writeError && !options.writeNoop) Object.assign(stored, value)
+        return { error: options.writeError ?? null }
+      } } } }
     return query
   } }
   const fetch = async (url, init = {}) => {
     const req = { path: url.split('/api/3/')[1], method: init.method ?? 'GET', body: init.body ? JSON.parse(init.body) : undefined, init }
     requests.push(req)
-    const override = await options.intercept?.(req, { tags, customer, requests })
+    const override = await options.intercept?.(req, { tags, customer, requests, lists })
     if (override) return override
     if (req.path === 'contact/sync') return response({ contact: { id: '1' } })
+    if (req.path === 'contacts/1?include=contactLists') return response({
+      contact: { id: '1', email: profile.email, bounced_hard: String(options.contact?.bounced_hard ?? '0'),
+        bounced_soft: String(options.contact?.bounced_soft ?? '0'), deleted: String(options.contact?.deleted ?? '0'),
+        contactLists: lists.map(item => String(item.id)) },
+      contactLists: lists,
+    })
+    if (req.path === 'contactLists' && req.method === 'POST') {
+      const relationship = { id: String(801 + lists.length), ...req.body.contactList, status: String(req.body.contactList.status) }
+      lists.push(relationship)
+      return response({ contactList: relationship }, 201)
+    }
     if (req.path === 'ecomCustomers/2') return response({ ecomCustomer: customer })
     if (req.path.startsWith('ecomCustomers?')) return response({ ecomCustomers: options.newCustomer ? [] : [customer], meta: { total: options.newCustomer ? '0' : '1' } })
     if (req.path === 'ecomCustomers') return response({ ecomCustomer: { id: '2', ...req.body.ecomCustomer } }, 201)
@@ -69,13 +83,27 @@ function fixture(options = {}) {
     throw new Error('Unexpected request: ' + req.path)
   }
   const sync = load('../lib/active-campaign-deep-data.ts', {
-    '@/lib/env': { env: { acApiUrl: 'https://synthetic.invalid', acApiKey: 'synthetic', acConnectionId: '4', ...options.env } },
+    '@/lib/env': { env: { acApiUrl: 'https://synthetic.invalid', acApiKey: 'synthetic', acConnectionId: '4',
+      acEliteOpportunityListSyncEnabled: 'false', ...options.env } },
     '@/lib/supabase-admin': { createServiceRoleClient: () => db },
     '@/lib/active-campaign-sync-result': resultModule,
   }, { fetch })
   return { run: (overrides = {}) => sync.syncFullProfileDeepData({ ...profile, ...overrides }), requests, writes, tags, lists, customer }
 }
 const failed = (result, step, code) => result.steps.some(item => item.step === step && item.state === 'failed' && (!code || item.code === code))
+
+function eliteProfile(overrides = {}) {
+  const subscription = { Uid: 'elite-cycle', Plan: { Uid: 'NmdnNO90', Name: 'Elite' },
+    StartDate: '2026-08-01T00:00:00.000Z', EndDate: null }
+  const account = { Uid: profile.outseta_account_id, AccountStage: 3, IsDemo: false, IsLivemode: false,
+    CurrentSubscription: subscription }
+  const outseta_data = { Uid: profile.outseta_person_uid, Email: profile.email, HasUnsubscribed: false,
+    PersonAccount: [{ IsPrimary: true, Account: account }] }
+  return { subscription_tier: 'elite', subscription_status: 'active', plan_uid: 'NmdnNO90', plan_name: 'Elite',
+    subscription_start_date: subscription.StartDate, subscription_end_date: null, outseta_data, ...overrides }
+}
+
+const listWrites = fixture => fixture.requests.filter(req => req.path === 'contactLists' && req.method === 'POST')
 
 for (const status of ['0', '1', '2', '3', 'unknown', null]) {
   test('membership sync preserves list status ' + status + ' and existing ecommerce consent', async () => {
@@ -350,4 +378,178 @@ test('real webhook reports failed AC sync separately from the saved projection a
     assert.equal(JSON.stringify(errors).includes('private provider payload'), false)
     assert.equal(JSON.stringify(result.body.acSync).includes('private provider payload'), false)
   }
+})
+
+const eliteFixture = options => fixture({ env: { acEliteOpportunityListSyncEnabled: 'true' }, ...options })
+const opportunityStep = (result, state, code) => result.steps.some(item => item.step === 'opportunity_list' && item.state === state && item.code === code)
+const accountOf = input => input.outseta_data.PersonAccount[0].Account
+
+test('Elite feature remains disabled by default without additional list reads or writes', async () => {
+  const f = fixture()
+  const result = await f.run(eliteProfile())
+  assert.equal(opportunityStep(result, 'skipped', 'feature_disabled'), true)
+  assert.equal(f.requests.some(req => req.path.includes('contactLists')), false)
+})
+
+test('verified Elite adds only list 33 once, reuses active membership and preserves other lists', async () => {
+  const f = eliteFixture()
+  const original = JSON.stringify(f.lists)
+  const first = await f.run(eliteProfile())
+  assert.equal(failed(first, 'opportunity_list'), false)
+  assert.equal(listWrites(f).length, 1)
+  assert.equal(JSON.stringify(listWrites(f)[0].body), JSON.stringify({ contactList: { contact: '1', list: '33', status: 1 } }))
+  assert.equal(JSON.stringify(f.lists.slice(0, 1)), original)
+  const second = await f.run(eliteProfile())
+  assert.equal(opportunityStep(second, 'skipped', 'already_active'), true)
+  assert.equal(listWrites(f).length, 1)
+  assert.equal(f.requests.some(req => /campaign|automation/i.test(req.path)), false)
+})
+
+test('account-centric event requires the exact person relationship and permits non-demo test-mode membership', async () => {
+  const p = eliteProfile()
+  const person = p.outseta_data
+  const account = accountOf(p)
+  p.outseta_data = { ...account, PersonAccount: [{ Person: { Uid: person.Uid, Email: person.Email, HasUnsubscribed: false } }] }
+  const f = eliteFixture()
+  await f.run(p)
+  assert.equal(listWrites(f).length, 1)
+})
+
+for (const [name, mutate] of [
+  ['non-Elite projection', p => { p.subscription_tier = 'pro' }],
+  ['wrong authoritative plan', p => { accountOf(p).CurrentSubscription.Plan.Uid = 'other' }],
+  ['past due', p => { p.subscription_status = 'past_due' }],
+  ['unknown stage', p => { delete accountOf(p).AccountStage }],
+  ['stage conflicts with active projection', p => { accountOf(p).AccountStage = 5 }],
+  ['missing subscription', p => { delete accountOf(p).CurrentSubscription }],
+  ['missing start', p => { delete accountOf(p).CurrentSubscription.StartDate }],
+  ['future start', p => { accountOf(p).CurrentSubscription.StartDate = '2999-01-01' }],
+  ['invalid start', p => { accountOf(p).CurrentSubscription.StartDate = 'invalid' }],
+  ['expired', p => { accountOf(p).CurrentSubscription.EndDate = '2020-01-01' }],
+  ['unsubscribed', p => { p.outseta_data.HasUnsubscribed = true }],
+  ['unknown permission', p => { delete p.outseta_data.HasUnsubscribed }],
+  ['demo', p => { accountOf(p).IsDemo = true }],
+  ['unknown demo state', p => { delete accountOf(p).IsDemo }],
+  ['wrong email', p => { p.outseta_data.Email = 'other@example.com' }],
+  ['wrong person', p => { p.outseta_data.Uid = 'other' }],
+  ['wrong account', p => { accountOf(p).Uid = 'other' }],
+  ['ambiguous account relationship', p => { p.outseta_data.PersonAccount.push(p.outseta_data.PersonAccount[0]) }],
+]) {
+  test('Elite enrollment holds ' + name, async () => {
+    const p = eliteProfile()
+    mutate(p)
+    const f = eliteFixture()
+    const result = await f.run(p)
+    assert.equal(result.steps.some(item => item.step === 'opportunity_list' && item.state === 'skipped'), true)
+    assert.equal(f.requests.some(req => req.path.includes('contactLists')), false)
+  })
+}
+
+test('cancelling Elite requires an explicit future EndDate; renewal or projected end alone does not authorize', async () => {
+  for (const explicitEnd of [false, true]) {
+    const p = eliteProfile({ subscription_status: 'canceled', subscription_end_date: '2999-01-01' })
+    accountOf(p).AccountStage = 4
+    accountOf(p).CurrentSubscription.RenewalDate = '2999-01-01'
+    accountOf(p).CurrentSubscription.EndDate = explicitEnd ? '2999-01-01' : null
+    const f = eliteFixture()
+    await f.run(p)
+    assert.equal(listWrites(f).length, explicitEnd ? 1 : 0)
+  }
+})
+
+for (const status of ['0', '2', '3', 'unknown', null]) {
+  test('Elite list 33 status ' + status + ' is preserved without reactivation', async () => {
+    const f = eliteFixture({ lists: [{ id: '702', contact: '1', list: '33', status }] })
+    const before = JSON.stringify(f.lists)
+    const result = await f.run(eliteProfile())
+    assert.equal(opportunityStep(result, 'skipped', 'suppression_preserved'), true)
+    assert.equal(listWrites(f).length, 0)
+    assert.equal(JSON.stringify(f.lists), before)
+  })
+}
+
+for (const field of ['bounced_hard', 'bounced_soft', 'deleted']) {
+  test('Elite contact ' + field + ' suppresses subscription', async () => {
+    const f = eliteFixture({ contact: { [field]: '1' } })
+    const result = await f.run(eliteProfile())
+    assert.equal(opportunityStep(result, 'skipped', 'suppression_preserved'), true)
+    assert.equal(listWrites(f).length, 0)
+  })
+}
+
+for (const fault of ['delivery_unknown', 'partial_lists', 'duplicate_list', 'wrong_contact', 'wrong_email']) {
+  test('Elite list read holds ' + fault, async () => {
+    const f = eliteFixture({ intercept: req => {
+      if (req.path !== 'contacts/1?include=contactLists') return
+      const contact = { id: '1', email: profile.email, bounced_hard: '0', bounced_soft: '0', deleted: '0', contactLists: [] }
+      const rows = []
+      if (fault === 'delivery_unknown') delete contact.bounced_hard
+      if (fault === 'partial_lists') contact.contactLists = ['701']
+      if (fault === 'duplicate_list') {
+        rows.push({ id: '701', contact: '1', list: '33', status: '1' }, { id: '702', contact: '1', list: '33', status: '2' })
+        contact.contactLists = ['701', '702']
+      }
+      if (fault === 'wrong_contact') contact.id = '99'
+      if (fault === 'wrong_email') contact.email = 'other@example.com'
+      return response({ contact, contactLists: rows })
+    } })
+    const result = await f.run(eliteProfile())
+    assert.equal(failed(result, 'opportunity_list_read'), true)
+    assert.equal(listWrites(f).length, 0)
+  })
+}
+
+for (const committed of [false, true]) {
+  test('uncertain list write uses exact positive readback and never retries; committed=' + committed, async () => {
+    const f = eliteFixture({ intercept: (req, { lists }) => {
+      if (req.path !== 'contactLists' || req.method !== 'POST') return
+      if (committed) lists.push({ id: '801', contact: '1', list: '33', status: '1' })
+      throw new Error('synthetic transport uncertainty')
+    } })
+    const result = await f.run(eliteProfile())
+    assert.equal(failed(result, 'opportunity_list'), !committed)
+    assert.equal(listWrites(f).length, 1)
+    assert.equal(result.automaticRetry, false)
+  })
+}
+
+for (const fault of ['http', 'receipt_mismatch', 'readback_missing']) {
+  test('unconfirmed list write ' + fault + ' is reported without retry', async () => {
+    const f = eliteFixture({ intercept: req => {
+      if (req.path !== 'contactLists' || req.method !== 'POST') return
+      if (fault === 'http') return response({}, 503)
+      return response({ contactList: { id: '801', contact: fault === 'receipt_mismatch' ? '99' : '1', list: '33', status: '1' } }, 201)
+    } })
+    const result = await f.run(eliteProfile())
+    assert.equal(failed(result, 'opportunity_list'), true)
+    assert.equal(listWrites(f).length, 1)
+    assert.equal(result.automaticRetry, false)
+  })
+}
+
+test('conflicting saved contact stays held across two events without overwriting identity', async () => {
+  const f = eliteFixture({ stored: { ac_contact_id: '99' } })
+  for (let event = 0; event < 2; event++) {
+    const result = await f.run(eliteProfile())
+    assert.equal(failed(result, 'contact', 'contact_identity_conflict'), true)
+  }
+  assert.equal(f.writes.length, 0)
+  assert.equal(listWrites(f).length, 0)
+})
+
+for (const writeNoop of [true, false]) {
+  test('new contact link requires exact persisted readback; zero-row=' + writeNoop, async () => {
+    const f = eliteFixture({ stored: { ac_contact_id: null }, writeNoop })
+    const result = await f.run(eliteProfile())
+    assert.equal(failed(result, 'contact_link', 'profile_link_readback_unconfirmed'), writeNoop)
+    assert.equal(listWrites(f).length, writeNoop ? 0 : 1)
+    assert.equal(opportunityStep(result, 'blocked', 'stable_contact_link_unconfirmed'), writeNoop)
+  })
+}
+
+test('saved account mismatch cannot authorize the additional list subscription', async () => {
+  const f = eliteFixture({ stored: { outseta_account_id: 'other-account' } })
+  const result = await f.run(eliteProfile())
+  assert.equal(opportunityStep(result, 'blocked', 'stable_contact_link_unconfirmed'), true)
+  assert.equal(listWrites(f).length, 0)
 })

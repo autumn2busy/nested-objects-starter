@@ -36,4 +36,5 @@ export const env = {
     acEventKey: process.env.AC_EVENT_KEY,
     acEventActId: process.env.AC_EVENT_ACTID,
     acMembershipRenewalFieldId: process.env.AC_MEMBERSHIP_RENEWAL_FIELD_ID,
+    acEliteOpportunityListSyncEnabled: process.env.AC_ELITE_OPPORTUNITY_LIST_SYNC_ENABLED,
 }
