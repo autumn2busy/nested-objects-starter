@@ -235,6 +235,127 @@ test('preview receipt and milestones retain compatibility with #375 without invo
   }
 })
 
+function historicalInput() {
+  const value = input()
+  value.consentAsset = null
+  value.consentRequests.rows = []
+  value.contactLists.rows = []
+  value.historicalConsentDecisionRef = 'synthetic:historical-signup-policy:v1'
+  value.historicalConsent = {
+    evidenceType: 'owner_attested_historical_signup_permission',
+    policyDecisionRef: value.historicalConsentDecisionRef,
+    attestedAt: '2026-09-20T12:00:00.000Z', cohortCutoffAt: '2026-09-19T12:00:00.000Z',
+    source: 'outseta_signup_form', purpose, outsetaPersonUid: person,
+    outsetaAccountUid: 'SyntheticAccount', subscriptionUid: cycle,
+    memberSince: value.memberships.rows[0].memberSince,
+    laterSuppression: { observedAt: now, outsetaHasUnsubscribed: false,
+      activeCampaignBounced: false, activeCampaignDeleted: false, activeCampaignSuppressed: false },
+  }
+  return value
+}
+
+test('historical permission retains provenance without manufacturing a request or DOI', () => {
+  const value = historicalInput(), before = structuredClone(value)
+  const result = previewFreeJourneySources(value)
+  assert.equal(result.status, 'historical_consent_preview_only')
+  assert.equal(result.consent, 'historical_owner_attestation')
+  assert.deepEqual(result.historicalConsent, value.historicalConsent)
+  assert.equal(result.consentRequest, null)
+  assert.equal(result.onboarding.status, 'complete')
+  assert.equal(result.incomeScenarioStatus, 'accepted')
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.mutationAllowed, false)
+  assert(!/Atlanta|Synthetic private profile|Inspection services|confirmed_scoped_doi/.test(JSON.stringify(result)))
+  assert.deepEqual(value, before)
+  const aggregate = summarizeFreeJourneySourcePreview({ coverage: 'complete', candidates: [value] })
+  assert.equal(aggregate.historicalPreviewOnly, 1)
+  assert.equal(aggregate.readyForWriterReview, 0)
+  assert.equal(aggregate.withheld, 0)
+  assert(!/Synthetic|31800000|@/.test(JSON.stringify(aggregate)))
+})
+
+test('historical preview rejects wrong policy, mixed receipts, stale evidence and suppression conflicts', () => {
+  const changes = [
+    v => { delete v.historicalConsentDecisionRef },
+    v => { v.historicalConsentDecisionRef = 'wrong-policy' },
+    v => { v.historicalConsent = false },
+    v => { v.historicalConsent.source = 'activecampaign_tag' },
+    v => { v.historicalConsent.purpose = 'elite_opportunity_alerts' },
+    v => { v.historicalConsent.extra = true },
+    v => { v.historicalConsent.outsetaPersonUid = 'OtherPerson' },
+    v => { v.historicalConsent.outsetaAccountUid = 'OtherAccount' },
+    v => { v.historicalConsent.subscriptionUid = 'OldCycle' },
+    v => { v.historicalConsent.memberSince = '2026-08-02T12:00:00.000Z' },
+    v => { v.historicalConsent.cohortCutoffAt = '2026-07-01T12:00:00.000Z' },
+    v => { v.historicalConsent.cohortCutoffAt = now },
+    v => { v.historicalConsent.attestedAt = '2026-09-22T12:00:00.000Z' },
+    v => { v.historicalConsent.laterSuppression.observedAt = '2026-09-20T12:00:00.000Z' },
+    v => { v.historicalConsent.laterSuppression.observedAt = '2026-09-22T12:00:00.000Z' },
+    v => { v.contacts.observedAt = '2026-09-21T11:59:00.000Z' },
+    v => { v.consentRequests.rows = input().consentRequests.rows },
+    v => { v.contacts.rows[0].bounced_soft = '1' },
+    v => { v.contacts.rows[0].deleted = '1' },
+    v => { v.contacts.rows[0].id = '42' },
+    v => { v.contactLists.rows = [{ contact: '41', list: '44', status: '2' }] },
+    v => { v.contactLists.rows = [{ contact: '42', list: '44', status: '1' }] },
+    v => { v.contactLists.rows = [{ contact: '41', list: '44', status: '1' }, { contact: '41', list: '44', status: '1' }] },
+    v => { v.memberships.rows[0].tier = 'pro' },
+    v => { v.audience.rows[0].test = true },
+    v => { v.onboarding.completionEvents.coverage = 'unknown' },
+  ]
+  for (const field of ['outsetaHasUnsubscribed', 'activeCampaignBounced', 'activeCampaignDeleted', 'activeCampaignSuppressed']) {
+    changes.push(v => { v.historicalConsent.laterSuppression[field] = true })
+    changes.push(v => { delete v.historicalConsent.laterSuppression[field] })
+  }
+  for (const source of ['identities', 'memberships', 'consentRequests', 'audience', 'contacts', 'contactLists']) {
+    changes.push(v => { v[source].coverage = 'partial' })
+  }
+  for (const change of changes) {
+    const value = historicalInput(); change(value)
+    const result = previewFreeJourneySources(value)
+    assert.equal(result.status, 'withheld', change.toString())
+    assert.equal(result.historicalConsent, null)
+    assert.equal(result.consentRequest, null)
+    assert.equal(result.consent, 'unverified')
+    assert.equal(result.attemptedWrites, 0)
+  }
+})
+
+test('historical source output passes the actual writer preview boundary with zero provider calls for every stage', async () => {
+  const writerSource = readFileSync(new URL('../../web-members/lib/active-campaign-free-journey.ts', import.meta.url), 'utf8')
+  const context = { exports: {}, URL, Intl, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
+  vm.runInNewContext(ts.transpileModule(writerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
+  for (const stage of ['profile_needed', 'calculation_needed', 'onboarding_complete', 'conversion_eligible']) {
+    const value = historicalInput()
+    // Explicit synthetic policy compatible with the writer's date-only expiry; not a live freshness SLA.
+    value.onboarding.maxSnapshotAgeMs = 86_400_000
+    if (['profile_needed', 'calculation_needed'].includes(stage)) value.onboarding.completionEvents.rows = []
+    if (stage === 'profile_needed') value.onboarding.profiles.rows[0].headline = null
+    if (stage === 'onboarding_complete') value.memberships.rows[0].lifecycle = 'trialing'
+    const preview = previewFreeJourneySources(value)
+    assert.equal(preview.status, 'historical_consent_preview_only')
+    let requests = 0
+    const result = await context.exports.syncActiveCampaignFreeJourney({
+      now, evidenceObservedAt: now, evidenceExpiresAt: '2026-09-22', maxEvidenceAgeMs: value.onboarding.maxSnapshotAgeMs,
+      membership: { ...value.memberships.rows[0], ...value.identities.rows[0], email: 'synthetic@example.com' },
+      consentRequest: preview.consentRequest, historicalConsent: preview.historicalConsent,
+      audienceTraits: [], profileInputs: preview.onboarding.profileInputs,
+      incomeScenarioStatus: preview.incomeScenarioStatus, activation: preview.onboarding.activation,
+      onboardingCompletion: preview.onboarding.onboardingCompletion,
+    }, { apiUrl: 'https://synthetic.api-us1.com', apiKey: 'synthetic-key', consentListId: '44',
+      consentFormId: '99', accountTimeZone: 'America/New_York',
+      historicalConsentDecisionRef: value.historicalConsentDecisionRef,
+    }, async () => { requests++; throw new Error('Provider access forbidden in preview') })
+    assert.equal(result.status, 'withheld')
+    assert.equal(result.desiredStage, stage)
+    assert.equal(result.consentProvenance, 'historical_owner_attestation')
+    assert.equal(result.steps.at(-1).code, 'historical_consent_preview_only')
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(result.confirmedWrites, 0)
+    assert.equal(requests, 0)
+  }
+})
+
 test('malformed contexts are withheld and module has no writer or network dependency', () => {
   for (const value of [null, {}, { onboarding: { now: 'bad' } }]) assert.equal(previewFreeJourneySources(value).status, 'withheld')
   const source = readFileSync(new URL('../src/sensors/free-journey-source-preview.ts', import.meta.url), 'utf8')
