@@ -89,6 +89,31 @@ function input() {
   }
 }
 
+function historicalInput() {
+  const value = input()
+  value.consentRequest = null
+  value.historicalConsent = {
+    evidenceType: 'owner_attested_historical_signup_permission',
+    policyDecisionRef: 'issue-318:historical-signup-permission:2026-09-23',
+    attestedAt: '2026-09-21T11:30:00.000Z',
+    cohortCutoffAt: '2026-09-21T11:00:00.000Z',
+    source: 'outseta_signup_form',
+    purpose,
+    outsetaPersonUid: person,
+    outsetaAccountUid: account,
+    subscriptionUid: cycle,
+    memberSince: value.membership.memberSince,
+    laterSuppression: {
+      observedAt: '2026-09-21T11:45:00.000Z',
+      outsetaHasUnsubscribed: false,
+      activeCampaignBounced: false,
+      activeCampaignDeleted: false,
+      activeCampaignSuppressed: false,
+    },
+  }
+  return value
+}
+
 const config = {
   apiUrl: 'https://synthetic.api-us1.com',
   apiKey: 'synthetic-key',
@@ -201,11 +226,50 @@ test('confirmed scoped double opt-in writes expiry before the trigger field and 
   assert.equal(result.desiredStage, 'conversion_eligible')
   assert.equal(result.attemptedWrites, 2)
   assert.equal(result.confirmedWrites, 2)
+  assert.equal(result.consentProvenance, 'current_cycle_doi')
   const posts = f.requests.filter(item => item.method === 'POST')
   assert.deepEqual(posts.map(item => item.body.fieldValue.field), ['194', '193'])
   assert.equal(f.requests.some(item => item.path === 'contactLists' || (item.path.includes('contactLists') && item.method !== 'GET')), false)
   assert.equal(f.requests.some(item => item.path.includes('contactAutomations')), false)
   assert(f.requests.every(item => item.init.redirect === 'error' && item.init.signal instanceof AbortSignal))
+})
+
+test('owner-attested historical signup permission has distinct preview-only provenance', async () => {
+  const f = fixture()
+  const result = await f.run(historicalInput(), {
+    ...config,
+    historicalConsentDecisionRef: 'issue-318:historical-signup-permission:2026-09-23',
+  })
+  assert.equal(result.status, 'withheld')
+  assert.equal(result.desiredStage, 'conversion_eligible')
+  assert.equal(result.consentProvenance, 'historical_owner_attestation')
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.confirmedWrites, 0)
+  assert.equal(result.steps.at(-1).code, 'historical_consent_preview_only')
+  assert.equal(f.requests.length, 0)
+})
+
+test('historical permission rejects fabricated provenance, stale suppression and mixed DOI evidence', async () => {
+  for (const mutate of [
+    value => { value.historicalConsent.policyDecisionRef = 'unapproved-decision' },
+    value => { value.historicalConsent.outsetaPersonUid = 'DifferentPerson' },
+    value => { value.historicalConsent.purpose = 'generic_marketing' },
+    value => { value.historicalConsent.laterSuppression.observedAt = '2026-09-17T11:45:00.000Z' },
+    value => { value.historicalConsent.laterSuppression.activeCampaignSuppressed = true },
+    value => { value.consentRequest = input().consentRequest },
+  ]) {
+    const value = historicalInput(); mutate(value)
+    const f = fixture()
+    const result = await f.run(value, {
+      ...config,
+      historicalConsentDecisionRef: 'issue-318:historical-signup-permission:2026-09-23',
+    })
+    assert.equal(result.status, 'withheld')
+    assert.equal(result.desiredStage, null)
+    assert.equal(result.consentProvenance, null)
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(f.requests.length, 0)
+  }
 })
 
 test('unconfirmed, unsubscribed, wrong-form, bounced or deleted contacts remain untouched', async () => {

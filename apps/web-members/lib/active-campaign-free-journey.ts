@@ -7,6 +7,10 @@ export type FreeJourneyStage =
     | 'conversion_eligible'
     | 'withheld';
 
+export type FreeJourneyConsentProvenance =
+    | 'current_cycle_doi'
+    | 'historical_owner_attestation';
+
 type JourneyStepState = 'succeeded' | 'skipped' | 'failed' | 'blocked';
 
 export interface FreeJourneyWriteStep {
@@ -23,6 +27,7 @@ export interface FreeJourneyWriteResult {
     automaticRetry: false;
     attemptedWrites: number;
     confirmedWrites: number;
+    consentProvenance: FreeJourneyConsentProvenance | null;
     steps: FreeJourneyWriteStep[];
 }
 
@@ -44,6 +49,26 @@ export interface FreeJourneyConsentReceipt {
         consentContract: 'v1';
         purpose: 'free_onboarding_and_conversion_email';
         lifecycleCycleId: string;
+    };
+}
+
+export interface FreeJourneyHistoricalConsentEvidence {
+    evidenceType: 'owner_attested_historical_signup_permission';
+    policyDecisionRef: string;
+    attestedAt: string;
+    cohortCutoffAt: string;
+    source: 'outseta_signup_form';
+    purpose: 'free_onboarding_and_conversion_email';
+    outsetaPersonUid: string;
+    outsetaAccountUid: string;
+    subscriptionUid: string;
+    memberSince: string;
+    laterSuppression: {
+        observedAt: string;
+        outsetaHasUnsubscribed: false;
+        activeCampaignBounced: false;
+        activeCampaignDeleted: false;
+        activeCampaignSuppressed: false;
     };
 }
 
@@ -69,6 +94,7 @@ export interface FreeJourneyEvidenceInput {
         cycleStartedAt: string;
     };
     consentRequest: FreeJourneyConsentReceipt | null;
+    historicalConsent?: FreeJourneyHistoricalConsentEvidence | null;
     audienceTraits: Array<'internal' | 'coworker' | 'test' | 'demo' | 'hiring_firm'>;
     profileInputs: {
         profile: boolean | null;
@@ -89,6 +115,7 @@ export interface ActiveCampaignFreeJourneyConfig {
     stageFieldId?: string;
     expiryFieldId?: string;
     accountTimeZone: string;
+    historicalConsentDecisionRef?: string;
     timeoutMs?: number;
 }
 
@@ -161,6 +188,7 @@ function validateConfig(config: ActiveCampaignFreeJourneyConfig) {
         || !NUMERIC_ID.test(config.consentListId) || !NUMERIC_ID.test(config.consentFormId)
         || !NUMERIC_ID.test(config.stageFieldId ?? STAGE_FIELD_ID)
         || !NUMERIC_ID.test(config.expiryFieldId ?? EXPIRY_FIELD_ID)
+        || (config.historicalConsentDecisionRef !== undefined && !isIdentifier(config.historicalConsentDecisionRef))
         || !Number.isInteger(timeout) || timeout < 1 || timeout > 30_000) return false;
     try {
         new Intl.DateTimeFormat('en-US', { timeZone: config.accountTimeZone }).format();
@@ -181,7 +209,7 @@ function exactConsentKey(personUid: string, subscriptionUid: string) {
     return `${CONSENT_EVENT}:${CONSENT_VERSION}:${hash}`;
 }
 
-function validateConsentReceipt(input: FreeJourneyEvidenceInput) {
+function validateCurrentCycleConsentReceipt(input: FreeJourneyEvidenceInput) {
     const receipt = input.consentRequest;
     const membership = input.membership;
     if (!receipt || receipt.eventName !== CONSENT_EVENT || receipt.memberUid !== membership.outsetaPersonUid
@@ -199,6 +227,53 @@ function validateConsentReceipt(input: FreeJourneyEvidenceInput) {
         && occurredAt >= Date.parse(membership.cycleStartedAt)
         && occurredAt <= Date.parse(input.evidenceObservedAt)
         && occurredAt <= Date.parse(input.now);
+}
+
+function validateHistoricalConsentEvidence(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+) {
+    const evidence = input.historicalConsent;
+    const membership = input.membership;
+    if (!evidence || input.consentRequest !== null
+        || !config.historicalConsentDecisionRef
+        || evidence.evidenceType !== 'owner_attested_historical_signup_permission'
+        || evidence.policyDecisionRef !== config.historicalConsentDecisionRef
+        || evidence.source !== 'outseta_signup_form'
+        || evidence.purpose !== CONSENT_PURPOSE
+        || evidence.outsetaPersonUid !== membership.outsetaPersonUid
+        || evidence.outsetaAccountUid !== membership.outsetaAccountUid
+        || evidence.subscriptionUid !== membership.subscriptionUid
+        || evidence.memberSince !== membership.memberSince
+        || !isTimestamp(evidence.attestedAt)
+        || !isTimestamp(evidence.cohortCutoffAt)
+        || !evidence.laterSuppression
+        || !isTimestamp(evidence.laterSuppression.observedAt)
+        || evidence.laterSuppression.outsetaHasUnsubscribed !== false
+        || evidence.laterSuppression.activeCampaignBounced !== false
+        || evidence.laterSuppression.activeCampaignDeleted !== false
+        || evidence.laterSuppression.activeCampaignSuppressed !== false) return false;
+    const attestedAt = Date.parse(evidence.attestedAt);
+    const cutoffAt = Date.parse(evidence.cohortCutoffAt);
+    const memberSince = Date.parse(evidence.memberSince);
+    const suppressionObservedAt = Date.parse(evidence.laterSuppression.observedAt);
+    return memberSince <= cutoffAt
+        && cutoffAt <= attestedAt
+        && attestedAt <= Date.parse(input.evidenceObservedAt)
+        && attestedAt <= Date.parse(input.now)
+        && suppressionObservedAt <= Date.parse(input.evidenceObservedAt)
+        && suppressionObservedAt <= Date.parse(input.now)
+        && Date.parse(input.now) - suppressionObservedAt <= input.maxEvidenceAgeMs;
+}
+
+function consentProvenance(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+): FreeJourneyConsentProvenance | null {
+    if (input.historicalConsent) {
+        return validateHistoricalConsentEvidence(input, config) ? 'historical_owner_attestation' : null;
+    }
+    return validateCurrentCycleConsentReceipt(input) ? 'current_cycle_doi' : null;
 }
 
 function isMilestoneSourceReference(evidence: FreeJourneyMilestoneEvidence) {
@@ -248,7 +323,7 @@ function validateEvidenceContext(input: FreeJourneyEvidenceInput, config: Active
         || Date.parse(membership.cycleStartedAt) > Date.parse(input.evidenceObservedAt)
         || !Array.isArray(input.audienceTraits)
         || !Object.values(input.profileInputs).every(value => value === true || value === false || value === null)) return false;
-    return validateConsentReceipt(input);
+    return consentProvenance(input, config);
 }
 
 export function deriveFreeJourneyStage(input: FreeJourneyEvidenceInput): FreeJourneyStage {
@@ -275,6 +350,7 @@ function result(
     steps: FreeJourneyWriteStep[],
     attemptedWrites = 0,
     confirmedWrites = 0,
+    consent: FreeJourneyConsentProvenance | null = null,
 ): FreeJourneyWriteResult {
     return {
         status,
@@ -283,6 +359,7 @@ function result(
         automaticRetry: false,
         attemptedWrites,
         confirmedWrites,
+        consentProvenance: consent,
         steps,
     };
 }
@@ -302,13 +379,18 @@ export async function syncActiveCampaignFreeJourney(
         steps.push({ step: 'configuration', state: 'blocked', code: 'configuration_invalid' });
         return result('withheld', null, steps);
     }
-    if (!validateEvidenceContext(input, config)) {
+    const consent = validateEvidenceContext(input, config);
+    if (!consent) {
         steps.push({ step: 'evidence', state: 'blocked', code: 'identity_consent_or_freshness_unverified' });
         return result('withheld', null, steps);
     }
     steps.push({ step: 'evidence', state: 'succeeded' });
 
     const desiredStage = deriveFreeJourneyStage(input);
+    if (consent === 'historical_owner_attestation') {
+        steps.push({ step: 'consent_policy', state: 'blocked', code: 'historical_consent_preview_only' });
+        return result('withheld', desiredStage, steps, 0, 0, consent);
+    }
     const contactId = input.membership.activeCampaignContactId;
     const stageFieldId = config.stageFieldId ?? STAGE_FIELD_ID;
     const expiryFieldId = config.expiryFieldId ?? EXPIRY_FIELD_ID;
@@ -341,7 +423,7 @@ export async function syncActiveCampaignFreeJourney(
             code: error instanceof JourneyWriterError ? error.code : 'unexpected_failure',
             ...(error instanceof JourneyWriterError && error.httpStatus ? { httpStatus: error.httpStatus } : {}),
         });
-        return result(status, desiredStage, steps, attempted, confirmed);
+        return result(status, desiredStage, steps, attempted, confirmed, consent);
     };
 
     let contactData: Record<string, unknown>;
@@ -360,7 +442,7 @@ export async function syncActiveCampaignFreeJourney(
     }
     if (String(contact.bounced_hard) !== '0' || String(contact.bounced_soft) !== '0' || String(contact.deleted) !== '0') {
         steps.push({ step: 'contact', state: 'blocked', code: 'contact_delivery_suppressed' });
-        return result('withheld', desiredStage, steps);
+        return result('withheld', desiredStage, steps, 0, 0, consent);
     }
     steps.push({ step: 'contact', state: 'succeeded' });
 
@@ -377,11 +459,11 @@ export async function syncActiveCampaignFreeJourney(
         .filter(item => String(item.list) === config.consentListId);
     if (listMatches.length !== 1 || String(listMatches[0].contact) !== contactId) {
         steps.push({ step: 'consent_list', state: 'blocked', code: 'doi_membership_missing_or_ambiguous' });
-        return result('withheld', desiredStage, steps);
+        return result('withheld', desiredStage, steps, 0, 0, consent);
     }
     if (String(listMatches[0].status) !== '1' || String(listMatches[0].form) !== config.consentFormId) {
         steps.push({ step: 'consent_list', state: 'blocked', code: 'doi_not_confirmed' });
-        return result('withheld', desiredStage, steps);
+        return result('withheld', desiredStage, steps, 0, 0, consent);
     }
     steps.push({ step: 'consent_list', state: 'succeeded' });
 
@@ -446,5 +528,5 @@ export async function syncActiveCampaignFreeJourney(
     } catch (error) {
         return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
     }
-    return result(attemptedWrites === 0 ? 'unchanged' : 'updated', desiredStage, steps, attemptedWrites, confirmedWrites);
+    return result(attemptedWrites === 0 ? 'unchanged' : 'updated', desiredStage, steps, attemptedWrites, confirmedWrites, consent);
 }
