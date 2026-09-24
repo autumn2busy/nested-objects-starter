@@ -151,16 +151,19 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
   }
 }
 
-test('shared inspector guide starts with firm research and keeps profile preparation secondary and private', () => {
+test('shared inspector guide starts with the approved private profile inputs and first-value milestone', () => {
   const tree = expand(InspectorStartGuide())
   const links = nodes(tree, node => node.type === 'a')
-  assert.deepEqual(links.map(node => node.props.href), ['/hiring-firms', '/tools/income-calculator', '/roles/inspector', '/profile'])
-  assert.match(content(links[0]), /Explore hiring firms/)
-  assert.match(content(tree), /Your profile is private to you/)
-  assert.match(content(tree), /not a job guarantee/)
-  assert.match(content(tree), /before filling out your profile/)
-  assert.match(content(tree), /Free includes up to 3 sample listings with no search or filters/)
-  assert.match(content(tree), /Pro and higher include full directory search and firm intel/)
+  assert.deepEqual(links.map(node => node.props.href), ['/profile', '/tools/income-calculator', '/hiring-firms', '/roles/inspector'])
+  assert.match(content(links[0]), /Complete my private profile/)
+  assert.match(content(tree), /headline and bio/)
+  assert.match(content(tree), /city and state/)
+  assert.match(content(tree), /experience level/)
+  assert.match(content(tree), /Primary Services/)
+  assert.match(content(tree), /at least one Service Type You Offer/)
+  assert.match(content(tree), /profile stays private to you/)
+  assert.match(content(tree), /one Income Scenarios calculation/)
+  assert.match(content(tree), /On Free, preview up to three firms without search or filters/)
   assert.equal(nodes(tree, node => node.type === 'h2').length, 1)
   assert.equal(nodes(tree, node => node.type === 'h3').length, 3)
   assert.equal(nodes(tree, node => node.type === 'button').length, 0)
@@ -262,7 +265,9 @@ test('authenticated welcome renders shared first-value guide without new-user ma
   const links = nodes(harness.tree, node => node.type === 'a').map(node => node.props.href)
   for (const href of ['/hiring-firms', '/tools/income-calculator', '/roles/inspector', '/profile']) assert.ok(links.includes(href))
   assert.match(content(harness.tree), /Synthetic Inspector/)
-  assert.match(content(harness.tree), /Your profile is private to you/)
+  assert.match(content(harness.tree), /Save your experience and interests in your private profile/)
+  assert.match(content(harness.tree), /complete one Income Scenarios calculation/)
+  assert.match(content(harness.tree), /Your profile stays private to you/)
   assert.equal(harness.sideEffects.requests.length, 0)
   assert.equal(harness.sideEffects.signupCompleted.length, 0)
   assert.equal(harness.sideEffects.analytics.length, 0)

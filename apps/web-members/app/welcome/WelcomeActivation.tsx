@@ -272,7 +272,7 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-copper">Your inspector workspace</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{greeting}</h1>
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            Make your first visit useful: find a firm to research, understand what the work involves, and keep your next step clear.
+            Save your experience and interests in your private profile, then complete one Income Scenarios calculation.
           </p>
           {email && <p className="mt-3 text-sm text-slate-500">Signed in as {email}</p>}
         </header>
