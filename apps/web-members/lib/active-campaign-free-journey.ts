@@ -261,6 +261,7 @@ function validateHistoricalConsentEvidence(
         && cutoffAt <= attestedAt
         && attestedAt <= Date.parse(input.evidenceObservedAt)
         && attestedAt <= Date.parse(input.now)
+        && suppressionObservedAt >= attestedAt
         && suppressionObservedAt <= Date.parse(input.evidenceObservedAt)
         && suppressionObservedAt <= Date.parse(input.now)
         && Date.parse(input.now) - suppressionObservedAt <= input.maxEvidenceAgeMs;

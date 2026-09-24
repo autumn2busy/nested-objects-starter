@@ -159,7 +159,8 @@ export function previewFreeJourneySources(input: FreeJourneySourcePreviewInput):
       input.audience, input.contacts, input.contactLists].map(snapshot => Date.parse(snapshot.observedAt)))
     if (Date.parse(member.memberSince) > cutoffAt || cutoffAt > attestedAt
       || attestedAt > observedAt || attestedAt > now
-      || suppressionAt > observedAt || !fresh(evidence.laterSuppression.observedAt)) return hold('historical_chronology_unverified')
+      || suppressionAt < attestedAt || suppressionAt > observedAt
+      || !fresh(evidence.laterSuppression.observedAt)) return hold('historical_chronology_unverified')
     // Do not let asserted clean suppression override contradictory supplied list evidence.
     const listSchema = z.object({ contact: numericId, list: numericId, status: z.literal('1') })
     const seenLists = new Set<string>()

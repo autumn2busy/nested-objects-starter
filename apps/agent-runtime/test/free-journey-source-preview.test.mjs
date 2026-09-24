@@ -321,6 +321,18 @@ test('historical preview rejects wrong policy, mixed receipts, stale evidence an
   }
 })
 
+test('fresh suppression before attestation is withheld; equal timestamps remain preview-only', () => {
+  const value = historicalInput()
+  value.historicalConsent.attestedAt = '2026-09-21T11:59:00.000Z'
+  value.historicalConsent.laterSuppression.observedAt = '2026-09-21T11:58:00.000Z'
+  const held = previewFreeJourneySources(value)
+  assert.equal(held.status, 'withheld')
+  assert.equal(held.historicalConsent, null)
+  assert.equal(held.attemptedWrites, 0)
+  value.historicalConsent.laterSuppression.observedAt = value.historicalConsent.attestedAt
+  assert.equal(previewFreeJourneySources(value).status, 'historical_consent_preview_only')
+})
+
 test('historical source output passes the actual writer preview boundary with zero provider calls for every stage', async () => {
   const writerSource = readFileSync(new URL('../../web-members/lib/active-campaign-free-journey.ts', import.meta.url), 'utf8')
   const context = { exports: {}, URL, Intl, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
