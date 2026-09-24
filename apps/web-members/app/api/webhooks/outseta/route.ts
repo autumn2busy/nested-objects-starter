@@ -31,6 +31,7 @@ interface OutsetaPerson {
   Created?: string;
   Updated?: string;
   LastLoginDateTime?: string;
+  HasUnsubscribed?: boolean;
   // Person payloads include PersonAccount array
   PersonAccount?: OutsetaPersonAccount[];
 }
@@ -55,6 +56,8 @@ interface OutsetaAccount {
   Uid: string;
   Name?: string;
   AccountStage?: number;
+  IsDemo?: boolean;
+  IsLivemode?: boolean;
   AccountStageLabel?: string;
   CurrentSubscription?: OutsetaSubscription;
   LatestSubscription?: OutsetaSubscription;

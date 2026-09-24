@@ -7,10 +7,14 @@ const AC_API_URL = env.acApiUrl;
 const AC_API_KEY = env.acApiKey;
 const AC_CONNECTION_ID = env.acConnectionId;
 const AC_MEMBERSHIP_RENEWAL_FIELD_ID = env.acMembershipRenewalFieldId || '187';
+const ELITE_OPPORTUNITY_LIST_ID = '33';
+const ELITE_PLAN_UID = 'NmdnNO90';
+const ELITE_OPPORTUNITY_LIST_SYNC_ENABLED = env.acEliteOpportunityListSyncEnabled === 'true';
 
 type BillingInterval = 'MONTHLY' | 'YEARLY';
 
 interface StoredMembershipContext {
+    outseta_person_uid?: string | null;
     ac_contact_id?: string | null;
     ac_customer_id?: string | null;
     outseta_account_id?: string | null;
@@ -168,9 +172,91 @@ function formatAcDate(value: string) {
     return new Date(value).toISOString().slice(0, 10);
 }
 
+type EliteOpportunityEligibility =
+    | { allowed: true }
+    | { allowed: false; code: string };
+
+function record(value: unknown): Record<string, any> | null {
+    return value && typeof value === 'object' && !Array.isArray(value)
+        ? value as Record<string, any>
+        : null;
+}
+
+function exactIdentifier(value: unknown): string | null {
+    return typeof value === 'string' && /^[^\s@\u0000-\u001f]{1,160}$/.test(value) && value === value.trim()
+        ? value
+        : null;
+}
+
+function optionalDate(value: unknown): number | null | 'invalid' {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value !== 'string') return 'invalid';
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 'invalid';
+}
+
 /**
- * Keep the existing webhook's contact/tag/ecommerce path. Membership events
- * carry no marketing opt-in, so this path never writes list consent.
+ * The narrow owner-approved exception for Elite opportunity alerts. Outseta
+ * remains membership authority; list 33 records subscription status, not
+ * membership or consent truth.
+ */
+function evaluateEliteOpportunityEligibility(profile: ProfileUpdateData, now = Date.now()): EliteOpportunityEligibility {
+    const personId = exactIdentifier(profile.outseta_person_uid);
+    const accountId = exactIdentifier(profile.outseta_account_id);
+    const raw = record(profile.outseta_data);
+    if (!personId || !accountId || !raw) return { allowed: false, code: 'opportunity_identity_unverified' };
+
+    let person: Record<string, any> | null = null;
+    let account: Record<string, any> | null = null;
+    const personAccounts = Array.isArray(raw.PersonAccount) ? raw.PersonAccount : [];
+    if (exactIdentifier(raw.Uid) === personId && typeof raw.Email === 'string') {
+        const matches = personAccounts.filter(item => exactIdentifier(record(record(item)?.Account)?.Uid) === accountId);
+        if (matches.length !== 1) return { allowed: false, code: 'opportunity_identity_unverified' };
+        person = raw;
+        account = record(record(matches[0])?.Account);
+    } else if (exactIdentifier(raw.Uid) === accountId) {
+        const matches = personAccounts.filter(item => exactIdentifier(record(record(item)?.Person)?.Uid) === personId);
+        if (matches.length !== 1) return { allowed: false, code: 'opportunity_identity_unverified' };
+        account = raw;
+        person = record(record(matches[0])?.Person);
+    }
+    if (!person || !account || exactIdentifier(account.Uid) !== accountId
+        || typeof person.Email !== 'string'
+        || person.Email.trim().toLowerCase() !== profile.email.trim().toLowerCase()) {
+        return { allowed: false, code: 'opportunity_identity_unverified' };
+    }
+    if (person.HasUnsubscribed !== false) {
+        return { allowed: false, code: 'opportunity_signup_permission_unverified' };
+    }
+    if (account.IsDemo !== false) return { allowed: false, code: 'opportunity_demo_or_unknown' };
+
+    const subscription = record(account.CurrentSubscription);
+    const plan = record(subscription?.Plan);
+    if (profile.subscription_tier !== 'elite' || profile.plan_uid !== ELITE_PLAN_UID
+        || !exactIdentifier(subscription?.Uid) || exactIdentifier(plan?.Uid) !== ELITE_PLAN_UID) {
+        return { allowed: false, code: 'opportunity_not_elite' };
+    }
+    const startsAt = optionalDate(subscription?.StartDate);
+    const endsAt = optionalDate(subscription?.EndDate);
+    if (!Number.isFinite(now) || startsAt === null || startsAt === 'invalid' || endsAt === 'invalid'
+        || (startsAt !== null && startsAt > now) || (endsAt !== null && endsAt <= now)) {
+        return { allowed: false, code: 'opportunity_membership_window_invalid' };
+    }
+    if (profile.subscription_status === 'active' && account.AccountStage === 3) return { allowed: true };
+
+    // Outseta stage 4 is cancelling. Access and Elite opportunity eligibility
+    // continue only through the explicit future effective end.
+    if (profile.subscription_status === 'canceled' && account.AccountStage === 4) {
+        const effectiveEnd = optionalDate(subscription?.EndDate);
+        if (effectiveEnd !== 'invalid' && effectiveEnd !== null && effectiveEnd > now) return { allowed: true };
+    }
+    return { allowed: false, code: 'opportunity_membership_inactive' };
+}
+
+/**
+ * Keep the existing webhook's contact/tag/ecommerce path. Its only list write
+ * is the owner-approved Elite opportunity list after exact signup-permission,
+ * identity, membership, delivery-state and current list-state checks.
  */
 export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promise<SyncResult> {
     const run = new AcSyncRun();
@@ -184,7 +270,7 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
         const stored = await run.attempt('profile_context', async () => {
             const { data, error } = await supabase.from('profiles')
                 .select('ac_contact_id, ac_customer_id, outseta_person_uid, outseta_account_id, subscription_tier, subscription_start_date, subscription_end_date, plan_uid, plan_name, billing_renewal_term')
-                .eq('user_email', profile.user_email).single();
+                .eq('outseta_person_uid', profile.outseta_person_uid).single();
             // The route has already saved this profile. PGRST116 may mean zero
             // OR multiple rows, so it cannot authorize an identity fallback.
             if (error || !data) throw new AcSyncError('profile_read_failed');
@@ -210,13 +296,46 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
             run.record('contact_dependents', 'blocked', 'contact_unavailable');
             return;
         }
-        if (String(dbProfile?.ac_contact_id ?? '') !== contactId) {
-            await run.attempt('contact_link', async () => {
-                const { error } = await supabase.from('profiles').update({ ac_contact_id: contactId }).eq('user_email', profile.user_email);
+        let stableContactLinked = String(dbProfile?.ac_contact_id ?? '') === contactId;
+        if (!stableContactLinked) {
+            stableContactLinked = Boolean(await run.attempt('contact_link', async () => {
+                const { error } = await supabase.from('profiles').update({ ac_contact_id: contactId })
+                    .eq('outseta_person_uid', profile.outseta_person_uid);
                 if (error) throw new AcSyncError('profile_write_failed');
-            });
+                // A successful UPDATE can match zero rows. Only persisted exact
+                // identity may authorize the additional list subscription.
+                const saved = await supabase.from('profiles')
+                    .select('ac_contact_id, outseta_person_uid, outseta_account_id')
+                    .eq('outseta_person_uid', profile.outseta_person_uid).single();
+                if (saved.error || !saved.data
+                    || String(saved.data.ac_contact_id ?? '') !== contactId
+                    || saved.data.outseta_person_uid !== profile.outseta_person_uid
+                    || saved.data.outseta_account_id !== profile.outseta_account_id) {
+                    throw new AcSyncError('profile_link_readback_unconfirmed');
+                }
+                return true;
+            }));
         }
-        run.record('list_consent', 'skipped', 'membership_is_not_opt_in');
+
+        if (!ELITE_OPPORTUNITY_LIST_SYNC_ENABLED) {
+            run.record('opportunity_list', 'skipped', 'feature_disabled');
+        } else {
+            const opportunityEligibility = evaluateEliteOpportunityEligibility(syncProfile);
+            if (!opportunityEligibility.allowed) {
+                run.record('opportunity_list', 'skipped', opportunityEligibility.code);
+            } else if (!stableContactLinked
+                || dbProfile?.outseta_person_uid !== profile.outseta_person_uid
+                || dbProfile?.outseta_account_id !== profile.outseta_account_id) {
+                run.record('opportunity_list', 'blocked', 'stable_contact_link_unconfirmed');
+            } else {
+                const state = await run.attempt('opportunity_list_read',
+                    () => readEliteOpportunityListState(contactId, syncProfile.email));
+                if (!state) run.record('opportunity_list', 'blocked', 'list_state_unavailable');
+                else if (state === 'active') run.record('opportunity_list', 'skipped', 'already_active');
+                else if (state === 'suppressed') run.record('opportunity_list', 'skipped', 'suppression_preserved');
+                else await run.attempt('opportunity_list', () => subscribeEliteOpportunityList(contactId, syncProfile.email));
+            }
+        }
 
         const customerId = await run.attempt('customer', () => syncEcommerceCustomer(syncProfile, dbProfile?.ac_customer_id));
         if (customerId && String(dbProfile?.ac_customer_id ?? '') !== customerId) {
@@ -279,6 +398,83 @@ async function acJson(path: string, method = 'GET', body?: unknown): Promise<any
 function requireId(value: unknown): string {
     if (!/^[1-9]\d*$/.test(String(value ?? ''))) throw new AcSyncError('invalid_response_id');
     return String(value);
+}
+
+type EliteOpportunityListState = 'missing' | 'active' | 'suppressed';
+
+async function readEliteOpportunityListState(contactId: string, email: string): Promise<EliteOpportunityListState> {
+    const data = await acJson(`contacts/${contactId}?include=contactLists`);
+    const contact = record(data.contact);
+    if (!contact || String(contact.id) !== contactId || typeof contact.email !== 'string'
+        || contact.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
+        throw new AcSyncError('opportunity_contact_identity_conflict');
+    }
+    const delivery = [contact.bounced_hard, contact.bounced_soft, contact.deleted].map(value => String(value));
+    if (delivery.some(value => !['0', '1'].includes(value))) {
+        throw new AcSyncError('opportunity_contact_delivery_unknown');
+    }
+
+    const rows = data.contactLists;
+    const references = contact.contactLists;
+    if (!Array.isArray(rows) || !Array.isArray(references)) {
+        throw new AcSyncError('opportunity_list_coverage_unknown');
+    }
+    const referenceIds = references.map(requireId);
+    const relationshipIds = rows.map((item: any) => requireId(item?.id));
+    if (new Set(referenceIds).size !== referenceIds.length
+        || new Set(relationshipIds).size !== relationshipIds.length
+        || [...referenceIds].sort().join(',') !== [...relationshipIds].sort().join(',')
+        || rows.some((item: any) => String(item?.contact) !== contactId)) {
+        throw new AcSyncError('opportunity_list_coverage_unknown');
+    }
+    if (delivery.some(value => value === '1')) return 'suppressed';
+
+    const matches = rows.filter((item: any) => String(item?.list) === ELITE_OPPORTUNITY_LIST_ID);
+    if (matches.length > 1) throw new AcSyncError('opportunity_list_identity_conflict');
+    if (!matches.length) return 'missing';
+    return String(matches[0].status) === '1' ? 'active' : 'suppressed';
+}
+
+async function subscribeEliteOpportunityList(contactId: string, email: string): Promise<void> {
+    let response: Response;
+    try {
+        response = await acRequest('contactLists', 'POST', { contactList: {
+            contact: contactId,
+            list: ELITE_OPPORTUNITY_LIST_ID,
+            status: 1,
+        } });
+    } catch (error) {
+        try {
+            if (await readEliteOpportunityListState(contactId, email) === 'active') return;
+        } catch { /* Preserve the uncertain write failure. */ }
+        throw error;
+    }
+
+    if (!response.ok) {
+        try {
+            if (await readEliteOpportunityListState(contactId, email) === 'active') return;
+        } catch { /* The exact readback did not confirm application. */ }
+        throw new AcSyncError('opportunity_list_write_unconfirmed', response.status);
+    }
+
+    try {
+        const data = await response.json() as Record<string, any>;
+        requireId(data.contactList?.id);
+        if (String(data.contactList?.contact) !== contactId
+            || String(data.contactList?.list) !== ELITE_OPPORTUNITY_LIST_ID
+            || String(data.contactList?.status) !== '1') {
+            throw new AcSyncError('opportunity_list_write_unconfirmed');
+        }
+    } catch (error) {
+        try {
+            if (await readEliteOpportunityListState(contactId, email) === 'active') return;
+        } catch { /* Preserve the invalid or incomplete receipt. */ }
+        throw error instanceof AcSyncError ? error : new AcSyncError('opportunity_list_write_unconfirmed');
+    }
+
+    if (await readEliteOpportunityListState(contactId, email) !== 'active') {
+        throw new AcSyncError('opportunity_list_readback_unconfirmed');
+    }
 }
 
 async function syncContact(profile: ProfileUpdateData): Promise<string> {
