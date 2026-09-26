@@ -63,6 +63,7 @@ test('exact fresh source evidence produces read-only writer-review readiness and
   assert.equal(result.status, 'ready_for_writer_review')
   assert.equal(result.consent, 'confirmed_scoped_doi')
   assert.equal(result.onboarding.status, 'complete')
+  assert.equal(result.incomeScenarioStatus, 'accepted')
   assert.equal(result.consentRequest.eventName, eventName)
   assert.equal(result.attemptedWrites, 0)
   assert.equal(result.mutationAllowed, false)
@@ -99,7 +100,6 @@ const held = [
   ['wrong DOI contact', v => { v.contactLists.rows[0].contact = '42' }],
   ['no DOI relationship', v => { v.contactLists.rows = [] }],
   ['ambiguous DOI relationship', v => { v.contactLists.rows.push(v.contactLists.rows[0]) }],
-  ['missing calculation is not completed onboarding', v => { v.onboarding.completionEvents.rows = [] }],
   ['partial calculation lookup', v => { v.onboarding.completionEvents.coverage = 'partial' }],
   ['missing saved profile column', v => { delete v.onboarding.profiles.rows[0].state }],
 ]
@@ -108,6 +108,7 @@ for (const [label, change] of held) test(`withholds ${label}`, () => {
   const result = previewFreeJourneySources(value)
   assert.equal(result.status, 'withheld')
   assert.equal(result.consentRequest, null)
+  assert.equal(result.incomeScenarioStatus, 'withheld')
   assert.equal(result.attemptedWrites, 0)
   assert.equal(result.mutationAllowed, false)
 })
@@ -128,6 +129,61 @@ test('explicit incomplete profile is retained without declaring onboarding compl
   assert.equal(result.status, 'ready_for_writer_review')
   assert.equal(result.onboarding.status, 'incomplete')
   assert.equal(result.onboarding.onboardingCompletion, null)
+})
+
+for (const incomplete of [false, true]) test(`fresh empty income lookup supports ${incomplete ? 'profile' : 'calculation'} needed without inventing milestones`, () => {
+  const value = input()
+  value.onboarding.completionEvents.rows = []
+  if (incomplete) value.onboarding.profiles.rows[0].city = null
+  const before = structuredClone(value)
+  const result = previewFreeJourneySources(value)
+  assert.equal(result.status, 'ready_for_writer_review')
+  assert.equal(result.incomeScenarioStatus, 'missing')
+  assert.equal(result.onboarding.status, 'incomplete')
+  assert.equal(result.onboarding.profileInputs.geography, !incomplete)
+  assert.equal(result.onboarding.activation, null)
+  assert.equal(result.onboarding.onboardingCompletion, null)
+  assert.equal(result.onboarding.sourceRecordIds.length, 1)
+  assert(!JSON.stringify(result).includes('conversion_events:'))
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.mutationAllowed, false)
+  assert.deepEqual(value, before)
+})
+
+test('early stages preserve unknown, identity, chronology, suppression and consent boundaries', () => {
+  const changes = [
+    ...held.filter(([name]) => name !== 'partial calculation lookup').map(([, change]) => change),
+    v => { v.onboarding.profiles.rows = [] },
+    v => { v.onboarding.profiles.rows.push(v.onboarding.profiles.rows[0]) },
+    v => { v.onboarding.profiles.rows[0].outseta_person_uid = 'OtherPerson' },
+    v => { v.onboarding.profiles.rows[0].updated_at = '2026-07-01T12:00:00.000Z' },
+    v => { v.onboarding.profiles.rows[0].updated_at = '2026-09-22T12:00:00.000Z' },
+    v => { v.onboarding.profiles.rows[0].service_areas = 'Property Inspections' },
+  ]
+  for (const source of ['profiles', 'completionEvents']) for (const mutate of [
+    s => { s.coverage = 'partial' }, s => { s.coverage = 'unknown' },
+    s => { s.observedAt = 'invalid' }, s => { s.observedAt = '2026-09-20T12:00:00.000Z' },
+    s => { s.observedAt = '2026-09-22T12:00:00.000Z' }, s => { s.rows = null },
+  ]) changes.push(v => mutate(v.onboarding[source]))
+  for (const change of changes) {
+    const value = input(); value.onboarding.completionEvents.rows = []; change(value)
+    const result = previewFreeJourneySources(value)
+    assert.equal(result.status, 'withheld', change.toString())
+    assert.equal(result.incomeScenarioStatus, 'withheld')
+    assert.equal(result.onboarding, null)
+  }
+})
+
+test('nonempty invalid or ambiguous income receipts never become missing or an early stage', () => {
+  for (const change of [
+    v => { v.onboarding.completionEvents.rows[0].client_event_id = 'invalid' },
+    v => { v.onboarding.completionEvents.rows[0].event_data.lifecycleCycleId = 'OldCycle' },
+    v => { v.onboarding.completionEvents.rows.push(v.onboarding.completionEvents.rows[0]) },
+    v => { v.onboarding.completionEvents.rows[0].occurred_at = '2026-09-22T12:00:00.000Z' },
+  ]) {
+    const value = input(); value.onboarding.profiles.rows[0].city = null; change(value)
+    assert.equal(previewFreeJourneySources(value).status, 'withheld')
+  }
 })
 
 test('aggregate counts redact identities; partial, oversized or duplicate cohort is unknown, not zero', () => {
@@ -160,7 +216,7 @@ test('preview receipt and milestones retain compatibility with #375 without invo
     now, evidenceObservedAt: now, maxEvidenceAgeMs: 300000,
     membership: { ...value.memberships.rows[0], ...value.identities.rows[0] }, audienceTraits: [],
     consentRequest: preview.consentRequest, profileInputs: preview.onboarding.profileInputs,
-    incomeScenarioStatus: 'accepted', activation: preview.onboarding.activation,
+    incomeScenarioStatus: preview.incomeScenarioStatus, activation: preview.onboarding.activation,
     onboardingCompletion: preview.onboarding.onboardingCompletion,
   }
   assert.equal(context.exports.deriveFreeJourneyStage(evidence), 'conversion_eligible')
@@ -168,6 +224,15 @@ test('preview receipt and milestones retain compatibility with #375 without invo
   assert.equal(context.exports.deriveFreeJourneyStage(evidence), 'onboarding_complete')
   evidence.profileInputs.geography = false
   assert.equal(context.exports.deriveFreeJourneyStage(evidence), 'profile_needed')
+  for (const incomplete of [false, true]) {
+    const early = input(); early.onboarding.completionEvents.rows = []
+    if (incomplete) early.onboarding.profiles.rows[0].headline = null
+    const result = previewFreeJourneySources(early)
+    assert.equal(context.exports.deriveFreeJourneyStage({ ...evidence,
+      profileInputs: result.onboarding.profileInputs, incomeScenarioStatus: result.incomeScenarioStatus,
+      activation: result.onboarding.activation, onboardingCompletion: result.onboarding.onboardingCompletion,
+    }), incomplete ? 'profile_needed' : 'calculation_needed')
+  }
 })
 
 test('malformed contexts are withheld and module has no writer or network dependency', () => {

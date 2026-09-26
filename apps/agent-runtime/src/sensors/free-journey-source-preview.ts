@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import type { ConversionEventSourceRow } from '../projections/member-projection.js'
-import { adaptFreeOnboardingCompletion } from './free-onboarding-evidence.js'
+import { adaptFreeOnboardingCompletion, deriveSavedProfileInputs } from './free-onboarding-evidence.js'
 import type { FreeOnboardingEvidenceInput, FreeOnboardingEvidenceResult } from './free-onboarding-evidence.js'
 import type { MilestoneReadSnapshot } from './income-scenario-evidence.js'
 
@@ -66,6 +66,7 @@ export interface FreeJourneySourcePreviewResult {
   status: 'ready_for_writer_review' | 'withheld'
   reasons: string[]
   consent: 'confirmed_scoped_doi' | 'unverified'
+  incomeScenarioStatus: 'accepted' | 'missing' | 'withheld'
   onboarding: FreeOnboardingEvidenceResult | null
   consentRequest: {
     clientEventId: string
@@ -83,7 +84,7 @@ export interface FreeJourneySourcePreviewResult {
 export function previewFreeJourneySources(input: FreeJourneySourcePreviewInput): FreeJourneySourcePreviewResult {
   const hold = (reason: string): FreeJourneySourcePreviewResult => ({
     status: 'withheld', reasons: [reason], consent: 'unverified', onboarding: null,
-    consentRequest: null, mutationAllowed: false, attemptedWrites: 0,
+    incomeScenarioStatus: 'withheld', consentRequest: null, mutationAllowed: false, attemptedWrites: 0,
   })
   if (!input?.onboarding || !timestamp.safeParse(input.onboarding.now).success
     || !Number.isFinite(input.onboarding.maxSnapshotAgeMs) || input.onboarding.maxSnapshotAgeMs <= 0) {
@@ -137,16 +138,34 @@ export function previewFreeJourneySources(input: FreeJourneySourcePreviewInput):
   const relationship = relationSchema.safeParse(matches[0])
   if (!relationship.success || relationship.data.contact !== binding.activeCampaignContactId
     || relationship.data.form !== asset.formId) return hold('scoped_doi_unconfirmed')
-  // Use the same independently supplied authority for both existing adapters, not a second mirrored cycle.
-  const onboarding = adaptFreeOnboardingCompletion({
+  // Empty is meaningful only after a complete, fresh current-cycle lookup. Failed reads are not absence.
+  const { profiles, completionEvents } = input.onboarding
+  for (const [name, snapshot] of [['profile', profiles], ['income', completionEvents]] as const) {
+    if (!snapshot || snapshot.coverage !== 'complete' || !Array.isArray(snapshot.rows)) return hold(`${name}_lookup_incomplete`)
+    if (!fresh(snapshot.observedAt)) return hold(`${name}_lookup_stale_or_future`)
+    if (snapshot.rows.length > 1) return hold(`${name}_lookup_ambiguous`)
+  }
+  const profile = profiles.rows[0]
+  if (!profile || profile.id !== binding.canonicalMemberId
+    || profile.outseta_person_uid !== binding.outsetaPersonUid) return hold('canonical_profile_mismatch')
+  if (Date.parse(member.memberSince) > Date.parse(input.memberships.observedAt)
+    || Date.parse(member.cycleStartedAt) > Date.parse(input.memberships.observedAt)) return hold('membership_chronology_invalid')
+  const saved = deriveSavedProfileInputs(profile, member, profiles.observedAt)
+  if (saved.status === 'withheld') return hold('onboarding_source_withheld')
+  const incomeScenarioStatus = completionEvents.rows.length === 0 ? 'missing' : 'accepted'
+  // No fabricated activation/completion for early stages; validated nonempty receipts use the existing adapter.
+  const onboarding: FreeOnboardingEvidenceResult = incomeScenarioStatus === 'missing' ? {
+    status: 'incomplete', profileInputs: saved.profileInputs, activation: null, onboardingCompletion: null,
+    sourceRecordIds: [`profiles:${profile.id}@${saved.updatedAt}`],
+    reasons: [...saved.reasons, 'income_scenario_missing'], mutationAllowed: false,
+  } : adaptFreeOnboardingCompletion({
     ...input.onboarding, currentMemberships: {
       ...input.memberships, rows: [member],
     },
   })
   if (onboarding.status === 'withheld') return hold('onboarding_source_withheld')
-  if (onboarding.activation?.memberId !== binding.canonicalMemberId) return hold('canonical_profile_mismatch')
   return {
-    status: 'ready_for_writer_review', reasons: [], consent: 'confirmed_scoped_doi', onboarding,
+    status: 'ready_for_writer_review', reasons: [], consent: 'confirmed_scoped_doi', onboarding, incomeScenarioStatus,
     consentRequest: {
       clientEventId: row.client_event_id, eventName: EVENT, memberUid: row.member_uid,
       occurredAt: row.occurred_at, eventData: row.event_data,
