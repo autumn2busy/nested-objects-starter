@@ -249,7 +249,7 @@ test('individual onboarding points to the actual hiring-firms route, not the pri
   const widget = readFileSync(new URL('../components/onboarding/onboarding-widget.tsx', import.meta.url), 'utf8')
   const source = readFileSync(new URL('../components/onboarding/inspector-start-guide.tsx', import.meta.url), 'utf8')
   assert.match(widget, /<InspectorStartGuide\s*\/>/)
-  assert.match(source, /href="\/hiring-firms"/)
+  assert.match(source, /href:\s*['"]\/hiring-firms['"]|href="\/hiring-firms"/)
   assert.doesNotMatch(source, /href(?:: |=)["']\/members/)
   assert.ok(readFileSync(new URL('../app/hiring-firms/page.tsx', import.meta.url), 'utf8').length > 0)
 })
