@@ -249,6 +249,21 @@ test('owner-attested historical signup permission has distinct preview-only prov
   assert.equal(f.requests.length, 0)
 })
 
+test('historical permission requires suppression evidence at or after the attestation', async () => {
+  const value = historicalInput()
+  value.historicalConsent.attestedAt = '2026-09-21T11:59:00.000Z'
+  value.historicalConsent.laterSuppression.observedAt = '2026-09-21T11:58:00.000Z'
+  const f = fixture()
+  const result = await f.run(value, { ...config,
+    historicalConsentDecisionRef: value.historicalConsent.policyDecisionRef })
+  assert.equal(result.status, 'withheld')
+  assert.equal(result.desiredStage, null)
+  assert.equal(result.consentProvenance, null)
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.confirmedWrites, 0)
+  assert.equal(f.requests.length, 0)
+})
+
 test('historical permission rejects fabricated provenance, stale suppression and mixed DOI evidence', async () => {
   for (const mutate of [
     value => { value.historicalConsent.policyDecisionRef = 'unapproved-decision' },
