@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId, getPlanName, PLAN_UIDS } from '@/lib/auth-server'
 import { trackACServerEvent } from '@/lib/ac-event-tracking'
 import { isBrowserConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
+import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
 import { isRateLimitExceededError, isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
@@ -127,6 +128,13 @@ export async function POST(request: Request) {
           },
         })
         recorded = true
+        await reconcileFreeOnboardingCompletionFromEnvironment({
+          supabase,
+          outsetaPersonUid: memberUid,
+          subscriptionUid: lifecycleCycleId,
+          planUid: sessionClaim(user?.['outseta:planUid']),
+          freePlanUid: PLAN_UIDS.FREE,
+        })
       } catch (storageError) {
         console.error('[Conversion Events] First-party storage failed:', storageError)
       }

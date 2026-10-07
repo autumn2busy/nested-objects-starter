@@ -44,6 +44,7 @@ export const PROFILE_OPTIONAL_COLUMNS = [
     'is_published',
     'rating',
     'rating_count',
+    'onboarding_completed_at',
 ] as const
 
 export const PROFILE_CRITICAL_COLUMNS = [
@@ -114,5 +115,6 @@ export function buildDegradedProfile(outsetaUser: any, userEmail: string | null,
         subscription_status: data.subscription_status ?? 'active',
         rating: data.rating ?? null,
         rating_count: data.rating_count ?? null,
+        onboarding_completed_at: data.onboarding_completed_at ?? null,
     }
 }

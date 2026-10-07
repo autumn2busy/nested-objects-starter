@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, PLAN_UIDS } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
 import { calculateTrustScore } from '@/lib/trust-score'
 import {
   PROFILE_CRITICAL_COLUMNS,
@@ -322,6 +323,14 @@ export async function PATCH(req: NextRequest) {
         result = updatedResult
       }
     }
+
+    await reconcileFreeOnboardingCompletionFromEnvironment({
+      supabase,
+      outsetaPersonUid: userId,
+      subscriptionUid: outsetaUser['outseta:subscriptionUid'],
+      planUid: outsetaUser['outseta:planUid'],
+      freePlanUid: PLAN_UIDS.FREE,
+    })
 
     return NextResponse.json({ profile: result })
   } catch (err) {
