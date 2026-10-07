@@ -3,6 +3,9 @@ const nextConfig = {
   // 301 redirects from old GoDaddy site
   async redirects() {
     return [
+      // Public pricing aliases share the member site's existing plans and checkout.
+      { source: '/pricing', destination: 'https://members.nestedobjects.com/membership-pricing', permanent: true },
+      { source: '/membership-pricing', destination: 'https://members.nestedobjects.com/membership-pricing', permanent: true },
       // Old GoDaddy routes → new equivalents
       { source: '/job-directory-1', destination: '/hiring-firms', permanent: true },
       { source: '/about-us', destination: '/about', permanent: true },
