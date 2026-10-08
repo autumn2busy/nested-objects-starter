@@ -1,8 +1,8 @@
 'use server'
 
 import { createServiceRoleClient } from '@/lib/supabase-server'
-import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
-import { applyACContactTag } from '@/lib/ac-event-tracking'
+import { getCurrentUser, getOutsetaUserId, PLAN_UIDS } from '@/lib/auth-server'
+import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
 import { revalidatePath } from 'next/cache'
 
 export async function completeOnboardingAction() {
@@ -15,33 +15,17 @@ export async function completeOnboardingAction() {
 
     const supabase = createServiceRoleClient()
 
-    // We use service role to ensure update happens regardless of strict RLS on 'updated_at' etc
-    // Assuming 'outseta_person_uid' is the connector
-    const { error } = await supabase
-        .from('profiles')
-        .update({
-            onboarding_completed_at: new Date().toISOString()
-        })
-        .eq('outseta_person_uid', userId)
+    const completion = await reconcileFreeOnboardingCompletionFromEnvironment({
+        supabase,
+        outsetaPersonUid: userId,
+        subscriptionUid: user?.['outseta:subscriptionUid'],
+        planUid: user?.['outseta:planUid'],
+        freePlanUid: PLAN_UIDS.FREE,
+    })
 
-    if (error) {
-        console.error('Failed to complete onboarding:', error)
-        throw new Error('Failed to update profile')
-    }
-
-    if (user?.email) {
-        const tagged = await applyACContactTag({
-            email: user.email,
-            tag: 'onboarding-complete',
-        })
-
-        if (!tagged) {
-            console.warn(`[Onboarding] Failed to apply onboarding-complete AC tag for ${user.email}`)
-        }
-    }
-
-    revalidatePath('/inspector-dashboard')
-    return { success: true }
+    const success = completion.status === 'completed' || completion.status === 'already_completed'
+    if (success) revalidatePath('/inspector-dashboard')
+    return { success, status: completion.status }
 }
 
 export async function getOnboardingStatus() {

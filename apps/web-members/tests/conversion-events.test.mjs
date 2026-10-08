@@ -36,7 +36,7 @@ function createHarness({
   rateLimitError = null,
   storedRows = new Map(),
 } = {}) {
-  const calls = { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] }
+  const calls = { writes: [], campaigns: [], completions: [], auth: 0, clients: 0, limits: [], errors: [] }
   const supabase = {
     from(table) {
       return {
@@ -66,6 +66,17 @@ function createHarness({
       trackACServerEvent: async event => { calls.campaigns.push(clone(event)); return true },
     },
     '@/lib/conversion-events': conversion,
+    '@/lib/free-onboarding-completion': {
+      reconcileFreeOnboardingCompletionFromEnvironment: async input => {
+        calls.completions.push({
+          outsetaPersonUid: input.outsetaPersonUid,
+          subscriptionUid: input.subscriptionUid,
+          planUid: input.planUid,
+          freePlanUid: input.freePlanUid,
+        })
+        return { status: 'disabled' }
+      },
+    },
     '@/lib/rate-limit': {
       rateLimit: () => ({ check: async key => {
         calls.limits.push(key)
@@ -525,7 +536,7 @@ test('OS acceptance Preview suppresses all persistence, authentication, rate-lim
   const response = await harness.post({ event: 'income_scenario_completed' })
   assert.equal(response.status, 204)
   assert.equal(await response.text(), '')
-  assert.deepEqual(harness.calls, { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] })
+  assert.deepEqual(harness.calls, { writes: [], campaigns: [], completions: [], auth: 0, clients: 0, limits: [], errors: [] })
 })
 
 test('ordinary Preview and Production retain their existing event-storage behavior', async () => {
