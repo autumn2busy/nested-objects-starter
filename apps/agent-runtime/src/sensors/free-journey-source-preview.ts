@@ -49,7 +49,8 @@ const audienceSchema = z.object({
   internal: z.boolean(), coworker: z.boolean(), test: z.boolean(), demo: z.boolean(), hiringFirm: z.boolean(),
 })
 const contactSchema = z.object({
-  id: numericId, bounced_hard: z.literal('0'), bounced_soft: z.literal('0'), deleted: z.literal('0'),
+  id: numericId, email: z.string().email().max(320),
+  bounced_hard: z.literal('0'), bounced_soft: z.literal('0'), deleted: z.literal('0'),
 })
 const relationSchema = z.object({
   contact: numericId, list: numericId, form: numericId, status: z.literal('1'),
