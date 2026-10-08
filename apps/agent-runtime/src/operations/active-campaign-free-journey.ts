@@ -21,7 +21,7 @@ export interface FreeJourneyWriteStep {
 }
 
 export interface FreeJourneyWriteResult {
-    status: 'withheld' | 'unchanged' | 'updated' | 'partial' | 'failed';
+    status: 'withheld' | 'ready' | 'unchanged' | 'updated' | 'partial' | 'failed';
     desiredStage: FreeJourneyStage | null;
     recoveryRequired: boolean;
     automaticRetry: false;
@@ -114,6 +114,7 @@ export interface ActiveCampaignFreeJourneyConfig {
     consentFormId: string;
     stageFieldId?: string;
     expiryFieldId?: string;
+    automationId?: string;
     accountTimeZone: string;
     historicalConsentDecisionRef?: string;
     timeoutMs?: number;
@@ -132,6 +133,7 @@ const CONSENT_VERSION = 'v1';
 const CONSENT_PURPOSE = 'free_onboarding_and_conversion_email';
 const STAGE_FIELD_ID = '193';
 const EXPIRY_FIELD_ID = '194';
+const AUTOMATION_ID = '527';
 const IDENTIFIER = /^[^\s@\u0000-\u001f]{1,160}$/;
 const NUMERIC_ID = /^\d+$/;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -188,6 +190,7 @@ function validateConfig(config: ActiveCampaignFreeJourneyConfig) {
         || !NUMERIC_ID.test(config.consentListId) || !NUMERIC_ID.test(config.consentFormId)
         || !NUMERIC_ID.test(config.stageFieldId ?? STAGE_FIELD_ID)
         || !NUMERIC_ID.test(config.expiryFieldId ?? EXPIRY_FIELD_ID)
+        || !NUMERIC_ID.test(config.automationId ?? AUTOMATION_ID)
         || (config.historicalConsentDecisionRef !== undefined && !isIdentifier(config.historicalConsentDecisionRef))
         || !Number.isInteger(timeout) || timeout < 1 || timeout > 30_000) return false;
     try {
@@ -370,10 +373,11 @@ function result(
  * current authority/evidence snapshots. This function never creates contacts, changes list status,
  * enrolls contacts, starts automations, sends email, or retries an uncertain write.
  */
-export async function syncActiveCampaignFreeJourney(
+async function runActiveCampaignFreeJourney(
     input: FreeJourneyEvidenceInput,
     config: ActiveCampaignFreeJourneyConfig,
-    fetchImpl: typeof fetch = fetch,
+    fetchImpl: typeof fetch,
+    mode: 'preview' | 'write',
 ): Promise<FreeJourneyWriteResult> {
     const steps: FreeJourneyWriteStep[] = [];
     if (!validateConfig(config)) {
@@ -395,6 +399,7 @@ export async function syncActiveCampaignFreeJourney(
     const contactId = input.membership.activeCampaignContactId;
     const stageFieldId = config.stageFieldId ?? STAGE_FIELD_ID;
     const expiryFieldId = config.expiryFieldId ?? EXPIRY_FIELD_ID;
+    const automationId = config.automationId ?? AUTOMATION_ID;
     const timeout = config.timeoutMs ?? 10_000;
     const apiBase = config.apiUrl.replace(/\/$/, '');
     const requestJson = async (path: string, method = 'GET', body?: unknown) => {
@@ -458,15 +463,32 @@ export async function syncActiveCampaignFreeJourney(
     }
     const listMatches = (listData.contactLists as Array<Record<string, unknown>>)
         .filter(item => String(item.list) === config.consentListId);
-    if (listMatches.length !== 1 || String(listMatches[0].contact) !== contactId) {
+    if (listMatches.length !== 1 || String(listMatches[0]!.contact) !== contactId) {
         steps.push({ step: 'consent_list', state: 'blocked', code: 'doi_membership_missing_or_ambiguous' });
         return result('withheld', desiredStage, steps, 0, 0, consent);
     }
-    if (String(listMatches[0].status) !== '1' || String(listMatches[0].form) !== config.consentFormId) {
+    const consentList = listMatches[0]!;
+    if (String(consentList.status) !== '1' || String(consentList.form) !== config.consentFormId) {
         steps.push({ step: 'consent_list', state: 'blocked', code: 'doi_not_confirmed' });
         return result('withheld', desiredStage, steps, 0, 0, consent);
     }
     steps.push({ step: 'consent_list', state: 'succeeded' });
+
+    let automationData: Record<string, unknown>;
+    try {
+        automationData = await requestJson(`automations/${automationId}`);
+    } catch (error) {
+        return fail('automation_state', error, 'failed');
+    }
+    const automation = automationData.automation as Record<string, unknown> | undefined;
+    if (!automation || String(automation.id) !== automationId) {
+        return fail('automation_state', new JourneyWriterError('automation_identity_invalid'), 'failed');
+    }
+    if (String(automation.status) !== '2') {
+        steps.push({ step: 'automation_state', state: 'blocked', code: 'automation_not_inactive' });
+        return result('withheld', desiredStage, steps, 0, 0, consent);
+    }
+    steps.push({ step: 'automation_state', state: 'succeeded', code: 'inactive_confirmed' });
 
     let fieldData: Record<string, unknown>;
     try {
@@ -486,6 +508,18 @@ export async function syncActiveCampaignFreeJourney(
         return fail('field_lookup', new JourneyWriterError('field_identity_conflict'), 'failed');
     }
     steps.push({ step: 'field_lookup', state: 'succeeded' });
+
+    if (mode === 'preview') {
+        const plan = (step: string, desiredValue: string, existing?: FieldValue) => {
+            const code = existing && String(existing.value ?? '') === desiredValue
+                ? 'already_current'
+                : existing ? 'would_update' : 'would_create';
+            steps.push({ step, state: 'skipped', code });
+        };
+        plan('field_expiry', input.evidenceExpiresAt, expiryMatches[0]);
+        plan('field_stage', desiredStage, stageMatches[0]);
+        return result('ready', desiredStage, steps, 0, 0, consent);
+    }
 
     let attemptedWrites = 0;
     let confirmedWrites = 0;
@@ -530,4 +564,25 @@ export async function syncActiveCampaignFreeJourney(
         return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
     }
     return result(attemptedWrites === 0 ? 'unchanged' : 'updated', desiredStage, steps, attemptedWrites, confirmedWrites, consent);
+}
+
+/**
+ * Performs the exact contact, consent-list and current-field reads used by the writer, then returns
+ * a sanitized would-create/would-update plan. It never issues POST, PUT, DELETE or enrollment calls.
+ */
+export function previewActiveCampaignFreeJourney(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'preview');
+}
+
+/** Writes only fields 194 then 193 after the same exact evidence and provider readback checks. */
+export function syncActiveCampaignFreeJourney(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write');
 }

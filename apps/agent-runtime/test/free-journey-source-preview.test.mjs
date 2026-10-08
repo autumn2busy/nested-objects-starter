@@ -51,7 +51,7 @@ function input() {
     audience: snapshot([{
       activeCampaignContactId: '41', internal: false, coworker: false, test: false, demo: false, hiringFirm: false,
     }]),
-    contacts: snapshot([{ id: '41', bounced_hard: '0', bounced_soft: '0', deleted: '0' }]),
+    contacts: snapshot([{ id: '41', email: 'synthetic@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0' }]),
     contactLists: snapshot([{ contact: '41', list: '44', form: '99', status: '1' }]),
     consentAsset: { purpose, listId: '44', formId: '99', doubleOptInVerified: true, observedAt: now },
   }
@@ -208,7 +208,7 @@ test('aggregate counts redact identities; partial, oversized or duplicate cohort
 })
 
 test('preview receipt and milestones retain compatibility with #375 without invoking its writer', () => {
-  const writerSource = readFileSync(new URL('../../web-members/lib/active-campaign-free-journey.ts', import.meta.url), 'utf8')
+  const writerSource = readFileSync(new URL('../src/operations/active-campaign-free-journey.ts', import.meta.url), 'utf8')
   const context = { exports: {}, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
   vm.runInNewContext(ts.transpileModule(writerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
   const value = input(), preview = previewFreeJourneySources(value)
@@ -334,7 +334,7 @@ test('fresh suppression before attestation is withheld; equal timestamps remain 
 })
 
 test('historical source output passes the actual writer preview boundary with zero provider calls for every stage', async () => {
-  const writerSource = readFileSync(new URL('../../web-members/lib/active-campaign-free-journey.ts', import.meta.url), 'utf8')
+  const writerSource = readFileSync(new URL('../src/operations/active-campaign-free-journey.ts', import.meta.url), 'utf8')
   const context = { exports: {}, URL, Intl, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
   vm.runInNewContext(ts.transpileModule(writerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
   for (const stage of ['profile_needed', 'calculation_needed', 'onboarding_complete', 'conversion_eligible']) {

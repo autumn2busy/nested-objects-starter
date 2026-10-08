@@ -25,7 +25,7 @@ function load(relative) {
   return context.exports
 }
 
-const { deriveFreeJourneyStage, syncActiveCampaignFreeJourney } = load('../lib/active-campaign-free-journey.ts')
+const { deriveFreeJourneyStage, previewActiveCampaignFreeJourney, syncActiveCampaignFreeJourney } = load('../../agent-runtime/src/operations/active-campaign-free-journey.ts')
 const now = '2026-09-21T12:00:00.000Z'
 const member = '31800000-0000-4000-8000-000000000921'
 const person = 'SyntheticPerson'
@@ -152,6 +152,7 @@ function fixture(options = {}) {
     if (path === 'contacts/41/contactLists') return response({ contactLists:
       options.contactLists ?? [{ id: '501', contact: '41', list: '44', form: '77', status: '1' }],
     })
+    if (path === 'automations/527') return response({ automation: { id: '527', status: options.automationStatus ?? '2' } })
     if (path === 'contacts/41/fieldValues') return response({ fieldValues: stored })
     if (path === 'fieldValues' && request.method === 'POST') {
       const created = { id: String(++nextId), ...request.body.fieldValue }
@@ -170,7 +171,12 @@ function fixture(options = {}) {
     }
     throw new Error('Unexpected request: ' + request.method + ' ' + path)
   }
-  return { requests, stored, run: (value = input(), settings = config) => syncActiveCampaignFreeJourney(value, settings, fetch) }
+  return {
+    requests,
+    stored,
+    preview: (value = input(), settings = config) => previewActiveCampaignFreeJourney(value, settings, fetch),
+    run: (value = input(), settings = config) => syncActiveCampaignFreeJourney(value, settings, fetch),
+  }
 }
 
 test('missing writer configuration performs no provider reads or writes', async () => {
@@ -232,6 +238,31 @@ test('confirmed scoped double opt-in writes expiry before the trigger field and 
   assert.equal(f.requests.some(item => item.path === 'contactLists' || (item.path.includes('contactLists') && item.method !== 'GET')), false)
   assert.equal(f.requests.some(item => item.path.includes('contactAutomations')), false)
   assert(f.requests.every(item => item.init.redirect === 'error' && item.init.signal instanceof AbortSignal))
+})
+
+test('provider preview performs exact GETs and reports field changes without mutation', async () => {
+  const f = fixture({ fieldValues: [{ id: '801', contact: '41', field: '194', value: '2026-09-22' }] })
+  const result = await f.preview()
+  assert.equal(result.status, 'ready')
+  assert.equal(result.desiredStage, 'conversion_eligible')
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.confirmedWrites, 0)
+  assert.equal(JSON.stringify(result.steps.slice(-2).map(step => [step.step, step.code])), JSON.stringify([
+    ['field_expiry', 'would_update'],
+    ['field_stage', 'would_create'],
+  ]))
+  assert.deepEqual(f.requests.map(item => item.method), ['GET', 'GET', 'GET', 'GET'])
+  assert.deepEqual(f.stored, [{ id: '801', contact: '41', field: '194', value: '2026-09-22' }])
+})
+
+test('field preview and writes require a fresh exact read showing automation 527 inactive', async () => {
+  const f = fixture({ automationStatus: '1' })
+  const result = await f.run()
+  assert.equal(result.status, 'withheld')
+  assert.equal(result.steps.at(-1).step, 'automation_state')
+  assert.equal(result.steps.at(-1).code, 'automation_not_inactive')
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(f.requests.some(item => item.path.includes('fieldValues')), false)
 })
 
 test('owner-attested historical signup permission has distinct preview-only provenance', async () => {

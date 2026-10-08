@@ -206,7 +206,7 @@ for (const missingCount of [false, true]) test(`reader-to-source-preview preserv
       outsetaAccountUid: 'SyntheticAccount', subscriptionUid: 'SyntheticCycle', activeCampaignContactId: '41', identityState: 'verified' }]),
     memberships: snap([membership]), consentRequests: stored.consentRequests,
     audience: snap([{ activeCampaignContactId: '41', internal: false, coworker: false, test: false, demo: false, hiringFirm: false }]),
-    contacts: snap([{ id: '41', bounced_hard: '0', bounced_soft: '0', deleted: '0' }]),
+    contacts: snap([{ id: '41', email: 'synthetic@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0' }]),
     contactLists: snap([{ contact: '41', list: '44', form: '99', status: '1' }]),
     consentAsset: { purpose: 'free_onboarding_and_conversion_email', listId: '44', formId: '99', doubleOptInVerified: true, observedAt: now },
   })
