@@ -13,12 +13,14 @@ import { FirmServiceArea } from '@/components/FirmServiceArea'
 import { generatePageMetadata, getHiringFirmSchema, getBreadcrumbSchema, getFAQPageSchema, SITE_URL } from '@/lib/seo'
 import { FirmDetailTabs } from './FirmDetailTabs'
 import { FirmReviews } from '@/components/directory/FirmReviews'
+import { FirmReputationNotice } from '@/components/directory/FirmReputationNotice'
 import { FirmGatedContent } from './FirmGatedContent'
 import { AuthCTA } from './AuthCTA'
 import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 import { getCurrentUser } from '@/lib/auth-server'
 import { PAID_PLANS } from '@/lib/plan-config'
+import { isFirmSuppressed, type FirmReputationFields } from '@/lib/firm-reputation'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -28,7 +30,7 @@ if (process.env.NODE_ENV === 'development') {
 
 /* ── Types ─────────────────────────────────────────────── */
 
-export type FirmRow = {
+export type FirmRow = FirmReputationFields & {
   id: string
   name: string
   slug: string | null
@@ -107,8 +109,9 @@ const getFirmBySlugCached = unstable_cache(
 const _getSimilarFirms = async (firmId: string): Promise<FirmRow[]> => {
   const { data } = await getSupabase()
     .from('firms')
-    .select('id, name, slug, industry_focus, geographic_coverage, pay_min, pay_max, pay_type, logo_url, url, vendor_verified, contractor_rating')
+    .select('id, name, slug, industry_focus, geographic_coverage, pay_min, pay_max, pay_type, logo_url, url, vendor_verified, contractor_rating, recommendation_status')
     .eq('is_published', true)
+    .neq('recommendation_status', 'suppressed')
     .neq('id', firmId)
     .limit(4)
   return (data || []) as FirmRow[]
@@ -374,26 +377,32 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
   const similarFirms = await getSimilarFirmsCached(firm.id)
   const websiteHref = normalizeExternalHref(firm.url)
   const vendorPageHref = normalizeExternalHref(firm.vendor_page_url)
+  const isSuppressed = isFirmSuppressed(firm)
   const firmFaqs = getFirmProfileFaqs(firm, categories, pay)
   const firmFitSummary = getFirmFitSummary(firm, categories)
   const verificationItems = getFirmVerificationItems(firm)
   const firmComparisonRows = getFirmComparisonRows(firm, categories, pay)
-  const firmTrustSignals = getFirmTrustSignals(firm, websiteHref, vendorPageHref)
+  const firmTrustSignals = getFirmTrustSignals(
+    firm,
+    isSuppressed ? null : websiteHref,
+    isSuppressed ? null : vendorPageHref,
+  )
   const applicationPlan = getFirmApplicationPlan(firm, categories, pay)
 
-  const contactHref =
-    vendorPageHref ||
-    (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry — ${firm.name}`)}` : null) ||
-    (firm.phone ? `tel:${firm.phone}` : null)
+  const contactHref = isSuppressed
+    ? null
+    : vendorPageHref ||
+      (firm.email ? `mailto:${firm.email}?subject=${encodeURIComponent(`Vendor inquiry — ${firm.name}`)}` : null) ||
+      (firm.phone ? `tel:${firm.phone}` : null)
 
   /* JSON-LD */
   const jsonLd = getHiringFirmSchema({
     name: firm.name,
     description: firm.description || `${firm.name} — field services hiring firm`,
-    url: websiteHref || `${SITE_URL}/firms/${firm.slug}`,
+    url: isSuppressed ? `${SITE_URL}/firms/${firm.slug}` : websiteHref || `${SITE_URL}/firms/${firm.slug}`,
     logo: isTrustedLogoUrl(firm.logo_url) ? firm.logo_url : '',
-    telephone: firm.phone || '',
-    email: firm.email || '',
+    telephone: isSuppressed ? '' : firm.phone || '',
+    email: isSuppressed ? '' : firm.email || '',
     address: firm.address || '',
     geo: hasCoordinates ? { latitude: firm.latitude!, longitude: firm.longitude! } : undefined,
     areaServed: firm.geographic_coverage || undefined,
@@ -497,7 +506,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                   </a>
                 </AuthCTA>
               )}
-              {vendorPageHref && contactHref !== vendorPageHref && (
+              {!isSuppressed && vendorPageHref && contactHref !== vendorPageHref && (
                 <AuthCTA>
                   <a href={vendorPageHref} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand/10 sm:w-auto">
@@ -505,7 +514,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
                   </a>
                 </AuthCTA>
               )}
-              {websiteHref && (
+              {!isSuppressed && websiteHref && (
                 <AuthCTA>
                   <a href={websiteHref} target="_blank" rel="nofollow noopener noreferrer"
                     className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand">
@@ -520,6 +529,13 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
           {firm.description && (
             <p className="mt-5 max-w-3xl text-sm leading-relaxed text-text-secondary">{firm.description}</p>
           )}
+
+          <FirmReputationNotice
+            recommendation_status={firm.recommendation_status}
+            reputation_notice={firm.reputation_notice}
+            reputation_sources={firm.reputation_sources}
+            reputation_reviewed_at={firm.reputation_reviewed_at}
+          />
         </div>
 
         {/* Quick stats */}
@@ -597,7 +613,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
         </aside>
       </section>
 
-      <section
+      {!isSuppressed && <section
         className="mb-8 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-sm sm:p-6"
         style={{ contentVisibility: 'auto', containIntrinsicSize: '520px' }}
       >
@@ -623,7 +639,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             </article>
           ))}
         </div>
-      </section>
+      </section>}
 
       <section
         className="mb-8 grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,1.05fr)]"
@@ -737,7 +753,7 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             />
 
             {/* Contact card */}
-            {hasContact && (
+            {hasContact && !isSuppressed && (
               <div className="rounded-2xl border border-border-subtle bg-white p-5 shadow-sm">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
                   <Phone className="h-4 w-4 text-brand" /> Contact info
@@ -764,12 +780,12 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
             )}
 
             {/* Pro tip */}
-            <div className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/30 p-5 shadow-sm">
+            {!isSuppressed && <div className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/30 p-5 shadow-sm">
               <p className="mb-1 text-xs font-bold uppercase tracking-wider text-amber-700">Pro tip for inspectors</p>
               <p className="text-sm leading-relaxed text-amber-900/80">
                 Save this firm, collect 3–5 you&apos;re excited about, then batch your applications Sunday night so you hit their queue before Monday&apos;s hiring rush.
               </p>
-            </div>
+            </div>}
 
             {/* Similar firms */}
             {similarFirms.length > 0 && (
