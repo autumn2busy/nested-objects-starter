@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { verifyOutsetaToken, getOutsetaUserId } from '@/lib/auth-server'
+import { verifyOutsetaToken, getOutsetaUserId, withCurrentMembership } from '@/lib/auth-server'
+
+export const dynamic = 'force-dynamic'
+const noStore = { 'Cache-Control': 'private, no-store' }
 
 // GET /api/auth/session
 // Used by the client to get the current user context from the HttpOnly cookie
@@ -9,22 +12,23 @@ export async function GET() {
     const token = cookieStore.get('outseta_access_token')?.value
 
     if (!token) {
-        return NextResponse.json({ user: null, isAuthenticated: false })
+        return NextResponse.json({ user: null, isAuthenticated: false }, { headers: noStore })
     }
 
     const user = await verifyOutsetaToken(token)
 
     if (!user) {
         // Token valid format but verification failed (expired/invalid signature)
-        return NextResponse.json({ user: null, isAuthenticated: false }, { status: 401 })
+        return NextResponse.json({ user: null, isAuthenticated: false }, { status: 401, headers: noStore })
     }
 
+    const currentUser = await withCurrentMembership(user)
     return NextResponse.json({
-        user,
+        user: currentUser,
         isAuthenticated: true,
-        planUid: user['outseta:planUid'],
-        userId: getOutsetaUserId(user)
-    })
+        planUid: currentUser['outseta:planUid'] || null,
+        userId: getOutsetaUserId(currentUser)
+    }, { headers: noStore })
 }
 
 // POST /api/auth/session
@@ -54,7 +58,7 @@ export async function POST(request: Request) {
             maxAge: 60 * 60 * 24 * 7 // 7 days matches Outseta token life
         })
 
-        return NextResponse.json({ success: true, user })
+        return NextResponse.json({ success: true, user: await withCurrentMembership(user) }, { headers: noStore })
     } catch (error) {
         console.error('Session creation error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -57,6 +57,7 @@ function components(authOverrides = {}) {
         'next/link': { default: props => jsx('a', props) },
         'lucide-react': { Lock: () => null },
         '@/lib/plan-config': plans,
+        '@/components/MembershipAccessNotice': load('../components/MembershipAccessNotice.tsx'),
         '@/lib/ac-events': {
             trackPaywallHit: () => calls.push('paywall'),
             trackUpgradeClicked: () => calls.push('upgrade'),
@@ -96,7 +97,8 @@ for (const planUid of [null, undefined, '', 'unknown-plan']) {
     test(`missing/unknown plan ${String(planUid)} does not grant firm actions or details`, () => {
         const c = components({ planUid })
         assert.notEqual(c.render(c.FirmGatedContent({ children })).type, Fragment)
-        assert.notEqual(c.AuthCTA({ children }).type, Fragment)
+        assert.equal(c.AuthCTA({ children }), null)
+        assert.deepEqual(c.calls, [], 'An unknown membership must not trigger an upgrade prompt')
     })
 }
 

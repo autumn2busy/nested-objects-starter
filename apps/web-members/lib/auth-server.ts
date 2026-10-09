@@ -1,6 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
 import { PLAN_UIDS, getPlanName as getConfiguredPlanName } from './plan-config'
+import { readCurrentMembership } from './current-membership'
 
 export { PLAN_UIDS } from './plan-config'
 
@@ -93,6 +94,26 @@ export function getOutsetaUserId(user: OutsetaJWTPayload | null) {
   return user.sub || user['outseta:accountUid'] || user['outseta:subscriptionUid'] || null
 }
 
+/** Identity remains signed in during a provider outage; unverified plan/cycle
+ * claims cannot grant access or produce current-cycle evidence. */
+export async function withCurrentMembership(user: OutsetaJWTPayload): Promise<OutsetaJWTPayload> {
+  const membership = await readCurrentMembership(user)
+  return {
+    ...user,
+    'outseta:planUid': membership.planUid ?? '',
+    'outseta:subscriptionUid': membership.subscriptionUid ?? '',
+    membershipStatus: membership.status,
+    membershipReason: membership.reason,
+    membershipAccessEndsAt: membership.accessEndsAt,
+  }
+}
+
+/** Bearer-token access checks use the same current authority as cookie sessions. */
+export async function verifyCurrentMemberToken(token: string): Promise<OutsetaJWTPayload | null> {
+  const user = await verifyOutsetaToken(token)
+  return user ? withCurrentMembership(user) : null
+}
+
 /**
  * Get the current user from the request cookies
  */
@@ -104,7 +125,7 @@ export async function getCurrentUser(): Promise<OutsetaJWTPayload | null> {
     return null
   }
 
-  return verifyOutsetaToken(token)
+  return verifyCurrentMemberToken(token)
 }
 
 /**

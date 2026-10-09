@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/components/auth-provider'
 import { trackPaywallHit, trackUpgradeClicked } from '@/lib/ac-events'
-import { PAID_PLANS } from '@/lib/plan-config'
+import { getPlanName, hasFullDirectoryAccess } from '@/lib/plan-config'
 
 interface AuthCTAProps {
     children: React.ReactNode
@@ -19,7 +19,9 @@ export function AuthCTA({ children }: AuthCTAProps) {
 
     if (isLoading) return null
 
-    if (isAuthenticated && planUid && PAID_PLANS.includes(planUid)) {
+    if (isAuthenticated && !getPlanName(planUid)) return null
+
+    if (isAuthenticated && hasFullDirectoryAccess(planUid)) {
         return <>{children}</>
     }
 
