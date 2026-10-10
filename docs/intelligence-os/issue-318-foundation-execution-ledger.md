@@ -2937,3 +2937,40 @@ Schema is applied and validated. No binding was inserted, no producer/Runtime ga
 Autumn explicitly approved the single exact inactive binding after Production schema validation passed. A fresh bounded conflict check found no row matching its binding key, project reference or fingerprint. One INSERT created the exact reviewed `nested-objects-free-journey-production` / `free-journey-production-v1` / `production` / `lzzghrjjsyzlvofpidis` / `1a1e94c0f81a4880dd2aeb34150bd0c84b8e1cfd4bef375ad2a0e71180a4a2a9` row, review status approved, reviewer Autumn and explicit `active=false`, with sanitized approval/schema-validation evidence. Provider timestamp is `2026-10-10T10:48:22.343041Z`. Independent exact-row readback matches every reviewed value. The corrected rollback-only validator passes again; aggregate readback confirms zero active destination bindings, runs, steps and events.
 
 This completes only destination registration. No configuration or producer gate was set; no contact field, automation, enrollment, schedule or email changed. The active destination verifier still refuses the inactive row. Recovery preserves this record inactive rather than deleting approval evidence. Signed Preview-only configuration and a bounded non-test current-Free zero-write acceptance are the next reviewable unit; no activation or delivery is established.
+
+### 2026-10-10 ET - AC-004/AC-007/AC-008 branch-scoped zero-write Preview proposal
+
+The clean isolated `codex/ac-free-journey-preview-readiness` branch starts from exact fetched main `4748ac12be7417e26dc143f55f98da81503e6b07`, containing merged PR #400. The shared checkout and unrelated worktrees remain preserved. The Intelligence OS coordinator confirms no Runtime/member configuration overlap. This proposal creates no new feature or event store; it enables a bounded acceptance of the existing signed reader only.
+
+Fresh authorized Production schema metadata confirms the required profile identity and onboarding input columns exist. An aggregate-only sample of the newest24profiles finds24person,24account and24ActiveCampaign links,24with all three links. These counts do not prove unique/current authority, Free status or consent. ActiveCampaign GET readback confirms form90 subscribes to list34, `options.sendoptin=true`, `optin_created=true` and confirmation asset892; list34 is the named email lifecycle list. No contact values, raw email addresses, message bodies or exports are retained.
+
+Configuration targets only Vercel project `nested-objects-agent-runtime` (`prj_Qofq8LTeDd3Kyiv7T2rbx6xoN3qA`), target Preview, branch `codex/ac-free-journey-preview-readiness`. Existing inherited Preview settings were independently read: `AGENT_MUTATIONS_ENABLED=false`, `AGENT_MODEL_EXECUTION_ENABLED=false`, `AGENT_PREVIEW_PERSISTENCE_ENABLED=false`. They are not edited. The member producer remains disabled; the Production destination remains inactive. No Production settings or deployment promotion are proposed.
+
+The exact18Runtime settings are:
+
+| Setting | Proposed Preview value/source |
+| --- | --- |
+| `FREE_JOURNEY_OPERATION_API_ENABLED` | `true`, enabled last after the other17settings are verified |
+| `FREE_JOURNEY_OPERATION_PREVIEW_ONLY` | `true` |
+| `FREE_JOURNEY_LIVE_READS_ENABLED` | `true` |
+| `FREE_JOURNEY_EXPECTED_527_STATUS` | `inactive`; provider mismatch withholds evaluation |
+| `FREE_JOURNEY_OPERATION_SHARED_SECRET` | One new dedicated32-byte request-signing secret stored as Secret; no existing credential rotation |
+| `FREE_JOURNEY_OPERATION_PRODUCER_SUBJECT` | `nested-objects-member-site` |
+| `FREE_JOURNEY_OPERATION_ALLOWED_ORIGIN` | `https://members.nestedobjects.com` |
+| `FREE_JOURNEY_SOURCE_REVIEW_REF` | `ac-free-preview-20261010` |
+| `FREE_JOURNEY_SOURCE_REVIEWED_AT` | Actual approval time in UTC |
+| `FREE_JOURNEY_SOURCE_REVIEW_EXPIRES_AT` | Approval time plus2hours; expired reads fail closed |
+| `FREE_JOURNEY_EXCLUSION_POLICY_JSON` | Internal domains `nestedobjects.com`, `activecampaign.com`; no internal-member exceptions; cold markers `cold`, `import`, `contacts.csv`, `lead:cold`, `notary cafe`; Wix marker `wix`; test word `test`; no extra approved coworker/demo/hiring contact IDs. These identity traits require exact per-contact verification; cold/Wix history does not replace membership authority. |
+| `SUPABASE_URL` | `https://lzzghrjjsyzlvofpidis.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Existing protected server credential; never published |
+| `OUTSETA_HOSTNAME` | `nested-objects.outseta.com` |
+| `OUTSETA_API_KEY` | Existing protected Outseta API key; availability unconfirmed |
+| `OUTSETA_API_SECRET` | Existing protected Outseta API secret; never published |
+| `AC_API_URL` | `https://awilliams.api-us1.com` |
+| `AC_API_KEY` | Existing protected account API key; never published |
+
+No existing credentials are rotated or substituted. Local environment names include Outseta secret, AC key and Supabase server key but no Outseta API-key variable. Member Vercel metadata is truncated, so missing account credentials remain UNKNOWN. If an existing protected value cannot be reused through the approved configuration path, the owner must supply it directly in protected Vercel settings; do not request it in chat or invent another credential. The endpoint stays disabled until all requirements are verified.
+
+Synthetic local configuration validation passes for these host/policy settings with `previewOnly=true`, `writeConfiguration=null`, expected automation state inactive and zero requests/writes. It is configuration validation only, not hosted or member acceptance. The proposed hosted acceptance redeploys the reviewed #400 source on this one Preview branch, verifies signed authentication and confirms all provider-write paths remain disabled, then selects one non-test current-Free subject from at most24recent stable-linked profiles using exact Outseta authority reads. Submit one signed event grounded in an actually persisted source timestamp and current subscription cycle. Reread only its profile and existing income/consent receipts, exact Outseta account/subscription and exact ActiveCampaign contact/list/tag/history/527/field metadata within existing bounded budgets. Withhold ambiguous identity, unconfirmed lifecycle/consent, suppressed contacts, incomplete pagination or stale evidence. Expected eligible result is a sanitized zero-write stage proposal (profile needed, calculation needed, onboarding complete or conversion eligible) and exact matching evaluation ID. A withheld result identifies the remaining gap and is not accepted as a working journey.
+
+After acceptance, independently verify the destination still inactive and no run/step/event or provider field mutation occurred. Recovery disables the branch-only API flag and redeploys the reviewed Preview; it preserves schema, inactive binding and evidence. Automation513/527/528, sender assets, contacts, consent/list subscriptions, fields193/194, enrollment, schedules and sends are outside this configuration approval. Production activation remains separate. No live configuration, credential, provider or database mutation occurred during proposal preparation.
