@@ -2,7 +2,8 @@
 
 import { BlurGate } from '@/components/BlurGate'
 import { useAuth } from '@/components/auth-provider'
-import { PAID_PLANS } from '@/lib/plan-config'
+import { getPlanName, hasFullDirectoryAccess } from '@/lib/plan-config'
+import { MembershipAccessNotice } from '@/components/MembershipAccessNotice'
 
 interface FirmGatedContentProps {
     children: React.ReactNode
@@ -17,13 +18,17 @@ interface FirmGatedContentProps {
  * The server remains responsible for authentication and effective expiration.
  */
 export function FirmGatedContent({ children }: FirmGatedContentProps) {
-    const { isAuthenticated, isLoading, planUid } = useAuth()
+    const { isAuthenticated, isLoading, planUid, membershipStatus } = useAuth()
 
     if (isLoading) {
         return <div role="status" aria-live="polite">Checking membership access...</div>
     }
 
-    if (isAuthenticated && planUid && PAID_PLANS.includes(planUid)) {
+    if (isAuthenticated && !getPlanName(planUid)) {
+        return <MembershipAccessNotice expired={membershipStatus === 'expired'} />
+    }
+
+    if (isAuthenticated && hasFullDirectoryAccess(planUid)) {
         return <>{children}</>
     }
 

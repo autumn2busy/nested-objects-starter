@@ -7,6 +7,7 @@ const OUTSETA_SCRIPT_ID = 'outseta-deferred-loader'
 const OUTSETA_SRC = 'https://cdn.outseta.com/outseta.min.js'
 const OUTSETA_DOMAIN = 'nested-objects.outseta.com'
 const PUBLIC_IDLE_DELAY_MS = 10000
+const MEMBER_DEPLOYMENT_HOST = /^nested-objects-starter-[a-z0-9]{9}-autumns-projects-246e052c\.vercel\.app$/
 
 const IMMEDIATE_PATH_PREFIXES = [
   '/auth/callback',
@@ -24,6 +25,7 @@ declare global {
       domain: string
       load: string
       tokenStorage: string
+      auth?: { authenticationCallbackUrl: string }
     }
   }
 }
@@ -33,7 +35,7 @@ function shouldLoadImmediately(pathname: string | null) {
   return IMMEDIATE_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
 }
 
-export function DeferredOutsetaLoader() {
+export function DeferredOutsetaLoader({ previewHost }: { previewHost?: string }) {
   const pathname = usePathname()
 
   useEffect(() => {
@@ -44,6 +46,12 @@ export function DeferredOutsetaLoader() {
       domain: OUTSETA_DOMAIN,
       load: 'auth',
       tokenStorage: 'local',
+      // Only the exact server-identified Preview may override Outseta's default.
+      // The existing callback still verifies the token and validates its return path.
+      ...(previewHost && MEMBER_DEPLOYMENT_HOST.test(previewHost)
+        && window.location.protocol === 'https:' && window.location.host === previewHost
+        ? { auth: { authenticationCallbackUrl: `https://${previewHost}/auth/callback` } }
+        : {}),
     }
 
     let loaded = Boolean(document.getElementById(OUTSETA_SCRIPT_ID) || window.Outseta)
@@ -91,7 +99,7 @@ export function DeferredOutsetaLoader() {
         window.removeEventListener(eventName, onInteraction)
       })
     }
-  }, [pathname])
+  }, [pathname, previewHost])
 
   return null
 }

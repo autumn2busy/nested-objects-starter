@@ -10,6 +10,8 @@ import React, {
 } from 'react'
 import { usePathname } from 'next/navigation'
 import { trackOutsetaModalOpen, trackSignupStarted } from '@/lib/ac-events'
+import { getPlanName, hasFullDirectoryAccess } from '@/lib/plan-config'
+import type { MembershipStatus } from '@/lib/current-membership'
 
 type JwtPayload = {
   email?: string
@@ -20,6 +22,7 @@ type JwtPayload = {
 type AuthContextValue = {
   user: JwtPayload | null
   planUid: string | null
+  membershipStatus: MembershipStatus | null
   profileDisplayName: string | null
   profileAvatarUrl: string | null
   accessToken: string | null
@@ -71,7 +74,7 @@ const FEATURE_MIN_PLAN: Record<string, PlanUid | null> = {
 
   // Tools — varies
   ai_concierge: 'zWZD0rQp',       // Legacy paid, Pro+
-  firm_intel: 'rQVqlLm6',         // Pro+
+  // firm_intel uses the explicit directory allowlist below, including legacy paid plans.
   job_tracking: 'zWZD0rQp',       // Legacy paid, Pro+
   job_tracker: 'zWZD0rQp',        // Legacy paid, Pro+
   client_workspace: 'zWZD0rQp',   // Legacy paid, Pro+
@@ -96,12 +99,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [user, setUser] = useState<JwtPayload | null>(null)
   const [planUid, setPlanUid] = useState<string | null>(null)
+  const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(null)
   const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null)
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const hasInitialized = useRef(false)
+  const sessionRequest = useRef(0)
+  const loggingOut = useRef(false)
+  const previousPathname = useRef(pathname)
 
   const persistProfileDisplayName = useCallback((name: string | null) => {
     const safeName = name?.trim() || null
@@ -156,15 +163,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    *  4. Exposed as refreshAuth() for any component that needs it
    * ──────────────────────────────────────────────────── */
   const loadUser = useCallback(async (opts?: { retry?: boolean }) => {
+    if (loggingOut.current) return false
+    const request = ++sessionRequest.current
+    const isCurrent = () => request === sessionRequest.current && !loggingOut.current
+    setIsLoading(true)
+    setPlanUid(null)
+    setMembershipStatus(null)
     try {
-      const res = await fetch('/api/auth/session')
-
-      if (res.ok) {
-        const data = await res.json()
-
-        if (data.user) {
+      for (let attempt = 0; attempt < (opts?.retry ? 2 : 1); attempt++) {
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 600))
+          if (!isCurrent()) return false
+        }
+        const res = await fetch('/api/auth/session', { cache: 'no-store' })
+        const data = res.ok ? await res.json() : null
+        if (!isCurrent()) return false
+        if (data?.isAuthenticated && data.user) {
+          // Only the freshly resolved server field grants access. Never fall back
+          // to a JWT plan claim when the membership read is partial or unavailable.
+          const status = data.user.membershipStatus as MembershipStatus
+          const currentPlan = status === 'verified' && getPlanName(data.planUid) ? data.planUid : null
           setUser(data.user)
-          setPlanUid(data.user['outseta:planUid'] ?? null)
+          setPlanUid(currentPlan)
+          setMembershipStatus(currentPlan ? 'verified' : status === 'expired' || status === 'unknown' ? status : 'unavailable')
           setAccessToken(null) // httpOnly cookie manages the token
           setIsAuthenticated(true)
 
@@ -181,35 +202,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // If we're retrying (e.g. right after login redirect), give the cookie
-      // a moment to settle and try once more before giving up
-      if (opts?.retry) {
-        await new Promise((r) => setTimeout(r, 600))
-        const retryRes = await fetch('/api/auth/session')
-        if (retryRes.ok) {
-          const retryData = await retryRes.json()
-          if (retryData.user) {
-            setUser(retryData.user)
-            setPlanUid(retryData.user['outseta:planUid'] ?? null)
-            setAccessToken(null)
-            setIsAuthenticated(true)
-            persistProfileDisplayName(deriveDisplayName(retryData.user))
-            return true
-          }
-        }
-      }
-
       // No valid session
       setUser(null)
       setPlanUid(null)
       setIsAuthenticated(false)
       return false
     } catch (error) {
+      if (!isCurrent()) return false
       console.error('Error loading session', error)
       setUser(null)
       setPlanUid(null)
       setIsAuthenticated(false)
       return false
+    } finally {
+      if (isCurrent()) setIsLoading(false)
     }
   }, [persistProfileDisplayName])
 
@@ -231,11 +237,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.removeItem('outseta_just_logged_in')
       }
 
-      setIsLoading(false)
     }
 
     init()
   }, [loadUser])
+
+  // Refresh after navigation and when returning from billing in another tab.
+  useEffect(() => {
+    if (previousPathname.current === pathname) return
+    previousPathname.current = pathname
+    void loadUser()
+  }, [pathname, loadUser])
+
+  useEffect(() => {
+    const refresh = () => { void loadUser() }
+    window.addEventListener('focus', refresh)
+    return () => window.removeEventListener('focus', refresh)
+  }, [loadUser])
+
+  // A scheduled cancellation remains entitled until its verified effective end.
+  // Clear the grant at that boundary even if the member stays on this page.
+  const accessEndsAt = user?.membershipAccessEndsAt as string | null | undefined
+  useEffect(() => {
+    if (!planUid || !accessEndsAt) return
+    const remaining = Date.parse(accessEndsAt) - Date.now()
+    if (!Number.isFinite(remaining)) return
+    const timer = window.setTimeout(() => {
+      if (remaining > 2_147_483_647) {
+        void loadUser()
+        return
+      }
+      ++sessionRequest.current
+      setPlanUid(null)
+      setMembershipStatus('expired')
+    }, Math.max(0, Math.min(remaining, 2_147_483_647)))
+    return () => window.clearTimeout(timer)
+  }, [accessEndsAt, planUid, loadUser])
 
   // Handle access_token in URL (Outseta redirect flow on non-callback pages)
   useEffect(() => {
@@ -288,6 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleOutsetaAuth = async () => {
       // Small delay — Outseta needs a tick to update its internal state
       await new Promise((r) => setTimeout(r, 300))
+      if (disposed || loggingOut.current) return
 
       const token = window.Outseta?.getAccessToken?.()
       if (!token) return
@@ -298,7 +336,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ accessToken: token }),
         })
-        if (res.ok) {
+        if (res.ok && !loggingOut.current) {
           await loadUser({ retry: true })
         }
       } catch (err) {
@@ -312,7 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const syncExistingOutsetaToken = async () => {
       // The verified cookie is authoritative. Never race the initial session load
       // or let a stale effect restore a previous browser account over a fresh login.
-      if (disposed || isLoading || isAuthenticated) return
+      if (disposed || loggingOut.current || isLoading || isAuthenticated) return
       if (window.Outseta?.getAccessToken) {
         const existingToken = window.Outseta.getAccessToken()
         if (existingToken) {
@@ -402,6 +440,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
+    if (feature === 'firm_intel') return hasFullDirectoryAccess(planUid)
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     // Default to "deny" for unknown features so new feature flags are opt-in secure
@@ -460,6 +499,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = async () => {
+    loggingOut.current = true
+    ++sessionRequest.current
+    setPlanUid(null)
+    setMembershipStatus(null)
+    setUser(null)
+    setIsAuthenticated(false)
     try {
       // Clear server session (httpOnly cookie)
       await fetch('/api/auth/session', { method: 'DELETE' })
@@ -490,6 +535,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextValue = {
     user,
     planUid,
+    membershipStatus,
     profileDisplayName,
     profileAvatarUrl,
     accessToken,

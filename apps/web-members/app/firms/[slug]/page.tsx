@@ -18,7 +18,8 @@ import { AuthCTA } from './AuthCTA'
 import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 import { getCurrentUser } from '@/lib/auth-server'
-import { PAID_PLANS } from '@/lib/plan-config'
+import { getPlanName, hasFullDirectoryAccess } from '@/lib/plan-config'
+import { MembershipAccessNotice } from '@/components/MembershipAccessNotice'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -360,7 +361,11 @@ export default async function FirmDetailPage({ params }: { params: Promise<{ slu
     redirect('/membership-pricing?source=firm-profile&reason=login-required')
   }
 
-  if (!planUid || !PAID_PLANS.includes(planUid)) {
+  if (!getPlanName(planUid)) {
+    return <MembershipAccessNotice expired={user.membershipStatus === 'expired'} />
+  }
+
+  if (!hasFullDirectoryAccess(planUid)) {
     redirect('/membership-pricing?source=firm-profile&reason=upgrade-required')
   }
 

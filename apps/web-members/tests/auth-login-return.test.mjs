@@ -46,6 +46,8 @@ const auth = load('../lib/auth-server.ts', {
   },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
   './plan-config': planConfig,
+  // These identity/callback tests deliberately have no confirmed membership.
+  './current-membership': { readCurrentMembership: async () => ({ status: 'unavailable', reason: 'synthetic', planUid: null, subscriptionUid: null, accessEndsAt: null }) },
 })
 const { middleware } = load('../middleware.ts', {
   'next/server': { NextResponse },
