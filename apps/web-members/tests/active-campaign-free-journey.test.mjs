@@ -265,6 +265,24 @@ test('field preview and writes require a fresh exact read showing automation 527
   assert.equal(f.requests.some(item => item.path.includes('fieldValues')), false)
 })
 
+test('operational configuration requires active 527 and preserves the default inactive guard', async () => {
+  const active = fixture({ automationStatus: '1' })
+  const activeResult = await active.preview(input(), { ...config, expectedAutomationStatus: 'active' })
+  assert.equal(activeResult.status, 'ready')
+  assert.equal(activeResult.steps.find(step => step.step === 'automation_state')?.code, 'active_confirmed')
+
+  const inactive = fixture({ automationStatus: '2' })
+  const inactiveResult = await inactive.preview(input(), { ...config, expectedAutomationStatus: 'active' })
+  assert.equal(inactiveResult.status, 'withheld')
+  assert.equal(inactiveResult.steps.at(-1).code, 'automation_not_active')
+  assert.equal(inactive.requests.some(item => item.path.includes('fieldValues')), false)
+
+  const defaultGuard = fixture({ automationStatus: '1' })
+  const defaultResult = await defaultGuard.preview()
+  assert.equal(defaultResult.status, 'withheld')
+  assert.equal(defaultResult.steps.at(-1).code, 'automation_not_inactive')
+})
+
 test('owner-attested historical signup permission has distinct preview-only provenance', async () => {
   const f = fixture()
   const result = await f.run(historicalInput(), {

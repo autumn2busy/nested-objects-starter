@@ -73,7 +73,28 @@ function operation(mode = 'preview') {
   }
 }
 
-function provider() {
+function sourceEvent(kind = 'profile_saved', occurredAt = now) {
+  return {
+    contractVersion: 'free_journey_event_v1',
+    kind,
+    occurredAt,
+    outsetaPersonUid: person,
+    subscriptionUid: cycle,
+    idempotencyKey: `free-journey:${kind}:${hash([
+      'free_journey_event_v1', kind, person, cycle, occurredAt,
+    ])}`,
+  }
+}
+
+function operationalOperation(mode = 'preview', kind = 'profile_saved') {
+  const value = operation(mode)
+  value.executionPhase = 'operational'
+  value.sourceEvent = sourceEvent(kind)
+  value.activeCampaign.expectedAutomationStatus = 'active'
+  return value
+}
+
+function provider(options = {}) {
   const requests = []
   const fields = []
   let next = 900
@@ -87,7 +108,7 @@ function provider() {
       id: '41', email: 'synthetic@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0',
     } })
     if (path === 'contacts/41/contactLists') return response({ contactLists: [{ contact: '41', list: '34', form: '90', status: '1' }] })
-    if (path === 'automations/527') return response({ automation: { id: '527', status: '2' } })
+    if (path === 'automations/527') return response({ automation: { id: '527', status: options.automationStatus ?? '2' } })
     if (path === 'contacts/41/fieldValues') return response({ fieldValues: fields })
     if (path === 'fieldValues' && method === 'POST') {
       const created = { id: String(++next), ...body.fieldValue }
@@ -146,6 +167,88 @@ test('exact write approval preserves expiry-before-stage ordering and confirmed 
   assert.equal(p.requests.some(value => value.path.includes('contactAutomations')), false)
 })
 
+test('operational events preserve signup, profile, calculation and day-30 stage semantics while 527 is active', async () => {
+  const cases = [
+    ['signup', 'profile_needed', value => {
+      value.storedSources.profiles.rows[0].city = null
+      value.storedSources.completionEvents.rows = []
+    }],
+    ['profile_saved', 'calculation_needed', value => { value.storedSources.completionEvents.rows = [] }],
+    ['income_scenario_completed', 'onboarding_complete', value => {
+      value.external.memberships.rows[0].memberSince = '2026-10-01T12:00:00.000Z'
+      value.external.memberships.rows[0].cycleStartedAt = '2026-10-01T12:00:00.000Z'
+    }],
+    ['day_30', 'conversion_eligible', () => {}],
+  ]
+  for (const [kind, expectedStage, mutate] of cases) {
+    const value = operationalOperation('preview', kind)
+    mutate(value)
+    const p = provider({ automationStatus: '1' })
+    const result = await runFreeJourneyOperation(value, p.fetch)
+    assert.equal(result.status, 'ready', kind)
+    assert.equal(result.desiredStage, expectedStage, kind)
+    assert.equal(result.steps.find(step => step.step === 'automation_state')?.code, 'active_confirmed')
+    assert.equal(p.requests.some(request => request.method !== 'GET'), false)
+  }
+})
+
+test('operational write requires exact event-bound authorization and active automation readback', async () => {
+  const value = operationalOperation('write', 'income_scenario_completed')
+  value.writeApproval = {
+    approvalRef: 'autumn-approved-operational-contract',
+    approvedAt: '2026-10-07T11:59:00.000Z',
+    expiresAt: '2026-10-07T12:30:00.000Z',
+    sourceReviewRef: value.storedSources.reviewRef,
+    outsetaPersonUid: person,
+    subscriptionUid: cycle,
+    activeCampaignContactId: '41',
+    allowedFieldIdsInOrder: ['194', '193'],
+    executionPhase: 'operational',
+    automationMustBeActive: true,
+    sourceEventIdempotencyKey: value.sourceEvent.idempotencyKey,
+  }
+  const p = provider({ automationStatus: '1' })
+  const result = await runFreeJourneyOperation(value, p.fetch)
+  assert.equal(result.status, 'updated')
+  assert.deepEqual(p.requests.filter(request => request.method === 'POST')
+    .map(request => request.body.fieldValue.field), ['194', '193'])
+  assert.equal(p.requests.some(request => request.path.includes('contactAutomations')), false)
+})
+
+test('operational events fail closed on inactive 527, event tampering and approval mismatch', async () => {
+  const inactive = operationalOperation()
+  const inactiveProvider = provider({ automationStatus: '2' })
+  const inactiveResult = await runFreeJourneyOperation(inactive, inactiveProvider.fetch)
+  assert.equal(inactiveResult.status, 'withheld')
+  assert.equal(inactiveResult.steps.at(-1).code, 'automation_not_active')
+  assert.equal(inactiveProvider.requests.some(request => request.path.includes('fieldValues')), false)
+
+  for (const mutate of [
+    value => { value.sourceEvent.idempotencyKey = 'free-journey:profile_saved:tampered' },
+    value => { value.sourceEvent.subscriptionUid = 'OtherCycle' },
+    value => { value.sourceEvent.occurredAt = '2026-10-07T12:01:00.000Z' },
+  ]) {
+    const value = operationalOperation(); mutate(value)
+    const p = provider({ automationStatus: '1' })
+    const result = await runFreeJourneyOperation(value, p.fetch)
+    assert.equal(result.status, 'withheld')
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(p.requests.length, 0)
+  }
+
+  const unapproved = operationalOperation('write')
+  unapproved.writeApproval = {
+    approvalRef: 'wrong-phase', approvedAt: '2026-10-07T11:59:00.000Z', expiresAt: '2026-10-07T12:30:00.000Z',
+    sourceReviewRef: unapproved.storedSources.reviewRef, outsetaPersonUid: person, subscriptionUid: cycle,
+    activeCampaignContactId: '41', allowedFieldIdsInOrder: ['194', '193'], automationMustRemainInactive: true,
+  }
+  const p = provider({ automationStatus: '1' })
+  const result = await runFreeJourneyOperation(unapproved, p.fetch)
+  assert.equal(result.status, 'withheld')
+  assert.deepEqual(result.reasons, ['write_approval_missing_or_invalid'])
+  assert.equal(p.requests.length, 0)
+})
+
 test('excluded test audience is withheld before provider access', async () => {
   const value = operation()
   value.external.audience.rows[0].test = true
@@ -162,4 +265,14 @@ test('CLI defaults to preview and requires two independent write-mode gates', ()
   assert.match(source, /FREE_JOURNEY_OPERATION_MODE !== 'write'/)
   assert.match(source, /FREE_JOURNEY_WRITE_ENABLED !== 'true'/)
   assert.doesNotMatch(source, /console\.log\([^\n]*(payload|policy|external|writeApproval)/)
+})
+
+test('operational CLI stays event-bound, active-527-only and disabled behind three write gates', () => {
+  const source = readFileSync(new URL('../scripts/run-free-journey-operational.mjs', import.meta.url), 'utf8')
+  assert.match(source, /executionPhase: 'operational'/)
+  assert.match(source, /expectedAutomationStatus: 'active'/)
+  assert.match(source, /FREE_JOURNEY_OPERATIONAL_MODE !== 'write'/)
+  assert.match(source, /FREE_JOURNEY_WRITE_ENABLED !== 'true'/)
+  assert.match(source, /FREE_JOURNEY_ACTIVE_527_ENABLED !== 'true'/)
+  assert.doesNotMatch(source, /setInterval|setTimeout|contactAutomations|console\.log\([^\n]*(payload|policy|external|writeApproval)/)
 })
