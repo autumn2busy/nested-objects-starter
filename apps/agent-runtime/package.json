@@ -20,6 +20,7 @@
     "preview:check": "node ./scripts/validate-preview-runtime.mjs && node ./scripts/validate-preview-error-mapping.mjs",
     "specialists:check": "node ./scripts/validate-core-specialists.mjs",
     "acceptance:free-journey": "npm run build && node ./scripts/run-free-journey-preactivation.mjs",
+    "acceptance:free-journey-operational": "npm run build && node ./scripts/run-free-journey-operational.mjs",
     "validate": "npm run format:check && npm run dependency:check && npm run typecheck && npm run test && npm run test:workflow && npm run migration:check && npm run preview:check && npm run specialists:check",
     "dependency:check": "node ./scripts/dependency-smoke.mjs"
   },
