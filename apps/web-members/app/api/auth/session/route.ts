@@ -22,7 +22,7 @@ export async function GET() {
         return NextResponse.json({ user: null, isAuthenticated: false }, { status: 401, headers: noStore })
     }
 
-    const currentUser = await withCurrentMembership(user)
+    const currentUser = await withCurrentMembership(user, token)
     return NextResponse.json({
         user: currentUser,
         isAuthenticated: true,
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
             maxAge: 60 * 60 * 24 * 7 // 7 days matches Outseta token life
         })
 
-        return NextResponse.json({ success: true, user: await withCurrentMembership(user) }, { headers: noStore })
+        return NextResponse.json({ success: true, user: await withCurrentMembership(user, accessToken) }, { headers: noStore })
     } catch (error) {
         console.error('Session creation error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

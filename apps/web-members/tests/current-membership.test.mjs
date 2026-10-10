@@ -13,7 +13,8 @@ const { renderToStaticMarkup } = require('react-dom/server')
 const now = Date.parse('2026-10-08T12:00:00Z')
 const issuer = 'https://nested-objects.outseta.com'
 const claims = { sub: 'synthetic-person', 'outseta:accountUid': 'synthetic-account', 'outseta:planUid': 'L9nbKV9Z', 'outseta:subscriptionUid': 'old-cycle' }
-const person = () => ({ Uid: claims.sub, PersonAccount: [{ Account: { Uid: claims['outseta:accountUid'] } }] })
+const person = () => ({ Uid: claims.sub })
+const memberToken = 'synthetic-member-token'
 const account = (planUid = 'NmdnNO90') => ({
   Uid: claims['outseta:accountUid'], AccountStage: 3,
   CurrentSubscription: { Uid: 'current-cycle', Plan: { Uid: planUid }, StartDate: '2026-10-01T00:00:00Z', EndDate: null },
@@ -35,7 +36,7 @@ function load(path, imports = {}, globals = {}) {
 }
 const plans = load('../lib/plan-config.ts')
 const membership = load('../lib/current-membership.ts', { './plan-config': plans })
-const evaluate = (row, member = person(), token = claims, at = now) => membership.evaluateCurrentMembership(token, member, row, at)
+const evaluate = (row, member = person(), token = claims, at = now) => membership.evaluateCurrentMembership(token, member ? { ...member, Account: row } : member, at)
 const normalize = value => JSON.parse(JSON.stringify(value))
 
 for (const [name, uid] of Object.entries(plans.PLAN_UIDS)) {
@@ -110,9 +111,7 @@ for (const stage of [5, 6]) {
 }
 for (const [name, value] of [
   ['wrong person', { ...person(), Uid: 'other-person' }],
-  ['missing person link', { Uid: claims.sub }],
-  ['wrong person account', { Uid: claims.sub, PersonAccount: [{ Account: { Uid: 'another-account' } }] }],
-  ['duplicate current account links', { Uid: claims.sub, PersonAccount: [...person().PersonAccount, ...person().PersonAccount] }],
+  ['missing person identity', {}],
   ['null person', null],
 ]) {
   test(`${name}: exact identity linkage is required`, () => assert.equal(evaluate(account(), value).status, 'unknown'))
@@ -120,13 +119,13 @@ for (const [name, value] of [
 for (const token of [{}, { sub: claims.sub }, { 'outseta:accountUid': claims['outseta:accountUid'] }, { ...claims, sub: '../other' }]) {
   test(`invalid identity ${JSON.stringify(token)} never falls back to another JWT identifier`, async () => {
     let reads = 0
-    const result = await membership.readCurrentMembership(token, { fetcher: async () => { reads++; throw Error('unexpected') } })
+    const result = await membership.readCurrentMembership(token, memberToken, { fetcher: async () => { reads++; throw Error('unexpected') } })
     assert.equal(result.status, 'unknown')
     assert.equal(reads, 0)
   })
 }
 
-function reader({ personValue = person(), accountValue = account(), failAt = 0, invalidJson = false } = {}) {
+function reader({ accountValue = account(), profileValue = { ...person(), Account: accountValue }, failAt = 0, invalidJson = false } = {}) {
   const reads = []
   return {
     reads,
@@ -135,27 +134,27 @@ function reader({ personValue = person(), accountValue = account(), failAt = 0, 
       if (failAt === reads.length) throw new Error('SYNTHETIC_PRIVATE_ERROR')
       return { ok: true, json: async () => {
         if (invalidJson) throw new Error('SYNTHETIC_PRIVATE_BODY')
-        return new URL(url).pathname.includes('/crm/people/') ? personValue : accountValue
+        return profileValue
       } }
     },
   }
 }
-const options = transport => ({ ...transport, apiKey: 'synthetic-key', apiSecret: 'synthetic-secret', now: () => now })
-test('the transport uses two exact uncached GETs on the fixed provider host', async () => {
+const options = transport => ({ ...transport, now: () => now })
+test('the transport reads only the verified token profile on the fixed provider host without admin configuration', async () => {
   const transport = reader()
-  const result = await membership.readCurrentMembership(claims, options(transport))
+  const result = await membership.readCurrentMembership(claims, memberToken, options(transport))
   assert.equal(result.status, 'verified')
-  assert.deepEqual(transport.reads.map(r => r.url.pathname), ['/api/v1/crm/people/synthetic-person', '/api/v1/crm/accounts/synthetic-account'])
+  assert.deepEqual(transport.reads.map(r => r.url.pathname), ['/api/v1/profile'])
   for (const { url, init } of transport.reads) {
     assert.equal(url.origin, issuer)
     assert.equal(init.method, 'GET')
     assert.equal(init.cache, 'no-store')
     assert.equal(init.redirect, 'error')
-    assert.equal(init.headers.Authorization, 'Outseta synthetic-key:synthetic-secret')
+    assert.equal(init.headers.Authorization, `Bearer ${memberToken}`)
     assert.ok(init.signal instanceof AbortSignal)
   }
-  assert.doesNotMatch(transport.reads[1].url.search, /Latest|History|Payment|Renewal/)
-  assert.doesNotMatch(JSON.stringify(result), /synthetic-key|synthetic-secret/)
+  assert.doesNotMatch(transport.reads[0].url.search, /Latest|History|Payment|Renewal|synthetic-member-token/)
+  assert.doesNotMatch(JSON.stringify(result), /synthetic-member-token/)
 })
 test('a pending replacement subscription never displaces the effective current subscription', () => {
   const row = account(plans.PLAN_UIDS.ELITE)
@@ -164,41 +163,45 @@ test('a pending replacement subscription never displaces the effective current s
   assert.equal(evaluate(row).planUid, plans.PLAN_UIDS.ELITE)
   assert.equal(evaluate(row).subscriptionUid, 'current-cycle')
 })
-test('expiry is evaluated after both provider reads, not at request start', async () => {
+test('expiry is evaluated after the provider response, not at request start', async () => {
   const row = account()
   row.CurrentSubscription.EndDate = '2026-10-08T12:00:01Z'
   const transport = reader({ accountValue: row })
-  const result = await membership.readCurrentMembership(claims, { ...options(transport), now: () => {
-    assert.equal(transport.reads.length, 2)
+  const result = await membership.readCurrentMembership(claims, memberToken, { ...options(transport), now: () => {
+    assert.equal(transport.reads.length, 1)
     return now + 1000
   } })
   assert.equal(result.status, 'expired')
   assert.equal(result.planUid, null)
 })
-test('a failed exact person-account link prevents even the account read', async () => {
-  const transport = reader({ personValue: { Uid: claims.sub, PersonAccount: [] } })
-  assert.equal((await membership.readCurrentMembership(claims, options(transport))).status, 'unknown')
-  assert.equal(transport.reads.length, 1)
-})
-for (const failure of [{ failAt: 1 }, { failAt: 2 }, { invalidJson: true }]) {
+for (const profileValue of [null, [], person(), { ...person(), Account: [] }, { ...person(), PersonAccount: [{ Account: account() }] }, { ...person(), Account: { ...account(), Uid: 'another-account' } }]) {
+  test(`profile requires its exact current Account and never selects from account links: ${JSON.stringify(profileValue)}`, async () => {
+    const transport = reader({ profileValue })
+    assert.equal((await membership.readCurrentMembership(claims, memberToken, options(transport))).status, 'unknown')
+    assert.equal(transport.reads.length, 1)
+  })
+}
+for (const failure of [{ failAt: 1 }, { invalidJson: true }]) {
   test(`transport failure ${JSON.stringify(failure)} returns unavailable without stale grants or raw errors`, async () => {
-    const result = await membership.readCurrentMembership(claims, options(reader(failure)))
+    const result = await membership.readCurrentMembership(claims, memberToken, options(reader(failure)))
     assert.equal(result.status, 'unavailable')
     assert.equal(result.planUid, null)
     assert.doesNotMatch(JSON.stringify(result), /SYNTHETIC_PRIVATE|synthetic-secret/)
   })
 }
-test('missing credentials and non-success HTTP responses are unavailable', async () => {
+test('missing or malformed token and non-success HTTP responses are unavailable', async () => {
   const transport = reader()
-  assert.equal((await membership.readCurrentMembership(claims, { ...options(transport), apiKey: '' })).status, 'unavailable')
+  for (const token of ['', undefined, 'a\r\nb']) {
+    assert.equal((await membership.readCurrentMembership(claims, token, options(transport))).status, 'unavailable')
+  }
   assert.equal(transport.reads.length, 0)
   for (const status of [401, 403, 404, 429, 500]) {
-    assert.equal((await membership.readCurrentMembership(claims, options({ fetcher: async () => ({ ok: false, status }) }))).status, 'unavailable')
+    assert.equal((await membership.readCurrentMembership(claims, memberToken, options({ fetcher: async () => ({ ok: false, status }) }))).status, 'unavailable')
   }
 })
 
 // Real JWT verification + actual resolver + actual server/session functions.
-// Only cookie storage and the two provider HTTP responses are synthetic.
+// Only cookie storage and the provider HTTP response are synthetic.
 const keys = await generateKeyPair('RS256')
 const jwk = await exportJWK(keys.publicKey)
 const localKeys = createLocalJWKSet({ keys: [{ ...jwk, kid: 'synthetic', alg: 'RS256' }] })
@@ -210,7 +213,7 @@ async function sessionHarness(transport = reader(), tokenClaims = claims) {
     set: (name, value, config) => { writes.push({ name, value, config }); cookie = value }, delete: () => { cookie = null },
   }) }
   const liveResolver = load('../lib/current-membership.ts', { './plan-config': plans }, {
-    fetch: transport.fetcher, process: { env: { OUTSETA_API_KEY: 'synthetic-key', OUTSETA_API_SECRET: 'synthetic-secret' } },
+    fetch: transport.fetcher,
     Date: class extends Date { static now() { return now } },
   })
   const auth = load('../lib/auth-server.ts', { './plan-config': plans, './current-membership': liveResolver,
@@ -231,9 +234,10 @@ test('session and server gates resolve upgraded Elite access from an unchanged F
   assert.equal((await h.auth.getCurrentUser())['outseta:planUid'], plans.PLAN_UIDS.ELITE)
   assert.equal(h.cookie, oldToken)
   assert.equal(h.writes.length, 0)
+  assert.ok(h.transport.reads.every(read => read.init.headers.Authorization === `Bearer ${oldToken}`))
   assert.match(response.headers.get('cache-control'), /private, no-store/)
 })
-for (const scenario of [{ failAt: 2 }, { accountValue: { ...account(), AccountStage: 5 } }]) {
+for (const scenario of [{ failAt: 1 }, { accountValue: { ...account(), AccountStage: 5 } }]) {
   test(`unavailable/expired membership preserves signed-in identity but strips plan and cycle: ${JSON.stringify(scenario)}`, async () => {
     const h = await sessionHarness(reader(scenario))
     const data = await (await h.session.GET()).json()
@@ -329,7 +333,7 @@ for (const path of ['concierge', 'resume', 'resume/generate', 'resume/parse']) {
       }, { Headers, fetch: () => { throw Error('Unexpected connected AI request') } })
       const response = await route.POST(new Request('https://synthetic.invalid/api/ai', { method: 'POST', body: new FormData() }))
       assert.equal(response.status, 403)
-      assert.equal(h.transport.reads.length, 2)
+      assert.equal(h.transport.reads.length, 1)
       assert.equal(quotaCalls, 0)
     })
   }

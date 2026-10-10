@@ -28,19 +28,16 @@ function withheld(status: Exclude<MembershipStatus, 'verified'>, reason: string)
  * amounts are deliberately not inputs to the access decision.
  */
 export function evaluateCurrentMembership(
-  claims: Claims, personValue: unknown, accountValue: unknown, now: number,
+  claims: Claims, profileValue: unknown, now: number,
 ): CurrentMembership {
   if (!identifier(claims.sub) || !identifier(claims['outseta:accountUid']) || !Number.isFinite(now)) {
     return withheld('unknown', 'identity_unverified')
   }
-  const person = record(personValue)
-  const account = record(accountValue)
-  if (person?.Uid !== claims.sub || account?.Uid !== claims['outseta:accountUid']) {
+  const profile = record(profileValue)
+  const account = record(profile?.Account)
+  if (profile?.Uid !== claims.sub || account?.Uid !== claims['outseta:accountUid']) {
     return withheld('unknown', 'identity_mismatch')
   }
-  const links = Array.isArray(person.PersonAccount) ? person.PersonAccount : []
-  const matches = links.filter(link => record(record(link)?.Account)?.Uid === account.Uid)
-  if (matches.length !== 1) return withheld('unknown', 'account_link_missing_or_ambiguous')
 
   // Outseta v2 billing stages: 7 is current/past due, not effective expiry.
   // https://go.outseta.com/support/kb/articles/Kj9boWnd/account-billing-stages
@@ -73,35 +70,29 @@ export function evaluateCurrentMembership(
   }
 }
 
-type ReadOptions = { fetcher?: typeof fetch; now?: () => number; apiKey?: string; apiSecret?: string }
+type ReadOptions = { fetcher?: typeof fetch; now?: () => number }
 
-/** Two exact GETs, no lists, history fallback, shared cache, or provider writes. */
-export async function readCurrentMembership(claims: Claims, options: ReadOptions = {}): Promise<CurrentMembership> {
+/** Read the verified token's own profile, scoped by Outseta to its person/account.
+ * This is the same Account.CurrentSubscription projection used by Outseta's SDK,
+ * without its browser cache. No admin credentials, account lists or writes.
+ */
+export async function readCurrentMembership(claims: Claims, token: string, options: ReadOptions = {}): Promise<CurrentMembership> {
   if (!identifier(claims.sub) || !identifier(claims['outseta:accountUid'])) {
     return withheld('unknown', 'identity_unverified')
   }
-  const apiKey = options.apiKey ?? process.env.OUTSETA_API_KEY
-  const apiSecret = options.apiSecret ?? process.env.OUTSETA_API_SECRET
-  if (!apiKey || !apiSecret) return withheld('unavailable', 'membership_configuration_unavailable')
+  // Callers verify the JWT first. Normalize exactly as the verification path does.
+  const bearer = typeof token === 'string' ? token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer /, '') : ''
+  if (!bearer || /\s/.test(bearer)) return withheld('unavailable', 'membership_token_unavailable')
   const fetcher = options.fetcher ?? fetch
-  const read = async (path: string) => {
-    const response = await fetcher(`https://nested-objects.outseta.com/api/v1/${path}`, {
-      method: 'GET', headers: { Authorization: `Outseta ${apiKey}:${apiSecret}` },
+  try {
+    const fields = 'Uid,Account.Uid,Account.AccountStage,Account.CurrentSubscription.Uid,Account.CurrentSubscription.Plan.Uid,Account.CurrentSubscription.StartDate,Account.CurrentSubscription.EndDate,Account.CurrentSubscription.Account.Uid'
+    const response = await fetcher(`https://nested-objects.outseta.com/api/v1/profile?fields=${fields}`, {
+      method: 'GET', headers: { Authorization: `Bearer ${bearer}` },
       cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(5000),
     })
     if (!response.ok) throw new Error('membership_read_unavailable')
-    return response.json()
-  }
-  try {
-    const person = await read(`crm/people/${claims.sub}?fields=Uid,PersonAccount.Account.Uid`)
-    // Do not request an account until the person read proves the exact link.
-    const row = record(person)
-    const links = Array.isArray(row?.PersonAccount) ? row.PersonAccount : []
-    if (row?.Uid !== claims.sub || links.filter(link => record(record(link)?.Account)?.Uid === claims['outseta:accountUid']).length !== 1) {
-      return withheld('unknown', 'account_link_missing_or_ambiguous')
-    }
-    const account = await read(`crm/accounts/${claims['outseta:accountUid']}?fields=Uid,AccountStage,CurrentSubscription.Uid,CurrentSubscription.Plan.Uid,CurrentSubscription.StartDate,CurrentSubscription.EndDate,CurrentSubscription.Account.Uid`)
-    return evaluateCurrentMembership(claims, person, account, (options.now ?? Date.now)())
+    const profile = await response.json()
+    return evaluateCurrentMembership(claims, profile, (options.now ?? Date.now)())
   } catch {
     // Never retain a provider response body, credential, or stale token grant.
     return withheld('unavailable', 'membership_read_unavailable')
