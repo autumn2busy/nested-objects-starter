@@ -15,6 +15,8 @@ const policySchema = z.object({
 const text = z.string().max(10000).nullable()
 const profileSchema = z.object({
   id: z.string().uuid(), outseta_person_uid: ref,
+  outseta_account_id: ref.nullable(), ac_contact_id: z.string().regex(/^\d+$/).nullable(),
+  user_email: z.string().email().max(320).nullable(), email: z.string().email().max(320).nullable(),
   headline: text, bio: text, city: text, state: text, experience_level: text,
   primary_services: text, service_areas: z.array(z.string().max(200)).max(100).nullable(),
   updated_at: timestamp,
@@ -28,7 +30,7 @@ const eventSchema = z.object({
     purpose: z.string().max(100).optional(),
   }).strict(),
 })
-const profileColumns = 'id,outseta_person_uid,headline,bio,city,state,experience_level,primary_services,service_areas,updated_at'
+const profileColumns = 'id,outseta_person_uid,outseta_account_id,ac_contact_id,user_email,email,headline,bio,city,state,experience_level,primary_services,service_areas,updated_at'
 const eventColumns = 'id,client_event_id,event_name,member_uid,source_page,source,occurred_at,event_data'
 type Resource = 'profile' | 'income' | 'consent_request'
 export type OnboardingReceiptReadPolicy = z.infer<typeof policySchema>

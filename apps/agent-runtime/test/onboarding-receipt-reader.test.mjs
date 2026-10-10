@@ -10,6 +10,8 @@ const policy = () => ({ reviewRef: 'synthetic-review-only', reviewedAt: '2026-09
   expiresAt: '2026-09-26T13:00:00.000Z', projectRef: 'abcdefghijklmnopqrst',
   outsetaPersonUid: 'SyntheticPerson', subscriptionUid: 'SyntheticCycle', timeoutMs: 1000 })
 const profile = () => ({ id: '31800000-0000-4000-8000-000000000926', outseta_person_uid: 'SyntheticPerson',
+  outseta_account_id: 'SyntheticAccount', ac_contact_id: '41',
+  user_email: 'synthetic@example.com', email: 'synthetic@example.com',
   headline: 'Synthetic private headline', bio: 'Synthetic private biography', city: 'Atlanta', state: 'GA',
   experience_level: 'new', primary_services: 'Property Inspections', service_areas: ['Property Inspections'],
   updated_at: '2026-09-26T10:00:00.000Z' })
@@ -56,7 +58,7 @@ test('exact-count reads use only fixed GET fields, member/cycle filters and thre
     assert.equal(url.searchParams.get('limit'), '2')
     assert.equal(url.searchParams.get('offset'), '0')
     assert.equal(request.headers.Prefer, 'count=exact')
-    assert(!/email|phone|address|\*/.test(url.searchParams.get('select')))
+    assert(!/phone|address|\*/.test(url.searchParams.get('select')))
     if (url.pathname.endsWith('/conversion_events')) {
       assert.equal(url.searchParams.get('member_uid'), 'eq.SyntheticPerson')
       assert.equal(url.searchParams.get('event_data->>lifecycleCycleId'), 'eq.SyntheticCycle')
@@ -125,9 +127,9 @@ test('wrong cycle or event cannot escape the scoped event query', async () => {
   }
 })
 
-test('extra profile PII is stripped; unexpected event metadata withholds the receipt', async () => {
+test('unselected profile PII is stripped; unexpected event metadata withholds the receipt', async () => {
   const result = await setup(r => {
-    r.body[0].email = 'synthetic-private-value'
+    r.body[0].phone = 'synthetic-private-value'
     if (r.body[0].event_data) r.body[0].event_data.privateValue = 'synthetic-private-value'
     return r
   }).client.collect()

@@ -7,6 +7,10 @@ import type { JourneyEligibilityInput, JourneyMilestoneEvidence } from './market
 export interface FreeOnboardingProfileRow {
   id: string
   outseta_person_uid: string | null
+  outseta_account_id?: string | null
+  ac_contact_id?: string | null
+  user_email?: string | null
+  email?: string | null
   headline?: string | null
   bio?: string | null
   city?: string | null
