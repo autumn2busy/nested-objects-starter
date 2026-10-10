@@ -307,6 +307,7 @@ export async function PATCH(req: NextRequest) {
       result = data
     }
 
+    let journeyProfileEvidenceReady = false
     if (result) {
       const { total, tier, breakdown } = calculateTrustScore(result)
       const { data: updatedResult, error: trustError } = await supabase
@@ -321,6 +322,7 @@ export async function PATCH(req: NextRequest) {
         .single()
       
       if (!trustError && updatedResult) {
+        journeyProfileEvidenceReady = updatedResult.id === result.id
         result = updatedResult
       }
     }
@@ -333,16 +335,30 @@ export async function PATCH(req: NextRequest) {
       freePlanUid: PLAN_UIDS.FREE,
     })
 
-    const journeyRouting = await emitFreeJourneySourceEvent({
-      kind: 'profile_saved',
-      occurredAt: result?.updated_at,
-      outsetaPersonUid: outsetaUser?.sub,
-      subscriptionUid: outsetaUser?.['outseta:subscriptionUid'],
-    })
-    if (journeyRouting.recoveryRequired) {
-      console.error('[PROFILE_FREE_JOURNEY_ROUTING_RECOVERY]', {
-        code: journeyRouting.code,
-        httpStatus: journeyRouting.httpStatus,
+    const journeyPersonUid = outsetaUser?.sub
+    if (
+      journeyProfileEvidenceReady &&
+      typeof journeyPersonUid === 'string' &&
+      journeyPersonUid.length > 0 &&
+      result?.outseta_person_uid === journeyPersonUid
+    ) {
+      const journeyRouting = await emitFreeJourneySourceEvent({
+        kind: 'profile_saved',
+        occurredAt: result.updated_at,
+        outsetaPersonUid: journeyPersonUid,
+        subscriptionUid: outsetaUser?.['outseta:subscriptionUid'],
+      })
+      if (journeyRouting.recoveryRequired) {
+        console.error('[PROFILE_FREE_JOURNEY_ROUTING_RECOVERY]', {
+          code: journeyRouting.code,
+          httpStatus: journeyRouting.httpStatus,
+        })
+      }
+    } else {
+      console.error('[PROFILE_FREE_JOURNEY_ROUTING_WITHHELD]', {
+        code: journeyProfileEvidenceReady
+          ? 'saved_profile_person_binding_unconfirmed'
+          : 'profile_trust_write_unconfirmed',
       })
     }
 
