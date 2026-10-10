@@ -2,7 +2,20 @@ import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
 
 import type { RuntimeEnvironmentVariables } from '../env.js'
-import { runFreeJourneyOperation } from '../operations/free-journey-operation.js'
+import {
+  createSupabaseDurableWorkflowStore,
+  type DurableWorkflowStore,
+} from '../persistence/durable-workflow-store.js'
+import { runDurableFreeJourneyOperation } from '../operations/durable-free-journey-operation.js'
+import {
+  runFreeJourneyOperation,
+  type FreeJourneyOperationInput,
+} from '../operations/free-journey-operation.js'
+import {
+  FreeJourneyProductionDestinationError,
+  loadFreeJourneyProductionDestination,
+} from '../runtime/free-journey-production-destination.js'
+import type { DurableDestinationBinding } from '../runtime/staging-destination.js'
 import {
   FreeJourneyOperationalSourceCollector,
   type FreeJourneyOperationalSourcePolicy,
@@ -29,6 +42,7 @@ const ACCOUNT_TIME_ZONE = 'America/New_York'
 const MAX_EVIDENCE_AGE_MS = 3 * 86_400_000
 const ref = z.string().regex(/^[A-Za-z0-9_-]{1,160}$/)
 const timestamp = z.string().datetime({ offset: true })
+const approvalRef = z.string().min(1).max(160).refine(value => value === value.trim() && !/[\s@\u0000-\u001f]/.test(value))
 const sourceEventSchema = z.object({
   contractVersion: z.literal(FREE_JOURNEY_EVENT_VERSION),
   kind: z.enum(['signup', 'profile_saved', 'income_scenario_completed', 'day_30']),
@@ -53,7 +67,7 @@ export type FreeJourneyOperationRequest = z.infer<typeof requestSchema>
 
 export interface FreeJourneyOperationRuntimeConfiguration {
   enabled: true
-  previewOnly: true
+  previewOnly: boolean
   liveReadsEnabled: true
   sharedSecret: string
   producerSubject: string
@@ -64,7 +78,15 @@ export interface FreeJourneyOperationRuntimeConfiguration {
   outsetaApiSecret: string
   activeCampaignApiKey: string
   activeCampaignApiUrl: string
+  expectedAutomationStatus: 'inactive' | 'active'
   sourcePolicy: FreeJourneyOperationalSourcePolicy
+  writeConfiguration: {
+    binding: DurableDestinationBinding
+    approvalRef: string
+    approvedAt: string
+    expiresAt: string
+    runtimeVersion: string
+  } | null
 }
 
 export interface FreeJourneyOperationDependencies {
@@ -73,6 +95,8 @@ export interface FreeJourneyOperationDependencies {
   onboardingTransport?: OnboardingReceiptReadTransport
   sourceTransport?: FreeJourneyOperationalSourceTransport
   activeCampaignFetch?: typeof fetch
+  durableStore?: DurableWorkflowStore
+  durableRunner?: typeof runDurableFreeJourneyOperation
 }
 
 export function createFreeJourneyOperationHeaders(input: {
@@ -206,13 +230,13 @@ export async function evaluateSignedFreeJourneyOperationRequest(
       automaticRetry: false as const,
       reasons: [external.reason],
       steps: [],
-      previewOnly: true as const,
+      previewOnly: configuration.previewOnly,
       durableReplayReceipt: false as const,
     }
   }
-  const result = await runFreeJourneyOperation({
-    mode: 'preview',
-    executionPhase: 'operational',
+  const operationInput: FreeJourneyOperationInput = {
+    mode: configuration.previewOnly ? 'preview' as const : 'write' as const,
+    executionPhase: 'operational' as const,
     sourceEvent,
     now,
     maxEvidenceAgeMs: MAX_EVIDENCE_AGE_MS,
@@ -229,11 +253,66 @@ export async function evaluateSignedFreeJourneyOperationRequest(
       stageFieldId: '193',
       expiryFieldId: '194',
       automationId: '527',
-      expectedAutomationStatus: 'active',
+      expectedAutomationStatus: configuration.expectedAutomationStatus,
       accountTimeZone: ACCOUNT_TIME_ZONE,
       timeoutMs: configuration.sourcePolicy.timeoutMs,
     },
-  }, dependencies.activeCampaignFetch)
+  }
+  if (!configuration.previewOnly && configuration.writeConfiguration) {
+    const identity = external.external.identities.rows[0] as { activeCampaignContactId?: unknown } | undefined
+    const activeCampaignContactId = typeof identity?.activeCampaignContactId === 'string'
+      ? identity.activeCampaignContactId
+      : null
+    if (!identity || !/^\d+$/.test(activeCampaignContactId ?? '')) {
+      return {
+        ok: true,
+        evaluationId,
+        status: 'withheld' as const,
+        desiredStage: null,
+        attemptedWrites: 0,
+        confirmedWrites: 0,
+        recoveryRequired: false,
+        automaticRetry: false as const,
+        reasons: ['exact_contact_identity_missing'],
+        steps: [],
+        previewOnly: false as const,
+        durableReplayReceipt: false as const,
+      }
+    }
+    const durableStore = dependencies.durableStore ?? await createSupabaseDurableWorkflowStore({
+      url: `https://${configuration.projectRef}.supabase.co`,
+      serviceRoleKey: configuration.supabaseServiceRoleKey,
+    })
+    const result = await (dependencies.durableRunner ?? runDurableFreeJourneyOperation)({
+      ...operationInput,
+      writeApproval: {
+        approvalRef: configuration.writeConfiguration.approvalRef,
+        approvedAt: configuration.writeConfiguration.approvedAt,
+        expiresAt: configuration.writeConfiguration.expiresAt,
+        sourceReviewRef: configuration.sourcePolicy.reviewRef,
+        outsetaPersonUid: sourceEvent.outsetaPersonUid,
+        subscriptionUid: sourceEvent.subscriptionUid,
+        activeCampaignContactId: activeCampaignContactId!,
+        allowedFieldIdsInOrder: ['194', '193'] as const,
+        executionPhase: 'operational',
+        automationMustBeActive: true,
+        sourceEventIdempotencyKey: sourceEvent.idempotencyKey,
+      },
+    }, {
+      store: durableStore,
+      binding: configuration.writeConfiguration.binding,
+      runtimeVersion: configuration.writeConfiguration.runtimeVersion,
+      ...(dependencies.activeCampaignFetch ? { fetch: dependencies.activeCampaignFetch } : {}),
+    })
+    return {
+      ok: true,
+      evaluationId,
+      ...result,
+      previewOnly: false as const,
+      durableReplayReceipt: result.runId !== null,
+    }
+  }
+  const result = await runFreeJourneyOperation(operationInput, dependencies.activeCampaignFetch)
   return {
     ok: true,
     evaluationId,
@@ -247,7 +326,7 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
   environment: RuntimeEnvironmentVariables = process.env,
 ): FreeJourneyOperationRuntimeConfiguration {
   if (environment.FREE_JOURNEY_OPERATION_API_ENABLED !== 'true'
-    || environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY !== 'true'
+    || !['true', 'false'].includes(environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY ?? '')
     || environment.FREE_JOURNEY_LIVE_READS_ENABLED !== 'true') {
     throw new FreeJourneyOperationConfigurationError()
   }
@@ -271,6 +350,41 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
   if (!isServiceRoleKey(supabaseServiceRoleKey)
     || outsetaApiKey.length < 10 || outsetaApiSecret.length < 10 || activeCampaignApiKey.length < 20) {
     throw new FreeJourneyOperationConfigurationError()
+  }
+  const previewOnly = environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY === 'true'
+  const expectedAutomationStatus = environment.FREE_JOURNEY_EXPECTED_527_STATUS
+  if (!['inactive', 'active'].includes(expectedAutomationStatus ?? '')
+    || (!previewOnly && expectedAutomationStatus !== 'active')) {
+    throw new FreeJourneyOperationConfigurationError()
+  }
+  let writeConfiguration: FreeJourneyOperationRuntimeConfiguration['writeConfiguration'] = null
+  if (!previewOnly) {
+    const configuredApprovalRef = required(environment.FREE_JOURNEY_WRITE_APPROVAL_REF)
+    const approvedAt = required(environment.FREE_JOURNEY_WRITE_APPROVED_AT)
+    const expiresAt = required(environment.FREE_JOURNEY_WRITE_APPROVAL_EXPIRES_AT)
+    const runtimeVersion = required(environment.FREE_JOURNEY_RUNTIME_VERSION)
+    if (!approvalRef.safeParse(configuredApprovalRef).success
+      || !timestamp.safeParse(approvedAt).success
+      || !timestamp.safeParse(expiresAt).success
+      || !ref.safeParse(runtimeVersion).success
+      || Date.parse(expiresAt) <= Date.parse(approvedAt)
+      || Date.parse(expiresAt) - Date.parse(approvedAt) > 31 * 86_400_000) {
+      throw new FreeJourneyOperationConfigurationError()
+    }
+    try {
+      writeConfiguration = {
+        binding: loadFreeJourneyProductionDestination(environment),
+        approvalRef: configuredApprovalRef,
+        approvedAt,
+        expiresAt,
+        runtimeVersion,
+      }
+    } catch (error) {
+      if (error instanceof FreeJourneyProductionDestinationError) {
+        throw new FreeJourneyOperationConfigurationError()
+      }
+      throw error
+    }
   }
   const sourcePolicy: FreeJourneyOperationalSourcePolicy = {
     reviewRef: required(environment.FREE_JOURNEY_SOURCE_REVIEW_REF),
@@ -301,7 +415,7 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
   } catch { throw new FreeJourneyOperationConfigurationError() }
   return {
     enabled: true,
-    previewOnly: true,
+    previewOnly,
     liveReadsEnabled: true,
     sharedSecret,
     producerSubject,
@@ -312,7 +426,9 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
     outsetaApiSecret,
     activeCampaignApiKey,
     activeCampaignApiUrl: activeCampaign.origin,
+    expectedAutomationStatus: expectedAutomationStatus as 'inactive' | 'active',
     sourcePolicy,
+    writeConfiguration,
   }
 }
 

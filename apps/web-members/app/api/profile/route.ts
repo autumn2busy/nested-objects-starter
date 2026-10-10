@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, getOutsetaUserId, PLAN_UIDS } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
+import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer'
 import { calculateTrustScore } from '@/lib/trust-score'
 import {
   PROFILE_CRITICAL_COLUMNS,
@@ -331,6 +332,19 @@ export async function PATCH(req: NextRequest) {
       planUid: outsetaUser['outseta:planUid'],
       freePlanUid: PLAN_UIDS.FREE,
     })
+
+    const journeyRouting = await emitFreeJourneySourceEvent({
+      kind: 'profile_saved',
+      occurredAt: result?.updated_at,
+      outsetaPersonUid: outsetaUser?.sub,
+      subscriptionUid: outsetaUser?.['outseta:subscriptionUid'],
+    })
+    if (journeyRouting.recoveryRequired) {
+      console.error('[PROFILE_FREE_JOURNEY_ROUTING_RECOVERY]', {
+        code: journeyRouting.code,
+        httpStatus: journeyRouting.httpStatus,
+      })
+    }
 
     return NextResponse.json({ profile: result })
   } catch (err) {

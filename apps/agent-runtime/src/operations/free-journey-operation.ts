@@ -127,7 +127,9 @@ function validAssets(input: FreeJourneyOperationInput) {
     && (input.activeCampaign.expiryFieldId ?? EXPIRY_FIELD_ID) === EXPIRY_FIELD_ID
     && (input.activeCampaign.automationId ?? '527') === '527'
     && (executionPhase === 'operational'
-      ? expectedAutomationStatus === 'active'
+      ? input.mode === 'write'
+        ? expectedAutomationStatus === 'active'
+        : ['inactive', 'active'].includes(expectedAutomationStatus)
       : expectedAutomationStatus === 'inactive')
 }
 
