@@ -115,6 +115,7 @@ export interface ActiveCampaignFreeJourneyConfig {
     stageFieldId?: string;
     expiryFieldId?: string;
     automationId?: string;
+    expectedAutomationStatus?: 'inactive' | 'active';
     accountTimeZone: string;
     historicalConsentDecisionRef?: string;
     timeoutMs?: number;
@@ -191,6 +192,7 @@ function validateConfig(config: ActiveCampaignFreeJourneyConfig) {
         || !NUMERIC_ID.test(config.stageFieldId ?? STAGE_FIELD_ID)
         || !NUMERIC_ID.test(config.expiryFieldId ?? EXPIRY_FIELD_ID)
         || !NUMERIC_ID.test(config.automationId ?? AUTOMATION_ID)
+        || !['inactive', 'active'].includes(config.expectedAutomationStatus ?? 'inactive')
         || (config.historicalConsentDecisionRef !== undefined && !isIdentifier(config.historicalConsentDecisionRef))
         || !Number.isInteger(timeout) || timeout < 1 || timeout > 30_000) return false;
     try {
@@ -377,7 +379,7 @@ async function runActiveCampaignFreeJourney(
     input: FreeJourneyEvidenceInput,
     config: ActiveCampaignFreeJourneyConfig,
     fetchImpl: typeof fetch,
-    mode: 'preview' | 'write',
+    mode: 'preview' | 'write_all' | 'write_expiry' | 'write_stage',
 ): Promise<FreeJourneyWriteResult> {
     const steps: FreeJourneyWriteStep[] = [];
     if (!validateConfig(config)) {
@@ -400,6 +402,7 @@ async function runActiveCampaignFreeJourney(
     const stageFieldId = config.stageFieldId ?? STAGE_FIELD_ID;
     const expiryFieldId = config.expiryFieldId ?? EXPIRY_FIELD_ID;
     const automationId = config.automationId ?? AUTOMATION_ID;
+    const expectedAutomationStatus = config.expectedAutomationStatus ?? 'inactive';
     const timeout = config.timeoutMs ?? 10_000;
     const apiBase = config.apiUrl.replace(/\/$/, '');
     const requestJson = async (path: string, method = 'GET', body?: unknown) => {
@@ -484,11 +487,12 @@ async function runActiveCampaignFreeJourney(
     if (!automation || String(automation.id) !== automationId) {
         return fail('automation_state', new JourneyWriterError('automation_identity_invalid'), 'failed');
     }
-    if (String(automation.status) !== '2') {
-        steps.push({ step: 'automation_state', state: 'blocked', code: 'automation_not_inactive' });
+    const expectedAutomationStatusCode = expectedAutomationStatus === 'active' ? '1' : '2';
+    if (String(automation.status) !== expectedAutomationStatusCode) {
+        steps.push({ step: 'automation_state', state: 'blocked', code: `automation_not_${expectedAutomationStatus}` });
         return result('withheld', desiredStage, steps, 0, 0, consent);
     }
-    steps.push({ step: 'automation_state', state: 'succeeded', code: 'inactive_confirmed' });
+    steps.push({ step: 'automation_state', state: 'succeeded', code: `${expectedAutomationStatus}_confirmed` });
 
     let fieldData: Record<string, unknown>;
     try {
@@ -552,16 +556,25 @@ async function runActiveCampaignFreeJourney(
         return true;
     };
 
-    try {
-        await writeField('field_expiry', expiryFieldId, input.evidenceExpiresAt, expiryMatches[0]);
-    } catch (error) {
-        return fail('field_expiry', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+    if (mode === 'write_all' || mode === 'write_expiry') {
+        try {
+            await writeField('field_expiry', expiryFieldId, input.evidenceExpiresAt, expiryMatches[0]);
+        } catch (error) {
+            return fail('field_expiry', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+        }
     }
-    try {
-        // Stage is last because field 193 is the automation trigger; expiry must already be confirmed.
-        await writeField('field_stage', stageFieldId, desiredStage, stageMatches[0]);
-    } catch (error) {
-        return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+    if (mode === 'write_all' || mode === 'write_stage') {
+        const currentExpiry = expiryMatches[0];
+        if (mode === 'write_stage' && (!currentExpiry || String(currentExpiry.value ?? '') !== input.evidenceExpiresAt)) {
+            steps.push({ step: 'field_stage', state: 'blocked', code: 'expiry_not_confirmed' });
+            return result('withheld', desiredStage, steps, 0, 0, consent);
+        }
+        try {
+            // Stage is last because field 193 is the automation trigger; expiry must already be confirmed.
+            await writeField('field_stage', stageFieldId, desiredStage, stageMatches[0]);
+        } catch (error) {
+            return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+        }
     }
     return result(attemptedWrites === 0 ? 'unchanged' : 'updated', desiredStage, steps, attemptedWrites, confirmedWrites, consent);
 }
@@ -584,5 +597,23 @@ export function syncActiveCampaignFreeJourney(
     config: ActiveCampaignFreeJourneyConfig,
     fetchImpl: typeof fetch = fetch,
 ) {
-    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write');
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_all');
+}
+
+/** Writes and confirms only field 194. Used by the durable executor before the trigger field is claimed. */
+export function syncActiveCampaignFreeJourneyExpiry(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_expiry');
+}
+
+/** Writes field 193 only after a fresh read confirms field 194 already matches the expected date. */
+export function syncActiveCampaignFreeJourneyStage(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_stage');
 }

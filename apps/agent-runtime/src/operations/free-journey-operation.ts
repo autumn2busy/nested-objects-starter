@@ -1,8 +1,11 @@
+import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import {
   previewActiveCampaignFreeJourney,
   syncActiveCampaignFreeJourney,
+  syncActiveCampaignFreeJourneyExpiry,
+  syncActiveCampaignFreeJourneyStage,
   type ActiveCampaignFreeJourneyConfig,
   type FreeJourneyEvidenceInput,
   type FreeJourneyWriteResult,
@@ -39,7 +42,7 @@ const exactContextSchema = z.object({
     bounced_hard: z.literal('0'), bounced_soft: z.literal('0'), deleted: z.literal('0'),
   }).strict(),
 }).strict()
-const writeApprovalSchema = z.object({
+const writeApprovalBaseSchema = z.object({
   approvalRef: id,
   approvedAt: timestamp,
   expiresAt: timestamp,
@@ -48,13 +51,31 @@ const writeApprovalSchema = z.object({
   subscriptionUid: id,
   activeCampaignContactId: numericId,
   allowedFieldIdsInOrder: z.tuple([z.literal(EXPIRY_FIELD_ID), z.literal(STAGE_FIELD_ID)]),
-  automationMustRemainInactive: z.literal(true),
+})
+const writeApprovalSchema = z.union([
+  writeApprovalBaseSchema.extend({ automationMustRemainInactive: z.literal(true) }).strict(),
+  writeApprovalBaseSchema.extend({
+    executionPhase: z.literal('operational'),
+    automationMustBeActive: z.literal(true),
+    sourceEventIdempotencyKey: id,
+  }).strict(),
+])
+const operationalEventSchema = z.object({
+  contractVersion: z.literal('free_journey_event_v1'),
+  kind: z.enum(['signup', 'profile_saved', 'income_scenario_completed', 'day_30']),
+  idempotencyKey: id,
+  occurredAt: timestamp,
+  outsetaPersonUid: id,
+  subscriptionUid: id,
 }).strict()
 
 type ExternalSourceContext = Omit<FreeJourneySourcePreviewInput, 'onboarding' | 'consentRequests'>
 
 export interface FreeJourneyOperationInput {
   mode: 'preview' | 'write'
+  writeStep?: 'expiry' | 'stage'
+  executionPhase?: 'preactivation' | 'operational'
+  sourceEvent?: unknown
   now: string
   maxEvidenceAgeMs: number
   evidenceExpiresAt: string
@@ -96,6 +117,8 @@ function exactContext(input: FreeJourneyOperationInput) {
 }
 
 function validAssets(input: FreeJourneyOperationInput) {
+  const executionPhase = input.executionPhase ?? 'preactivation'
+  const expectedAutomationStatus = input.activeCampaign.expectedAutomationStatus ?? 'inactive'
   return input.external.consentAsset?.listId === LIST_ID
     && input.external.consentAsset.formId === FORM_ID
     && input.activeCampaign.consentListId === LIST_ID
@@ -103,20 +126,52 @@ function validAssets(input: FreeJourneyOperationInput) {
     && (input.activeCampaign.stageFieldId ?? STAGE_FIELD_ID) === STAGE_FIELD_ID
     && (input.activeCampaign.expiryFieldId ?? EXPIRY_FIELD_ID) === EXPIRY_FIELD_ID
     && (input.activeCampaign.automationId ?? '527') === '527'
+    && (executionPhase === 'operational'
+      ? input.mode === 'write'
+        ? expectedAutomationStatus === 'active'
+        : ['inactive', 'active'].includes(expectedAutomationStatus)
+      : expectedAutomationStatus === 'inactive')
 }
 
-function validWriteApproval(input: FreeJourneyOperationInput, contactId: string) {
+function validWriteApproval(
+  input: FreeJourneyOperationInput,
+  contactId: string,
+  event: z.infer<typeof operationalEventSchema> | null,
+) {
   const parsed = writeApprovalSchema.safeParse(input.writeApproval)
   if (!parsed.success) return false
   const approval = parsed.data
   const now = Date.parse(input.now)
-  return input.storedSources.mode === 'approved_live'
+  const executionPhase = input.executionPhase ?? 'preactivation'
+  const phaseMatches = executionPhase === 'operational'
+    ? event !== null
+      && 'executionPhase' in approval
+      && approval.executionPhase === 'operational'
+      && approval.automationMustBeActive === true
+      && approval.sourceEventIdempotencyKey === event.idempotencyKey
+    : 'automationMustRemainInactive' in approval && approval.automationMustRemainInactive === true
+  return phaseMatches
+    && input.storedSources.mode === 'approved_live'
     && approval.sourceReviewRef === input.storedSources.reviewRef
     && approval.outsetaPersonUid === input.outsetaPersonUid
     && approval.subscriptionUid === input.subscriptionUid
     && approval.activeCampaignContactId === contactId
     && Date.parse(approval.approvedAt) <= now
     && now < Date.parse(approval.expiresAt)
+}
+
+function operationalEvent(input: FreeJourneyOperationInput) {
+  const parsed = operationalEventSchema.safeParse(input.sourceEvent)
+  if (!parsed.success) return null
+  const event = parsed.data
+  const digest = createHash('sha256').update(JSON.stringify([
+    event.contractVersion,
+    event.kind,
+    event.outsetaPersonUid,
+    event.subscriptionUid,
+    event.occurredAt,
+  ])).digest('hex')
+  return event.idempotencyKey === `free-journey:${event.kind}:${digest}` ? event : null
 }
 
 function oldestObservation(input: FreeJourneyOperationInput) {
@@ -147,10 +202,17 @@ export async function runFreeJourneyOperation(
   input: FreeJourneyOperationInput,
   fetchImpl: typeof fetch = fetch,
 ): Promise<FreeJourneyOperationResult> {
+  const executionPhase = input?.executionPhase ?? 'preactivation'
+  const event = executionPhase === 'operational' ? operationalEvent(input) : null
   if (!input || !timestamp.safeParse(input.now).success || !dateOnly.safeParse(input.evidenceExpiresAt).success
     || !Number.isFinite(input.maxEvidenceAgeMs) || input.maxEvidenceAgeMs <= 0
     || !id.safeParse(input.outsetaPersonUid).success || !id.safeParse(input.subscriptionUid).success
-    || !validAssets(input)) return held('withheld', ['operation_configuration_invalid'])
+    || !validAssets(input)
+    || (input.writeStep !== undefined && input.mode !== 'write')
+    || (executionPhase === 'operational' && !event)
+    || (executionPhase === 'preactivation' && input.sourceEvent !== undefined)) {
+    return held('withheld', ['operation_configuration_invalid'])
+  }
 
   if (input.storedSources.mutationAllowed !== false || input.storedSources.attemptedWrites !== 0) {
     return held('withheld', ['stored_source_boundary_invalid'])
@@ -181,6 +243,12 @@ export async function runFreeJourneyOperation(
     || contact.id !== identity.activeCampaignContactId) {
     return held('withheld', ['writer_context_binding_conflict'])
   }
+  if (event && (event.outsetaPersonUid !== input.outsetaPersonUid
+    || event.subscriptionUid !== input.subscriptionUid
+    || Date.parse(event.occurredAt) < Date.parse(membership.cycleStartedAt)
+    || Date.parse(event.occurredAt) > Date.parse(input.now))) {
+    return held('withheld', ['operational_event_binding_conflict'])
+  }
 
   const evidence: FreeJourneyEvidenceInput = {
     now: input.now,
@@ -197,11 +265,15 @@ export async function runFreeJourneyOperation(
     onboardingCompletion: source.onboarding.onboardingCompletion,
   }
 
-  if (input.mode === 'write' && !validWriteApproval(input, contact.id)) {
+  if (input.mode === 'write' && !validWriteApproval(input, contact.id, event)) {
     return held(source.status, ['write_approval_missing_or_invalid'])
   }
   const writer = input.mode === 'write'
-    ? await syncActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
+    ? input.writeStep === 'expiry'
+      ? await syncActiveCampaignFreeJourneyExpiry(evidence, input.activeCampaign, fetchImpl)
+      : input.writeStep === 'stage'
+        ? await syncActiveCampaignFreeJourneyStage(evidence, input.activeCampaign, fetchImpl)
+        : await syncActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
     : await previewActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
   return {
     status: writer.status,

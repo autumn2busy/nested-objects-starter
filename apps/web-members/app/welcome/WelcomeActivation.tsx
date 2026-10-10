@@ -2,7 +2,7 @@
 
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, LogIn, Mail } from 'lucide-react'
+import { ArrowRight, ExternalLink, LogIn, Mail } from 'lucide-react'
 import { InspectorStartGuide } from '@/components/onboarding/inspector-start-guide'
 import { useAuth } from '@/components/auth-provider'
 import { trackSignupCompleted } from '@/lib/ac-events'
@@ -14,6 +14,8 @@ type WelcomeActivationProps = {
 
 type OutsetaUser = Record<string, any> | null
 type EmailConsentStatus = 'idle' | 'submitting' | 'recorded' | 'error'
+
+const LIFECYCLE_EMAIL_CONFIRMATION_FORM_URL = 'https://awilliams.activehosted.com/f/90'
 
 declare global {
   interface Window {
@@ -294,12 +296,21 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
             </p>
 
             {emailConsentStatus === 'recorded' ? (
-              <p
-                className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
-                role="status"
-              >
-                Request recorded. Email updates remain off until a separate confirmation is completed.
-              </p>
+              <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <p role="status">
+                  Request recorded. Complete the confirmation form, then use the confirmation link sent to your inbox.
+                  Email updates remain off until both steps are complete.
+                </p>
+                <a
+                  href={LIFECYCLE_EMAIL_CONFIRMATION_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-copper px-5 py-3 font-semibold text-white transition hover:bg-brand-copperDark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-copper"
+                >
+                  Send my confirmation email
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
             ) : (
               <form className="mt-4" onSubmit={recordEmailConsentRequest} aria-describedby="lifecycle-email-description">
                 <label className="flex max-w-3xl cursor-pointer items-start gap-3 text-sm leading-6 text-slate-700">

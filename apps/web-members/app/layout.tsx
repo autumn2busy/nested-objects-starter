@@ -135,7 +135,7 @@ export default function RootLayout({
       <body className={cn(plusJakarta.variable, 'w-full overflow-x-clip font-sans text-text-primary')}>
         {!intelligenceStaging && <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-5HPX4VTQ"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-5CTHWMFH"
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}

@@ -331,7 +331,12 @@ test('authenticated Free welcome requires an unchecked deliberate choice before 
   assert.equal(harness.sideEffects.requests[0].options.credentials, 'same-origin')
   assert.equal(nodes(harness.tree, node => node.props.role === 'status').length, 1)
   assert.match(content(harness.tree), /Request recorded/i)
-  assert.match(content(harness.tree), /remain off until a separate confirmation/i)
+  assert.match(content(harness.tree), /complete the confirmation form/i)
+  assert.match(content(harness.tree), /remain off until both steps are complete/i)
+  const confirmationLink = nodes(harness.tree, node => node.type === 'a' && node.props.href === 'https://awilliams.activehosted.com/f/90')[0]
+  assert.ok(confirmationLink)
+  assert.equal(confirmationLink.props.target, '_blank')
+  assert.equal(confirmationLink.props.rel, 'noopener noreferrer')
 })
 
 test('welcome never presents the Free lifecycle choice for signed-out, loading, paid, or unknown plans', async () => {
