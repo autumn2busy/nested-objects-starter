@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-const GTM_ID = 'GTM-5HPX4VTQ'
+const GTM_ID = 'GTM-5CTHWMFH'
 const IDLE_DELAY_MS = 7000
 
 declare global {
