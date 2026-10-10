@@ -1,7 +1,7 @@
 import type { IntelligenceSignal, OperationalError, ToolCallSummary } from '../contracts.js'
 import { ContractValidationError } from '../contracts.js'
 import { assertServerOnlyControlPlaneAccess } from './control-plane-store.js'
-import type { StagingDestinationBinding } from '../runtime/staging-destination.js'
+import type { DurableDestinationBinding, StagingDestinationBinding } from '../runtime/staging-destination.js'
 
 export type DurableClaimDisposition = 'claimed' | 'reused' | 'busy' | 'exhausted'
 export type DurableRunVerificationStatus = 'pending' | 'verified' | 'failed'
@@ -119,7 +119,9 @@ export interface FailDurableRunInput {
 
 export interface DurableWorkflowStore {
   verifyDestination(binding: StagingDestinationBinding): Promise<void>
+  verifyFreeJourneyDestination(binding: DurableDestinationBinding): Promise<void>
   claimRun(input: ClaimDurableRunInput): Promise<DurableRunClaim>
+  claimFreeJourneyRun(input: ClaimDurableRunInput): Promise<DurableRunClaim>
   claimStep(input: ClaimDurableStepInput): Promise<DurableStepClaim>
   completeStep(input: CompleteDurableStepInput): Promise<DurableStepSnapshot>
   failStep(input: FailDurableStepInput): Promise<DurableStepSnapshot>
@@ -175,24 +177,22 @@ export class SupabaseDurableWorkflowStore implements DurableWorkflowStore {
     if (verified !== true) throw new DurableWorkflowPersistenceError('Database destination sentinel rejected the runtime binding')
   }
 
-  claimRun(input: ClaimDurableRunInput): Promise<DurableRunClaim> {
-    return rpcValue(this.client, 'claim_agent_workflow_run', {
-      p_agent_name: input.agentName,
-      p_workflow_name: input.workflowName,
-      p_workflow_version: input.workflowVersion,
-      p_workflow_run_id: input.workflowRunId,
-      p_durable_workflow_id: `${input.workflowName}@${input.workflowVersion}`,
-      p_runtime_version: input.runtimeVersion,
-      p_input: input.input,
-      p_idempotency_key: input.idempotencyKey,
-      p_max_attempts: input.maxAttempts,
-      p_lease_seconds: input.leaseSeconds,
-      p_requested_at: input.requestedAt,
-      p_correlation_id: input.correlationId,
-      p_causation_id: input.causationId,
-      p_trace_id: input.traceId,
-      p_destination_fingerprint: input.binding.destinationFingerprint,
+  async verifyFreeJourneyDestination(binding: DurableDestinationBinding): Promise<void> {
+    const verified = await rpcValue<boolean>(this.client, 'verify_free_journey_runtime_destination', {
+      p_binding_key: binding.bindingKey,
+      p_policy_version: binding.policyVersion,
+      p_project_ref: binding.projectRef,
+      p_destination_fingerprint: binding.destinationFingerprint,
     })
+    if (verified !== true) throw new DurableWorkflowPersistenceError('Free journey destination sentinel rejected the runtime binding')
+  }
+
+  claimRun(input: ClaimDurableRunInput): Promise<DurableRunClaim> {
+    return rpcValue(this.client, 'claim_agent_workflow_run', mapRunClaim(input))
+  }
+
+  claimFreeJourneyRun(input: ClaimDurableRunInput): Promise<DurableRunClaim> {
+    return rpcValue(this.client, 'claim_free_journey_operation_run', mapRunClaim(input))
   }
 
   claimStep(input: ClaimDurableStepInput): Promise<DurableStepClaim> {
@@ -279,6 +279,26 @@ export class SupabaseDurableWorkflowStore implements DurableWorkflowStore {
   }
 }
 
+function mapRunClaim(input: ClaimDurableRunInput): Record<string, unknown> {
+  return {
+    p_agent_name: input.agentName,
+    p_workflow_name: input.workflowName,
+    p_workflow_version: input.workflowVersion,
+    p_workflow_run_id: input.workflowRunId,
+    p_durable_workflow_id: `${input.workflowName}@${input.workflowVersion}`,
+    p_runtime_version: input.runtimeVersion,
+    p_input: input.input,
+    p_idempotency_key: input.idempotencyKey,
+    p_max_attempts: input.maxAttempts,
+    p_lease_seconds: input.leaseSeconds,
+    p_requested_at: input.requestedAt,
+    p_correlation_id: input.correlationId,
+    p_causation_id: input.causationId,
+    p_trace_id: input.traceId,
+    p_destination_fingerprint: input.binding.destinationFingerprint,
+  }
+}
+
 export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
   readonly persistedSignals = new Map<string, IntelligenceSignal>()
   readonly runsById = new Map<string, DurableRunSnapshot>()
@@ -297,6 +317,10 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
     if (JSON.stringify(binding) !== JSON.stringify(this.acceptedBinding)) {
       throw new DurableWorkflowPersistenceError('In-memory destination sentinel rejected the runtime binding')
     }
+  }
+
+  async verifyFreeJourneyDestination(binding: DurableDestinationBinding): Promise<void> {
+    await this.verifyDestination(binding)
   }
 
   async claimRun(input: ClaimDurableRunInput): Promise<DurableRunClaim> {
@@ -347,6 +371,13 @@ export class InMemoryDurableWorkflowStore implements DurableWorkflowStore {
     this.runsByKey.set(input.idempotencyKey, runId)
     this.runInputsByKey.set(input.idempotencyKey, clone(input.input))
     return { disposition: 'claimed', run: clone(run) }
+  }
+
+  claimFreeJourneyRun(input: ClaimDurableRunInput): Promise<DurableRunClaim> {
+    if (input.agentName !== 'activecampaign-lifecycle' || input.workflowName !== 'free_journey_operation') {
+      throw new DurableWorkflowPersistenceError('Free journey claim used an unauthorized workflow identity')
+    }
+    return this.claimRun(input)
   }
 
   async claimStep(input: ClaimDurableStepInput): Promise<DurableStepClaim> {
