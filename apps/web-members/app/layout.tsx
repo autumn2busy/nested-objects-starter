@@ -150,7 +150,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <DeferredOutsetaLoader />
+          <DeferredOutsetaLoader previewHost={process.env.VERCEL_ENV === 'preview' ? process.env.VERCEL_URL : undefined} />
           {!intelligenceStaging && <DeferredGoogleTagManager />}
           {!intelligenceStaging && <ActiveCampaignTracker />}
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
