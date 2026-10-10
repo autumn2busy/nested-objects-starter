@@ -7,13 +7,15 @@ export interface StagingDestinationPolicy {
   deniedProjectRefs: readonly string[]
 }
 
-export interface StagingDestinationBinding {
+export interface DurableDestinationBinding {
   bindingKey: string
   policyVersion: string
   projectRef: string
   hostname: string
   destinationFingerprint: string
 }
+
+export type StagingDestinationBinding = DurableDestinationBinding
 
 const MEMBER_SITE_PRODUCTION_PROJECT_REF = 'lzzghrjjsyzlvofpidis'
 

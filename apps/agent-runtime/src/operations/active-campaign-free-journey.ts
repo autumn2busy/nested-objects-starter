@@ -379,7 +379,7 @@ async function runActiveCampaignFreeJourney(
     input: FreeJourneyEvidenceInput,
     config: ActiveCampaignFreeJourneyConfig,
     fetchImpl: typeof fetch,
-    mode: 'preview' | 'write',
+    mode: 'preview' | 'write_all' | 'write_expiry' | 'write_stage',
 ): Promise<FreeJourneyWriteResult> {
     const steps: FreeJourneyWriteStep[] = [];
     if (!validateConfig(config)) {
@@ -556,16 +556,25 @@ async function runActiveCampaignFreeJourney(
         return true;
     };
 
-    try {
-        await writeField('field_expiry', expiryFieldId, input.evidenceExpiresAt, expiryMatches[0]);
-    } catch (error) {
-        return fail('field_expiry', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+    if (mode === 'write_all' || mode === 'write_expiry') {
+        try {
+            await writeField('field_expiry', expiryFieldId, input.evidenceExpiresAt, expiryMatches[0]);
+        } catch (error) {
+            return fail('field_expiry', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+        }
     }
-    try {
-        // Stage is last because field 193 is the automation trigger; expiry must already be confirmed.
-        await writeField('field_stage', stageFieldId, desiredStage, stageMatches[0]);
-    } catch (error) {
-        return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+    if (mode === 'write_all' || mode === 'write_stage') {
+        const currentExpiry = expiryMatches[0];
+        if (mode === 'write_stage' && (!currentExpiry || String(currentExpiry.value ?? '') !== input.evidenceExpiresAt)) {
+            steps.push({ step: 'field_stage', state: 'blocked', code: 'expiry_not_confirmed' });
+            return result('withheld', desiredStage, steps, 0, 0, consent);
+        }
+        try {
+            // Stage is last because field 193 is the automation trigger; expiry must already be confirmed.
+            await writeField('field_stage', stageFieldId, desiredStage, stageMatches[0]);
+        } catch (error) {
+            return fail('field_stage', error, confirmedWrites > 0 ? 'partial' : 'failed', attemptedWrites, confirmedWrites);
+        }
     }
     return result(attemptedWrites === 0 ? 'unchanged' : 'updated', desiredStage, steps, attemptedWrites, confirmedWrites, consent);
 }
@@ -588,5 +597,23 @@ export function syncActiveCampaignFreeJourney(
     config: ActiveCampaignFreeJourneyConfig,
     fetchImpl: typeof fetch = fetch,
 ) {
-    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write');
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_all');
+}
+
+/** Writes and confirms only field 194. Used by the durable executor before the trigger field is claimed. */
+export function syncActiveCampaignFreeJourneyExpiry(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_expiry');
+}
+
+/** Writes field 193 only after a fresh read confirms field 194 already matches the expected date. */
+export function syncActiveCampaignFreeJourneyStage(
+    input: FreeJourneyEvidenceInput,
+    config: ActiveCampaignFreeJourneyConfig,
+    fetchImpl: typeof fetch = fetch,
+) {
+    return runActiveCampaignFreeJourney(input, config, fetchImpl, 'write_stage');
 }

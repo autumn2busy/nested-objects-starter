@@ -4,6 +4,8 @@ import { z } from 'zod'
 import {
   previewActiveCampaignFreeJourney,
   syncActiveCampaignFreeJourney,
+  syncActiveCampaignFreeJourneyExpiry,
+  syncActiveCampaignFreeJourneyStage,
   type ActiveCampaignFreeJourneyConfig,
   type FreeJourneyEvidenceInput,
   type FreeJourneyWriteResult,
@@ -71,6 +73,7 @@ type ExternalSourceContext = Omit<FreeJourneySourcePreviewInput, 'onboarding' | 
 
 export interface FreeJourneyOperationInput {
   mode: 'preview' | 'write'
+  writeStep?: 'expiry' | 'stage'
   executionPhase?: 'preactivation' | 'operational'
   sourceEvent?: unknown
   now: string
@@ -203,6 +206,7 @@ export async function runFreeJourneyOperation(
     || !Number.isFinite(input.maxEvidenceAgeMs) || input.maxEvidenceAgeMs <= 0
     || !id.safeParse(input.outsetaPersonUid).success || !id.safeParse(input.subscriptionUid).success
     || !validAssets(input)
+    || (input.writeStep !== undefined && input.mode !== 'write')
     || (executionPhase === 'operational' && !event)
     || (executionPhase === 'preactivation' && input.sourceEvent !== undefined)) {
     return held('withheld', ['operation_configuration_invalid'])
@@ -263,7 +267,11 @@ export async function runFreeJourneyOperation(
     return held(source.status, ['write_approval_missing_or_invalid'])
   }
   const writer = input.mode === 'write'
-    ? await syncActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
+    ? input.writeStep === 'expiry'
+      ? await syncActiveCampaignFreeJourneyExpiry(evidence, input.activeCampaign, fetchImpl)
+      : input.writeStep === 'stage'
+        ? await syncActiveCampaignFreeJourneyStage(evidence, input.activeCampaign, fetchImpl)
+        : await syncActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
     : await previewActiveCampaignFreeJourney(evidence, input.activeCampaign, fetchImpl)
   return {
     status: writer.status,
