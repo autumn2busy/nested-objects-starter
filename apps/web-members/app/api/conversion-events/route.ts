@@ -3,8 +3,13 @@ import { NextResponse } from 'next/server'
 
 import { getCurrentUser, getOutsetaUserId, getPlanName, PLAN_UIDS } from '@/lib/auth-server'
 import { trackACServerEvent } from '@/lib/ac-event-tracking'
-import { isBrowserConversionEventName, recordConversionEvent } from '@/lib/conversion-events'
+import {
+  isBrowserConversionEventName,
+  readConversionEventReceipt,
+  recordConversionEvent,
+} from '@/lib/conversion-events'
 import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
+import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer'
 import { isRateLimitExceededError, isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 
@@ -115,10 +120,11 @@ export async function POST(request: Request) {
 
       const supabase = createServiceRoleClient()
       let recorded = false
+      const clientEventId = incomeScenarioCompletionId(memberUid, lifecycleCycleId)
       try {
         await recordConversionEvent(supabase, {
           eventName: INCOME_SCENARIO_COMPLETION_EVENT,
-          clientEventId: incomeScenarioCompletionId(memberUid, lifecycleCycleId),
+          clientEventId,
           memberUid,
           eventData: {
             sourcePage: '/tools/income-calculator',
@@ -128,15 +134,44 @@ export async function POST(request: Request) {
           },
         })
         recorded = true
-        await reconcileFreeOnboardingCompletionFromEnvironment({
-          supabase,
-          outsetaPersonUid: memberUid,
-          subscriptionUid: lifecycleCycleId,
-          planUid: sessionClaim(user?.['outseta:planUid']),
-          freePlanUid: PLAN_UIDS.FREE,
-        })
       } catch (storageError) {
         console.error('[Conversion Events] First-party storage failed:', storageError)
+      }
+
+      if (recorded) {
+        try {
+          await reconcileFreeOnboardingCompletionFromEnvironment({
+            supabase,
+            outsetaPersonUid: memberUid,
+            subscriptionUid: lifecycleCycleId,
+            planUid: sessionClaim(user?.['outseta:planUid']),
+            freePlanUid: PLAN_UIDS.FREE,
+          })
+        } catch (completionError) {
+          console.error('[Conversion Events] Onboarding completion reconciliation failed:', completionError)
+        }
+        try {
+          const receipt = await readConversionEventReceipt(supabase, {
+            clientEventId,
+            eventName: INCOME_SCENARIO_COMPLETION_EVENT,
+            memberUid,
+            lifecycleCycleId,
+          })
+          const routing = await emitFreeJourneySourceEvent({
+            kind: 'income_scenario_completed',
+            occurredAt: receipt.occurredAt,
+            outsetaPersonUid: memberUid,
+            subscriptionUid: lifecycleCycleId,
+          })
+          if (routing.recoveryRequired) {
+            console.error('[Conversion Events] Free journey routing requires recovery:', {
+              code: routing.code,
+              httpStatus: routing.httpStatus,
+            })
+          }
+        } catch (routingError) {
+          console.error('[Conversion Events] Free journey receipt or routing failed:', routingError)
+        }
       }
 
       return NextResponse.json(

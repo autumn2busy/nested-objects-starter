@@ -3,9 +3,11 @@ import { createHash } from 'node:crypto'
 import test from 'node:test'
 
 import {
+  FREE_JOURNEY_PRODUCTION_DESTINATION,
   FreeJourneyOperationAuthenticationError,
   FreeJourneyOperationConfigurationError,
   FreeJourneyOperationValidationError,
+  InMemoryDurableWorkflowStore,
   createFreeJourneyOperationHeaders,
   evaluateSignedFreeJourneyOperationRequest,
   loadFreeJourneyOperationRuntimeConfiguration,
@@ -46,6 +48,7 @@ function environment(overrides = {}) {
     FREE_JOURNEY_OPERATION_API_ENABLED: 'true',
     FREE_JOURNEY_OPERATION_PREVIEW_ONLY: 'true',
     FREE_JOURNEY_LIVE_READS_ENABLED: 'true',
+    FREE_JOURNEY_EXPECTED_527_STATUS: 'active',
     FREE_JOURNEY_OPERATION_SHARED_SECRET: secret,
     FREE_JOURNEY_OPERATION_PRODUCER_SUBJECT: subject,
     FREE_JOURNEY_OPERATION_ALLOWED_ORIGIN: origin,
@@ -176,7 +179,9 @@ function dependencies(options = {}) {
     if (path === 'contacts/41/contactLists') return response({
       contactLists: [{ id: '701', contact: '41', list: '34', form: '90', status: '1' }],
     })
-    if (path === 'automations/527') return response({ automation: { id: '527', status: '1' } })
+    if (path === 'automations/527') return response({ automation: {
+      id: '527', status: options.automationStatus ?? '1',
+    } })
     if (path === 'contacts/41/fieldValues') return response({ fieldValues: [] })
     throw new Error(`Unexpected writer preview read ${path}`)
   }
@@ -189,6 +194,52 @@ function dependencies(options = {}) {
       activeCampaignFetch,
     },
     calls,
+  }
+}
+
+function operationalEnvironment(overrides = {}) {
+  return environment({
+    FREE_JOURNEY_OPERATION_PREVIEW_ONLY: 'false',
+    FREE_JOURNEY_EXPECTED_527_STATUS: 'active',
+    SUPABASE_URL: 'https://lzzghrjjsyzlvofpidis.supabase.co',
+    AGENT_RUNTIME_ENV: 'production',
+    VERCEL_ENV: 'production',
+    FREE_JOURNEY_PRODUCTION_PROJECT_REF: 'lzzghrjjsyzlvofpidis',
+    FREE_JOURNEY_OPERATIONAL_MODE: 'write',
+    FREE_JOURNEY_WRITE_ENABLED: 'true',
+    FREE_JOURNEY_ACTIVE_527_ENABLED: 'true',
+    FREE_JOURNEY_DURABLE_EXECUTOR_ENABLED: 'true',
+    FREE_JOURNEY_WRITE_APPROVAL_REF: 'owner-approved-free-journey-cycle-1',
+    FREE_JOURNEY_WRITE_APPROVED_AT: '2026-10-10T11:55:00.000Z',
+    FREE_JOURNEY_WRITE_APPROVAL_EXPIRES_AT: '2026-10-10T12:30:00.000Z',
+    FREE_JOURNEY_RUNTIME_VERSION: 'test-runtime-v1',
+    ...overrides,
+  })
+}
+
+function operationalDependencies() {
+  const base = dependencies()
+  const durableCalls = []
+  return {
+    value: {
+      ...base.value,
+      durableStore: new InMemoryDurableWorkflowStore(
+        FREE_JOURNEY_PRODUCTION_DESTINATION,
+        () => new Date(now),
+      ),
+      durableRunner: async (input, context) => {
+        durableCalls.push({ input, context })
+        return {
+          state: durableCalls.length === 1 ? 'completed' : 'reused',
+          runId: '31800000-0000-4000-8000-000000001527',
+          status: 'updated', desiredStage: 'conversion_eligible',
+          attemptedWrites: 2, confirmedWrites: 2, recoveryRequired: false,
+          automaticRetry: false, reasons: [], steps: [],
+        }
+      },
+    },
+    calls: base.calls,
+    durableCalls,
   }
 }
 
@@ -207,7 +258,7 @@ test('signatures bind method, path, body, service subject, origin, timestamp and
   ), FreeJourneyOperationAuthenticationError)
 })
 
-test('runtime remains default-disabled, preview-only and requires a reviewed exclusion policy', () => {
+test('runtime remains default-disabled and requires explicit Preview or exact Production gates', () => {
   for (const changes of [
     { FREE_JOURNEY_OPERATION_API_ENABLED: undefined },
     { FREE_JOURNEY_OPERATION_PREVIEW_ONLY: 'false' },
@@ -215,6 +266,63 @@ test('runtime remains default-disabled, preview-only and requires a reviewed exc
     { FREE_JOURNEY_EXCLUSION_POLICY_JSON: undefined },
     { FREE_JOURNEY_EXCLUSION_POLICY_JSON: '{}' },
   ]) assert.throws(() => loadFreeJourneyOperationRuntimeConfiguration(environment(changes)), FreeJourneyOperationConfigurationError)
+
+  for (const changes of [
+    { FREE_JOURNEY_OPERATIONAL_MODE: undefined },
+    { FREE_JOURNEY_WRITE_ENABLED: undefined },
+    { FREE_JOURNEY_ACTIVE_527_ENABLED: undefined },
+    { FREE_JOURNEY_DURABLE_EXECUTOR_ENABLED: undefined },
+    { FREE_JOURNEY_EXPECTED_527_STATUS: 'inactive' },
+    { FREE_JOURNEY_WRITE_APPROVAL_REF: undefined },
+  ]) assert.throws(() => loadFreeJourneyOperationRuntimeConfiguration(
+    operationalEnvironment(changes),
+  ), FreeJourneyOperationConfigurationError)
+})
+
+test('signed Preview can verify automation 527 while it remains inactive', async () => {
+  const deps = dependencies({ automationStatus: '2' })
+  const result = await evaluateSignedFreeJourneyOperationRequest(
+    signedRequest(),
+    environment({ FREE_JOURNEY_EXPECTED_527_STATUS: 'inactive' }),
+    deps.value,
+  )
+  assert.equal(result.status, 'ready', JSON.stringify(result))
+  assert.equal(result.previewOnly, true)
+  assert.equal(result.attemptedWrites, 0)
+  assert(deps.calls.every(call => call.method === 'GET'))
+})
+
+test('operational endpoint binds exact source identity and approval to the durable executor', async () => {
+  const deps = operationalDependencies()
+  const first = await evaluateSignedFreeJourneyOperationRequest(
+    signedRequest(), operationalEnvironment(), deps.value,
+  )
+  const repeated = await evaluateSignedFreeJourneyOperationRequest(
+    signedRequest(), operationalEnvironment(), deps.value,
+  )
+  assert.equal(first.state, 'completed', JSON.stringify(first))
+  assert.equal(first.previewOnly, false)
+  assert.equal(first.durableReplayReceipt, true)
+  assert.equal(first.confirmedWrites, 2)
+  assert.equal(repeated.state, 'reused')
+  assert.equal(repeated.confirmedWrites, 2)
+  assert.equal(deps.durableCalls.length, 2)
+  assert.equal(deps.durableCalls[0].input.writeApproval.outsetaPersonUid, person)
+  assert.equal(deps.durableCalls[0].input.writeApproval.subscriptionUid, cycle)
+  assert.equal(deps.durableCalls[0].input.writeApproval.activeCampaignContactId, '41')
+  assert.equal(
+    deps.durableCalls[0].input.writeApproval.sourceEventIdempotencyKey,
+    sourceEvent().idempotencyKey,
+  )
+  assert.deepEqual(deps.durableCalls[0].input.writeApproval.allowedFieldIdsInOrder, ['194', '193'])
+  assert.equal(
+    deps.durableCalls[0].context.binding.destinationFingerprint,
+    FREE_JOURNEY_PRODUCTION_DESTINATION.destinationFingerprint,
+  )
+  assert.equal(
+    deps.durableCalls[1].input.writeApproval.sourceEventIdempotencyKey,
+    deps.durableCalls[0].input.writeApproval.sourceEventIdempotencyKey,
+  )
 })
 
 test('signed endpoint accepts only the source event and rebuilds all external facts server-side', async () => {

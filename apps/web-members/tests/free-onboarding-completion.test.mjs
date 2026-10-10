@@ -185,7 +185,9 @@ test('application hooks preserve existing stores and remove the unconditional AC
   const migration = readFileSync(new URL('../../../supabase/migrations/20261007120000_add_guarded_free_onboarding_completion.sql', import.meta.url), 'utf8')
 
   assert.match(conversionRoute, /recordConversionEvent[\s\S]+reconcileFreeOnboardingCompletionFromEnvironment/)
+  assert.match(conversionRoute, /readConversionEventReceipt[\s\S]+emitFreeJourneySourceEvent/)
   assert.match(profileRoute, /\.from\('profiles'\)[\s\S]+reconcileFreeOnboardingCompletionFromEnvironment/)
+  assert.match(profileRoute, /reconcileFreeOnboardingCompletionFromEnvironment[\s\S]+emitFreeJourneySourceEvent/)
   assert.doesNotMatch(action, /applyACContactTag|onboarding-complete/)
   assert.doesNotMatch(action, /\.update\(\{[\s\S]*onboarding_completed_at/)
   assert.match(migration, /ADD COLUMN IF NOT EXISTS onboarding_completed_at timestamptz/)

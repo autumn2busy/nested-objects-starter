@@ -36,7 +36,7 @@ function createHarness({
   rateLimitError = null,
   storedRows = new Map(),
 } = {}) {
-  const calls = { writes: [], campaigns: [], completions: [], auth: 0, clients: 0, limits: [], errors: [] }
+  const calls = { writes: [], reads: [], campaigns: [], completions: [], journeys: [], auth: 0, clients: 0, limits: [], errors: [] }
   const supabase = {
     from(table) {
       return {
@@ -49,6 +49,22 @@ function createHarness({
             }
           }
           return { error: storageError }
+        },
+        select(columns) {
+          const filters = {}
+          const builder = {
+            eq(column, value) { filters[column] = value; return builder },
+            limit() { return builder },
+            async single() {
+              calls.reads.push(clone({ table, columns, filters }))
+              const row = storedRows.get(filters.client_event_id)
+              if (!row || row.event_name !== filters.event_name || row.member_uid !== filters.member_uid) {
+                return { data: null, error: { code: 'PGRST116', message: 'Synthetic receipt missing' } }
+              }
+              return { data: clone(row), error: null }
+            },
+          }
+          return builder
         },
       }
     },
@@ -75,6 +91,12 @@ function createHarness({
           freePlanUid: input.freePlanUid,
         })
         return { status: 'disabled' }
+      },
+    },
+    '@/lib/free-journey-operation-producer': {
+      emitFreeJourneySourceEvent: async input => {
+        calls.journeys.push(clone(input))
+        return { status: 'disabled', code: 'producer_disabled', recoveryRequired: false, automaticRetry: false, httpStatus: null, evaluationId: null }
       },
     },
     '@/lib/rate-limit': {
@@ -217,6 +239,13 @@ test('income completion persists only the server-derived member, cycle, and fixe
   })
   assert.notEqual(row.occurred_at, '2020-01-01T00:00:00.000Z')
   assert.deepEqual(options, { onConflict: 'client_event_id', ignoreDuplicates: true })
+  assert.equal(harness.calls.reads.length, 1)
+  assert.deepEqual(harness.calls.journeys, [{
+    kind: 'income_scenario_completed',
+    occurredAt: row.occurred_at,
+    outsetaPersonUid: 'signed-member',
+    subscriptionUid: 'signed-cycle',
+  }])
 })
 
 test('income completion retries reuse one key per member lifecycle cycle', async () => {
@@ -297,6 +326,7 @@ test('income completion storage failure returns 202 without marketing delivery',
   assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
   assert.equal(harness.calls.writes.length, 1)
   assert.equal(harness.calls.campaigns.length, 0)
+  assert.equal(harness.calls.journeys.length, 0)
   assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
   assert.equal(harness.calls.errors[0][1], storageError)
 })
@@ -536,7 +566,10 @@ test('OS acceptance Preview suppresses all persistence, authentication, rate-lim
   const response = await harness.post({ event: 'income_scenario_completed' })
   assert.equal(response.status, 204)
   assert.equal(await response.text(), '')
-  assert.deepEqual(harness.calls, { writes: [], campaigns: [], completions: [], auth: 0, clients: 0, limits: [], errors: [] })
+  assert.deepEqual(harness.calls, {
+    writes: [], reads: [], campaigns: [], completions: [], journeys: [],
+    auth: 0, clients: 0, limits: [], errors: [],
+  })
 })
 
 test('ordinary Preview and Production retain their existing event-storage behavior', async () => {

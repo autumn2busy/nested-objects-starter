@@ -332,6 +332,9 @@ test('real webhook reports failed AC sync separately from the saved projection a
       '@/lib/security': { verifyOutsetaSignature: () => true },
       '@/lib/free-to-pro-lifecycle': { buildPaidLifecycleDecision: () => ({ shouldTrack: false, reason: 'unchanged' }) },
       '@/lib/conversion-events': { recordConversionEvent: async () => { throw new Error('Unexpected conversion write') } },
+      '@/lib/free-journey-operation-producer': {
+        emitFreeJourneySourceEvent: async () => ({ status: 'disabled', code: 'producer_disabled', recoveryRequired: false, automaticRetry: false, httpStatus: null, evaluationId: null }),
+      },
       '@/lib/outseta-billing-stage': load('../lib/outseta-billing-stage.ts'),
       '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async () => {
         attempts++

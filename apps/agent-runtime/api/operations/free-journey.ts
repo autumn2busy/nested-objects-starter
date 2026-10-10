@@ -31,14 +31,14 @@ export default {
       }
       if (error instanceof FreeJourneyOperationConfigurationError) {
         return jsonResponse({ ok: false, error: {
-          code: error.code, message: 'Free journey preview is not safely configured.',
+          code: error.code, message: 'Free journey evaluation is not safely configured.',
         } }, 503)
       }
-      console.error('Free journey preview failed', {
+      console.error('Free journey evaluation failed', {
         code: error && typeof error === 'object' && 'code' in error ? String(error.code) : 'UNHANDLED_ERROR',
       })
       return jsonResponse({ ok: false, error: {
-        code: 'FREE_JOURNEY_EVALUATION_FAILED', message: 'Free journey preview failed.',
+        code: 'FREE_JOURNEY_EVALUATION_FAILED', message: 'Free journey evaluation failed.',
       } }, 500)
     }
   },
