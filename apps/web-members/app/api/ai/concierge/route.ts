@@ -94,40 +94,41 @@ export async function POST(request: Request) {
     // However, if n8n fails, we "charged" them. Prompt says "Enforce limits... Return friendly 403".
     await trackAIUsage(userId, 'ai_concierge');
 
-    const response = await fetch(n8nWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        plan_uid: planUid,
-        prompt: prompt.trim(),
-      }),
-    });
-
-    const data = await response.json();
-
-    // Handle errors from n8n
-    if (!response.ok) {
-      return NextResponse.json(
-        data,
-        { status: response.status }
-      );
-    }
-
-    // Format for ChatWidget
-    if (data.response) {
-      return NextResponse.json({
-        message: {
-          role: 'assistant',
-          content: data.response
-        },
-        ...data
+    // A provider login/error page is not a model answer. Do not expose its body,
+    // follow redirects with the submitted prompt, or retry an already billed call.
+    const unavailable = { error: 'AI Concierge is temporarily unavailable. Please try again later.' };
+    let response: Response;
+    try {
+      response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, plan_uid: planUid, prompt: prompt.trim() }),
+        redirect: 'error',
+        signal: AbortSignal.timeout(20_000),
       });
+    } catch {
+      console.error('[AI Concierge] Provider request unavailable');
+      return NextResponse.json(unavailable, { status: 503 });
     }
-
-    return NextResponse.json(data);
+    if (!response.ok) {
+      console.error('[AI Concierge] Provider response unsuccessful', response.status);
+      return NextResponse.json(unavailable, { status: 502 });
+    }
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      console.error('[AI Concierge] Provider response was not JSON');
+      return NextResponse.json(unavailable, { status: 502 });
+    }
+    const result = data !== null && typeof data === 'object' && !Array.isArray(data)
+      ? data as { response?: unknown; message?: { content?: unknown } } : null;
+    const content = typeof result?.message?.content === 'string' ? result.message.content : result?.response;
+    if (typeof content !== 'string' || content.trim().length === 0) {
+      console.error('[AI Concierge] Provider response contained no answer');
+      return NextResponse.json(unavailable, { status: 502 });
+    }
+    return NextResponse.json({ message: { role: 'assistant', content } });
 
   } catch (error) {
     console.error('AI Concierge error:', error);

@@ -9,32 +9,32 @@ BEGIN;
 
 DO $validation$
 DECLARE
-    table_name TEXT;
-    column_name TEXT;
+    required_table_name TEXT;
+    required_column_name TEXT;
     procedure_signature TEXT;
     procedure_oid REGPROCEDURE;
 BEGIN
-    FOREACH table_name IN ARRAY ARRAY[
+    FOREACH required_table_name IN ARRAY ARRAY[
         'agent_runs',
         'agent_events',
         'agent_runtime_destination_bindings',
         'agent_workflow_steps'
     ] LOOP
-        IF to_regclass('public.' || table_name) IS NULL THEN
-            RAISE EXCEPTION 'Missing durable Free journey prerequisite table: public.%', table_name;
+        IF to_regclass('public.' || required_table_name) IS NULL THEN
+            RAISE EXCEPTION 'Missing durable Free journey prerequisite table: public.%', required_table_name;
         END IF;
         IF NOT EXISTS (
             SELECT 1 FROM pg_class AS relation
             JOIN pg_namespace AS namespace ON namespace.oid = relation.relnamespace
             WHERE namespace.nspname = 'public'
-              AND relation.relname = table_name
+              AND relation.relname = required_table_name
               AND relation.relrowsecurity
         ) THEN
-            RAISE EXCEPTION 'RLS is not enabled on durable Free journey table: public.%', table_name;
+            RAISE EXCEPTION 'RLS is not enabled on durable Free journey table: public.%', required_table_name;
         END IF;
     END LOOP;
 
-    FOREACH column_name IN ARRAY ARRAY[
+    FOREACH required_column_name IN ARRAY ARRAY[
         'agent_runs.id',
         'agent_runs.workflow_name',
         'agent_runs.workflow_version',
@@ -68,12 +68,12 @@ BEGIN
         'agent_events.idempotency_key'
     ] LOOP
         IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = 'public'
-              AND table_name = split_part(column_name, '.', 1)
-              AND columns.column_name = split_part(column_name, '.', 2)
+            SELECT 1 FROM information_schema.columns AS schema_column
+            WHERE schema_column.table_schema = 'public'
+              AND schema_column.table_name = split_part(required_column_name, '.', 1)
+              AND schema_column.column_name = split_part(required_column_name, '.', 2)
         ) THEN
-            RAISE EXCEPTION 'Missing durable Free journey prerequisite column: public.%', column_name;
+            RAISE EXCEPTION 'Missing durable Free journey prerequisite column: public.%', required_column_name;
         END IF;
     END LOOP;
 
