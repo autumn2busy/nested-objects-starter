@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { frontmatter: fm } = guide
   return {
-    title: `${fm.title} | Nested Objects`,
+    title: fm.title,
     description: fm.description,
     keywords: fm.keywords,
     openGraph: {

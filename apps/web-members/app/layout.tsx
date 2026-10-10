@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { AcquisitionJourneyTracker } from '@/components/AcquisitionJourneyTracker'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth-provider'
@@ -89,6 +91,7 @@ export default function RootLayout({
 
   const intelligenceStaging = process.env.VERCEL_ENV === 'preview'
     && process.env.INTELLIGENCE_OS_ADMIN_ENABLED === 'true'
+  const googleTrackingEnabled = process.env.NODE_ENV === 'production' && !intelligenceStaging
   const acActId = intelligenceStaging ? undefined : process.env.NEXT_PUBLIC_AC_ACTID
 
   return (
@@ -133,7 +136,7 @@ export default function RootLayout({
       </head>
 
       <body className={cn(plusJakarta.variable, 'w-full overflow-x-clip font-sans text-text-primary')}>
-        {!intelligenceStaging && <noscript>
+        {googleTrackingEnabled && <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-5CTHWMFH"
             height="0"
@@ -151,8 +154,9 @@ export default function RootLayout({
 
         <AuthProvider>
           <DeferredOutsetaLoader />
-          {!intelligenceStaging && <DeferredGoogleTagManager />}
+          {googleTrackingEnabled && <DeferredGoogleTagManager />}
           {!intelligenceStaging && <ActiveCampaignTracker />}
+          {!intelligenceStaging && <Suspense fallback={null}><AcquisitionJourneyTracker /></Suspense>}
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
             <SiteHeader containerClassName={contentContainerClass} />
             <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>

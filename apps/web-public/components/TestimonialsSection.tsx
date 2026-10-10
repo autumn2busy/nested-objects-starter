@@ -166,7 +166,7 @@ export function TestimonialsSection({
       {/* CTA */}
       <div className="mt-10 text-center">
         <a
-          href="/membership-pricing"
+          href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_testimonials"
           className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-copperDark"
         >
           Join the community
