@@ -386,7 +386,7 @@ export class FreeJourneyOperationalSourceCollector {
   async #readCollection<T extends { id: string; contact: string }>(input: {
     baseUrl: string
     path: string
-    key: string
+    key: 'contactLists' | 'contactTags'
     schema: z.ZodType<T>
     contactId: string
     include?: string
@@ -402,10 +402,27 @@ export class FreeJourneyOperationalSourceCollector {
       if (input.include) url.searchParams.set('include', input.include)
       const body = await this.#request('activecampaign', url)
       input.onPage?.(body)
-      const record = z.record(z.string(), z.unknown()).parse(body)
-      const pageRows = z.array(input.schema).max(this.#policy.pageSize).parse(record[input.key])
-      const rawTotal = z.object({ total: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]) })
-        .parse(record.meta).total
+      const parsedRecord = z.record(z.string(), z.unknown()).safeParse(body)
+      if (!parsedRecord.success) throw new FreeJourneyOperationalSourceError('activecampaign_relationship_payload_invalid')
+      const record = parsedRecord.data
+      const parsedRows = z.array(input.schema).max(this.#policy.pageSize).safeParse(record[input.key])
+      if (!parsedRows.success) throw new FreeJourneyOperationalSourceError('activecampaign_relationship_rows_invalid')
+      const pageRows = parsedRows.data
+      // These two exact per-contact relationship endpoints return a whole scoped collection
+      // without meta.total. This is not a fallback for account-wide or arbitrary collections.
+      const wholeContactCollection = record.meta === undefined
+        && ['contactLists', 'contactTags'].includes(input.key)
+        && input.path === `/api/3/contacts/${input.contactId}/${input.key}`
+      if (wholeContactCollection && (page !== 0 || pageRows.length >= this.#policy.pageSize
+        || record.links !== undefined || record.next !== undefined || record.pagination !== undefined)) {
+        throw new FreeJourneyOperationalSourceError('activecampaign_relationship_coverage_unavailable')
+      }
+      const parsedMeta = z.object({ total: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]) })
+        .safeParse(record.meta)
+      if (!wholeContactCollection && !parsedMeta.success) {
+        throw new FreeJourneyOperationalSourceError('activecampaign_relationship_coverage_unavailable')
+      }
+      const rawTotal = wholeContactCollection ? pageRows.length : parsedMeta.data!.total
       const total = typeof rawTotal === 'number' ? rawTotal : Number(rawTotal)
       if (!Number.isSafeInteger(total) || (expectedTotal !== null && expectedTotal !== total)) {
         throw new FreeJourneyOperationalSourceError('activecampaign_relationship_total_changed')

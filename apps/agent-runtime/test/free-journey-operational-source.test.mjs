@@ -356,6 +356,113 @@ test('changed relationship totals are incomplete evidence, never an empty or com
   assert.equal(result.attemptedWrites, 0)
 })
 
+async function collectWholeRelationships(overrides = {}) {
+  const source = transport()
+  const relationshipCalls = []
+  const listBody = overrides.listBody ?? { contactLists: [
+    { id: '700', contact: '41', list: '12', form: '0', status: '1' },
+    { id: '701', contact: '41', list: '34', form: '90', status: '1' },
+  ] }
+  const tagBody = overrides.tagBody ?? { contactTags: [
+    { id: '900', contact: '41', tag: '800' },
+    { id: '901', contact: '41', tag: '801' },
+  ] }
+  const collector = new FreeJourneyOperationalSourceCollector({
+    policy: policy({ pageSize: 100, ...overrides.policy }), mode: 'fixture', now: () => now,
+    transport: async request => {
+      assert.equal(request.method, 'GET')
+      const url = new URL(request.url)
+      if (request.provider !== 'activecampaign' || url.pathname === '/api/3/contacts/41') return source.fn(request)
+      relationshipCalls.push(url)
+      if (url.pathname === '/api/3/contacts/41/contactLists') return { status: 200, body: listBody }
+      if (url.pathname === '/api/3/contacts/41/contactTags') return { status: 200, body: tagBody }
+      if (url.pathname === '/api/3/tags/800') return { status: 200, body: { tag: { id: overrides.tagId ?? '800', tag: 'plan-free' } } }
+      if (url.pathname === '/api/3/tags/801') return { status: 200, body: { tag: { id: '801', tag: 'wix historical import' } } }
+      throw new Error('Unexpected scoped relationship read')
+    },
+  })
+  return { result: await collector.collect({ storedSources: storedSources(), outsetaPersonUid: person, subscriptionUid: cycle }), relationshipCalls }
+}
+
+test('documented per-contact collections without meta resolve exact tag definitions with one relationship read each', async () => {
+  const { result, relationshipCalls } = await collectWholeRelationships()
+  assert.equal(result.status, 'ready')
+  assert.equal(result.coverage.contactLists, 2)
+  assert.equal(result.coverage.contactTags, 2)
+  assert.equal(result.external.memberships.rows[0].tier, 'free')
+  assert.equal(result.external.audience.rows[0].test, false)
+  assert.equal(result.external.audience.rows[0].hiringFirm, false)
+  assert.equal(result.attemptedWrites, 0)
+  assert.deepEqual(relationshipCalls.map(url => url.pathname), [
+    '/api/3/contacts/41/contactLists', '/api/3/contacts/41/contactTags', '/api/3/tags/800', '/api/3/tags/801',
+  ])
+  assert(relationshipCalls.filter(url => url.pathname.includes('/contacts/')).every(url => url.searchParams.get('offset') === '0'))
+})
+
+test('complete empty relationship responses never establish lifecycle email consent', async () => {
+  const { result } = await collectWholeRelationships({ listBody: { contactLists: [] }, tagBody: { contactTags: [] } })
+  assert.equal(result.status, 'ready')
+  assert.equal(result.coverage.contactLists, 0)
+  const preview = previewFreeJourneySources({
+    onboarding: {
+      outsetaPersonUid: person, now, maxSnapshotAgeMs: 60_000,
+      profiles: storedSources().profiles, completionEvents: storedSources().completionEvents,
+    }, ...result.external, consentRequests: storedSources().consentRequests,
+  })
+  assert.equal(preview.status, 'withheld')
+  assert(preview.reasons.includes('doi_relationship_missing_or_ambiguous'))
+  assert.equal(preview.attemptedWrites, 0)
+})
+
+test('unpaginated contact relations reject malformed roots, pagination hints, exact bounds and ambiguous identities', async () => {
+  const valid = { id: '700', contact: '41', list: '12', form: '0', status: '1' }
+  for (const [listBody, reason] of [
+    [[], 'activecampaign_relationship_payload_invalid'],
+    [{ contactLists: null }, 'activecampaign_relationship_rows_invalid'],
+    [{ contactLists: [valid], meta: null }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: [valid], meta: { total: 'invalid' } }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: [valid], links: { next: 'unreviewed' } }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: [valid], next: 'unreviewed' }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: [valid], pagination: {} }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: Array.from({ length: 100 }, (_, i) => ({ ...valid, id: String(700 + i) })) }, 'activecampaign_relationship_coverage_unavailable'],
+    [{ contactLists: Array.from({ length: 101 }, (_, i) => ({ ...valid, id: String(700 + i) })) }, 'activecampaign_relationship_rows_invalid'],
+    [{ contactLists: [{ ...valid, contact: '42' }] }, 'activecampaign_relationship_identity_conflict'],
+    [{ contactLists: [valid, valid] }, 'activecampaign_relationship_identity_conflict'],
+  ]) {
+    const { result, relationshipCalls } = await collectWholeRelationships({ listBody })
+    assert.equal(result.status, 'withheld')
+    assert.equal(result.reason, reason)
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(relationshipCalls.length, 1)
+  }
+  for (const tagBody of [
+    { contactTags: [{ id: '900', contact: '42', tag: '800' }] },
+    { contactTags: [{ id: '900', contact: '41', tag: '800' }, { id: '900', contact: '41', tag: '801' }] },
+  ]) {
+    const { result, relationshipCalls } = await collectWholeRelationships({ tagBody })
+    assert.equal(result.reason, 'activecampaign_relationship_identity_conflict')
+    assert.equal(relationshipCalls.length, 2)
+  }
+  const { result } = await collectWholeRelationships({ tagId: '802' })
+  assert.equal(result.reason, 'activecampaign_tag_identity_conflict')
+})
+
+test('a later paginated page lacking meta cannot switch to the per-contact whole collection contract', async () => {
+  const source = transport()
+  const collector = new FreeJourneyOperationalSourceCollector({
+    policy: policy(), mode: 'fixture', now: () => now,
+    transport: async request => {
+      const response = await source.fn(request)
+      const url = new URL(request.url)
+      if (url.pathname.endsWith('/contactLists') && url.searchParams.get('offset') === '1') delete response.body.meta
+      return response
+    },
+  })
+  const result = await collector.collect({ storedSources: storedSources(), outsetaPersonUid: person, subscriptionUid: cycle })
+  assert.equal(result.reason, 'activecampaign_relationship_coverage_unavailable')
+  assert.equal(result.attemptedWrites, 0)
+})
+
 test('complete tag reads preserve source tags while excluding explicit test audiences', async () => {
   const { result } = await collect({ tagName: 'test-contact' })
   assert.equal(result.status, 'ready')
