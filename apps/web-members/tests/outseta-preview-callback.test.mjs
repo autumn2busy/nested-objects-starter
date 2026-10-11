@@ -89,11 +89,13 @@ function serverLoaderProps(env) {
     'auth-provider': 'AuthProvider', ActiveCampaignTracker: 'ActiveCampaignTracker',
     SiteHeader: 'SiteHeader', SiteFooter: 'SiteFooter', MobileActionBar: 'MobileActionBar',
     DeferredGoogleTagManager: 'DeferredGoogleTagManager', DeferredOutsetaLoader: 'DeferredOutsetaLoader',
+    AcquisitionJourneyTracker: 'AcquisitionJourneyTracker',
   }
   vm.runInNewContext(layoutCode, {
     exports, URL, process: { env },
     require(name) {
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx }
+      if (name === 'react') return { Suspense: 'Suspense' }
       if (name === 'next/font/google') return { Plus_Jakarta_Sans: () => ({ variable: 'synthetic-font' }) }
       if (name === 'next/script') return { default: 'Script' }
       if (name === '@/lib/utils') return { cn: (...values) => values.join(' ') }

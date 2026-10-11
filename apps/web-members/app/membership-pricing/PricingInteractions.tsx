@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribution'
 
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
@@ -128,7 +129,7 @@ function usePricingActions() {
       planPaymentTerm,
     })
 
-    window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`
+    window.location.href = decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`, 'membership_pricing')
   }
 
   const openManageBilling = () => {

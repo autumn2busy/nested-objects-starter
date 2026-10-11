@@ -1,0 +1,29 @@
+{
+  "property": "properties/492401542",
+  "scope": "EVENT",
+  "eventParameters": [
+    "source_page",
+    "entry_page",
+    "cta_source",
+    "reason",
+    "target_plan",
+    "current_plan",
+    "widget_mode",
+    "is_authenticated",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "first_utm_source",
+    "first_utm_medium",
+    "first_utm_campaign",
+    "first_utm_content",
+    "first_utm_term",
+    "last_utm_source",
+    "last_utm_medium",
+    "last_utm_campaign",
+    "last_utm_content",
+    "last_utm_term"
+  ]
+}

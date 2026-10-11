@@ -6,6 +6,8 @@
  * events are also forwarded to ActiveCampaign from that server route.
  */
 
+import { acquisitionGa4Data, journeyAttribution } from '../../../packages/acquisition-attribution'
+
 declare global {
     interface Window {
         vgo?: (...args: any[]) => void
@@ -42,26 +44,12 @@ function getStoredId(storageName: 'localStorage' | 'sessionStorage', key: string
 
 function getAttributionContext(): EventData {
     if (typeof window === 'undefined') return {}
-
     const query = new URLSearchParams(window.location.search)
-    const context: EventData = {
-        sourcePage: window.location.pathname,
-    }
-
-    for (const key of ['source', 'reason', 'utm_source', 'utm_medium', 'utm_campaign']) {
+    const context: EventData = { ...journeyAttribution(), sourcePage: window.location.pathname }
+    for (const key of ['source', 'reason']) {
         const value = query.get(key)
         if (value) context[key] = value
     }
-
-    try {
-        const firstTouch = sessionStorage.getItem('ac_utm_first_touch')
-        const lastTouch = localStorage.getItem('ac_utm_last_touch')
-        const stored = firstTouch || lastTouch
-        if (stored) Object.assign(context, JSON.parse(stored))
-    } catch {
-        // Corrupt or unavailable browser storage should not interrupt tracking.
-    }
-
     return context
 }
 
@@ -115,17 +103,20 @@ export function trackEvent(eventName: string, eventData?: EventData): void {
 export function trackGa4Event(eventName: string, eventData?: EventData): void {
     if (typeof window === 'undefined') return
 
-    const payload = cleanEventData(eventData)
+    const acquisitionEvent = ['pricing_view', 'pricing_cta_click', 'join_free_click', 'signup_started',
+        'upgrade_clicked', 'upgrade_started', 'outseta_modal_open', 'paywall_hit'].includes(eventName)
+    const payload = acquisitionEvent ? acquisitionGa4Data(eventData) : cleanEventData(eventData)
 
     if (typeof window.gtag === 'function') {
-        window.gtag('event', eventName, payload)
+        window.gtag('event', eventName, acquisitionEvent ? { ...payload, send_to: 'G-NCQC8C8V6J' } : payload)
         return
     }
 
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({
-        event: eventName,
         ...payload,
+        event: eventName,
+        ...(acquisitionEvent ? { acquisition: payload } : {}),
     })
 }
 

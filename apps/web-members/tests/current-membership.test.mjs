@@ -78,7 +78,6 @@ const invalidCases = [
   ['missing plan', row => { delete row.CurrentSubscription.Plan }],
   ['missing effective end', row => { delete row.CurrentSubscription.EndDate }],
   ['malformed effective end', row => { row.CurrentSubscription.EndDate = 'tomorrow' }],
-  ['timezone-free effective end', row => { row.CurrentSubscription.EndDate = '2026-10-09T12:00:00' }],
   ['missing start', row => { delete row.CurrentSubscription.StartDate }],
   ['future subscription', row => { row.CurrentSubscription.StartDate = '2026-11-01T00:00:00Z' }],
   ['conflicting dates', row => { row.CurrentSubscription.EndDate = '2026-09-01T00:00:00Z' }],
@@ -162,6 +161,50 @@ test('a pending replacement subscription never displaces the effective current s
   row.Subscriptions = [row.LatestSubscription]
   assert.equal(evaluate(row).planUid, plans.PLAN_UIDS.ELITE)
   assert.equal(evaluate(row).subscriptionUid, 'current-cycle')
+})
+
+test('Outseta UTC timestamps without suffix establish current membership and preserve the exact end boundary', () => {
+  const row = account()
+  row.CurrentSubscription.StartDate = '2026-10-01T00:00:00'
+  assert.equal(evaluate(row).status, 'verified')
+  row.AccountStage = 4
+  row.CurrentSubscription.EndDate = '2026-10-08T12:00:01.1234567'
+  const end = Date.parse('2026-10-08T12:00:01.1234567Z')
+  const before = evaluate(row, person(), claims, end - 1)
+  assert.equal(before.status, 'verified')
+  assert.equal(before.accessEndsAt, '2026-10-08T12:00:01.1234567Z')
+  assert.equal(evaluate(row, person(), claims, end).status, 'expired')
+  assert.equal(evaluate(row, person(), claims, end + 1).status, 'expired')
+  row.CurrentSubscription.StartDate = '2026-10-09T00:00:00'
+  assert.equal(evaluate(row).reason, 'subscription_start_unverified')
+})
+
+test('explicit offsets and UTC suffixes preserve their meaning', () => {
+  for (const end of ['2026-10-08T12:00:01Z', '2026-10-08T08:00:01-04:00', '2026-10-08T17:30:01+05:30']) {
+    const row = account()
+    row.CurrentSubscription.EndDate = end
+    assert.equal(evaluate(row, person(), claims, now + 999).status, 'verified')
+    assert.equal(evaluate(row, person(), claims, now + 1000).status, 'expired')
+  }
+})
+
+test('timezone normalization never accepts impossible, incomplete or malformed timestamps', () => {
+  for (const value of ['2026-02-30T00:00:00', '2026-04-31T00:00:00Z', '2026-00-10T00:00:00',
+    '2026-13-01T00:00:00', '2026-10-08T24:00:00', '2026-10-08T00:60:00', '2026-10-08T00:00:60',
+    '2026-10-08', '2026-10-08 12:00:00', '2026-10-08T12:00:00+99:00', '2026-10-08T12:00:00Zjunk',
+    '0000-01-01T00:00:00', '', null, undefined]) {
+    for (const field of ['StartDate', 'EndDate']) {
+      if (field === 'EndDate' && value === null) continue
+      const row = account()
+      row.CurrentSubscription[field] = value
+      assert.equal(evaluate(row).status, 'unknown', `${field}: ${value}`)
+    }
+  }
+  const row = account()
+  row.CurrentSubscription.StartDate = '2024-02-29T00:00:00'
+  assert.equal(evaluate(row).status, 'verified')
+  row.CurrentSubscription.StartDate = '2025-02-29T00:00:00'
+  assert.equal(evaluate(row).status, 'unknown')
 })
 test('expiry is evaluated after the provider response, not at request start', async () => {
   const row = account()
@@ -266,6 +309,18 @@ test('session and server gates resolve upgraded Elite access from an unchanged F
   assert.equal(h.writes.length, 0)
   assert.ok(h.transport.reads.every(read => read.init.headers.Authorization === `Bearer ${oldToken}`))
   assert.match(response.headers.get('cache-control'), /private, no-store/)
+})
+test('verified session exposes a timezone-qualified end after a timezone-free provider response', async () => {
+  const row = account()
+  row.CurrentSubscription.StartDate = '2026-10-01T00:00:00'
+  row.CurrentSubscription.EndDate = '2026-10-08T12:00:01'
+  const h = await sessionHarness(reader({ accountValue: row }))
+  const data = await (await h.session.GET()).json()
+  assert.equal(data.user.membershipStatus, 'verified')
+  assert.equal(data.user.membershipReason, 'current_subscription_verified')
+  assert.equal(data.user.membershipAccessEndsAt, '2026-10-08T12:00:01Z')
+  assert.equal(data.planUid, plans.PLAN_UIDS.ELITE)
+  assert.equal(h.writes.length, 0)
 })
 for (const scenario of [{ failAt: 1 }, { accountValue: { ...account(), AccountStage: 5 } }]) {
   test(`unavailable/expired membership preserves signed-in identity but strips plan and cycle: ${JSON.stringify(scenario)}`, async () => {

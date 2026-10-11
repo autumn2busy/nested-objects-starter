@@ -8,6 +8,8 @@
  * On signup / contact sync, attach these as AC custom fields.
  */
 
+import { captureJourneyAttribution } from '../../../packages/acquisition-attribution'
+
 const UTM_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const
 
 type UtmData = Partial<Record<(typeof UTM_PARAMS)[number] | 'landing_page' | 'signup_source', string>>
@@ -20,32 +22,7 @@ const LOCAL_KEY = 'ac_utm_last_touch'
  * Captures UTM params from the current URL and stores them.
  */
 export function captureAttribution(): void {
-    if (typeof window === 'undefined') return
-
-    const url = new URL(window.location.href)
-    const utmData: UtmData = {}
-    let hasUtm = false
-
-    for (const param of UTM_PARAMS) {
-        const value = url.searchParams.get(param)
-        if (value) {
-            utmData[param] = value
-            hasUtm = true
-        }
-    }
-
-    if (!hasUtm) return
-
-    // Always record landing page
-    utmData.landing_page = window.location.pathname
-
-    // First-touch: only set if not already present in this session
-    if (!sessionStorage.getItem(SESSION_KEY)) {
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(utmData))
-    }
-
-    // Last-touch: always overwrite
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(utmData))
+    captureJourneyAttribution()
 }
 
 /**

@@ -15,9 +15,21 @@ const record = (value: unknown): RecordValue | null =>
   value !== null && typeof value === 'object' && !Array.isArray(value) ? value as RecordValue : null
 const identifier = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Za-z0-9_-]{1,160}$/.test(value)
-const timestamp = (value: unknown): value is string => typeof value === 'string'
-  && /^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value)
-  && Number.isFinite(Date.parse(value))
+// Outseta timestamps are UTC, including responses without a timezone suffix.
+// https://docs.outseta.com/ (Conventions); the official SDK also appends Z.
+// Normalize before parsing so server/browser timezones cannot move access bounds.
+function timestamp(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,7})?(Z|[+-]\d{2}:\d{2})?$/.exec(value)
+  if (!parts) return null
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText, zone] = parts
+  const [year, month, day, hour, minute, second] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number)
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth
+    || hour > 23 || minute > 59 || second > 59) return null
+  const normalized = zone ? value : `${value}Z`
+  return Number.isFinite(Date.parse(normalized)) ? normalized : null
+}
 
 function withheld(status: Exclude<MembershipStatus, 'verified'>, reason: string): CurrentMembership {
   return { status, reason, planUid: null, subscriptionUid: null, accessEndsAt: null }
@@ -52,21 +64,22 @@ export function evaluateCurrentMembership(
   if (subscription.Account !== undefined && record(subscription.Account)?.Uid !== account.Uid) {
     return withheld('unknown', 'subscription_account_mismatch')
   }
-  if (!timestamp(subscription.StartDate) || Date.parse(subscription.StartDate) > now) {
+  const start = timestamp(subscription.StartDate)
+  if (!start || Date.parse(start) > now) {
     return withheld('unknown', 'subscription_start_unverified')
   }
   // Missing is not null. Never substitute RenewalDate or a cancellation request
   // timestamp for the current subscription's effective EndDate.
-  const end = subscription.EndDate
-  if (end !== null && !timestamp(end)) return withheld('unknown', 'subscription_end_unverified')
-  if (end !== null && Date.parse(end as string) < Date.parse(subscription.StartDate)) {
+  const end = subscription.EndDate === null ? null : timestamp(subscription.EndDate)
+  if (subscription.EndDate !== null && end === null) return withheld('unknown', 'subscription_end_unverified')
+  if (end !== null && Date.parse(end) < Date.parse(start)) {
     return withheld('unknown', 'subscription_dates_conflict')
   }
-  if (end !== null && Date.parse(end as string) <= now) return withheld('expired', 'subscription_ended')
+  if (end !== null && Date.parse(end) <= now) return withheld('expired', 'subscription_ended')
   if ((stage === 4 || stage === 8) && end === null) return withheld('unknown', 'cancellation_end_unverified')
   return {
     status: 'verified', reason: 'current_subscription_verified', planUid,
-    subscriptionUid: subscription.Uid, accessEndsAt: end as string | null,
+    subscriptionUid: subscription.Uid, accessEndsAt: end,
   }
 }
 
@@ -77,8 +90,8 @@ function dateShape(value: unknown): string {
   if (value === undefined) return 'missing'
   if (value === null) return 'null'
   if (typeof value !== 'string') return 'not_string'
-  if (timestamp(value)) return 'timestamp_with_timezone'
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(value)) return 'timestamp_without_timezone'
+  if (timestamp(value)) return 'timestamp_with_timezone'
   return 'invalid'
 }
 
