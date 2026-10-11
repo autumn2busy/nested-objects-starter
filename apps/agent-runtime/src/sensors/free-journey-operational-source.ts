@@ -11,6 +11,14 @@ const PURPOSE = 'free_onboarding_and_conversion_email' as const
 const ref = z.string().regex(/^[A-Za-z0-9_-]{1,160}$/)
 const numericId = z.string().regex(/^\d+$/)
 const timestamp = z.string().datetime({ offset: true })
+// Outseta documents UTC timestamps and can omit the timezone on full timestamps.
+// Normalize only that provider shape; policy and other source timestamps stay strict.
+const outsetaTimestamp = z.string().transform((value, context) => {
+  const normalized = normalizeOutsetaTimestamp(value)
+  if (normalized !== null) return normalized
+  context.addIssue({ code: 'custom', message: 'Invalid Outseta timestamp' })
+  return z.NEVER
+})
 const email = z.string().email().max(320)
 const policySchema = z.object({
   reviewRef: ref,
@@ -54,7 +62,7 @@ const personAccountSchema = z.object({
 })
 const subscriptionSchema = z.object({
   Uid: ref,
-  StartDate: timestamp,
+  StartDate: outsetaTimestamp,
   Plan: z.object({ Uid: ref, Name: z.string().max(200).nullable().optional() }),
 })
 const accountSchema = z.object({
@@ -62,7 +70,7 @@ const accountSchema = z.object({
   IsDemo: z.boolean().nullable(),
   AccountStage: z.number().int().nonnegative().nullable(),
   AccountStageLabel: z.string().max(100).nullable(),
-  Created: timestamp,
+  Created: outsetaTimestamp,
   CurrentSubscription: subscriptionSchema.nullable(),
   PersonAccount: z.array(personAccountSchema).max(100),
 })
@@ -203,7 +211,20 @@ export class FreeJourneyOperationalSourceCollector {
         new URL(`/api/v1/crm/accounts/${encodeURIComponent(profile.outseta_account_id)}?fields=${encodeURIComponent(OUTSETA_FIELDS)}`,
           `https://${this.#policy.outsetaHostname}`),
       )
-      const account = accountSchema.parse(accountBody)
+      const parsedAccount = accountSchema.safeParse(accountBody)
+      if (!parsedAccount.success) {
+        const paths = parsedAccount.error.issues.map(issue => issue.path.join('.'))
+        if (paths.includes('Created')) return withheld('outseta_account_created_invalid')
+        if (paths.includes('CurrentSubscription.StartDate')) return withheld('outseta_subscription_start_invalid')
+        if (paths.includes('AccountStageLabel')) return withheld('outseta_account_stage_label_invalid')
+        if (paths.includes('AccountStage')) return withheld('outseta_account_stage_invalid')
+        if (paths.includes('IsDemo')) return withheld('outseta_account_demo_flag_invalid')
+        if (paths.some(path => path === 'PersonAccount' || path.startsWith('PersonAccount.'))) {
+          return withheld('outseta_account_person_links_invalid')
+        }
+        return withheld('outseta_account_schema_invalid')
+      }
+      const account = parsedAccount.data
       if (account.Uid !== profile.outseta_account_id) return withheld('outseta_account_link_conflict')
       if (account.IsDemo !== false) return withheld('outseta_demo_or_demo_state_unknown')
       const primary = account.PersonAccount.filter(link => link.IsPrimary === true && link.Person)
@@ -222,7 +243,9 @@ export class FreeJourneyOperationalSourceCollector {
 
       const acBase = `https://${this.#policy.activeCampaignHostname}`
       const rawContact = await this.#request('activecampaign', new URL(`/api/3/contacts/${profile.ac_contact_id}`, acBase))
-      const contact = contactSchema.parse(z.object({ contact: z.unknown() }).parse(rawContact).contact)
+      const parsedContact = z.object({ contact: contactSchema }).safeParse(rawContact)
+      if (!parsedContact.success) return withheld('activecampaign_contact_schema_invalid')
+      const contact = parsedContact.data.contact
       if (contact.id !== profile.ac_contact_id || normalizeEmail(contact.email) !== profileEmail) {
         return withheld('activecampaign_contact_link_conflict')
       }
@@ -363,7 +386,7 @@ export class FreeJourneyOperationalSourceCollector {
   async #readCollection<T extends { id: string; contact: string }>(input: {
     baseUrl: string
     path: string
-    key: string
+    key: 'contactLists' | 'contactTags'
     schema: z.ZodType<T>
     contactId: string
     include?: string
@@ -379,10 +402,27 @@ export class FreeJourneyOperationalSourceCollector {
       if (input.include) url.searchParams.set('include', input.include)
       const body = await this.#request('activecampaign', url)
       input.onPage?.(body)
-      const record = z.record(z.string(), z.unknown()).parse(body)
-      const pageRows = z.array(input.schema).max(this.#policy.pageSize).parse(record[input.key])
-      const rawTotal = z.object({ total: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]) })
-        .parse(record.meta).total
+      const parsedRecord = z.record(z.string(), z.unknown()).safeParse(body)
+      if (!parsedRecord.success) throw new FreeJourneyOperationalSourceError('activecampaign_relationship_payload_invalid')
+      const record = parsedRecord.data
+      const parsedRows = z.array(input.schema).max(this.#policy.pageSize).safeParse(record[input.key])
+      if (!parsedRows.success) throw new FreeJourneyOperationalSourceError('activecampaign_relationship_rows_invalid')
+      const pageRows = parsedRows.data
+      // These two exact per-contact relationship endpoints return a whole scoped collection
+      // without meta.total. This is not a fallback for account-wide or arbitrary collections.
+      const wholeContactCollection = record.meta === undefined
+        && ['contactLists', 'contactTags'].includes(input.key)
+        && input.path === `/api/3/contacts/${input.contactId}/${input.key}`
+      if (wholeContactCollection && (page !== 0 || pageRows.length >= this.#policy.pageSize
+        || record.links !== undefined || record.next !== undefined || record.pagination !== undefined)) {
+        throw new FreeJourneyOperationalSourceError('activecampaign_relationship_coverage_unavailable')
+      }
+      const parsedMeta = z.object({ total: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]) })
+        .safeParse(record.meta)
+      if (!wholeContactCollection && !parsedMeta.success) {
+        throw new FreeJourneyOperationalSourceError('activecampaign_relationship_coverage_unavailable')
+      }
+      const rawTotal = wholeContactCollection ? pageRows.length : parsedMeta.data!.total
       const total = typeof rawTotal === 'number' ? rawTotal : Number(rawTotal)
       if (!Number.isSafeInteger(total) || (expectedTotal !== null && expectedTotal !== total)) {
         throw new FreeJourneyOperationalSourceError('activecampaign_relationship_total_changed')
@@ -427,7 +467,12 @@ export class FreeJourneyOperationalSourceCollector {
         cache: 'no-store',
       }), timeout])
       this.#assertReview()
-      if (response.status !== 200) throw new FreeJourneyOperationalSourceError('source_http_failure')
+      if (response.status !== 200) {
+        const reason = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599
+          ? `${provider}_http_failure_${response.status}`
+          : 'source_http_failure'
+        throw new FreeJourneyOperationalSourceError(reason)
+      }
       return response.body
     } catch (error) {
       if (error instanceof FreeJourneyOperationalSourceError) throw error
@@ -451,6 +496,23 @@ const planTiers = {
   [FREE_PLAN_UID]: 'free', zWZD0rQp: 'starter', pWrBRnWn: 'founders',
   rQVqlLm6: 'pro', NmdnNO90: 'elite', rmk5Xk9g: 'agency',
 } as const
+
+function normalizeOutsetaTimestamp(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,7})?(Z|[+-]\d{2}:\d{2})?$/.exec(value)
+  if (!match) return null
+  const year = Number(match[1]), month = Number(match[2]), day = Number(match[3])
+  const hour = Number(match[4]), minute = Number(match[5]), second = Number(match[6])
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1]!
+    || hour > 23 || minute > 59 || second > 59) return null
+  const zone = match[7]
+  if (zone && zone !== 'Z'
+    && (Number(zone.slice(1, 3)) > 23 || Number(zone.slice(4, 6)) > 59)) return null
+  const qualified = zone ? value : `${value}Z`
+  const parsed = Date.parse(qualified)
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null
+}
 
 function authoritativeTier(planUid: string): 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown' {
   return planTiers[planUid as keyof typeof planTiers] ?? 'unknown'
@@ -489,6 +551,11 @@ async function defaultTransport(request: FreeJourneyOperationalSourceRequest) {
     redirect: request.redirect,
     cache: request.cache,
   })
+  // Failed reads are unknown evidence. Preserve only provider/status; never consume their bodies.
+  if (response.status !== 200) {
+    await response.body?.cancel()
+    return { status: response.status, body: null }
+  }
   const bodyText = await response.text()
   if (new TextEncoder().encode(bodyText).byteLength > 256 * 1024) {
     throw new FreeJourneyOperationalSourceError('source_response_too_large')
