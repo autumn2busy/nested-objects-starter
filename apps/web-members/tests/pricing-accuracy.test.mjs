@@ -57,6 +57,7 @@ const interactions = load('../app/membership-pricing/PricingInteractions.tsx', {
   '@/lib/ai-datasets': datasets,
   '@/lib/plan-config': planConfig,
   '@/lib/ac-events': analytics,
+  '../../../../packages/acquisition-attribution': { decorateAcquisitionUrl: href => href },
 })
 const testimonialComponents = load('../components/TestimonialsSection.tsx', {
   '@/lib/testimonials': testimonials,
@@ -77,7 +78,7 @@ const page = load('../app/membership-pricing/page.tsx', {
 })
 const chromeImports = Object.fromEntries([
   'ActiveCampaignTracker', 'SiteHeader', 'SiteFooter', 'MobileActionBar',
-  'DeferredGoogleTagManager', 'DeferredOutsetaLoader',
+  'DeferredGoogleTagManager', 'DeferredOutsetaLoader', 'AcquisitionJourneyTracker',
 ].map(name => [`@/components/${name}`, { [name]: () => null }]))
 const layout = load('../app/layout.tsx', {
   ...chromeImports,

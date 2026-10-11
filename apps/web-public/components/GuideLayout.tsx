@@ -59,7 +59,7 @@ function DirectorySidebar() {
       <p className="mt-2 text-lg font-bold text-slate-900">460+ Firms</p>
       <p className="mt-1 text-xs text-slate-600">Pay data, ratings, and apply links</p>
       <a
-        href="https://members.nestedobjects.com/hiring-firms"
+        href="https://members.nestedobjects.com/hiring-firms" data-acquisition-source="public_guide_1"
         className="mt-3 block rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
       >
         View Directory
