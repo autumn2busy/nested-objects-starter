@@ -230,6 +230,84 @@ test('missing or contradictory stable authority withholds before downstream use'
   assert.equal(result.reason, 'profile_stable_link_invalid')
 })
 
+test('Outseta full timestamps normalize as UTC without weakening identity or journey gates', async () => {
+  for (const start of [
+    '2026-09-01T12:00:00', '2026-09-01T12:00:00.0000000',
+    '2026-09-01T12:00:00Z', '2026-09-01T08:00:00-04:00',
+  ]) {
+    const subscription = { ...accountBody().CurrentSubscription, StartDate: start }
+    const { result } = await collect({ account: { Created: '2026-09-01T12:00:00', CurrentSubscription: subscription } })
+    assert.equal(result.status, 'ready')
+    assert.equal(result.external.memberships.rows[0].cycleStartedAt, '2026-09-01T12:00:00.000Z')
+    const preview = previewFreeJourneySources({
+      onboarding: {
+        outsetaPersonUid: person, now, maxSnapshotAgeMs: 60_000,
+        profiles: storedSources().profiles, completionEvents: storedSources().completionEvents,
+      }, ...result.external, consentRequests: storedSources().consentRequests,
+    })
+    assert.equal(preview.status, 'ready_for_writer_review')
+    assert.equal(preview.attemptedWrites, 0)
+  }
+  const { result } = await collect({ account: {
+    CurrentSubscription: { ...accountBody().CurrentSubscription, Uid: 'OtherCycle', StartDate: '2026-09-01T12:00:00' },
+  } })
+  assert.equal(result.reason, 'outseta_current_subscription_conflict')
+})
+
+test('invalid Outseta timestamp calendars and unknown shapes withhold before AC reads', async () => {
+  for (const value of [
+    '2026-09-01', '2026-02-29T12:00:00', '2024-02-30T12:00:00', '0000-01-01T00:00:00',
+    '2026-13-01T12:00:00', '2026-01-00T12:00:00', '2026-01-01T24:00:00',
+    '2026-01-01T12:60:00', '2026-01-01T12:00:60', '2026-01-01T12:00:00+24:00',
+    '2026-01-01T12:00:00+01:60', '2026-09-01 12:00:00', '2026-09-01T12:00:00.12345678',
+    'private-value@example.com',
+  ]) {
+    for (const field of ['created', 'start']) {
+      const changes = field === 'created' ? { Created: value }
+        : { CurrentSubscription: { ...accountBody().CurrentSubscription, StartDate: value } }
+      const { result, calls } = await collect({ account: changes })
+      assert.equal(result.reason, field === 'created' ? 'outseta_account_created_invalid' : 'outseta_subscription_start_invalid')
+      assert.equal(result.status, 'withheld')
+      assert.equal(result.coverage, null)
+      assert.equal(result.attemptedWrites, 0)
+      assert.equal(calls.length, 1)
+      assert.equal(JSON.stringify(result).includes(value), false)
+    }
+  }
+  const { result } = await collect({ account: { PersonAccount: null } })
+  assert.equal(result.reason, 'outseta_account_person_links_invalid')
+})
+
+test('normalized future subscription start still withholds journey eligibility', async () => {
+  const { result } = await collect({ account: {
+    CurrentSubscription: { ...accountBody().CurrentSubscription, StartDate: '2026-10-11T12:00:00' },
+  } })
+  assert.equal(result.status, 'ready')
+  const preview = previewFreeJourneySources({
+    onboarding: {
+      outsetaPersonUid: person, now, maxSnapshotAgeMs: 60_000,
+      profiles: storedSources().profiles, completionEvents: storedSources().completionEvents,
+    }, ...result.external, consentRequests: storedSources().consentRequests,
+  })
+  assert.equal(preview.status, 'withheld')
+  assert.equal(preview.attemptedWrites, 0)
+})
+
+test('invalid source metadata reports allowlisted field diagnostics without values', async () => {
+  for (const [changes, reason] of [
+    [{ AccountStageLabel: 3 }, 'outseta_account_stage_label_invalid'],
+    [{ AccountStage: 'private-value@example.com' }, 'outseta_account_stage_invalid'],
+    [{ IsDemo: 'private-value@example.com' }, 'outseta_account_demo_flag_invalid'],
+    [{ Uid: null }, 'outseta_account_schema_invalid'],
+  ]) {
+    const { result, calls } = await collect({ account: changes })
+    assert.equal(result.reason, reason)
+    assert.equal(calls.length, 1)
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(JSON.stringify(result).includes('private-value@example.com'), false)
+  }
+})
+
 test('provider HTTP failures report only safe status evidence and stop downstream reads', async () => {
   for (const provider of ['outseta', 'activecampaign']) {
     for (const status of [401, 403, 404, 429, 503]) {
