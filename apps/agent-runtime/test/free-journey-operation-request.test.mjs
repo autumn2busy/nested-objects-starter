@@ -279,6 +279,80 @@ test('runtime remains default-disabled and requires explicit Preview or exact Pr
   ), FreeJourneyOperationConfigurationError)
 })
 
+test('default transport uses documented Outseta authentication and reloads changed credentials', async t => {
+  const authorizationHeaders = []
+  let supabaseReads = 0
+  t.mock.method(globalThis, 'fetch', async (input, init) => {
+    const request = new Request(input, init)
+    const url = new URL(request.url)
+    assert.equal(request.method, 'GET')
+    assert.equal(request.redirect, 'error')
+    assert.equal(request.cache, 'no-store')
+    if (url.hostname === 'abcdefghijklmnopqrst.supabase.co') {
+      supabaseReads++
+      assert.equal(request.headers.get('authorization'), `Bearer ${environment().SUPABASE_SERVICE_ROLE_KEY}`)
+      const row = url.pathname.endsWith('/profiles')
+        ? profileRow()
+        : receipt(url.searchParams.get('event_name').slice(3))
+      return new Response(JSON.stringify([row]), { status: 200, headers: {
+        'content-type': 'application/json', 'content-range': '0-0/1', 'preference-applied': 'count=exact',
+      } })
+    }
+    assert.equal(url.origin, 'https://nested-objects.outseta.com')
+    assert.equal(url.pathname, `/api/v1/crm/accounts/${account}`)
+    assert.deepEqual([...url.searchParams.keys()], ['fields'])
+    assert(url.searchParams.get('fields').includes('CurrentSubscription.Plan.Uid'))
+    assert(url.searchParams.get('fields').includes('PersonAccount.Person.Uid'))
+    assert.equal(request.headers.get('accept'), 'application/json')
+    assert.equal(request.headers.get('api-token'), null)
+    assert.equal(request.headers.get('apikey'), null)
+    authorizationHeaders.push(request.headers.get('authorization'))
+    return new Response('Ignored non-JSON authentication error', { status: 401 })
+  })
+
+  for (const [apiKey, apiSecret] of [
+    ['synthetic-FIRST-key', 'synthetic-FIRST-secret'],
+    ['synthetic-SECOND-key', 'synthetic-SECOND-secret'],
+  ]) {
+    const result = await evaluateSignedFreeJourneyOperationRequest(signedRequest(), environment({
+      OUTSETA_HOSTNAME: '  NESTED-OBJECTS.OUTSETA.COM  ',
+      OUTSETA_API_KEY: `  ${apiKey}  `,
+      OUTSETA_API_SECRET: `  ${apiSecret}  `,
+    }), { now: () => now, mode: 'approved_live' })
+    assert.equal(result.status, 'withheld')
+    assert.deepEqual(result.reasons, ['outseta_http_failure_401'])
+    assert.equal(result.desiredStage, null)
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(result.confirmedWrites, 0)
+    assert.equal(result.automaticRetry, false)
+    assert.deepEqual(result.steps, [])
+    assert(!/synthetic-FIRST|synthetic-SECOND|Ignored non-JSON|SyntheticAccount/.test(JSON.stringify(result)))
+  }
+  assert.equal(supabaseReads, 6)
+  assert.deepEqual(authorizationHeaders, [
+    'Outseta synthetic-FIRST-key:synthetic-FIRST-secret',
+    'Outseta synthetic-SECOND-key:synthetic-SECOND-secret',
+  ])
+})
+
+test('Outseta tenant configuration rejects URL and authority injection before fetching', async t => {
+  let reads = 0
+  t.mock.method(globalThis, 'fetch', () => { reads++; throw new Error('Unexpected fetch') })
+  for (const hostname of [
+    'https://nested-objects.outseta.com',
+    'nested-objects.outseta.com/api/v1',
+    'user@nested-objects.outseta.com',
+    'nested-objects.outseta.com:443',
+    'nested-objects.outseta.com?tenant=other',
+    'nested-objects.outseta.com.example.test',
+  ]) {
+    await assert.rejects(evaluateSignedFreeJourneyOperationRequest(
+      signedRequest(), environment({ OUTSETA_HOSTNAME: hostname }), { now: () => now, mode: 'approved_live' },
+    ), FreeJourneyOperationConfigurationError)
+  }
+  assert.equal(reads, 0)
+})
+
 test('signed Preview can verify automation 527 while it remains inactive', async () => {
   const deps = dependencies({ automationStatus: '2' })
   const result = await evaluateSignedFreeJourneyOperationRequest(
