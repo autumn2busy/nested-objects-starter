@@ -444,6 +444,22 @@ test('later confirmed DOI re-evaluates the same event from withheld to ready wit
   assert([...beforeDeps.calls, ...afterDeps.calls].every(call => call.method === 'GET'))
 })
 
+for (const kind of ['consent_recorded', 'consent_check_requested']) {
+  test(`${kind} requires independently confirmed DOI and preserves zero-write Preview`, async () => {
+    const unconfirmed = dependencies({ noDoi: true })
+    const confirmed = dependencies()
+    const request = () => signedRequest({ sourceEvent: sourceEvent(kind) })
+    const before = await evaluateSignedFreeJourneyOperationRequest(request(), environment(), unconfirmed.value)
+    const after = await evaluateSignedFreeJourneyOperationRequest(request(), environment(), confirmed.value)
+    assert.equal(before.status, 'withheld')
+    assert.equal(after.status, 'ready')
+    assert.equal(after.attemptedWrites, 0)
+    assert.equal(after.confirmedWrites, 0)
+    assert.equal([...unconfirmed.calls, ...confirmed.calls].every(call => call.method === 'GET'), true)
+    assert.notEqual(sourceEvent(kind).idempotencyKey, sourceEvent('signup').idempotencyKey)
+  })
+}
+
 test('HTTP surface rejects unsupported methods and bad signatures with sanitized responses', async () => {
   const get = await freeJourneyEndpoint.fetch(new Request(`${origin}${pathname}`, { method: 'GET' }))
   assert.equal(get.status, 405)

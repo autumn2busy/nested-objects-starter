@@ -1,10 +1,10 @@
-import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import type { ConversionEventSourceRow } from '../projections/member-projection.js'
 import { adaptFreeOnboardingCompletion, deriveSavedProfileInputs } from './free-onboarding-evidence.js'
 import type { FreeOnboardingEvidenceInput, FreeOnboardingEvidenceResult } from './free-onboarding-evidence.js'
 import type { MilestoneReadSnapshot } from './income-scenario-evidence.js'
+import { freeJourneyConsentKey, freeJourneyConsentSourceRowSchema, isCurrentCycleConsentReceipt } from './free-journey-consent-receipt.js'
 
 const EVENT = 'lifecycle_email_consent_requested'
 const PURPOSE = 'free_onboarding_and_conversion_email'
@@ -23,15 +23,7 @@ const historicalSchema = z.object({
     activeCampaignSuppressed: z.literal(false),
   }).strict(),
 }).strict()
-const receiptSchema = z.object({
-  id: z.string().uuid(), client_event_id: z.string(), event_name: z.literal(EVENT),
-  member_uid: id, source_page: z.literal('/welcome'), source: z.literal('member_consent'),
-  occurred_at: timestamp,
-  event_data: z.object({
-    sourcePage: z.literal('/welcome'), source: z.literal('member_consent'),
-    consentContract: z.literal('v1'), purpose: z.literal(PURPOSE), lifecycleCycleId: id,
-  }).strict(),
-})
+const receiptSchema = freeJourneyConsentSourceRowSchema
 const identitySchema = z.object({
   canonicalMemberId: z.string().uuid(), outsetaPersonUid: id, outsetaAccountUid: id,
   subscriptionUid: id, activeCampaignContactId: numericId, identityState: z.literal('verified'),
@@ -124,8 +116,10 @@ export function previewFreeJourneySources(input: FreeJourneySourcePreviewInput):
   ] as const) {
     if (!snapshot || snapshot.coverage !== 'complete' || !Array.isArray(snapshot.rows)) return hold(`${name}_lookup_incomplete`)
     if (!fresh(snapshot.observedAt)) return hold(`${name}_lookup_stale_or_future`)
-    const expectedRows = historical && name === 'consent_receipt' ? 0 : 1
-    if (name !== 'contact_lists' && snapshot.rows.length !== expectedRows) return hold(`${name}_lookup_missing_or_ambiguous`)
+    if (name === 'consent_receipt') {
+      const validCount = historical ? snapshot.rows.length === 0 : snapshot.rows.length >= 1 && snapshot.rows.length <= 2
+      if (!validCount) return hold(`${name}_lookup_missing_or_ambiguous`)
+    } else if (name !== 'contact_lists' && snapshot.rows.length !== 1) return hold(`${name}_lookup_missing_or_ambiguous`)
   }
   const identity = identitySchema.safeParse(input.identities.rows[0])
   const membership = membershipSchema.safeParse(input.memberships.rows[0])
@@ -173,17 +167,32 @@ export function previewFreeJourneySources(input: FreeJourneySourcePreviewInput):
     }
     historicalConsent = evidence
   } else {
-    const receipt = receiptSchema.safeParse(input.consentRequests.rows[0])
-    if (!receipt.success) return hold('consent_receipt_contract_invalid')
-    row = receipt.data
-    const expectedKey = `${EVENT}:v1:${createHash('sha256').update(JSON.stringify([
-      EVENT, 'v1', member.outsetaPersonUid, member.subscriptionUid, PURPOSE,
-    ])).digest('hex')}`
-    if (row.member_uid !== member.outsetaPersonUid || row.event_data.lifecycleCycleId !== member.subscriptionUid
-      || row.client_event_id !== expectedKey) return hold('consent_receipt_subject_cycle_or_key_mismatch')
-    const requestedAt = Date.parse(row.occurred_at)
-    if (requestedAt < Date.parse(member.memberSince) || requestedAt < Date.parse(member.cycleStartedAt)
-      || requestedAt > Date.parse(input.consentRequests.observedAt) || requestedAt > now) return hold('consent_receipt_chronology_invalid')
+    const receipts = []
+    const versions = new Set<string>()
+    for (const value of input.consentRequests.rows) {
+      const receipt = receiptSchema.safeParse(value)
+      if (!receipt.success) return hold('consent_receipt_contract_invalid')
+      const candidate = receipt.data
+      const contract = candidate.event_data.consentContract
+      if (versions.has(contract)) return hold('consent_receipt_lookup_missing_or_ambiguous')
+      versions.add(contract)
+      if (candidate.member_uid !== member.outsetaPersonUid || candidate.event_data.lifecycleCycleId !== member.subscriptionUid
+        || candidate.client_event_id !== freeJourneyConsentKey(member.outsetaPersonUid, member.subscriptionUid, contract)
+        || (contract === 'signup-v1' && candidate.event_data.outsetaAccountUid !== member.outsetaAccountUid)) {
+        return hold('consent_receipt_subject_cycle_or_key_mismatch')
+      }
+      if (!isCurrentCycleConsentReceipt({
+        clientEventId: candidate.client_event_id, eventName: EVENT, memberUid: candidate.member_uid,
+        occurredAt: candidate.occurred_at, eventData: candidate.event_data,
+      }, { ...member, observedAt: input.consentRequests.observedAt, now: input.onboarding.now })) {
+        return hold('consent_receipt_chronology_invalid')
+      }
+      receipts.push(candidate)
+    }
+    // Both versions assert the same verified subject, cycle and purpose. Validate every row
+    // before retaining the first actual request; an invalid or duplicate version withholds all.
+    row = receipts.sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at)
+      || a.client_event_id.localeCompare(b.client_event_id))[0]!
     const matches = input.contactLists.rows.filter(value => value !== null && typeof value === 'object'
       && String((value as Record<string, unknown>).list) === asset!.listId)
     if (matches.length !== 1) return hold('doi_relationship_missing_or_ambiguous')

@@ -21,6 +21,13 @@ export type FreeJourneySourceEventKind =
   | 'profile_saved'
   | 'income_scenario_completed'
   | 'day_30'
+  | 'consent_recorded'
+  | 'consent_check_requested'
+
+const SOURCE_EVENT_KINDS: ReadonlySet<string> = new Set([
+  'signup', 'profile_saved', 'income_scenario_completed', 'day_30',
+  'consent_recorded', 'consent_check_requested',
+])
 
 export interface FreeJourneySourceEventInput {
   kind: FreeJourneySourceEventKind
@@ -160,6 +167,7 @@ function parseReceipt(value: string, headerEvaluationId: string | null) {
 }
 
 export function buildFreeJourneySourceEvent(input: FreeJourneySourceEventInput) {
+  if (!SOURCE_EVENT_KINDS.has(input.kind)) return null
   const outsetaPersonUid = identifier(input.outsetaPersonUid)
   const subscriptionUid = identifier(input.subscriptionUid)
   const occurredAt = typeof input.occurredAt === 'string' && validTimestamp(input.occurredAt)

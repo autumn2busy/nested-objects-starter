@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { ConversionEventSourceRow } from '../projections/member-projection.js'
 import type { FreeOnboardingProfileRow } from './free-onboarding-evidence.js'
 import type { MilestoneReadSnapshot } from './income-scenario-evidence.js'
+import { freeJourneyConsentSourceRowSchema } from './free-journey-consent-receipt.js'
 
 const ref = z.string().regex(/^[A-Za-z0-9_-]{1,160}$/)
 const timestamp = z.string().datetime({ offset: true })
@@ -92,7 +93,7 @@ export class OnboardingReceiptReadOnlyClient {
     this.#used = true
     const profiles = await this.#read('profile', profileSchema)
     const completionEvents = await this.#read('income', eventSchema)
-    const consentRequests = await this.#read('consent_request', eventSchema)
+    const consentRequests = await this.#read('consent_request', freeJourneyConsentSourceRowSchema)
     return {
       profiles: profiles.snapshot, completionEvents: completionEvents.snapshot, consentRequests: consentRequests.snapshot,
       reads: [profiles, completionEvents, consentRequests].map(({ resource, reason }) => ({ resource, reason })),

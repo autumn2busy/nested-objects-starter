@@ -21,8 +21,7 @@ const purpose = 'free_onboarding_and_conversion_email'
 const hash = parts => createHash('sha256').update(JSON.stringify(parts)).digest('hex')
 const snapshot = rows => ({ coverage: 'complete', observedAt: now, rows })
 
-function sourceEvent() {
-  const kind = 'day_30'
+function sourceEvent(kind = 'day_30') {
   return {
     contractVersion: 'free_journey_event_v1', kind, occurredAt: now,
     outsetaPersonUid: person, subscriptionUid: cycle,
@@ -30,8 +29,8 @@ function sourceEvent() {
   }
 }
 
-function operation() {
-  const event = sourceEvent()
+function operation(kind = 'day_30') {
+  const event = sourceEvent(kind)
   return {
     mode: 'write', executionPhase: 'operational', sourceEvent: event,
     now, maxEvidenceAgeMs: 2 * 86_400_000, evidenceExpiresAt: '2026-10-12',
@@ -171,6 +170,24 @@ test('durable execution claims 194 then 193 and reuses a completed result withou
   assert.deepEqual(p.requests.filter(request => request.method === 'POST')
     .map(request => request.body.fieldValue.field), ['194', '193'])
 })
+
+for (const kind of ['consent_recorded', 'consent_check_requested']) {
+  test(`${kind} completes the durable field update once and reuses its replay receipt`, async () => {
+    const store = new InMemoryDurableWorkflowStore(FREE_JOURNEY_PRODUCTION_DESTINATION, () => new Date(now))
+    const p = provider()
+    const value = operation(kind)
+    value.storedSources.profiles.rows[0].city = null
+    value.storedSources.completionEvents.rows = []
+    const first = await runDurableFreeJourneyOperation(value, context(store, p.fetch))
+    const replay = await runDurableFreeJourneyOperation(value, context(store, p.fetch))
+    assert.equal(first.state, 'completed')
+    assert.equal(first.desiredStage, 'profile_needed')
+    assert.equal(first.confirmedWrites, 2)
+    assert.equal(replay.state, 'reused')
+    assert.deepEqual(p.requests.filter(request => request.method === 'POST').map(request => request.body.fieldValue.field), ['194', '193'])
+    assert.equal(p.requests.some(request => request.path.includes('contactAutomations')), false)
+  })
+}
 
 test('an unapproved durable destination blocks provider reads and writes', async () => {
   const different = { ...FREE_JOURNEY_PRODUCTION_DESTINATION, destinationFingerprint: '0'.repeat(64) }

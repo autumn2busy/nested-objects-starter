@@ -68,6 +68,33 @@ test('producer is disabled by default and performs no request', async () => {
   assert.equal(calls, 0)
 })
 
+test('consent source kinds are distinct, deterministic and disabled by default', async () => {
+  const keys = new Set()
+  for (const kind of ['signup', 'consent_recorded', 'consent_check_requested']) {
+    const event = producer.buildFreeJourneySourceEvent({ ...input, kind })
+    assert.equal(event.kind, kind)
+    assert.equal(producer.buildFreeJourneySourceEvent({ ...input, kind }).idempotencyKey, event.idempotencyKey)
+    keys.add(event.idempotencyKey)
+    let requests = 0
+    const result = await producer.emitFreeJourneySourceEvent({ ...input, kind }, {
+      environment: {}, fetch: async () => { requests++; throw new Error('Unexpected live request') },
+    })
+    assert.equal(result.status, 'disabled'); assert.equal(requests, 0)
+  }
+  assert.equal(keys.size, 3)
+})
+
+test('runtime-unknown event kinds cannot be signed or sent', async () => {
+  for (const kind of ['confirmed', 'subscribe', '', null, undefined]) {
+    assert.equal(producer.buildFreeJourneySourceEvent({ ...input, kind }), null)
+    let requests = 0
+    const result = await producer.emitFreeJourneySourceEvent({ ...input, kind }, {
+      environment, fetch: async () => { requests++; throw new Error('Unexpected request') },
+    })
+    assert.equal(result.status, 'withheld'); assert.equal(requests, 0)
+  }
+})
+
 test('producer signs the exact deterministic source event contract', async () => {
   const calls = []
   const result = await producer.emitFreeJourneySourceEvent(input, {

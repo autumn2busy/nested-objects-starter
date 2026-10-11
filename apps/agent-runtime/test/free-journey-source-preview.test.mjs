@@ -5,6 +5,8 @@ import test from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
 import { previewFreeJourneySources, summarizeFreeJourneySourcePreview } from '../dist/sensors/free-journey-source-preview.js'
+import * as consentReceiptModule from '../dist/sensors/free-journey-consent-receipt.js'
+import { previewActiveCampaignFreeJourney } from '../dist/operations/active-campaign-free-journey.js'
 
 const now = '2026-09-21T12:00:00.000Z'
 const member = '31800000-0000-4000-8000-000000000921'
@@ -209,7 +211,7 @@ test('aggregate counts redact identities; partial, oversized or duplicate cohort
 
 test('preview receipt and milestones retain compatibility with #375 without invoking its writer', () => {
   const writerSource = readFileSync(new URL('../src/operations/active-campaign-free-journey.ts', import.meta.url), 'utf8')
-  const context = { exports: {}, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
+  const context = { exports: {}, require: name => { assert.equal(name, '../sensors/free-journey-consent-receipt.js'); return consentReceiptModule } }
   vm.runInNewContext(ts.transpileModule(writerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
   const value = input(), preview = previewFreeJourneySources(value)
   const evidence = {
@@ -335,7 +337,7 @@ test('fresh suppression before attestation is withheld; equal timestamps remain 
 
 test('historical source output passes the actual writer preview boundary with zero provider calls for every stage', async () => {
   const writerSource = readFileSync(new URL('../src/operations/active-campaign-free-journey.ts', import.meta.url), 'utf8')
-  const context = { exports: {}, URL, Intl, require: name => { assert.equal(name, 'node:crypto'); return { createHash } } }
+  const context = { exports: {}, URL, Intl, require: name => { assert.equal(name, '../sensors/free-journey-consent-receipt.js'); return consentReceiptModule } }
   vm.runInNewContext(ts.transpileModule(writerSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
   for (const stage of ['profile_needed', 'calculation_needed', 'onboarding_complete', 'conversion_eligible']) {
     const value = historicalInput()
@@ -372,4 +374,138 @@ test('malformed contexts are withheld and module has no writer or network depend
   for (const value of [null, {}, { onboarding: { now: 'bad' } }]) assert.equal(previewFreeJourneySources(value).status, 'withheld')
   const source = readFileSync(new URL('../src/sensors/free-journey-source-preview.ts', import.meta.url), 'utf8')
   assert(!/\bfetch\s*\(|syncActiveCampaignFreeJourney|apiKey|process\.env/.test(source))
+})
+
+function signupReceipt(value) {
+  const original = value.consentRequests.rows[0]
+  return {
+    ...original, source_page: '/outseta/signup', source: 'outseta_signup_form',
+    client_event_id: `${eventName}:signup-v1:${hash([eventName, 'signup-v1', person, cycle, purpose])}`,
+    event_data: {
+      sourcePage: '/outseta/signup', source: 'outseta_signup_form', consentContract: 'signup-v1',
+      purpose, lifecycleCycleId: cycle, outsetaAccountUid: 'SyntheticAccount',
+      consentProperty: 'NoLifecycleEmailRequested', evidenceKind: 'signed_signup_callback',
+      consentText: 'Email me getting-started guidance and occasional membership offers from Nested Objects. I can unsubscribe anytime.',
+      consentRequested: true, registrationOccurredAt: original.occurred_at,
+    },
+  }
+}
+
+test('signed signup provenance reaches actual onboarding readiness without relabeling it as welcome', () => {
+  const value = input()
+  value.consentRequests.rows = [signupReceipt(value)]
+  const result = previewFreeJourneySources(value)
+  assert.equal(result.status, 'ready_for_writer_review')
+  assert.equal(result.consentRequest.eventData.sourcePage, '/outseta/signup')
+  assert.equal(result.consentRequest.eventData.consentContract, 'signup-v1')
+  assert.equal(result.onboarding.status, 'complete')
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(result.mutationAllowed, false)
+})
+
+test('signup registration timestamp accepts equivalent database UTC serialization', () => {
+  const value = input()
+  const receipt = signupReceipt(value)
+  receipt.occurred_at = receipt.occurred_at.replace('Z', '+00:00')
+  value.consentRequests.rows = [receipt]
+  assert.equal(previewFreeJourneySources(value).status, 'ready_for_writer_review')
+})
+
+test('welcome and signup requests coalesce only after both contracts validate; input order is immaterial', () => {
+  const value = input(), welcome = value.consentRequests.rows[0], signup = signupReceipt(value)
+  signup.id = '31800000-0000-4000-8000-000000000925'
+  signup.occurred_at = '2026-09-19T10:00:00.000Z'
+  signup.event_data.registrationOccurredAt = signup.occurred_at
+  for (const rows of [[welcome, signup], [signup, welcome]]) {
+    value.consentRequests.rows = rows
+    const result = previewFreeJourneySources(value)
+    assert.equal(result.status, 'ready_for_writer_review')
+    assert.equal(result.consentRequest.eventData.consentContract, 'signup-v1')
+    assert.equal(result.consentRequest.occurredAt, signup.occurred_at)
+  }
+  value.consentRequests.rows = [welcome, { ...signup, member_uid: 'OtherPerson' }]
+  assert.equal(previewFreeJourneySources(value).status, 'withheld')
+})
+
+for (const [label, change] of [
+  ['declined choice', r => { r.event_data.consentRequested = false }],
+  ['string choice', r => { r.event_data.consentRequested = 'true' }],
+  ['missing choice', r => { delete r.event_data.consentRequested }],
+  ['wrong property', r => { r.event_data.consentProperty = 'SavedMarketingFlag' }],
+  ['changed wording', r => { r.event_data.consentText = 'All marketing emails' }],
+  ['generic account callback', r => { r.event_data.evidenceKind = 'signed_account_created' }],
+  ['wrong account', r => { r.event_data.outsetaAccountUid = 'OtherAccount' }],
+  ['wrong person', r => { r.member_uid = 'OtherPerson' }],
+  ['old cycle', r => { r.event_data.lifecycleCycleId = 'OldCycle' }],
+  ['legacy key', r => { r.client_event_id = input().consentRequests.rows[0].client_event_id }],
+  ['wrong registration time', r => { r.event_data.registrationOccurredAt = now }],
+  ['extra browser assertion', r => { r.event_data.browserConsent = true }],
+  ['wrong top-level source', r => { r.source_page = '/welcome' }],
+  ['before cycle', r => { r.occurred_at = r.event_data.registrationOccurredAt = '2026-07-01T12:00:00.000Z' }],
+  ['future registration', r => { r.occurred_at = r.event_data.registrationOccurredAt = '2026-09-22T12:00:00.000Z' }],
+]) test(`signup receipt withholds ${label}`, () => {
+  const value = input(), receipt = signupReceipt(value)
+  change(receipt)
+  value.consentRequests.rows = [receipt]
+  const result = previewFreeJourneySources(value)
+  assert.equal(result.status, 'withheld')
+  assert.equal(result.consentRequest, null)
+  assert.equal(result.attemptedWrites, 0)
+})
+
+test('duplicate signup versions and oversized request sets remain ambiguous', () => {
+  const value = input(), signup = signupReceipt(value)
+  for (const rows of [[signup, signup], [signup, { ...signup, id: '31800000-0000-4000-8000-000000000925' }],
+    [signup, signup, value.consentRequests.rows[0]]]) {
+    value.consentRequests.rows = rows
+    assert.equal(previewFreeJourneySources(value).status, 'withheld')
+  }
+})
+
+test('signup request still requires confirmed consent, audience exclusions and a complete lookup', () => {
+  for (const change of [v => { v.contactLists.rows = [] }, v => { v.contactLists.rows[0].status = '2' },
+    v => { v.audience.rows[0].test = true }, v => { v.contacts.rows[0].bounced_hard = '1' },
+    v => { v.consentRequests.coverage = 'partial' }]) {
+    const value = input()
+    value.consentRequests.rows = [signupReceipt(value)]
+    change(value)
+    assert.equal(previewFreeJourneySources(value).status, 'withheld')
+  }
+})
+
+test('actual writer preview accepts signup provenance, requires inactive automation and makes only GETs', async () => {
+  const value = input()
+  value.consentRequests.rows = [signupReceipt(value)]
+  const preview = previewFreeJourneySources(value)
+  const evidence = {
+    now, evidenceObservedAt: now, evidenceExpiresAt: '2026-09-22', maxEvidenceAgeMs: 86400000,
+    membership: { ...value.memberships.rows[0], ...value.identities.rows[0], email: 'synthetic@example.com' },
+    consentRequest: preview.consentRequest, audienceTraits: [], profileInputs: preview.onboarding.profileInputs,
+    incomeScenarioStatus: preview.incomeScenarioStatus, activation: preview.onboarding.activation,
+    onboardingCompletion: preview.onboarding.onboardingCompletion,
+  }
+  const config = { apiUrl: 'https://synthetic.api-us1.com', apiKey: 'synthetic-key',
+    consentListId: '44', consentFormId: '99', accountTimeZone: 'America/New_York' }
+  for (const [listStatus, automationStatus] of [['1', '2'], ['2', '2'], ['1', '1']]) {
+    const calls = []
+    const result = await previewActiveCampaignFreeJourney(evidence, config, async (url, options) => {
+      calls.push({ url, method: options.method })
+      const path = new URL(url).pathname
+      const data = path.endsWith('/contactLists') ? { contactLists: [{ contact: '41', list: '44', form: '99', status: listStatus }] }
+        : path.endsWith('/automations/527') ? { automation: { id: '527', status: automationStatus } }
+          : path.endsWith('/fieldValues') ? { fieldValues: [] }
+            : { contact: { id: '41', email: 'synthetic@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0' } }
+      return new Response(JSON.stringify(data))
+    })
+    assert.equal(result.status, listStatus === '1' && automationStatus === '2' ? 'ready' : 'withheld')
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(result.confirmedWrites, 0)
+    assert(calls.length > 0 && calls.every(call => call.method === 'GET'))
+  }
+  const invalid = structuredClone(evidence)
+  invalid.consentRequest.eventData.consentRequested = false
+  let calls = 0
+  const held = await previewActiveCampaignFreeJourney(invalid, config, async () => { calls++; throw new Error('Forbidden') })
+  assert.equal(held.status, 'withheld')
+  assert.equal(calls, 0)
 })
