@@ -67,6 +67,9 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
   let statusResponder = async () => ({ status: 200, json: async () => ({
     status: 'not_recorded', recorded: false, source: null, confirmationRequired: true,
   }) })
+  let confirmationResponder = async () => ({ status: 200, json: async () => ({ recorded: true,
+    routing: { status: 'disabled', code: 'disabled', recoveryRequired: false, automaticRetry: false },
+  }) })
   let cursor = 0
   let dirty = false
   let pendingEffects = []
@@ -115,11 +118,12 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
       setTimeout: (callback, delay) => { sideEffects.timers.push({ callback, delay }); return sideEffects.timers.length },
     },
     fetch: async (url, options) => {
-      if (url === '/api/lifecycle-email-consent') {
+      if (url === '/api/lifecycle-email-consent' && options.method === 'GET') {
         sideEffects.statusReads.push({ url, options })
         return statusResponder()
       }
       sideEffects.requests.push({ url, options })
+      if (url === '/api/lifecycle-email-consent') return confirmationResponder()
       if (url === '/api/conversion-events') return conversionResponder()
       return { ok: true, status: 200, json: async () => ({}) }
     },
@@ -140,6 +144,7 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
     setAuth(next) { auth = { ...auth, ...next } },
     setConversionResponder(next) { conversionResponder = next },
     setStatusResponder(next) { statusResponder = next },
+    setConfirmationResponder(next) { confirmationResponder = next },
     async settle() {
       for (let attempt = 0; attempt < 20; attempt += 1) {
         const effects = pendingEffects
@@ -464,6 +469,84 @@ test('a late saved request cannot carry into another member or subscription cycl
   assert.doesNotMatch(content(harness.tree), /Request recorded/)
   assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0].props.checked, false)
   assert.equal(harness.sideEffects.requests.length, 0)
+})
+
+test('confirmation checks require a deliberate action and distinguish received from confirmed', async () => {
+  for (const [status, recoveryRequired, expected] of [
+    ['disabled', false, /verification is not yet available/],
+    ['delivered', false, /does not confirm an email subscription/],
+    ['withheld', false, /could not establish onboarding eligibility/],
+    ['failed', true, /Contact support before trying again/],
+    ['delivered', true, /Contact support before trying again/],
+  ]) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', { isAuthenticated: true, planUid: 'L9nbKV9Z' })
+    harness.setStatusResponder(async () => ({ status: 200, json: async () => ({ status: 'recorded', recorded: true, source: 'signup', confirmationRequired: true }) }))
+    harness.setConfirmationResponder(async () => ({ status: status === 'failed' ? 503 : 200, json: async () => ({ recorded: true,
+      routing: { status, code: 'synthetic', recoveryRequired, automaticRetry: false },
+    }) }))
+    harness.render({ isNewUser: false })
+    await harness.settle()
+    assert.equal(harness.sideEffects.requests.length, 0)
+    const check = nodes(harness.tree, node => node.type === 'button' && content(node) === 'Check my email confirmation')[0]
+    assert.ok(check)
+    await check.props.onClick()
+    harness.render()
+    await harness.settle()
+    assert.equal(harness.sideEffects.requests.length, 1)
+    assert.equal(harness.sideEffects.requests[0].url, '/api/lifecycle-email-consent')
+    assert.equal(harness.sideEffects.requests[0].options.method, 'POST')
+    assert.equal(harness.sideEffects.requests[0].options.credentials, 'same-origin')
+    assert.equal(harness.sideEffects.requests[0].options.body, undefined)
+    assert.match(content(harness.tree), expected)
+    assert.doesNotMatch(content(harness.tree), /You are subscribed|Your email is confirmed|onboarding is active/i)
+    if (recoveryRequired) assert.equal(nodes(harness.tree, node => node.type === 'button' && content(node) === 'Check my email confirmation')[0].props.disabled, true)
+    harness.render()
+    await harness.settle()
+    assert.equal(harness.sideEffects.requests.length, 1, 'no automatic retry')
+  }
+})
+
+test('an interrupted or malformed confirmation check stays unknown without an automatic retry', async () => {
+  for (const responder of [
+    async () => { throw new Error('network') },
+    async () => ({ status: 429, json: async () => ({}) }),
+    async () => ({ status: 200, json: async () => ({ recorded: true, routing: { status: 'delivered', automaticRetry: true, recoveryRequired: false } }) }),
+    async () => ({ status: 200, json: async () => ({ recorded: true, routing: { status: 'unexpected', automaticRetry: false, recoveryRequired: false } }) }),
+  ]) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', { isAuthenticated: true, planUid: 'L9nbKV9Z' })
+    harness.setStatusResponder(async () => ({ status: 200, json: async () => ({ status: 'recorded', recorded: true, source: 'welcome', confirmationRequired: true }) }))
+    harness.setConfirmationResponder(responder)
+    harness.render({ isNewUser: false })
+    await harness.settle()
+    await nodes(harness.tree, node => node.type === 'button' && content(node) === 'Check my email confirmation')[0].props.onClick()
+    harness.render()
+    await harness.settle()
+    assert.match(content(harness.tree), /could not check your onboarding request/)
+    assert.doesNotMatch(content(harness.tree), /check was received/)
+    assert.equal(harness.sideEffects.requests.length, 1)
+  }
+})
+
+test('late confirmation results are discarded after changing the subscription cycle', async () => {
+  let release
+  const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+    isAuthenticated: true, planUid: 'L9nbKV9Z', user: { sub: 'person-a', 'outseta:subscriptionUid': 'cycle-a' },
+  })
+  harness.setStatusResponder(async () => ({ status: 200, json: async () => ({ status: 'recorded', recorded: true, source: 'signup', confirmationRequired: true }) }))
+  harness.setConfirmationResponder(() => new Promise(resolve => { release = resolve }))
+  harness.render({ isNewUser: false })
+  await harness.settle()
+  const pending = nodes(harness.tree, node => node.type === 'button' && content(node) === 'Check my email confirmation')[0].props.onClick()
+  harness.render()
+  assert.equal(nodes(harness.tree, node => node.type === 'button' && content(node) === 'Checking...')[0].props.disabled, true)
+  harness.setAuth({ user: { sub: 'person-a', 'outseta:subscriptionUid': 'cycle-b' } })
+  harness.render()
+  await harness.settle()
+  release({ status: 200, json: async () => ({ recorded: true, routing: { status: 'delivered', recoveryRequired: false, automaticRetry: false } }) })
+  await pending
+  harness.render()
+  assert.doesNotMatch(content(harness.tree), /check was received/)
+  assert.equal(harness.sideEffects.requests.length, 1)
 })
 
 test('quick actions describe available work and honest member-tool access without false map or volume promises', () => {

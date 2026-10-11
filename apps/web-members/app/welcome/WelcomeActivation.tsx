@@ -14,6 +14,7 @@ type WelcomeActivationProps = {
 
 type OutsetaUser = Record<string, any> | null
 type EmailConsentStatus = 'checking' | 'unavailable' | 'idle' | 'submitting' | 'recorded' | 'error'
+type ConfirmationCheck = { scope: string | null; pending: boolean; message: string; reviewRequired: boolean }
 
 const LIFECYCLE_EMAIL_CONFIRMATION_FORM_URL = 'https://awilliams.activehosted.com/f/90'
 
@@ -75,8 +76,10 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     ? JSON.stringify([user?.sub, user?.['outseta:subscriptionUid']]) : null
   const [emailConsentResult, setEmailConsentResult] = useState<{ scope: string | null; status: EmailConsentStatus }>({ scope: null, status: 'checking' })
   const [consentCheckAttempt, setConsentCheckAttempt] = useState(0)
+  const [confirmationCheck, setConfirmationCheck] = useState<ConfirmationCheck>({ scope: null, pending: false, message: '', reviewRequired: false })
   const consentRequestScope = useRef<{ active: boolean } | null>(null)
   const emailConsentStatus = emailConsentResult.scope === consentScope ? emailConsentResult.status : 'checking'
+  const currentConfirmationCheck = confirmationCheck.scope === consentScope ? confirmationCheck : null
   const firedSignUpEvent = useRef(false)
   const firedSignupCompletedEvent = useRef(false)
   const firedMemberActivatedTag = useRef(false)
@@ -86,6 +89,7 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     consentRequestScope.current = requestScope
     setEmailConsentRequested(false)
     setEmailConsentResult({ scope: consentScope, status: 'checking' })
+    setConfirmationCheck({ scope: consentScope, pending: false, message: '', reviewRequired: false })
 
     if (consentScope) {
       void (async () => {
@@ -246,6 +250,34 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
     }
   }
 
+  const checkEmailConfirmation = async () => {
+    const requestScope = consentRequestScope.current
+    if (!consentScope || !requestScope?.active || emailConsentStatus !== 'recorded'
+      || currentConfirmationCheck?.pending || currentConfirmationCheck?.reviewRequired) return
+
+    setConfirmationCheck({ scope: consentScope, pending: true, message: '', reviewRequired: false })
+    let message = 'We could not check your onboarding request. Please try again later.'
+    let reviewRequired = false
+    try {
+      const response = await fetch('/api/lifecycle-email-consent', { method: 'POST', credentials: 'same-origin' })
+      const result = await response.json().catch(() => null)
+      const routing = result?.routing
+      if (result?.recorded === true && routing?.automaticRetry === false && typeof routing.recoveryRequired === 'boolean') {
+        if (routing.recoveryRequired === true || routing.status === 'failed') {
+          message = 'We could not verify the check. Contact support before trying again.'
+          reviewRequired = true
+        } else if (response.status === 200) {
+          if (routing.status === 'disabled') message = 'Your request is saved. Onboarding verification is not yet available.'
+          else if (routing.status === 'delivered') message = 'Your onboarding eligibility check was received. This does not confirm an email subscription.'
+          else if (routing.status === 'withheld') message = 'The check could not establish onboarding eligibility. Make sure you completed the confirmation email.'
+        }
+      }
+    } catch {
+      // Keep an interrupted check unknown; never retry or infer confirmation.
+    }
+    if (requestScope.active) setConfirmationCheck({ scope: consentScope, pending: false, message, reviewRequired })
+  }
+
   const greeting = name ? `Welcome, ${name}` : isNewUser ? 'Welcome to Nested Objects' : 'Welcome back'
   const shouldShowPendingConfirmation = isNewUser && !isLoading && !isAuthenticated
 
@@ -364,6 +396,17 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
                   Send my confirmation email
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                 </a>
+                <p className="mt-4">After using the confirmation link in your inbox, check your onboarding status.</p>
+                <button
+                  type="button"
+                  onClick={checkEmailConfirmation}
+                  disabled={currentConfirmationCheck?.pending || currentConfirmationCheck?.reviewRequired}
+                  className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-emerald-300 bg-white px-4 py-2 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {currentConfirmationCheck?.pending ? 'Checking...' : 'Check my email confirmation'}
+                </button>
+                {currentConfirmationCheck?.message ? <p role="status" className="mt-3">{currentConfirmationCheck.message}</p> : null}
+                {currentConfirmationCheck?.reviewRequired ? <Link href="/contact-us" className="mt-3 inline-flex min-h-11 items-center font-semibold underline">Contact support</Link> : null}
               </div>
             ) : (
               <form className="mt-4" onSubmit={recordEmailConsentRequest} aria-describedby="lifecycle-email-description">
