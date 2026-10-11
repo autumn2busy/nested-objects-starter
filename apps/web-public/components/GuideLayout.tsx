@@ -32,8 +32,10 @@ function CTABanner({ links }: { links: GuideFrontmatter['ctaLinks'] }) {
         Browse 460+ firms in our directory, start training, or explore membership options.
       </p>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
-        {links.map((link, i) => (
-          <Link
+        {links.map((link, i) => {
+          const CtaLink = link.href.startsWith('https://members.nestedobjects.com/') ? 'a' : Link
+          return (
+          <CtaLink
             key={link.href}
             href={link.href}
             className={
@@ -43,8 +45,9 @@ function CTABanner({ links }: { links: GuideFrontmatter['ctaLinks'] }) {
             }
           >
             {link.label} <ArrowRight className="h-4 w-4" />
-          </Link>
-        ))}
+          </CtaLink>
+          )
+        })}
       </div>
     </div>
   )
