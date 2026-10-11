@@ -136,7 +136,7 @@ export default function RootLayout({
       </head>
 
       <body className={cn(plusJakarta.variable, 'w-full overflow-x-clip font-sans text-text-primary')}>
-        {googleTrackingEnabled && <noscript>
+        {googleTrackingEnabled && !intelligenceStaging && <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-5CTHWMFH"
             height="0"
@@ -154,7 +154,7 @@ export default function RootLayout({
 
         <AuthProvider>
           <DeferredOutsetaLoader />
-          {googleTrackingEnabled && <DeferredGoogleTagManager />}
+          {googleTrackingEnabled && !intelligenceStaging && <DeferredGoogleTagManager />}
           {!intelligenceStaging && <ActiveCampaignTracker />}
           {!intelligenceStaging && <Suspense fallback={null}><AcquisitionJourneyTracker /></Suspense>}
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
