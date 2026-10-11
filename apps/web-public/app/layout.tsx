@@ -32,7 +32,7 @@ function SiteHeader() {
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
           <Link href="/guides" className="transition hover:text-brand">Guides</Link>
-          <Link href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="transition hover:text-brand">Pricing</Link>
+          <a href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="transition hover:text-brand">Pricing</a>
           <Link href="/about" className="transition hover:text-brand">About</Link>
           <a
             href="https://members.nestedobjects.com/hiring-firms" data-acquisition-source="public_navigation_1"
@@ -87,7 +87,7 @@ function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li><Link href="/about" className="hover:text-brand">About</Link></li>
               <li><Link href="/contact" className="hover:text-brand">Contact</Link></li>
-              <li><Link href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="hover:text-brand">Pricing</Link></li>
+              <li><a href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="hover:text-brand">Pricing</a></li>
             </ul>
           </div>
           <div>

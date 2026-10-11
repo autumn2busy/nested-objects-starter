@@ -265,3 +265,13 @@ test('guide title relies on the existing brand template only once', () => {
   assert.ok(page.includes('title: fm.title,'))
   assert.equal(page.includes('fm.title} | Nested Objects'),false)
 })
+
+test('cross-host pricing and guide CTAs use native anchors so navigation honors decorated hrefs', () => {
+  const layout = readFileSync(new URL('../../web-public/app/layout.tsx', import.meta.url), 'utf8')
+  const guide = readFileSync(new URL('../../web-public/components/GuideLayout.tsx', import.meta.url), 'utf8')
+  assert.equal((layout.match(/<a href="https:\/\/members\.nestedobjects\.com\/membership-pricing" data-acquisition-source="public_pricing_navigation"/g) || []).length, 2)
+  assert.equal(layout.includes('<Link href="https://members.nestedobjects.com/'), false)
+  assert.ok(guide.includes("const CtaLink = link.href.startsWith('https://members.nestedobjects.com/') ? 'a' : Link"))
+  assert.ok(guide.includes('<CtaLink'))
+  assert.ok(guide.includes('<Link href="/guides"'))
+})
