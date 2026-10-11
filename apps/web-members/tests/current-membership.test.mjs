@@ -25,7 +25,7 @@ function load(path, imports = {}, globals = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(code, {
-    exports, URL, AbortSignal, process: { env: {} }, console: { error() {} }, ...globals,
+    exports, URL, AbortSignal, process: { env: {} }, console: { error() {}, warn() {} }, ...globals,
     require(name) {
       if (name === 'react/jsx-runtime') return jsx
       if (name in imports) return imports[name]
@@ -198,6 +198,36 @@ test('missing or malformed token and non-success HTTP responses are unavailable'
   for (const status of [401, 403, 404, 429, 500]) {
     assert.equal((await membership.readCurrentMembership(claims, memberToken, options({ fetcher: async () => ({ ok: false, status }) }))).status, 'unavailable')
   }
+})
+
+test('diagnostics distinguish provider boundaries without logging credentials, identities or bodies', async () => {
+  const logs = []
+  const observed = load('../lib/current-membership.ts', { './plan-config': plans }, {
+    console: { warn: (...args) => logs.push(normalize(args)) },
+  })
+  const row = account()
+  row.CurrentSubscription.StartDate = '2026-10-01T00:00:00'
+  row.CurrentSubscription.EndDate = undefined
+  row.CurrentSubscription.Account = null
+  const result = await observed.readCurrentMembership(claims, memberToken, options(reader({ accountValue: row })))
+  assert.equal(result.status, 'unknown')
+  assert.equal(logs[0][1].reason, 'subscription_account_mismatch')
+  assert.equal(logs[0][1].startShape, 'timestamp_without_timezone')
+  assert.equal(logs[0][1].endShape, 'missing')
+  assert.equal(logs[0][1].subscriptionAccountShape, 'null')
+  for (const [fetcher, category] of [
+    [async () => { throw Error('PRIVATE_EXCEPTION_WITH_TOKEN') }, 'provider_request_failed'],
+    [async () => ({ ok: true, json: async () => { throw Error('PRIVATE_RESPONSE_BODY') } }), 'provider_json_invalid'],
+    [async () => ({ ok: false, status: 429, json: async () => { throw Error('BODY_MUST_NOT_BE_READ') } }), 'provider_http_error'],
+  ]) {
+    assert.equal((await observed.readCurrentMembership(claims, memberToken, { fetcher })).status, 'unavailable')
+    assert.equal(logs.at(-1)[1].reason, category)
+  }
+  assert.equal(logs.at(-1)[1].httpStatus, 429)
+  assert.doesNotMatch(JSON.stringify(logs), /PRIVATE|synthetic|current-cycle|old-cycle|NmdnNO90|L9nbKV9Z|2026-/)
+  logs.length = 0
+  assert.equal((await observed.readCurrentMembership(claims, memberToken, options(reader()))).status, 'verified')
+  assert.equal(logs.length, 0, 'successful membership creates no diagnostic record')
 })
 
 // Real JWT verification + actual resolver + actual server/session functions.

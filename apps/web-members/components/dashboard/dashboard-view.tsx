@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { IndustryNews } from "@/components/IndustryNews";
 import { useAuth } from "@/components/auth-provider";
+import { getPlanName } from "@/lib/plan-config";
 import { CheckCircle, Briefcase, GraduationCap, Shield, TrendingUp, Loader2, AlertCircle, Star } from "lucide-react";
 import { OnboardingWidget } from "@/components/onboarding/onboarding-widget";
 
@@ -57,7 +58,7 @@ const TIER_TEXT_COLORS: Record<string, string> = {
 };
 
 export function DashboardView({ showOnboarding }: DashboardViewProps) {
-    const { user, profileDisplayName, planUid, isLoading: authLoading, isAuthenticated, refreshAuth } = useAuth();
+    const { user, profileDisplayName, planUid, membershipStatus, isLoading: authLoading, isAuthenticated, refreshAuth } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -98,16 +99,12 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authLoading]);
 
-    const planLabel = (() => {
-        switch (planUid) {
-            case 'L9nbKV9Z': return 'Free';
-            case 'zWZD0rQp': return 'Directory';
-            case 'rQVqlLm6': return 'Pro';
-            case 'NmdnNO90': return 'Elite';
-            case 'rmk5Xk9g': return 'Agency';
-            default: return 'Free';
-        }
-    })();
+    const planLabel = isAuthenticated && !authLoading && membershipStatus === 'verified'
+        ? getPlanName(planUid) : null;
+    const accountStatus = authLoading ? 'Checking membership'
+        : !isAuthenticated ? 'Sign in to check membership'
+            : planLabel ? 'Active'
+                : membershipStatus === 'expired' ? 'Subscription ended' : 'Membership not confirmed';
 
     const tierColor = stats?.trustTier ? TIER_COLORS[stats.trustTier] || TIER_COLORS.bronze : TIER_COLORS.bronze;
     const tierTextColor = stats?.trustTier ? TIER_TEXT_COLORS[stats.trustTier] || TIER_TEXT_COLORS.bronze : TIER_TEXT_COLORS.bronze;
@@ -127,7 +124,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
             {showOnboarding && <OnboardingWidget />}
 
             {/* Elite Exclusive Perks */}
-            {isAuthenticated && (planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g') && (
+            {planLabel && (planUid === 'NmdnNO90' || planUid === 'rmk5Xk9g') && (
                 <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-md">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
@@ -293,15 +290,21 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Account Status</CardTitle>
-                                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                {planLabel ? <CheckCircle className="h-4 w-4 text-emerald-500" /> : <AlertCircle className="h-4 w-4 text-slate-500" />}
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xl font-bold text-emerald-600">Active</span>
-                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                                    <span className={`text-xl font-bold ${planLabel ? 'text-emerald-600' : 'text-slate-700'}`}>{accountStatus}</span>
+                                    {planLabel && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
                                         {planLabel}
-                                    </span>
+                                    </span>}
                                 </div>
+                                {isAuthenticated && !authLoading && !planLabel && membershipStatus !== 'expired' && (
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        You are still signed in. Your plan could not be confirmed.
+                                        {' '}<button type="button" className="underline" onClick={() => { void refreshAuth(); }}>Check again</button>
+                                    </p>
+                                )}
                                 <p className="text-xs text-muted-foreground mt-1">
                                     Member for {stats.accountAgeDays} days
                                 </p>

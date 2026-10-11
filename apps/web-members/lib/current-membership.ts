@@ -72,29 +72,73 @@ export function evaluateCurrentMembership(
 
 type ReadOptions = { fetcher?: typeof fetch; now?: () => number }
 
+// These fixed categories reveal contract failures without logging member data.
+function dateShape(value: unknown): string {
+  if (value === undefined) return 'missing'
+  if (value === null) return 'null'
+  if (typeof value !== 'string') return 'not_string'
+  if (timestamp(value)) return 'timestamp_with_timezone'
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(value)) return 'timestamp_without_timezone'
+  return 'invalid'
+}
+
+function reportUnverifiedProfile(result: CurrentMembership, claims: Claims, value: unknown) {
+  if (result.status !== 'unknown') return
+  const profile = record(value)
+  const account = record(profile?.Account)
+  const subscription = record(account?.CurrentSubscription)
+  const planUid = record(subscription?.Plan)?.Uid
+  console.warn('[MEMBERSHIP_LOOKUP]', {
+    status: result.status, reason: result.reason,
+    personMatches: profile?.Uid === claims.sub,
+    accountMatches: account?.Uid === claims['outseta:accountUid'],
+    accountStageType: typeof account?.AccountStage,
+    subscriptionPresent: Boolean(subscription),
+    subscriptionIdValid: identifier(subscription?.Uid),
+    planKnown: identifier(planUid) && Boolean(getPlanName(planUid)),
+    startShape: dateShape(subscription?.StartDate),
+    endShape: dateShape(subscription?.EndDate),
+    subscriptionAccountShape: subscription?.Account === undefined ? 'missing'
+      : subscription.Account === null ? 'null'
+        : record(subscription.Account)?.Uid === account?.Uid ? 'matching' : 'mismatched',
+  })
+}
+
 /** Read the verified token's own profile, scoped by Outseta to its person/account.
  * This is the same Account.CurrentSubscription projection used by Outseta's SDK,
  * without its browser cache. No admin credentials, account lists or writes.
  */
 export async function readCurrentMembership(claims: Claims, token: string, options: ReadOptions = {}): Promise<CurrentMembership> {
   if (!identifier(claims.sub) || !identifier(claims['outseta:accountUid'])) {
+    console.warn('[MEMBERSHIP_LOOKUP]', { status: 'unknown', reason: 'identity_unverified' })
     return withheld('unknown', 'identity_unverified')
   }
   // Callers verify the JWT first. Normalize exactly as the verification path does.
   const bearer = typeof token === 'string' ? token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer /, '') : ''
   if (!bearer || /\s/.test(bearer)) return withheld('unavailable', 'membership_token_unavailable')
   const fetcher = options.fetcher ?? fetch
+  let failure = 'provider_request_failed'
   try {
     const fields = 'Uid,Account.Uid,Account.AccountStage,Account.CurrentSubscription.Uid,Account.CurrentSubscription.Plan.Uid,Account.CurrentSubscription.StartDate,Account.CurrentSubscription.EndDate,Account.CurrentSubscription.Account.Uid'
     const response = await fetcher(`https://nested-objects.outseta.com/api/v1/profile?fields=${fields}`, {
       method: 'GET', headers: { Authorization: `Bearer ${bearer}` },
       cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(5000),
     })
-    if (!response.ok) throw new Error('membership_read_unavailable')
+    if (!response.ok) {
+      console.warn('[MEMBERSHIP_LOOKUP]', {
+        status: 'unavailable', reason: 'provider_http_error',
+        httpStatus: Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : 0,
+      })
+      return withheld('unavailable', 'membership_read_unavailable')
+    }
+    failure = 'provider_json_invalid'
     const profile = await response.json()
-    return evaluateCurrentMembership(claims, profile, (options.now ?? Date.now)())
+    const result = evaluateCurrentMembership(claims, profile, (options.now ?? Date.now)())
+    reportUnverifiedProfile(result, claims, profile)
+    return result
   } catch {
     // Never retain a provider response body, credential, or stale token grant.
+    console.warn('[MEMBERSHIP_LOOKUP]', { status: 'unavailable', reason: failure })
     return withheld('unavailable', 'membership_read_unavailable')
   }
 }
