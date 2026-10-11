@@ -142,6 +142,9 @@ function transport(options = {}) {
     assert.equal(request.method, 'GET')
     assert.equal(request.redirect, 'error')
     assert.equal(request.cache, 'no-store')
+    if (options.httpFailure?.provider === request.provider) {
+      return { status: options.httpFailure.status, body: { sensitive: 'must-not-appear@example.com' } }
+    }
     const url = new URL(request.url)
     if (request.provider === 'outseta') {
       assert.equal(url.hostname, 'nested-objects.outseta.com')
@@ -225,6 +228,47 @@ test('missing or contradictory stable authority withholds before downstream use'
   const { result } = await collect({}, {}, storedSources(missingLink))
   assert.equal(result.status, 'withheld')
   assert.equal(result.reason, 'profile_stable_link_invalid')
+})
+
+test('provider HTTP failures report only safe status evidence and stop downstream reads', async () => {
+  for (const provider of ['outseta', 'activecampaign']) {
+    for (const status of [401, 403, 404, 429, 503]) {
+      const { result, calls } = await collect({ httpFailure: { provider, status } })
+      assert.equal(result.status, 'withheld')
+      assert.equal(result.reason, `${provider}_http_failure_${status}`)
+      assert.equal(result.coverage, null)
+      assert.equal(result.attemptedWrites, 0)
+      assert.equal(result.mutationAllowed, false)
+      assert.equal('external' in result, false)
+      assert.equal(calls.length, provider === 'outseta' ? 1 : 2)
+      assert.equal(JSON.stringify(result).includes('must-not-appear'), false)
+    }
+  }
+  for (const status of [0, 600, 401.5]) {
+    const { result } = await collect({ httpFailure: { provider: 'outseta', status } })
+    assert.equal(result.reason, 'source_http_failure')
+  }
+})
+
+test('default transport discards failed HTTP bodies before JSON parsing', async t => {
+  let canceled = false
+  t.mock.method(globalThis, 'fetch', async () => new Response(new ReadableStream({
+    start(controller) { controller.enqueue(new TextEncoder().encode('private non-JSON error body')) },
+    cancel() { canceled = true },
+  }), { status: 401 }))
+  const collector = new FreeJourneyOperationalSourceCollector({
+    policy: policy(), mode: 'approved_live', liveReadsEnabled: true, now: () => now,
+    credentials: {
+      outsetaApiKey: 'synthetic-key-only', outsetaApiSecret: 'synthetic-secret-only',
+      activeCampaignApiKey: 'synthetic-ac-key-only-123',
+    },
+  })
+  const result = await collector.collect({ storedSources: storedSources(), outsetaPersonUid: person, subscriptionUid: cycle })
+  assert.equal(result.reason, 'outseta_http_failure_401')
+  assert.equal(result.status, 'withheld')
+  assert.equal(result.coverage, null)
+  assert.equal(result.attemptedWrites, 0)
+  assert.equal(canceled, true)
 })
 
 test('changed relationship totals are incomplete evidence, never an empty or complete list', async () => {

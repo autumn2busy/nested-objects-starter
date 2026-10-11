@@ -427,7 +427,12 @@ export class FreeJourneyOperationalSourceCollector {
         cache: 'no-store',
       }), timeout])
       this.#assertReview()
-      if (response.status !== 200) throw new FreeJourneyOperationalSourceError('source_http_failure')
+      if (response.status !== 200) {
+        const reason = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599
+          ? `${provider}_http_failure_${response.status}`
+          : 'source_http_failure'
+        throw new FreeJourneyOperationalSourceError(reason)
+      }
       return response.body
     } catch (error) {
       if (error instanceof FreeJourneyOperationalSourceError) throw error
@@ -489,6 +494,11 @@ async function defaultTransport(request: FreeJourneyOperationalSourceRequest) {
     redirect: request.redirect,
     cache: request.cache,
   })
+  // Failed reads are unknown evidence. Preserve only provider/status; never consume their bodies.
+  if (response.status !== 200) {
+    await response.body?.cancel()
+    return { status: response.status, body: null }
+  }
   const bodyText = await response.text()
   if (new TextEncoder().encode(bodyText).byteLength > 256 * 1024) {
     throw new FreeJourneyOperationalSourceError('source_response_too_large')
