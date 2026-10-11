@@ -7,7 +7,8 @@ import { US_STATES } from './constants'
 import { ALL_STATE_SLUGS, STATE_MAP, TOP_STATES } from './state-data'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 import { getCurrentUser } from '@/lib/auth-server'
-import { PLAN_UIDS } from '@/lib/plan-config'
+import { PLAN_UIDS, getPlanName, hasFullDirectoryAccess } from '@/lib/plan-config'
+import { MembershipAccessNotice } from '@/components/MembershipAccessNotice'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Field Inspection Companies Hiring | Firm Directory',
@@ -602,9 +603,12 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const params = await searchParams
   const user = await getCurrentUser()
   const planUid = user?.['outseta:planUid'] ?? null
+  if (user && !getPlanName(planUid)) {
+    return <MembershipAccessNotice expired={user.membershipStatus === 'expired'} />
+  }
   const isGuest = !user
   const isFree = planUid === PLAN_UIDS.FREE
-  const isRestricted = isGuest || isFree
+  const isRestricted = isGuest || !hasFullDirectoryAccess(planUid)
 
   const page = isRestricted ? DEFAULT_PAGE : parsePositiveInt(params?.page, DEFAULT_PAGE)
   const limit = isRestricted

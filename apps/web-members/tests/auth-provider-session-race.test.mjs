@@ -4,8 +4,8 @@ import test from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
 
-const COOKIE_USER = { sub: 'synthetic-cookie-user', name: 'Cookie User', 'outseta:planUid': 'rQVqlLm6' }
-const SDK_USER = { sub: 'synthetic-previous-sdk-user', name: 'SDK User', 'outseta:planUid': 'L9nbKV9Z' }
+const COOKIE_USER = { sub: 'synthetic-cookie-user', name: 'Cookie User', 'outseta:planUid': 'rQVqlLm6', membershipStatus: 'verified' }
+const SDK_USER = { sub: 'synthetic-previous-sdk-user', name: 'SDK User', 'outseta:planUid': 'L9nbKV9Z', membershipStatus: 'verified' }
 const SDK_TOKEN = 'synthetic-previous-sdk-token'
 const COOKIE_PROFILE = { display_name: 'Cookie Profile', avatar_url: 'https://synthetic-members.example/cookie-avatar.png' }
 const SDK_PROFILE = { display_name: 'SDK Profile', avatar_url: 'https://synthetic-members.example/sdk-avatar.png' }
@@ -13,6 +13,10 @@ const source = readFileSync(new URL('../components/auth-provider.tsx', import.me
 const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
 }).outputText
+const plans = {}
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../lib/plan-config.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: plans })
 
 /**
  * Execute the actual provider with dependency-aware hooks and effect cleanup.
@@ -25,6 +29,7 @@ function createHarness({
   delayInitialSession = false,
   delayInitialProfile = false,
   profileStatus = 200,
+  serverPlanUid,
 } = {}) {
   const hooks = []
   const timers = new Map()
@@ -46,6 +51,7 @@ function createHarness({
   let initialSessionRelease
   let initialProfileRelease
   let profileOverride
+  let pathname = '/inspector-dashboard'
 
   const storage = () => {
     const values = new Map()
@@ -151,12 +157,15 @@ function createHarness({
     if (method === 'POST') {
       assert.equal(JSON.parse(init.body).accessToken, SDK_TOKEN)
       cookieUser = SDK_USER
+    } else if (method === 'DELETE') {
+      cookieUser = null
     } else {
       assert.equal(method, 'GET')
     }
     // Snapshot the server result before delaying it, as a real response would.
     const user = cookieUser
-    const response = { ok: true, status: 200, json: async () => ({ user, isAuthenticated: Boolean(user) }) }
+    const planUid = serverPlanUid === undefined ? user?.['outseta:planUid'] ?? null : serverPlanUid
+    const response = { ok: true, status: 200, json: async () => ({ user, planUid, isAuthenticated: Boolean(user) }) }
     if (delayInitialSession && requests.length === 1) {
       return new Promise(resolve => { initialSessionRelease = () => resolve(response) })
     }
@@ -166,12 +175,14 @@ function createHarness({
   const exports = {}
   vm.runInNewContext(code, {
     exports, URL, AbortController, window, localStorage, sessionStorage, setTimeout, clearTimeout, fetch,
+    Date: class extends Date { static now() { return Date.parse('2026-10-08T12:00:00Z') + now } },
     console: { log() {}, error: (...args) => errors.push(args) },
     process: { env: {} },
     require(name) {
       if (name === 'react') return react
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }) }
-      if (name === 'next/navigation') return { usePathname: () => '/inspector-dashboard' }
+      if (name === 'next/navigation') return { usePathname: () => pathname }
+      if (name === '@/lib/plan-config') return plans
       if (name === '@/lib/ac-events') return {
         trackOutsetaModalOpen: ({ sourcePage, mode }) => {
           analyticsCalls.push({ event: 'outseta_modal_open', sourcePage, mode })
@@ -240,6 +251,8 @@ function createHarness({
     get cachedProfileName() { return localStorage.getItem('profileDisplayName') },
     get cachedProfileAvatar() { return localStorage.getItem('profileAvatarUrl') },
     setCookieUser(user) { cookieUser = user },
+    setServerPlan(plan) { serverPlanUid = plan },
+    async navigate(path) { pathname = path; render(); await flush() },
     setSdkToken(token) { sdkToken = token },
     setProfile(profile) { profileOverride = profile },
     releaseInitialSession() {
@@ -260,6 +273,83 @@ function createHarness({
 const sessionMethods = harness => harness.requests
   .filter(request => request.url === '/api/auth/session')
   .map(request => request.method)
+
+test('an older session response cannot overwrite a refreshed Elite plan or finish its load', async t => {
+  const harness = createHarness({ delayInitialSession: true })
+  t.after(harness.unmount)
+  await harness.flush()
+  harness.setServerPlan(plans.PLAN_UIDS.ELITE)
+  await harness.value.refreshAuth()
+  await harness.flush()
+  assert.equal(harness.value.planUid, plans.PLAN_UIDS.ELITE)
+  harness.releaseInitialSession()
+  await harness.flush()
+  assert.equal(harness.value.planUid, plans.PLAN_UIDS.ELITE)
+  assert.equal(harness.value.isLoading, false)
+})
+
+test('a null current server plan never falls back to a stale paid JWT claim', async t => {
+  const harness = createHarness({ serverPlanUid: null })
+  t.after(harness.unmount)
+  await harness.flush()
+  assert.equal(harness.value.isAuthenticated, true)
+  assert.equal(harness.value.planUid, null)
+  assert.equal(harness.value.hasAccess('firm_intel'), false)
+  assert.equal(harness.value.hasAccess('weather_tool'), false)
+})
+
+test('focus and navigation refresh the plan after an upgrade or provider failure', async t => {
+  const harness = createHarness()
+  t.after(harness.unmount)
+  await harness.flush()
+  harness.setServerPlan(plans.PLAN_UIDS.ELITE)
+  await harness.dispatch('focus')
+  assert.equal(harness.value.planUid, plans.PLAN_UIDS.ELITE)
+  harness.setCookieUser({ ...COOKIE_USER, membershipStatus: 'unavailable' })
+  await harness.navigate('/hiring-firms')
+  assert.equal(harness.value.planUid, null)
+  assert.equal(harness.value.isAuthenticated, true)
+  assert.equal(harness.value.membershipStatus, 'unavailable')
+  assert.deepEqual(sessionMethods(harness), ['GET', 'GET', 'GET'])
+})
+
+test('the client removes a scheduled-cancellation grant at its effective end', async t => {
+  const harness = createHarness({ cookieUser: { ...COOKIE_USER, membershipAccessEndsAt: '2026-10-08T12:00:05Z' } })
+  t.after(harness.unmount)
+  await harness.flush()
+  await harness.advance(4999)
+  assert.equal(harness.value.hasAccess('firm_intel'), true)
+  await harness.advance(1)
+  assert.equal(harness.value.planUid, null)
+  assert.equal(harness.value.membershipStatus, 'expired')
+  assert.equal(harness.value.hasAccess('firm_intel'), false)
+  assert.equal(harness.value.isAuthenticated, true)
+})
+
+test('logout invalidates a pending session response and SDK recovery', async t => {
+  const harness = createHarness({ delayInitialSession: true, sdkToken: SDK_TOKEN })
+  t.after(harness.unmount)
+  await harness.flush()
+  await harness.value.logout()
+  harness.releaseInitialSession()
+  await harness.flush()
+  await harness.advance(3000)
+  await harness.dispatch('focus')
+  await harness.dispatch('outseta-ready')
+  assert.equal(harness.value.isAuthenticated, false)
+  assert.equal(harness.value.planUid, null)
+  assert.deepEqual(sessionMethods(harness), ['GET', 'DELETE'])
+})
+
+for (const [name, planUid] of Object.entries(plans.PLAN_UIDS)) {
+  test(`${name}: shared firm_intel policy retains the directory allowlist`, async t => {
+    const harness = createHarness({ serverPlanUid: planUid })
+    t.after(harness.unmount)
+    await harness.flush()
+    assert.equal(harness.value.hasAccess('firm_intel'), plans.PAID_PLANS.includes(planUid))
+    if (['STARTER', 'FOUNDERS'].includes(name)) assert.equal(harness.value.hasAccess('weather_tool'), false)
+  })
+}
 
 test('signup emits one start signal before one register handoff without network', async t => {
   const harness = createHarness({ cookieUser: null })

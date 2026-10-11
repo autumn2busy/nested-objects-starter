@@ -153,7 +153,7 @@ export default function RootLayout({
         </a>
 
         <AuthProvider>
-          <DeferredOutsetaLoader />
+          <DeferredOutsetaLoader previewHost={process.env.VERCEL_ENV === 'preview' ? process.env.VERCEL_URL : undefined} />
           {googleTrackingEnabled && !intelligenceStaging && <DeferredGoogleTagManager />}
           {!intelligenceStaging && <ActiveCampaignTracker />}
           {!intelligenceStaging && <Suspense fallback={null}><AcquisitionJourneyTracker /></Suspense>}

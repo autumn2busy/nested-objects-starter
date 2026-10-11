@@ -52,6 +52,8 @@ const auth = load('../lib/auth-server.ts', {
   jose: { jwtVerify, createRemoteJWKSet: () => localKeys },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
   './plan-config': planConfig,
+  // Own-profile access remains identity-based even when membership is unavailable.
+  './current-membership': { readCurrentMembership: async () => ({ status: 'unavailable', reason: 'synthetic', planUid: null, subscriptionUid: null, accessEndsAt: null }) },
 })
 const access = load('../lib/member-profile-access.ts', {
   'server-only': {},

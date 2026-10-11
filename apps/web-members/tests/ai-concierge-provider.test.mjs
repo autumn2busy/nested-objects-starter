@@ -20,7 +20,7 @@ function harness({ plan = 'NmdnNO90', authenticated = true, configured = true,
     'next/headers': { headers: () => new Headers({ authorization: 'Bearer synthetic' }) },
     '@/lib/auth-server': {
       getCurrentUser: async () => null,
-      verifyOutsetaToken: async () => authenticated ? { sub: 'synthetic-person', 'outseta:planUid': plan } : null,
+      verifyCurrentMemberToken: async () => authenticated ? { sub: 'synthetic-person', 'outseta:planUid': plan } : null,
       getOutsetaUserId: user => user?.sub,
       hasAccess: (uid, feature) => feature === 'ai_chatbot' && allowed.includes(uid),
     },

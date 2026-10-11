@@ -249,6 +249,7 @@ for (const scenario of scenarios.slice(0, 2)) {
       '@/lib/auth-server': { getCurrentUser: async () => scenario.access.isAuthenticated
         ? { 'outseta:planUid': scenario.access.planUid } : null },
       '@/lib/plan-config': load('../lib/plan-config.ts'),
+      '@/components/MembershipAccessNotice': load('../components/MembershipAccessNotice.tsx'),
     }, {
       process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://fixture.example', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
       async fetch(url) {

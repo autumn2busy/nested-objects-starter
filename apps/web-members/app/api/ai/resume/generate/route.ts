@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { verifyOutsetaToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
+import { verifyCurrentMemberToken, getOutsetaUserId, hasAccess, getCurrentUser } from '@/lib/auth-server';
 import { isRateLimitUnavailableError, rateLimit } from '@/lib/rate-limit';
 import { checkAIQuota, trackAIUsage } from '@/lib/ai-quota';
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       const auth = headersList.get('authorization');
       if (auth?.startsWith('Bearer ')) {
         token = auth.split(' ')[1];
-        user = await verifyOutsetaToken(token);
+        user = await verifyCurrentMemberToken(token);
       }
     }
 

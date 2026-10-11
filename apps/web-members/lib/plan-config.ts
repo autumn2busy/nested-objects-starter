@@ -58,6 +58,12 @@ export const PAID_PLANS: readonly string[] = [
     PLAN_UIDS.AGENCY,   // $297/mo
 ]
 
+// Capability only: callers obtain the current plan from server membership
+// verification. Legacy directory rights do not imply other Pro tool rights.
+export function hasFullDirectoryAccess(planUid: string | null | undefined): boolean {
+    return typeof planUid === 'string' && PAID_PLANS.includes(planUid)
+}
+
 export const PRO_OR_HIGHER: readonly string[] = [
     PLAN_UIDS.PRO,
     PLAN_UIDS.ELITE,

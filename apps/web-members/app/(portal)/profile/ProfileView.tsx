@@ -309,7 +309,7 @@ function BackgroundCheckFlow({
           </div>
         )}
         <p className="text-xs text-slate-500">
-          +50 Trust Score points applied. Your verified status is visible to firms.
+          +50 Trust Score points applied. Your verified status is part of your private profile.
         </p>
       </div>
     )
@@ -948,7 +948,7 @@ export default function ProfileView({
                   />
                 </div>
                 <p className="text-xs text-slate-500">
-                  Complete training modules to increase your trust score and unlock more opportunities.
+                  Complete training modules to increase your trust score and build your inspection knowledge.
                 </p>
               </div>
             </Card>
