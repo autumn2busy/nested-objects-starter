@@ -45,7 +45,7 @@ const timestamp = z.string().datetime({ offset: true })
 const approvalRef = z.string().min(1).max(160).refine(value => value === value.trim() && !/[\s@\u0000-\u001f]/.test(value))
 const sourceEventSchema = z.object({
   contractVersion: z.literal(FREE_JOURNEY_EVENT_VERSION),
-  kind: z.enum(['signup', 'profile_saved', 'income_scenario_completed', 'day_30']),
+  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30']),
   idempotencyKey: z.string().min(1).max(240),
   occurredAt: timestamp,
   outsetaPersonUid: ref,

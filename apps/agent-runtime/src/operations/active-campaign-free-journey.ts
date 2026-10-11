@@ -1,4 +1,6 @@
-import { createHash } from 'node:crypto';
+import { isCurrentCycleConsentReceipt } from '../sensors/free-journey-consent-receipt.js';
+import type { FreeJourneyConsentReceipt } from '../sensors/free-journey-consent-receipt.js';
+export type { FreeJourneyConsentReceipt } from '../sensors/free-journey-consent-receipt.js';
 
 export type FreeJourneyStage =
     | 'profile_needed'
@@ -36,20 +38,6 @@ export interface FreeJourneyMilestoneEvidence {
     lifecycleCycleId: string;
     sourceRecordId: string;
     occurredAt: string;
-}
-
-export interface FreeJourneyConsentReceipt {
-    clientEventId: string;
-    eventName: 'lifecycle_email_consent_requested';
-    memberUid: string;
-    occurredAt: string;
-    eventData: {
-        sourcePage: '/welcome';
-        source: 'member_consent';
-        consentContract: 'v1';
-        purpose: 'free_onboarding_and_conversion_email';
-        lifecycleCycleId: string;
-    };
 }
 
 export interface FreeJourneyHistoricalConsentEvidence {
@@ -129,8 +117,6 @@ interface FieldValue {
     value?: unknown;
 }
 
-const CONSENT_EVENT = 'lifecycle_email_consent_requested';
-const CONSENT_VERSION = 'v1';
 const CONSENT_PURPOSE = 'free_onboarding_and_conversion_email';
 const STAGE_FIELD_ID = '193';
 const EXPIRY_FIELD_ID = '194';
@@ -203,35 +189,10 @@ function validateConfig(config: ActiveCampaignFreeJourneyConfig) {
     }
 }
 
-function exactConsentKey(personUid: string, subscriptionUid: string) {
-    const hash = createHash('sha256').update(JSON.stringify([
-        CONSENT_EVENT,
-        CONSENT_VERSION,
-        personUid,
-        subscriptionUid,
-        CONSENT_PURPOSE,
-    ])).digest('hex');
-    return `${CONSENT_EVENT}:${CONSENT_VERSION}:${hash}`;
-}
-
 function validateCurrentCycleConsentReceipt(input: FreeJourneyEvidenceInput) {
-    const receipt = input.consentRequest;
-    const membership = input.membership;
-    if (!receipt || receipt.eventName !== CONSENT_EVENT || receipt.memberUid !== membership.outsetaPersonUid
-        || receipt.clientEventId !== exactConsentKey(membership.outsetaPersonUid, membership.subscriptionUid)) return false;
-    const keys = Object.keys(receipt.eventData).sort().join(',');
-    if (keys !== 'consentContract,lifecycleCycleId,purpose,source,sourcePage'
-        || receipt.eventData.sourcePage !== '/welcome'
-        || receipt.eventData.source !== 'member_consent'
-        || receipt.eventData.consentContract !== CONSENT_VERSION
-        || receipt.eventData.purpose !== CONSENT_PURPOSE
-        || receipt.eventData.lifecycleCycleId !== membership.subscriptionUid
-        || !isTimestamp(receipt.occurredAt)) return false;
-    const occurredAt = Date.parse(receipt.occurredAt);
-    return occurredAt >= Date.parse(membership.memberSince)
-        && occurredAt >= Date.parse(membership.cycleStartedAt)
-        && occurredAt <= Date.parse(input.evidenceObservedAt)
-        && occurredAt <= Date.parse(input.now);
+    return isCurrentCycleConsentReceipt(input.consentRequest, {
+        ...input.membership, observedAt: input.evidenceObservedAt, now: input.now,
+    });
 }
 
 function validateHistoricalConsentEvidence(
