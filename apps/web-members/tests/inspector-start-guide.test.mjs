@@ -57,13 +57,16 @@ const guideImport = { InspectorStartGuide }
 
 function createHarness(relativePath, exportName, initialAuth = {}) {
   const hooks = []
-  const sideEffects = { requests: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] }
+  const sideEffects = { requests: [], statusReads: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] }
   let auth = { isLoading: false, isAuthenticated: false, ...initialAuth }
   let conversionResponder = async () => ({
     ok: true,
     status: 200,
     json: async () => ({ recorded: true, activeCampaignTracked: false }),
   })
+  let statusResponder = async () => ({ status: 200, json: async () => ({
+    status: 'not_recorded', recorded: false, source: null, confirmationRequired: true,
+  }) })
   let cursor = 0
   let dirty = false
   let pendingEffects = []
@@ -112,6 +115,10 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
       setTimeout: (callback, delay) => { sideEffects.timers.push({ callback, delay }); return sideEffects.timers.length },
     },
     fetch: async (url, options) => {
+      if (url === '/api/lifecycle-email-consent') {
+        sideEffects.statusReads.push({ url, options })
+        return statusResponder()
+      }
       sideEffects.requests.push({ url, options })
       if (url === '/api/conversion-events') return conversionResponder()
       return { ok: true, status: 200, json: async () => ({}) }
@@ -132,6 +139,7 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
     sideEffects,
     setAuth(next) { auth = { ...auth, ...next } },
     setConversionResponder(next) { conversionResponder = next },
+    setStatusResponder(next) { statusResponder = next },
     async settle() {
       for (let attempt = 0; attempt < 20; attempt += 1) {
         const effects = pendingEffects
@@ -140,9 +148,9 @@ function createHarness(relativePath, exportName, initialAuth = {}) {
           state.cleanup?.()
           state.cleanup = effect()
         }
-        await Promise.resolve()
-        await Promise.resolve()
-        await Promise.resolve()
+        // Drain the full fetch -> JSON -> state promise chain before deciding
+        // that the component is settled. Deliberately pending reads remain pending.
+        await new Promise(resolve => setImmediate(resolve))
         if (dirty) render()
         else if (pendingEffects.length === 0) return tree
       }
@@ -218,7 +226,7 @@ test('onboarding guide can hide and reopen without completion, persistence, or m
   harness.render()
   await harness.settle()
   assert.equal(nodes(harness.tree, node => node.type === 'a').length, 4)
-  assert.deepEqual(harness.sideEffects, { requests: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] })
+  assert.deepEqual(harness.sideEffects, { requests: [], statusReads: [], signupCompleted: [], analytics: [], sdkReads: 0, logins: 0, timers: [] })
   assert.doesNotMatch(content(harness.tree), /Mark all as done|Saving\.\.\./)
   const source = readFileSync(new URL('../components/onboarding/onboarding-widget.tsx', import.meta.url), 'utf8')
   assert.doesNotMatch(source, /completeOnboardingAction|localStorage|sessionStorage|\bfetch\s*\(/)
@@ -350,6 +358,7 @@ test('welcome never presents the Free lifecycle choice for signed-out, loading, 
     harness.render({ isNewUser: false })
     await harness.settle()
     assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox').length, 0)
+    assert.equal(harness.sideEffects.statusReads.length, 0)
     assert.equal(
       harness.sideEffects.requests.filter(request => request.url === '/api/conversion-events').length,
       0,
@@ -386,6 +395,75 @@ test('welcome treats 202, 204, malformed, and failed consent responses as unreco
     checkbox = nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0]
     assert.equal(checkbox.props.checked, true, 'the member can retry without the UI claiming success')
   }
+})
+
+test('saved signup and welcome requests proceed to explicit confirmation without a second request', async () => {
+  for (const source of ['signup', 'welcome']) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+      isAuthenticated: true, planUid: 'L9nbKV9Z',
+    })
+    harness.setStatusResponder(async () => ({ status: 200, json: async () => ({
+      status: 'recorded', recorded: true, source, confirmationRequired: true,
+    }) }))
+    harness.render({ isNewUser: false })
+    assert.match(content(harness.tree), /Checking your saved email request/)
+    await harness.settle()
+    assert.match(content(harness.tree), /Request recorded/)
+    assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox').length, 0)
+    assert.equal(nodes(harness.tree, node => node.type === 'a' && node.props.href === 'https://awilliams.activehosted.com/f/90').length, 1)
+    assert.equal(harness.sideEffects.requests.length, 0, 'status read cannot send or write consent')
+    assert.equal(harness.sideEffects.statusReads.length, 1)
+    assert.equal(harness.sideEffects.statusReads[0].options.method, 'GET')
+    assert.equal(harness.sideEffects.statusReads[0].options.credentials, 'same-origin')
+    assert.equal(harness.sideEffects.statusReads[0].options.cache, 'no-store')
+    assert.equal(harness.sideEffects.statusReads[0].options.body, undefined)
+  }
+})
+
+test('unavailable and inconsistent receipt reads remain unknown and allow a safe retry', async () => {
+  for (const responder of [
+    async () => { throw new Error('network') },
+    async () => ({ status: 404, json: async () => ({}) }),
+    async () => ({ status: 503, json: async () => ({ status: 'unavailable', recorded: false, source: null, confirmationRequired: true }) }),
+    async () => ({ status: 200, json: async () => ({ status: 'recorded', recorded: false, source: 'signup', confirmationRequired: true }) }),
+    async () => ({ status: 200, json: async () => ({ status: 'recorded', recorded: true, source: 'profile', confirmationRequired: true }) }),
+    async () => ({ status: 200, json: async () => ({ status: 'not_recorded', recorded: false, source: null }) }),
+    async () => ({ status: 200, json: async () => { throw new Error('invalid JSON') } }),
+  ]) {
+    const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', { isAuthenticated: true, planUid: 'L9nbKV9Z' })
+    harness.setStatusResponder(responder)
+    harness.render({ isNewUser: false })
+    await harness.settle()
+    assert.match(content(harness.tree), /could not check your saved email request/)
+    assert.equal(nodes(harness.tree, node => node.type === 'form').length, 0)
+    assert.equal(nodes(harness.tree, node => node.props.href === 'https://awilliams.activehosted.com/f/90').length, 0)
+    assert.equal(harness.sideEffects.requests.length, 0)
+    harness.setStatusResponder(async () => ({ status: 200, json: async () => ({ status: 'not_recorded', recorded: false, source: null, confirmationRequired: true }) }))
+    nodes(harness.tree, node => node.type === 'button' && content(node) === 'Check again')[0].props.onClick()
+    harness.render()
+    await harness.settle()
+    assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0].props.checked, false)
+    assert.equal(harness.sideEffects.requests.length, 0)
+  }
+})
+
+test('a late saved request cannot carry into another member or subscription cycle', async () => {
+  let release
+  const harness = createHarness('../app/welcome/WelcomeActivation.tsx', 'WelcomeActivation', {
+    isAuthenticated: true, planUid: 'L9nbKV9Z', user: { sub: 'person-a', 'outseta:subscriptionUid': 'cycle-a' },
+  })
+  harness.setStatusResponder(() => new Promise(resolve => { release = resolve }))
+  harness.render({ isNewUser: false })
+  await harness.settle()
+  harness.setAuth({ user: { sub: 'person-b', 'outseta:subscriptionUid': 'cycle-b' } })
+  harness.setStatusResponder(async () => ({ status: 200, json: async () => ({ status: 'not_recorded', recorded: false, source: null, confirmationRequired: true }) }))
+  harness.render()
+  await harness.settle()
+  release({ status: 200, json: async () => ({ status: 'recorded', recorded: true, source: 'signup', confirmationRequired: true }) })
+  await harness.settle()
+  assert.doesNotMatch(content(harness.tree), /Request recorded/)
+  assert.equal(nodes(harness.tree, node => node.type === 'input' && node.props.type === 'checkbox')[0].props.checked, false)
+  assert.equal(harness.sideEffects.requests.length, 0)
 })
 
 test('quick actions describe available work and honest member-tool access without false map or volume promises', () => {

@@ -13,7 +13,7 @@ type WelcomeActivationProps = {
 }
 
 type OutsetaUser = Record<string, any> | null
-type EmailConsentStatus = 'idle' | 'submitting' | 'recorded' | 'error'
+type EmailConsentStatus = 'checking' | 'unavailable' | 'idle' | 'submitting' | 'recorded' | 'error'
 
 const LIFECYCLE_EMAIL_CONFIRMATION_FORM_URL = 'https://awilliams.activehosted.com/f/90'
 
@@ -66,15 +66,53 @@ async function readOutsetaUser(): Promise<OutsetaUser> {
 }
 
 export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
-  const { isAuthenticated, isLoading, login, planUid } = useAuth()
+  const { isAuthenticated, isLoading, login, planUid, user } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [isResolvingUser, setIsResolvingUser] = useState(true)
   const [emailConsentRequested, setEmailConsentRequested] = useState(false)
-  const [emailConsentStatus, setEmailConsentStatus] = useState<EmailConsentStatus>('idle')
+  const consentScope = !isLoading && isAuthenticated && planUid === PLAN_UIDS.FREE
+    ? JSON.stringify([user?.sub, user?.['outseta:subscriptionUid']]) : null
+  const [emailConsentResult, setEmailConsentResult] = useState<{ scope: string | null; status: EmailConsentStatus }>({ scope: null, status: 'checking' })
+  const [consentCheckAttempt, setConsentCheckAttempt] = useState(0)
+  const consentRequestScope = useRef<{ active: boolean } | null>(null)
+  const emailConsentStatus = emailConsentResult.scope === consentScope ? emailConsentResult.status : 'checking'
   const firedSignUpEvent = useRef(false)
   const firedSignupCompletedEvent = useRef(false)
   const firedMemberActivatedTag = useRef(false)
+
+  useEffect(() => {
+    const requestScope = { active: true }
+    consentRequestScope.current = requestScope
+    setEmailConsentRequested(false)
+    setEmailConsentResult({ scope: consentScope, status: 'checking' })
+
+    if (consentScope) {
+      void (async () => {
+        let status: EmailConsentStatus = 'unavailable'
+        try {
+          const response = await fetch('/api/lifecycle-email-consent', {
+            method: 'GET', credentials: 'same-origin', cache: 'no-store',
+          })
+          const receipt = await response.json().catch(() => null)
+          if (response.status === 200 && receipt?.confirmationRequired === true) {
+            if (receipt.status === 'recorded' && receipt.recorded === true
+              && (receipt.source === 'signup' || receipt.source === 'welcome')) status = 'recorded'
+            else if (receipt.status === 'not_recorded' && receipt.recorded === false && receipt.source === null) status = 'idle'
+          }
+        } catch {
+          // A failed lookup never establishes that the member did not opt in.
+        }
+        if (requestScope.active) {
+          setEmailConsentResult({ scope: consentScope, status })
+        }
+      })()
+    }
+
+    return () => {
+      requestScope.active = false
+    }
+  }, [consentScope, consentCheckAttempt])
 
   useEffect(() => {
     let cancelled = false
@@ -181,9 +219,11 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
 
   const recordEmailConsentRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!emailConsentRequested || emailConsentStatus === 'submitting' || emailConsentStatus === 'recorded') return
+    if (!consentScope || !emailConsentRequested || !['idle', 'error'].includes(emailConsentStatus)) return
 
-    setEmailConsentStatus('submitting')
+    const requestScope = consentRequestScope.current
+    if (!requestScope?.active) return
+    setEmailConsentResult({ scope: consentScope, status: 'submitting' })
     try {
       const response = await fetch('/api/conversion-events', {
         method: 'POST',
@@ -197,11 +237,12 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
         throw new Error('Consent request was not recorded')
       }
 
+      if (!requestScope.active) return
       setEmailConsentRequested(false)
-      setEmailConsentStatus('recorded')
+      setEmailConsentResult({ scope: consentScope, status: 'recorded' })
     } catch (error) {
       console.warn('[Welcome] Unable to record email preference:', error)
-      setEmailConsentStatus('error')
+      if (requestScope.active) setEmailConsentResult({ scope: consentScope, status: 'error' })
     }
   }
 
@@ -295,7 +336,20 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
               records your request only; email updates remain off unless you complete a separate email confirmation.
             </p>
 
-            {emailConsentStatus === 'recorded' ? (
+            {emailConsentStatus === 'checking' ? (
+              <p role="status" className="mt-4 text-sm text-slate-600">Checking your saved email request...</p>
+            ) : emailConsentStatus === 'unavailable' ? (
+              <div className="mt-4 text-sm text-slate-700">
+                <p role="status">We could not check your saved email request. Please try again before making another choice.</p>
+                <button
+                  type="button"
+                  onClick={() => setConsentCheckAttempt(attempt => attempt + 1)}
+                  className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-copper"
+                >
+                  Check again
+                </button>
+              </div>
+            ) : emailConsentStatus === 'recorded' ? (
               <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
                 <p role="status">
                   Request recorded. Complete the confirmation form, then use the confirmation link sent to your inbox.
@@ -321,7 +375,7 @@ export function WelcomeActivation({ isNewUser }: WelcomeActivationProps) {
                     disabled={emailConsentStatus === 'submitting'}
                     onChange={event => {
                       setEmailConsentRequested(event.target.checked)
-                      if (emailConsentStatus === 'error') setEmailConsentStatus('idle')
+                      if (emailConsentStatus === 'error') setEmailConsentResult({ scope: consentScope, status: 'idle' })
                     }}
                   />
                   <span>I want optional onboarding and membership emails from Nested Objects.</span>
