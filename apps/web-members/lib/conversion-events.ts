@@ -15,6 +15,7 @@ export const CONVERSION_EVENT_NAMES = [
   'upgrade_started',
   'start_trial',
   'outseta_modal_open',
+  'checkout_handoff',
   'purchase',
   'subscription_created',
   'subscription_upgraded',

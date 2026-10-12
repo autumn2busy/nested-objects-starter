@@ -77,7 +77,9 @@ export function trackEvent(eventName: string, eventData?: EventData): void {
     const occurredAt = new Date().toISOString()
     const clientEventId = createClientId('event')
 
-    trackGa4Event(eventName, payload)
+    // Correlated checkout diagnostics stay in the private first-party ledger.
+    // Do not expand marketing-provider configuration or leak correlation IDs.
+    if (eventName !== 'checkout_handoff') trackGa4Event(eventName, payload)
 
     fetch('/api/conversion-events', {
         method: 'POST',

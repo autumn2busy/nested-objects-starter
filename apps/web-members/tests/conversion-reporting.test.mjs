@@ -17,7 +17,7 @@ function load(path, imports = {}) {
   return exports
 }
 const plans = load('../lib/plan-config.ts')
-const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans })
+const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans, './pricing-handoff-report': load('../lib/pricing-handoff-report.ts') })
 const payments = load('../lib/conversion-payment-report.ts')
 const query = load('../lib/conversion-report-query.ts')
 // Run the existing identity/stage regression suite against the changed implementation.

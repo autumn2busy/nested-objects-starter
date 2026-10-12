@@ -17,7 +17,9 @@ const siteUrl = 'https://synthetic-members.example'
 let authState
 let sdkCalls
 let analyticsCalls
-const browser = { location: { href: '' } }
+let stateUpdates
+let handoffTimers
+const browser = { location: { href: '' }, setTimeout: callback => { handoffTimers.push(callback); return handoffTimers.length }, clearTimeout() {} }
 
 function load(relativePath, imports = {}) {
   const code = ts.transpileModule(readFileSync(new URL(relativePath, import.meta.url), 'utf8'), {
@@ -26,9 +28,12 @@ function load(relativePath, imports = {}) {
   const exports = {}
   vm.runInNewContext(code, {
     exports, URL, console, window: browser, process: { env: {} },
+    document: { body: {}, querySelectorAll: () => [] },
+    MutationObserver: class { observe() {} disconnect() {} },
+    crypto: { randomUUID: () => 'synthetic-pricing-attempt' },
     require(name) {
       if (name === 'react/jsx-runtime') return jsxRuntime
-      if (name === 'react') return React
+      if (name === 'react') return { ...React, useState: initial => [initial, value => stateUpdates.push(value)], useRef: initial => ({current:initial}), useEffect: () => {} }
       if (name === 'lucide-react') return require('lucide-react')
       if (name in imports) return imports[name]
       throw new Error(`Unexpected import in ${relativePath}: ${name}`)
@@ -50,13 +55,15 @@ const auth = {
 }
 const analytics = Object.fromEntries([
   'trackJoinFreeClick', 'trackOutsetaModalOpen', 'trackPricingCtaClick',
-  'trackPricingView', 'trackSignupStarted', 'trackStartTrial', 'trackUpgradeStarted',
+  'trackPricingView', 'trackSignupStarted', 'trackStartTrial', 'trackUpgradeStarted', 'trackEvent',
 ].map(name => [name, payload => analyticsCalls.push({ name, payload })]))
+analytics.trackEvent = (event, payload) => analyticsCalls.push({ name: 'trackEvent', event, payload })
 const interactions = load('../app/membership-pricing/PricingInteractions.tsx', {
   '@/components/auth-provider': auth,
   '@/lib/ai-datasets': datasets,
   '@/lib/plan-config': planConfig,
   '@/lib/ac-events': analytics,
+  '@/lib/pricing-handoff': load('../lib/pricing-handoff.ts'),
   '../../../../packages/acquisition-attribution': { decorateAcquisitionUrl: href => href },
 })
 const testimonialComponents = load('../components/TestimonialsSection.tsx', {
@@ -110,6 +117,8 @@ function reset(scenario = scenarios[0]) {
   authState = { isAuthenticated: scenario.planUid !== null, isLoading: false, planUid: scenario.planUid }
   sdkCalls = []
   analyticsCalls = []
+  stateUpdates = []
+  handoffTimers = []
   browser.location.href = ''
   browser.Outseta = {
     auth: { open: options => sdkCalls.push({ widget: 'auth', options }) },
@@ -259,6 +268,36 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile#o-plan-change')
   assert.equal(analyticsCalls.filter(event => event.name === 'trackSignupStarted').length, 3)
+})
+
+test('Free paid-plan click catches SDK failure and offers keyboard-accessible explicit recovery', () => {
+  reset(scenarios[1])
+  browser.Outseta.profile.open = () => { throw new Error('private-provider-error-with-email@example.test') }
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  button.props.onClick()
+  const diagnostic = analyticsCalls.filter(event => event.event === 'checkout_handoff')
+  assert.deepEqual(diagnostic.map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
+  assert.equal(new Set(diagnostic.map(event => event.payload.handoffId)).size, 1)
+  assert.equal(analyticsCalls.find(event => event.name === 'trackPricingCtaClick').payload.handoffId, diagnostic[0].payload.handoffId)
+  assert.equal(browser.location.href, '')
+  assert.doesNotMatch(JSON.stringify(diagnostic), /private-provider-error|email@example/)
+  const recovery = stateUpdates.findLast(value => value && typeof value === 'object' && value.href)
+  const html = renderToStaticMarkup(interactions.PricingHandoffRecovery({ recovery }))
+  assert.match(html, /role="status"/)
+  assert.match(html, /href="https:\/\/nested-objects.outseta.com\/profile#o-plan-change"/)
+  assert.match(html, /Continue on secure plan page/)
+  recovery.record()
+  assert.equal(analyticsCalls.at(-1).payload.handoffStatus, 'recovery_redirect_requested')
+})
+
+test('silent SDK call permits no duplicate click and timeout stays unknown', () => {
+  reset(scenarios[1])
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  button.props.onClick(); button.props.onClick()
+  assert.equal(sdkCalls.length, 1)
+  handoffTimers.at(-1)()
+  assert.deepEqual(analyticsCalls.filter(event => event.event === 'checkout_handoff').map(event => event.payload.handoffStatus), ['requested','unobserved_timeout'])
+  assert.equal(browser.location.href, '')
 })
 
 test('composed pricing JSON-LD removes unsupported ratings while retaining all base schemas and public offers', () => {
