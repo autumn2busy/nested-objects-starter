@@ -103,7 +103,7 @@ export interface ActiveCampaignFreeJourneyConfig {
     stageFieldId?: string;
     expiryFieldId?: string;
     automationId?: string;
-    expectedAutomationStatus?: 'inactive' | 'active';
+    expectedAutomationStatus?: 'inactive' | 'active' | 'paused';
     accountTimeZone: string;
     historicalConsentDecisionRef?: string;
     timeoutMs?: number;
@@ -178,7 +178,7 @@ function validateConfig(config: ActiveCampaignFreeJourneyConfig) {
         || !NUMERIC_ID.test(config.stageFieldId ?? STAGE_FIELD_ID)
         || !NUMERIC_ID.test(config.expiryFieldId ?? EXPIRY_FIELD_ID)
         || !NUMERIC_ID.test(config.automationId ?? AUTOMATION_ID)
-        || !['inactive', 'active'].includes(config.expectedAutomationStatus ?? 'inactive')
+        || !['inactive', 'active', 'paused'].includes(config.expectedAutomationStatus ?? 'inactive')
         || (config.historicalConsentDecisionRef !== undefined && !isIdentifier(config.historicalConsentDecisionRef))
         || !Number.isInteger(timeout) || timeout < 1 || timeout > 30_000) return false;
     try {
@@ -347,6 +347,10 @@ async function runActiveCampaignFreeJourney(
         steps.push({ step: 'configuration', state: 'blocked', code: 'configuration_invalid' });
         return result('withheld', null, steps);
     }
+    if (mode !== 'preview' && config.expectedAutomationStatus === 'paused') {
+        steps.push({ step: 'automation_state', state: 'blocked', code: 'paused_write_prohibited' });
+        return result('withheld', null, steps);
+    }
     const consent = validateEvidenceContext(input, config);
     if (!consent) {
         steps.push({ step: 'evidence', state: 'blocked', code: 'identity_consent_or_freshness_unverified' });
@@ -448,7 +452,7 @@ async function runActiveCampaignFreeJourney(
     if (!automation || String(automation.id) !== automationId) {
         return fail('automation_state', new JourneyWriterError('automation_identity_invalid'), 'failed');
     }
-    const expectedAutomationStatusCode = expectedAutomationStatus === 'active' ? '1' : '2';
+    const expectedAutomationStatusCode = { active: '1', inactive: '2', paused: '3' }[expectedAutomationStatus];
     if (String(automation.status) !== expectedAutomationStatusCode) {
         steps.push({ step: 'automation_state', state: 'blocked', code: `automation_not_${expectedAutomationStatus}` });
         return result('withheld', desiredStage, steps, 0, 0, consent);

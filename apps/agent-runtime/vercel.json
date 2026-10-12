@@ -3,5 +3,7 @@
   "framework": null,
   "installCommand": "npm ci --ignore-scripts --no-audit --no-fund",
   "buildCommand": "npm run build:runtime",
-  "regions": ["iad1"]
+  "regions": [
+    "iad1"
+  ]
 }

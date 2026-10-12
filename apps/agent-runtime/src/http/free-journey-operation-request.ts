@@ -52,6 +52,10 @@ const sourceEventSchema = z.object({
   subscriptionUid: ref,
 }).strict()
 const requestSchema = z.object({ sourceEvent: sourceEventSchema }).strict()
+const internalSourceEventSchema = sourceEventSchema.extend({
+  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30', 'eligibility_recheck']),
+})
+export type FreeJourneySourceEvent = z.infer<typeof internalSourceEventSchema>
 const exclusionPolicySchema = z.object({
   internalDomains: z.array(z.string().regex(/^[a-z0-9.-]+$/)).max(50),
   approvedInternalMemberEmails: z.array(z.string().email().max(320)).max(50),
@@ -78,7 +82,7 @@ export interface FreeJourneyOperationRuntimeConfiguration {
   outsetaApiSecret: string
   activeCampaignApiKey: string
   activeCampaignApiUrl: string
-  expectedAutomationStatus: 'inactive' | 'active'
+  expectedAutomationStatus: 'inactive' | 'active' | 'paused'
   sourcePolicy: FreeJourneyOperationalSourcePolicy
   writeConfiguration: {
     binding: DurableDestinationBinding
@@ -97,6 +101,7 @@ export interface FreeJourneyOperationDependencies {
   activeCampaignFetch?: typeof fetch
   durableStore?: DurableWorkflowStore
   durableRunner?: typeof runDurableFreeJourneyOperation
+  beforeScheduledWrite?: (contactId: string) => Promise<boolean>
 }
 
 export function createFreeJourneyOperationHeaders(input: {
@@ -174,7 +179,24 @@ export async function evaluateSignedFreeJourneyOperationRequest(
   if (!parsed.success || parsed.data.sourceEvent.idempotencyKey !== eventIdempotencyKey(parsed.data.sourceEvent)) {
     throw new FreeJourneyOperationValidationError()
   }
-  const sourceEvent = parsed.data.sourceEvent
+  return evaluateFreeJourneySourceEvent(parsed.data.sourceEvent, configuration,
+    sha256(`${auth.bodyDigest}:${auth.nonceDigest}`), dependencies)
+}
+
+/** Internal evaluation shared by authenticated member requests and separately authenticated scheduled reviews.
+ * The signed member endpoint never accepts eligibility_recheck; scheduled reviews do not impersonate its producer. */
+export async function evaluateFreeJourneySourceEvent(
+  value: unknown,
+  configuration: FreeJourneyOperationRuntimeConfiguration,
+  evaluationId: string,
+  dependencies: FreeJourneyOperationDependencies = {},
+) {
+  const parsed = internalSourceEventSchema.safeParse(value)
+  if (!parsed.success || parsed.data.idempotencyKey !== eventIdempotencyKey(parsed.data)
+    || !/^[a-f0-9]{64}$/.test(evaluationId)) throw new FreeJourneyOperationValidationError()
+  const sourceEvent = parsed.data
+  const now = dependencies.now?.() ?? new Date().toISOString()
+  if (!timestamp.safeParse(now).success) throw new FreeJourneyOperationConfigurationError()
   const mode = dependencies.mode ?? 'approved_live'
   const onboarding = new OnboardingReceiptReadOnlyClient({
     policy: {
@@ -216,7 +238,6 @@ export async function evaluateSignedFreeJourneyOperationRequest(
     outsetaPersonUid: sourceEvent.outsetaPersonUid,
     subscriptionUid: sourceEvent.subscriptionUid,
   })
-  const evaluationId = sha256(`${auth.bodyDigest}:${auth.nonceDigest}`)
   if (external.status === 'withheld') {
     return {
       ok: true,
@@ -279,6 +300,16 @@ export async function evaluateSignedFreeJourneyOperationRequest(
         durableReplayReceipt: false as const,
       }
     }
+    if (sourceEvent.kind === 'eligibility_recheck') {
+      let clear = false
+      try { clear = await dependencies.beforeScheduledWrite?.(activeCampaignContactId!) === true } catch { /* Unknown is held. */ }
+      if (!clear) return {
+        ok: true, evaluationId, status: 'withheld' as const, desiredStage: null,
+        attemptedWrites: 0, confirmedWrites: 0, recoveryRequired: true, automaticRetry: false as const,
+        reasons: ['scheduled_recovery_or_budget_unverified'], steps: [], previewOnly: false as const,
+        durableReplayReceipt: false as const,
+      }
+    }
     const durableStore = dependencies.durableStore ?? await createSupabaseDurableWorkflowStore({
       url: `https://${configuration.projectRef}.supabase.co`,
       serviceRoleKey: configuration.supabaseServiceRoleKey,
@@ -324,8 +355,9 @@ export async function evaluateSignedFreeJourneyOperationRequest(
 
 export function loadFreeJourneyOperationRuntimeConfiguration(
   environment: RuntimeEnvironmentVariables = process.env,
+  entryPoint: 'member' | 'scheduled' = 'member',
 ): FreeJourneyOperationRuntimeConfiguration {
-  if (environment.FREE_JOURNEY_OPERATION_API_ENABLED !== 'true'
+  if (environment[entryPoint === 'scheduled' ? 'FREE_JOURNEY_REFRESH_ENABLED' : 'FREE_JOURNEY_OPERATION_API_ENABLED'] !== 'true'
     || !['true', 'false'].includes(environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY ?? '')
     || environment.FREE_JOURNEY_LIVE_READS_ENABLED !== 'true') {
     throw new FreeJourneyOperationConfigurationError()
@@ -353,7 +385,7 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
   }
   const previewOnly = environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY === 'true'
   const expectedAutomationStatus = environment.FREE_JOURNEY_EXPECTED_527_STATUS
-  if (!['inactive', 'active'].includes(expectedAutomationStatus ?? '')
+  if (!['inactive', 'active', 'paused'].includes(expectedAutomationStatus ?? '')
     || (!previewOnly && expectedAutomationStatus !== 'active')) {
     throw new FreeJourneyOperationConfigurationError()
   }
@@ -426,7 +458,7 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
     outsetaApiSecret,
     activeCampaignApiKey,
     activeCampaignApiUrl: activeCampaign.origin,
-    expectedAutomationStatus: expectedAutomationStatus as 'inactive' | 'active',
+    expectedAutomationStatus: expectedAutomationStatus as 'inactive' | 'active' | 'paused',
     sourcePolicy,
     writeConfiguration,
   }
@@ -455,7 +487,7 @@ async function readRequestJson(request: Request): Promise<{ bodyText: string; va
   try { return { bodyText, value: JSON.parse(bodyText) as unknown } } catch { throw new FreeJourneyOperationValidationError() }
 }
 
-function eventIdempotencyKey(event: z.infer<typeof sourceEventSchema>) {
+function eventIdempotencyKey(event: FreeJourneySourceEvent) {
   const digest = sha256(JSON.stringify([
     event.contractVersion, event.kind, event.outsetaPersonUid, event.subscriptionUid, event.occurredAt,
   ]))
