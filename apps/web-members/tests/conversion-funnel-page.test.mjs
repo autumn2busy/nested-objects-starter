@@ -30,7 +30,7 @@ function load(relativePath, imports = {}) {
 }
 
 const plans = load('../lib/plan-config.ts')
-const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans })
+const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans, './pricing-handoff-report': load('../lib/pricing-handoff-report.ts') })
 const reportQuery = load('../lib/conversion-report-query.ts')
 const paymentUnavailable = (members, reason) => ({ status: 'unavailable', reason, members, matchedMembers: 0,
   recordedPaidMembers: 0, trialingMembers: 0, pastDueMembers: 0, refundedMembers: 0, unknownMembers: members })
@@ -144,4 +144,13 @@ test('partial or failed conversion reads do not initiate provider billing reads'
     await fixture.render()
     assert.equal(fixture.paymentCalls.length, 0)
   }
+})
+
+test('handoff report distinguishes general interest, legacy attempts and unknown visibility', async () => {
+  const html = await pageFixture({ data: [signup, { ...signup, id: 'interest', event_name: 'upgrade_clicked',
+    occurred_at: '2026-09-02T12:00:00Z', event_data: { targetPlan: 'Pro' } }] }).render()
+  assert.match(html, /1 members have general upgrade interest/)
+  assert.match(html, /0 correlated attempts/)
+  assert.match(html, /Older modal-open events record an attempt, not visibility/)
+  assert.match(html, /Closing does not establish abandonment/)
 })

@@ -623,6 +623,26 @@ test('income completion is available to the authenticated browser route', () => 
   assert.equal(conversion.isBrowserConversionEventName('income_scenario_completed'), true)
 })
 
+test('checkout handoff diagnostics persist with signed identity, deduplicate and never forward to marketing', async () => {
+  const storedRows = new Map()
+  const harness = createHarness({ storedRows, user: { uid: 'synthetic-member', email: 'synthetic@example.test' } })
+  const payload = { event: 'checkout_handoff', clientEventId: 'event:handoff-fixture', memberUid: 'forged-member',
+    occurredAt: new Date().toISOString(), eventData: { handoffContract: 'pricing-handoff-v1',
+      handoffId: 'handoff:synthetic-attempt', handoffStatus: 'widget_visible', targetPlan: 'Pro' } }
+  for (let i = 0; i < 2; i++) {
+    const response = await harness.post(payload)
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { recorded: true, activeCampaignTracked: false })
+  }
+  assert.equal(storedRows.size, 1)
+  assert.equal(harness.calls.writes[0].row.member_uid, 'synthetic-member')
+  assert.equal(harness.calls.campaigns.length, 0)
+  const missing = createHarness({ storageError: new Error('Fixture missing storage') })
+  const unavailable = await missing.post(payload)
+  assert.equal(unavailable.status, 202)
+  assert.equal((await unavailable.json()).recorded, false)
+})
+
 test('invalid client identifiers are omitted and cannot replace session-derived identity', async () => {
   const harness = createHarness()
   await harness.post({ clientEventId: 'invalid id', anonymousId: 'x'.repeat(161), sessionId: { forged: true } })

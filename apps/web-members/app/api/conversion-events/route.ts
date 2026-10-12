@@ -256,7 +256,7 @@ export async function POST(request: Request) {
     }
 
     let activeCampaignTracked = false
-    if (memberEmail) {
+    if (memberEmail && body.event !== 'checkout_handoff') {
       activeCampaignTracked = await trackACServerEvent({
         email: memberEmail,
         event: body.event,

@@ -1,4 +1,5 @@
 import { PAID_PLANS } from './plan-config'
+import { summarizePricingHandoffs } from './pricing-handoff-report'
 
 export type ConversionEventRow = {
   id: string
@@ -295,5 +296,6 @@ export function buildConversionFunnel(
     unknown: cohortMembers.filter(member => member.attributionBasis === 'unknown').length,
     campaignKnown: cohortMembers.filter(member => member.campaignSource !== null).length,
   }
-  return { cohortSize, stages, stuckMembers, sources, plans, ambiguousAnonymousIds, cohortMembers, attributionCoverage, excludedEvents }
+  const checkoutHandoffs = summarizePricingHandoffs([...cohorts.values()].map(cohort => cohort.events), hasPaidTarget)
+  return { cohortSize, stages, stuckMembers, sources, plans, ambiguousAnonymousIds, cohortMembers, attributionCoverage, excludedEvents, checkoutHandoffs }
 }

@@ -222,6 +222,31 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
         </div>
       </section>
 
+      <section aria-label="Pricing checkout handoffs" className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="text-xl font-bold text-slate-950">Pricing to checkout handoff</h2>
+        {error ? <p className="mt-2 text-sm text-slate-700">Handoff observations are unavailable.</p> : <>
+          <p className="mt-2 text-sm text-slate-700">
+            {funnel.checkoutHandoffs.generalUpgradeOnlyMembers} members have general upgrade interest without a recorded paid-plan selection;
+            {' '}{funnel.checkoutHandoffs.selectedPlanMembers} clicked a paid-plan button;
+            {' '}{funnel.checkoutHandoffs.selectedPlanWithoutHandoff} of those have no correlated handoff request.
+          </p>
+          <p className="mt-2 text-sm text-slate-700">
+            {funnel.checkoutHandoffs.attempts} correlated attempts: {funnel.checkoutHandoffs.visible} widgets observed visible,
+            {' '}{funnel.checkoutHandoffs.failed} reported opening or navigation failures,
+            {' '}{funnel.checkoutHandoffs.unobserved} unknown visibility,
+            {' '}{funnel.checkoutHandoffs.hostedRedirects} hosted redirects requested,
+            {' '}{funnel.checkoutHandoffs.closed} closed after appearing, and
+            {' '}{funnel.checkoutHandoffs.recoveryRedirects} recovery links selected.
+          </p>
+        </>}
+        <p className="mt-2 text-xs leading-5 text-slate-600">
+          New correlated evidence only. Older modal-open events record an attempt, not visibility.
+          A visible widget does not prove its selected plan, a completed checkout or payment.
+          Hosted arrival and unrecorded actions remain unknown. Closing does not establish abandonment.
+          Verification and admin exclusions apply. Incomplete collection cannot establish a conversion rate.
+        </p>
+      </section>
+
       <section aria-label="Payment evidence" className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="text-xl font-bold text-slate-950">Read-only payment reconciliation</h2>
         <p className="mt-2 text-sm text-slate-700">
