@@ -86,6 +86,19 @@ export async function emitFreeJourneySourceEvent(
   const sourceEvent = buildFreeJourneySourceEvent(input)
   if (!sourceEvent) return result('withheld', 'source_event_invalid')
 
+  // Optional paired scope confines an approved consent recheck to one member/cycle.
+  // Partial/invalid scope withholds; it never falls back to unrestricted routing.
+  const reviewPerson = environment.FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID
+  const reviewCycle = environment.FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID
+  if (reviewPerson !== undefined || reviewCycle !== undefined) {
+    if (!identifier(reviewPerson) || !identifier(reviewCycle)
+      || sourceEvent.outsetaPersonUid !== reviewPerson
+      || sourceEvent.subscriptionUid !== reviewCycle
+      || sourceEvent.kind !== 'consent_check_requested') {
+      return result('withheld', 'producer_review_scope_withheld')
+    }
+  }
+
   const requestedAt = dependencies.now?.() ?? new Date().toISOString()
   if (!validTimestamp(requestedAt)) return result('withheld', 'request_timestamp_invalid')
   const nonce = dependencies.nonce?.() ?? randomUUID()

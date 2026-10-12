@@ -335,3 +335,61 @@ test('producer makes one attempt and reports an uncertain request without retryi
   assert.equal(result.automaticRetry, false)
   assert.equal(calls, 1)
 })
+
+
+test('paired review scope permits only an explicit consent recheck for the approved member and cycle', async () => {
+  let lookups = 0
+  let requests = 0
+  const boundedProducer = loadProducer(() => { lookups++; return syntheticToken() })
+  const scope = {
+    ...environment,
+    FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID: input.outsetaPersonUid,
+    FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID: input.subscriptionUid,
+  }
+  const dependencies = {
+    environment: scope, now: () => now, nonce: () => nonce,
+    fetch: async () => { requests++; return runtimeResponse() },
+  }
+  for (const event of [
+    input,
+    { ...input, kind: 'signup' },
+    { ...input, kind: 'profile_saved' },
+    { ...input, kind: 'consent_recorded' },
+    { ...input, kind: 'day_30' },
+    { ...input, kind: 'consent_check_requested', outsetaPersonUid: 'OtherMember' },
+    { ...input, kind: 'consent_check_requested', subscriptionUid: 'OtherCycle' },
+  ]) {
+    const result = await boundedProducer.emitFreeJourneySourceEvent(event, dependencies)
+    assert.equal(result.status, 'withheld')
+    assert.equal(result.code, 'producer_review_scope_withheld')
+    assert.equal(result.recoveryRequired, false)
+  }
+  assert.equal(lookups, 0); assert.equal(requests, 0)
+  const result = await boundedProducer.emitFreeJourneySourceEvent(
+    { ...input, kind: 'consent_check_requested' }, dependencies,
+  )
+  assert.equal(result.status, 'delivered')
+  assert.equal(lookups, 1); assert.equal(requests, 1)
+})
+
+test('partial or invalid review scopes withhold without resolving identity or sending', async () => {
+  let lookups = 0
+  let requests = 0
+  const boundedProducer = loadProducer(() => { lookups++; return syntheticToken() })
+  for (const scope of [
+    { FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID: input.outsetaPersonUid },
+    { FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID: input.subscriptionUid },
+    { FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID: '', FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID: '' },
+    { FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID: 'invalid/value', FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID: input.subscriptionUid },
+    { FREE_JOURNEY_PRODUCER_REVIEW_PERSON_UID: input.outsetaPersonUid, FREE_JOURNEY_PRODUCER_REVIEW_SUBSCRIPTION_UID: 'invalid/value' },
+  ]) {
+    const result = await boundedProducer.emitFreeJourneySourceEvent(
+      { ...input, kind: 'consent_check_requested' },
+      { environment: { ...environment, ...scope }, now: () => now, nonce: () => nonce,
+        fetch: async () => { requests++; return runtimeResponse() } },
+    )
+    assert.equal(result.code, 'producer_review_scope_withheld')
+    assert.equal(result.automaticRetry, false)
+  }
+  assert.equal(lookups, 0); assert.equal(requests, 0)
+})
