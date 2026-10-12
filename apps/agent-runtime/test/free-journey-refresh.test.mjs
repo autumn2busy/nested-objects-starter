@@ -1,3 +1,4 @@
+import { freeJourneyRefreshDeployment } from '../dist/http/free-journey-refresh-deployment.js'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import refreshEndpoint from '../dist-api/api/operations/free-journey-refresh.js'
@@ -435,4 +436,24 @@ test('unavailable, exhausted or inconsistent relationship pagination reports par
     assert.equal(result.reasonCounts[code], 1)
     assert.equal(result.attemptedWrites, 0)
   }
+})
+
+test('deployment never registers the refresh in Preview, Development or disabled Production', () => {
+  for (const VERCEL_ENV of [undefined, 'preview', 'development']) {
+    const result = freeJourneyRefreshDeployment({ VERCEL_ENV, FREE_JOURNEY_REFRESH_ENABLED: 'true', CRON_SECRET: 's'.repeat(32) })
+    assert.deepEqual(result.config.crons, [])
+  }
+  assert.deepEqual(freeJourneyRefreshDeployment({ VERCEL_ENV: 'production' }).config.crons, [])
+  assert.deepEqual(freeJourneyRefreshDeployment({ VERCEL_ENV: 'production', FREE_JOURNEY_REFRESH_ENABLED: 'false' }).config.crons, [])
+})
+
+test('enabled Production registers only the exact hourly route with Nitro duration and a dedicated credential', () => {
+  assert.throws(() => freeJourneyRefreshDeployment({ VERCEL_ENV: 'production', FREE_JOURNEY_REFRESH_ENABLED: 'true' }))
+  assert.throws(() => freeJourneyRefreshDeployment({ VERCEL_ENV: 'production', FREE_JOURNEY_REFRESH_ENABLED: 'true', CRON_SECRET: 'short' }))
+  const result = freeJourneyRefreshDeployment({ VERCEL_ENV: 'production', FREE_JOURNEY_REFRESH_ENABLED: 'true', CRON_SECRET: 's'.repeat(32) })
+  assert.deepEqual(result, {
+    functionRules: { '/api/operations/free-journey-refresh': { maxDuration: 300 } },
+    config: { version: 3, crons: [{ path: '/api/operations/free-journey-refresh', schedule: '0 * * * *' }] },
+  })
+  assert.equal(JSON.stringify(result).includes('s'.repeat(32)), false)
 })

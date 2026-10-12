@@ -5,16 +5,5 @@
   "buildCommand": "npm run build:runtime",
   "regions": [
     "iad1"
-  ],
-  "functions": {
-    "api/operations/free-journey-refresh.ts": {
-      "maxDuration": 300
-    }
-  },
-  "crons": [
-    {
-      "path": "/api/operations/free-journey-refresh",
-      "schedule": "0 * * * *"
-    }
   ]
 }
