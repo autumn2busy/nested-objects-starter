@@ -20,7 +20,7 @@ const AGENT_NAME = 'activecampaign-lifecycle'
 const timestamp = z.string().datetime({ offset: true })
 const eventSchema = z.object({
   contractVersion: z.literal('free_journey_event_v1'),
-  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30']),
+  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30', 'eligibility_recheck']),
   idempotencyKey: z.string().min(1).max(240),
   occurredAt: timestamp,
 }).passthrough()

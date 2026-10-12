@@ -62,7 +62,7 @@ const writeApprovalSchema = z.union([
 ])
 const operationalEventSchema = z.object({
   contractVersion: z.literal('free_journey_event_v1'),
-  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30']),
+  kind: z.enum(['signup', 'consent_recorded', 'consent_check_requested', 'profile_saved', 'income_scenario_completed', 'day_30', 'eligibility_recheck']),
   idempotencyKey: id,
   occurredAt: timestamp,
   outsetaPersonUid: id,
@@ -129,7 +129,7 @@ function validAssets(input: FreeJourneyOperationInput) {
     && (executionPhase === 'operational'
       ? input.mode === 'write'
         ? expectedAutomationStatus === 'active'
-        : ['inactive', 'active'].includes(expectedAutomationStatus)
+        : ['inactive', 'active', 'paused'].includes(expectedAutomationStatus)
       : expectedAutomationStatus === 'inactive')
 }
 
