@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card'
 import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { StarRating } from '@/components/ui/StarRating'
+import { FirmReputationNotice } from '@/components/directory/FirmReputationNotice'
+import { isFirmSuppressed, type FirmReputationFields } from '@/lib/firm-reputation'
 import { US_STATES } from './constants'
 import {
   DirectoryAnalytics,
@@ -72,7 +74,7 @@ const NOTARY_QUICK_FILTERS = [
   { label: 'Inspection add-ons', href: '/hiring-firms?industry=Notary&search=photo' },
 ] as const
 
-export type Firm = {
+export type Firm = FirmReputationFields & {
   id: string
   slug: string | null
   name: string
@@ -389,6 +391,7 @@ function NotaryDirectoryPanel({ access }: { access: DirectoryAccess }) {
 }
 
 function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
+  const isSuppressed = isFirmSuppressed(firm)
   const email = hasDisplayValue(firm.email) ? firm.email : null
   const phone = hasDisplayValue(firm.phone) ? firm.phone : null
   const vendorPageUrl = hasDisplayValue(firm.vendor_page_url) ? firm.vendor_page_url : null
@@ -408,6 +411,7 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
   const compensationDetails = firm.compensation_structure || payText
   const workSetting = source || 'Work setting not specified'
   const contactMethod = (() => {
+    if (isSuppressed) return 'Recommendation paused — contact path hidden'
     if (email) return `Email - ${email}`
     if (phone) return `Call - ${phone}`
     if (vendorPageUrl || websiteUrl) return `Website - ${vendorPageUrl ?? websiteUrl}`
@@ -451,6 +455,14 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
       <p className="mt-4 line-clamp-3 text-xs leading-relaxed text-slate-700">
         {firm.description || 'No description provided.'}
       </p>
+
+      <FirmReputationNotice
+        recommendation_status={firm.recommendation_status}
+        reputation_notice={firm.reputation_notice}
+        reputation_sources={firm.reputation_sources}
+        reputation_reviewed_at={firm.reputation_reviewed_at}
+        compact
+      />
 
       {firm.services && (
         <p className="mt-2 text-xs font-medium text-slate-600">
