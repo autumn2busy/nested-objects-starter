@@ -36,7 +36,7 @@ function createHarness({
   rateLimitError = null,
   storedRows = new Map(),
 } = {}) {
-  const calls = { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] }
+  const calls = { writes: [], reads: [], campaigns: [], completions: [], journeys: [], auth: 0, clients: 0, limits: [], errors: [] }
   const supabase = {
     from(table) {
       return {
@@ -50,6 +50,22 @@ function createHarness({
           }
           return { error: storageError }
         },
+        select(columns) {
+          const filters = {}
+          const builder = {
+            eq(column, value) { filters[column] = value; return builder },
+            limit() { return builder },
+            async single() {
+              calls.reads.push(clone({ table, columns, filters }))
+              const row = storedRows.get(filters.client_event_id)
+              if (!row || row.event_name !== filters.event_name || row.member_uid !== filters.member_uid) {
+                return { data: null, error: { code: 'PGRST116', message: 'Synthetic receipt missing' } }
+              }
+              return { data: clone(row), error: null }
+            },
+          }
+          return builder
+        },
       }
     },
   }
@@ -60,11 +76,29 @@ function createHarness({
       getCurrentUser: async () => { calls.auth++; return user },
       getOutsetaUserId: current => current?.uid ?? null,
       getPlanName: uid => uid === 'synthetic-server-plan' ? 'Pro' : 'Unknown',
+      PLAN_UIDS: { FREE: 'L9nbKV9Z' },
     },
     '@/lib/ac-event-tracking': {
       trackACServerEvent: async event => { calls.campaigns.push(clone(event)); return true },
     },
     '@/lib/conversion-events': conversion,
+    '@/lib/free-onboarding-completion': {
+      reconcileFreeOnboardingCompletionFromEnvironment: async input => {
+        calls.completions.push({
+          outsetaPersonUid: input.outsetaPersonUid,
+          subscriptionUid: input.subscriptionUid,
+          planUid: input.planUid,
+          freePlanUid: input.freePlanUid,
+        })
+        return { status: 'disabled' }
+      },
+    },
+    '@/lib/free-journey-operation-producer': {
+      emitFreeJourneySourceEvent: async input => {
+        calls.journeys.push(clone(input))
+        return { status: 'disabled', code: 'producer_disabled', recoveryRequired: false, automaticRetry: false, httpStatus: null, evaluationId: null }
+      },
+    },
     '@/lib/rate-limit': {
       rateLimit: () => ({ check: async key => {
         calls.limits.push(key)
@@ -205,6 +239,13 @@ test('income completion persists only the server-derived member, cycle, and fixe
   })
   assert.notEqual(row.occurred_at, '2020-01-01T00:00:00.000Z')
   assert.deepEqual(options, { onConflict: 'client_event_id', ignoreDuplicates: true })
+  assert.equal(harness.calls.reads.length, 1)
+  assert.deepEqual(harness.calls.journeys, [{
+    kind: 'income_scenario_completed',
+    occurredAt: row.occurred_at,
+    outsetaPersonUid: 'signed-member',
+    subscriptionUid: 'signed-cycle',
+  }])
 })
 
 test('income completion retries reuse one key per member lifecycle cycle', async () => {
@@ -285,6 +326,165 @@ test('income completion storage failure returns 202 without marketing delivery',
   assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
   assert.equal(harness.calls.writes.length, 1)
   assert.equal(harness.calls.campaigns.length, 0)
+  assert.equal(harness.calls.journeys.length, 0)
+  assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
+  assert.equal(harness.calls.errors[0][1], storageError)
+})
+
+test('lifecycle email consent requires strict signed person and membership-cycle identity', async () => {
+  for (const [user, status] of [
+    [null, 401],
+    [{ uid: 'fallback-member', 'outseta:subscriptionUid': 'cycle-one', 'outseta:planUid': 'L9nbKV9Z' }, 401],
+    [{ sub: 'signed-member', 'outseta:planUid': 'L9nbKV9Z' }, 409],
+    [{ sub: 'signed-member', 'outseta:subscriptionUid': 'cycle-one' }, 403],
+    [{ sub: 'signed-member', 'outseta:subscriptionUid': 'cycle-one', 'outseta:planUid': 'rQVqlLm6' }, 403],
+  ]) {
+    const harness = createHarness({ user })
+    const response = await harness.post({ event: 'lifecycle_email_consent_requested' })
+    assert.equal(response.status, status)
+    assert.equal(harness.calls.auth, 1)
+    assert.equal(harness.calls.clients, 0)
+    assert.equal(harness.calls.writes.length, 0)
+    assert.equal(harness.calls.campaigns.length, 0)
+  }
+})
+
+test('lifecycle email consent stores only the server-canonical requested-only contract', async () => {
+  const user = {
+    sub: 'signed-person',
+    email: 'private@example.test',
+    'outseta:subscriptionUid': 'signed-subscription',
+    'outseta:planUid': 'L9nbKV9Z',
+  }
+  const harness = createHarness({ user })
+  const response = await harness.post({
+    event: 'lifecycle_email_consent_requested',
+    clientEventId: 'forged-event-id',
+    anonymousId: 'forged-anonymous-id',
+    sessionId: 'forged-session-id',
+    memberUid: 'forged-member',
+    memberEmail: 'forged@example.test',
+    planUid: 'forged-plan',
+    planName: 'Founders',
+    occurredAt: '2020-01-01T00:00:00.000Z',
+    eventData: {
+      sourcePage: '/forged',
+      source: 'forged',
+      consentContract: 'forged',
+      purpose: 'generic_marketing',
+      lifecycleCycleId: 'forged-cycle',
+      implicitConsent: true,
+    },
+  })
+
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
+
+  const { table, row, options } = harness.calls.writes[0]
+  const expectedDigest = require('node:crypto').createHash('sha256')
+    .update(JSON.stringify([
+      'lifecycle_email_consent_requested',
+      'v1',
+      'signed-person',
+      'signed-subscription',
+      'free_onboarding_and_conversion_email',
+    ]))
+    .digest('hex')
+  assert.equal(table, 'conversion_events')
+  assert.equal(row.client_event_id, `lifecycle_email_consent_requested:v1:${expectedDigest}`)
+  assert.equal(row.event_name, 'lifecycle_email_consent_requested')
+  assert.equal(row.member_uid, 'signed-person')
+  assert.equal(row.member_email, null)
+  assert.equal(row.anonymous_id, null)
+  assert.equal(row.session_id, null)
+  assert.equal(row.plan_uid, null)
+  assert.equal(row.plan_name, null)
+  assert.equal(row.source_page, '/welcome')
+  assert.equal(row.source, 'member_consent')
+  assert.deepEqual(row.event_data, {
+    sourcePage: '/welcome',
+    source: 'member_consent',
+    consentContract: 'v1',
+    purpose: 'free_onboarding_and_conversion_email',
+    lifecycleCycleId: 'signed-subscription',
+  })
+  assert.notEqual(row.occurred_at, '2020-01-01T00:00:00.000Z')
+  assert.deepEqual(options, { onConflict: 'client_event_id', ignoreDuplicates: true })
+})
+
+test('lifecycle email consent retries reuse one key per signed person and membership cycle', async () => {
+  const storedRows = new Map()
+  const first = createHarness({
+    storedRows,
+    user: { sub: 'signed-person', 'outseta:subscriptionUid': 'cycle-one', 'outseta:planUid': 'L9nbKV9Z' },
+  })
+  await first.post({ event: 'lifecycle_email_consent_requested', clientEventId: 'first-forgery' })
+  await first.post({ event: 'lifecycle_email_consent_requested', clientEventId: 'second-forgery' })
+
+  assert.equal(first.calls.writes.length, 2)
+  assert.equal(first.calls.writes[0].row.client_event_id, first.calls.writes[1].row.client_event_id)
+  assert.equal(storedRows.size, 1)
+
+  const nextCycle = createHarness({
+    user: { sub: 'signed-person', 'outseta:subscriptionUid': 'cycle-two', 'outseta:planUid': 'L9nbKV9Z' },
+  })
+  await nextCycle.post({ event: 'lifecycle_email_consent_requested' })
+  assert.notEqual(nextCycle.calls.writes[0].row.client_event_id, first.calls.writes[0].row.client_event_id)
+
+  const nextPerson = createHarness({
+    user: { sub: 'different-person', 'outseta:subscriptionUid': 'cycle-one', 'outseta:planUid': 'L9nbKV9Z' },
+  })
+  await nextPerson.post({ event: 'lifecycle_email_consent_requested' })
+  assert.notEqual(nextPerson.calls.writes[0].row.client_event_id, first.calls.writes[0].row.client_event_id)
+})
+
+test('generic browser events cannot occupy the reserved lifecycle consent key', async () => {
+  const storedRows = new Map()
+  const memberUid = 'signed-person'
+  const lifecycleCycleId = 'cycle-one'
+  const digest = require('node:crypto').createHash('sha256')
+    .update(JSON.stringify([
+      'lifecycle_email_consent_requested',
+      'v1',
+      memberUid,
+      lifecycleCycleId,
+      'free_onboarding_and_conversion_email',
+    ]))
+    .digest('hex')
+  const reservedKey = `lifecycle_email_consent_requested:v1:${digest}`
+
+  const generic = createHarness({ storedRows })
+  const genericResponse = await generic.post({ event: 'pricing_view', clientEventId: reservedKey })
+  assert.equal(genericResponse.status, 200)
+  assert.equal(generic.calls.writes[0].row.client_event_id, null)
+
+  const consent = createHarness({
+    storedRows,
+    user: { sub: memberUid, 'outseta:subscriptionUid': lifecycleCycleId, 'outseta:planUid': 'L9nbKV9Z' },
+  })
+  const consentResponse = await consent.post({ event: 'lifecycle_email_consent_requested' })
+  assert.equal(consentResponse.status, 200)
+  assert.equal(storedRows.get(reservedKey)?.event_name, 'lifecycle_email_consent_requested')
+})
+
+test('lifecycle email consent storage failure returns 202 without marketing delivery', async () => {
+  const storageError = { code: 'PGRST205', message: 'Synthetic unavailable storage' }
+  const harness = createHarness({
+    storageError,
+    user: {
+      sub: 'signed-person',
+      'outseta:subscriptionUid': 'signed-subscription',
+      'outseta:planUid': 'L9nbKV9Z',
+      email: 'private@example.test',
+    },
+  })
+  const response = await harness.post({ event: 'lifecycle_email_consent_requested' })
+  assert.equal(response.status, 202)
+  assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
   assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
   assert.equal(harness.calls.errors[0][1], storageError)
 })
@@ -298,6 +498,48 @@ test('duplicate deliveries use the same stable key and insert-once conflict poli
   assert.deepEqual(harness.calls.writes[0], harness.calls.writes[1])
   assert.equal(harness.calls.writes[0].row.client_event_id, 'event:synthetic-1')
   assert.deepEqual(harness.calls.writes[0].options, { onConflict: 'client_event_id', ignoreDuplicates: true })
+})
+
+test('signup start retries reuse one client key and retain one stored intent', async () => {
+  const storedRows = new Map()
+  const harness = createHarness({ storedRows })
+  const payload = {
+    event: 'signup_started',
+    clientEventId: 'event:signup-start-synthetic',
+    occurredAt: new Date().toISOString(),
+    eventData: { sourcePage: '/membership-pricing', plan: 'Pro' },
+  }
+
+  const first = await harness.post(payload)
+  const second = await harness.post(payload)
+
+  assert.equal(first.status, 200)
+  assert.deepEqual(await first.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(second.status, 200)
+  assert.deepEqual(await second.json(), { recorded: true, activeCampaignTracked: false })
+  assert.equal(harness.calls.writes.length, 2)
+  assert.deepEqual(harness.calls.writes[0], harness.calls.writes[1])
+  assert.equal(storedRows.size, 1)
+  assert.equal(storedRows.get(payload.clientEventId)?.event_name, 'signup_started')
+  assert.deepEqual(storedRows.get(payload.clientEventId)?.event_data, payload.eventData)
+})
+
+test('signup start storage failure returns 202 without claiming a recorded anonymous intent', async () => {
+  const storageError = { code: 'PGRST205', message: 'Synthetic unavailable conversion ledger' }
+  const harness = createHarness({ storageError })
+  const response = await harness.post({
+    event: 'signup_started',
+    clientEventId: 'event:signup-start-unavailable',
+    eventData: { sourcePage: '/membership-pricing', plan: 'Elite' },
+  })
+
+  assert.equal(response.status, 202)
+  assert.deepEqual(await response.json(), { recorded: false, activeCampaignTracked: false })
+  assert.equal(harness.storedRows.size, 0)
+  assert.equal(harness.calls.writes.length, 1)
+  assert.equal(harness.calls.campaigns.length, 0)
+  assert.equal(harness.calls.errors[0][0], '[Conversion Events] First-party storage failed:')
+  assert.equal(harness.calls.errors[0][1], storageError)
 })
 
 test('unavailable storage is reported as unrecorded even when the AC stub accepts the event', async () => {
@@ -324,7 +566,10 @@ test('OS acceptance Preview suppresses all persistence, authentication, rate-lim
   const response = await harness.post({ event: 'income_scenario_completed' })
   assert.equal(response.status, 204)
   assert.equal(await response.text(), '')
-  assert.deepEqual(harness.calls, { writes: [], campaigns: [], auth: 0, clients: 0, limits: [], errors: [] })
+  assert.deepEqual(harness.calls, {
+    writes: [], reads: [], campaigns: [], completions: [], journeys: [],
+    auth: 0, clients: 0, limits: [], errors: [],
+  })
 })
 
 test('ordinary Preview and Production retain their existing event-storage behavior', async () => {
@@ -376,6 +621,26 @@ test('paid lifecycle names remain available to the existing authoritative server
 test('income completion is available to the authenticated browser route', () => {
   assert.equal(conversion.isConversionEventName('income_scenario_completed'), true)
   assert.equal(conversion.isBrowserConversionEventName('income_scenario_completed'), true)
+})
+
+test('checkout handoff diagnostics persist with signed identity, deduplicate and never forward to marketing', async () => {
+  const storedRows = new Map()
+  const harness = createHarness({ storedRows, user: { uid: 'synthetic-member', email: 'synthetic@example.test' } })
+  const payload = { event: 'checkout_handoff', clientEventId: 'event:handoff-fixture', memberUid: 'forged-member',
+    occurredAt: new Date().toISOString(), eventData: { handoffContract: 'pricing-handoff-v1',
+      handoffId: 'handoff:synthetic-attempt', handoffStatus: 'widget_visible', targetPlan: 'Pro' } }
+  for (let i = 0; i < 2; i++) {
+    const response = await harness.post(payload)
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { recorded: true, activeCampaignTracked: false })
+  }
+  assert.equal(storedRows.size, 1)
+  assert.equal(harness.calls.writes[0].row.member_uid, 'synthetic-member')
+  assert.equal(harness.calls.campaigns.length, 0)
+  const missing = createHarness({ storageError: new Error('Fixture missing storage') })
+  const unavailable = await missing.post(payload)
+  assert.equal(unavailable.status, 202)
+  assert.equal((await unavailable.json()).recorded, false)
 })
 
 test('invalid client identifiers are omitted and cannot replace session-derived identity', async () => {

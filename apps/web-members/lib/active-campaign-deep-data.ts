@@ -384,8 +384,8 @@ async function syncTags(contactId: string, profile: ProfileUpdateData, run: AcSy
     if (existing?.some(tag => !tag.name)) run.record('tag_cleanup_coverage', 'blocked', 'tag_names_unavailable');
     // Do not call partial relationship coverage a complete historical cleanup.
     run.record('tag_history_coverage', 'skipped', 'unverified_relationship_pagination');
-    await run.attempt('tag_membership_source', () => addTagToContact(contactId, 'antigravity-subscription', existing));
-    await run.attempt('tag_launch', () => addTagToContact(contactId, 'launch-2026-03-01', existing));
+    // Preserve historical source markers, but do not assign retired migration and
+    // launch tags to newly synchronized contacts.
 
     const rawData = profile.outseta_data as any;
     const primaryPa = rawData?.PersonAccount?.find((pa: any) => pa.IsPrimary) || rawData?.PersonAccount?.[0];

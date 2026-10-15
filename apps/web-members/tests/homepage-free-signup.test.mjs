@@ -36,22 +36,32 @@ function load(relativePath, imports = {}) {
 
 const planConfig = load('../lib/plan-config.ts')
 
-function createHarness(auth = {}, { trackingThrows = false } = {}) {
+function createHarness(auth = {}, { throwingTracker = null } = {}) {
   const events = []
+  const signupStarts = []
   const cta = load('../components/FreeSignupCta.tsx', {
     '@/components/auth-provider': { useAuth: () => ({ isLoading: false, isAuthenticated: false, ...auth }) },
     '@/lib/plan-config': planConfig,
     '@/lib/ac-events': {
+      trackSignupStarted(plan) {
+        signupStarts.push(plan)
+        if (throwingTracker === 'signup') throw new Error('Synthetic signup analytics unavailable')
+      },
       trackJoinFreeClick(payload) {
         events.push(JSON.parse(JSON.stringify(payload)))
-        if (trackingThrows) throw new Error('Synthetic analytics unavailable')
+        if (throwingTracker === 'join') throw new Error('Synthetic join analytics unavailable')
       },
     },
   })
   return {
     events,
+    signupStarts,
     cta,
-    render: (placement = 'home_hero') => cta.FreeSignupCta({ placement, className: 'synthetic-cta-style' }),
+    render: (placement = 'home_hero', props = {}) => cta.FreeSignupCta({
+      placement,
+      className: 'synthetic-cta-style',
+      ...props,
+    }),
     homepage() {
       const hero = load('../components/TechHero.tsx', { '@/components/FreeSignupCta': cta })
       const page = load('../app/page.tsx', {
@@ -116,6 +126,7 @@ test('visitor CTA is a native direct Free registration link with no SDK or plan-
   assert.match(html, /^<a /)
   assert.doesNotMatch(html, /membership-pricing|planFamilyUid|planPaymentTerm|rQVqlLm6/)
   assert.equal(harness.events.length, 0, 'Rendering must not record signup intent')
+  assert.equal(harness.signupStarts.length, 0, 'Rendering must not record a signup start')
 })
 
 test('each deliberate pointer or keyboard click records one existing intent event and leaves navigation native', () => {
@@ -125,8 +136,11 @@ test('each deliberate pointer or keyboard click records one existing intent even
     for (const overrides of [{}, { detail: 0 }, { ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }]) {
       const event = clickEvent(overrides)
       const before = harness.events.length
+      const signupBefore = harness.signupStarts.length
       link.props.onClick(event)
       assert.equal(harness.events.length, before + 1)
+      assert.equal(harness.signupStarts.length, signupBefore + 1)
+      assert.equal(harness.signupStarts.at(-1), 'Free')
       assert.deepEqual(harness.events.at(-1), {
         sourcePage: 'homepage', source: placement, targetPlan: 'Free', targetPlanUid: planConfig.PLAN_UIDS.FREE,
       })
@@ -142,28 +156,35 @@ test('middle-click tracks once through auxclick and right-click or canceled navi
   const middle = clickEvent({ button: 1 })
   link.props.onClick(middle)
   assert.equal(harness.events.length, 0)
+  assert.equal(harness.signupStarts.length, 0)
   link.props.onAuxClick(middle)
   assert.equal(harness.events.length, 1)
+  assert.deepEqual(harness.signupStarts, ['Free'])
   assertNativeNavigation(middle)
   for (const event of [clickEvent({ button: 2 }), clickEvent({ defaultPrevented: true }), clickEvent({ button: 1, defaultPrevented: true })]) {
     link.props.onClick(event)
     link.props.onAuxClick(event)
     assert.equal(harness.events.length, 1)
+    assert.equal(harness.signupStarts.length, 1)
     assertNativeNavigation(event)
   }
   link.props.onAuxClick(clickEvent({ button: 0 }))
   assert.equal(harness.events.length, 1, 'Primary activation must not duplicate through auxiliary handling')
+  assert.equal(harness.signupStarts.length, 1, 'Primary activation must not duplicate signup start through auxiliary handling')
 })
 
-test('an analytics exception cannot cancel or replace hosted Free navigation', () => {
-  const harness = createHarness({}, { trackingThrows: true })
-  const link = harness.render()
-  for (const [handler, event] of [['onClick', clickEvent()], ['onAuxClick', clickEvent({ button: 1 })]]) {
-    assert.doesNotThrow(() => link.props[handler](event))
-    assertNativeNavigation(event)
-    assert.equal(link.props.href, freeSignupUrl)
+test('either analytics exception cannot cancel the other signal or replace hosted Free navigation', () => {
+  for (const throwingTracker of ['signup', 'join']) {
+    const harness = createHarness({}, { throwingTracker })
+    const link = harness.render()
+    for (const [handler, event] of [['onClick', clickEvent()], ['onAuxClick', clickEvent({ button: 1 })]]) {
+      assert.doesNotThrow(() => link.props[handler](event))
+      assertNativeNavigation(event)
+      assert.equal(link.props.href, freeSignupUrl)
+    }
+    assert.equal(harness.events.length, 2)
+    assert.deepEqual(harness.signupStarts, ['Free', 'Free'])
   }
-  assert.equal(harness.events.length, 2)
 })
 
 test('signed-in members of every tier receive a dashboard link and no signup events', () => {
@@ -178,6 +199,7 @@ test('signed-in members of every tier receive a dashboard link and no signup eve
       assertNativeNavigation(event)
     }
     assert.equal(harness.events.length, 0)
+    assert.equal(harness.signupStarts.length, 0)
   }
 })
 
@@ -194,6 +216,7 @@ test('unresolved auth renders an inert accessible control, never a premature reg
     assert.equal(button.props.onAuxClick, undefined)
     assert.match(content(button), /Checking sign-in/)
     assert.equal(harness.events.length, 0)
+    assert.equal(harness.signupStarts.length, 0)
   }
 })
 
@@ -222,8 +245,35 @@ test('real homepage and hero mount four consistent Free entry points with separa
     if (!auth.isAuthenticated && !auth.isLoading) {
       ctas.forEach(cta => cta.props.onClick(clickEvent()))
       assert.deepEqual(harness.events.map(event => event.source), placements)
+      assert.deepEqual(harness.signupStarts, placements.map(() => 'Free'))
     }
   }
+})
+
+test('global Join free reuses the tracked exact-Free CTA instead of a plan-family picker', () => {
+  const harness = createHarness()
+  const link = harness.render('site_header', {
+    compact: true,
+    label: 'Join free',
+    showArrow: false,
+    sourcePage: '/membership-pricing',
+  })
+  const event = clickEvent()
+  link.props.onClick(event)
+
+  assert.equal(link.props.href, freeSignupUrl)
+  assert.equal(content(link).trim(), 'Join free')
+  assert.doesNotMatch(link.props.className, /min-h-11/)
+  assert.doesNotMatch(renderToStaticMarkup(link), /<svg/)
+  assert.deepEqual(harness.signupStarts, ['Free'])
+  assert.deepEqual(harness.events, [{
+    sourcePage: '/membership-pricing', source: 'site_header', targetPlan: 'Free', targetPlanUid: planConfig.PLAN_UIDS.FREE,
+  }])
+  assertNativeNavigation(event)
+
+  const header = readFileSync(new URL('../components/SiteHeader.tsx', import.meta.url), 'utf8')
+  assert.match(header, /<FreeSignupCta[\s\S]*placement="site_header"[\s\S]*label="Join free"[\s\S]*compact[\s\S]*showArrow=\{false\}/)
+  assert.doesNotMatch(header, /planFamilyUid=L9nbKV9Z|planPaymentTerm=month/)
 })
 
 test('each Free entry point discloses the sample size and unavailable search before signup', () => {

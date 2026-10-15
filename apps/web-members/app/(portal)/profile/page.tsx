@@ -1,6 +1,7 @@
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
 import { calculateTrustScore } from '@/lib/trust-score'
+import { evaluateEliteOpportunityAlertConsentOffer } from '@/lib/opportunity-alert-consent'
 import ProfileView from './ProfileView'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,7 @@ function resolveUserId(outsetaUser: any) {
 export default async function ProfilePage() {
   let initialProfile = null;
   let initialTrustStats = null;
+  let canOfferEliteOpportunityAlerts = false;
 
   try {
     const outsetaUser = await getCurrentUser();
@@ -51,11 +53,21 @@ export default async function ProfilePage() {
                 trustScoreBreakdown: live.breakdown,
                 backgroundCheckStatus: profile.background_check_status || 'not_started'
             };
+            canOfferEliteOpportunityAlerts = evaluateEliteOpportunityAlertConsentOffer(
+              outsetaUser,
+              profile,
+            ).allowed;
         }
     }
   } catch (err) {
       console.error("[Profile SSR Error]", err);
   }
 
-  return <ProfileView initialProfile={initialProfile} initialTrustStats={initialTrustStats} />
+  return (
+    <ProfileView
+      initialProfile={initialProfile}
+      initialTrustStats={initialTrustStats}
+      canOfferEliteOpportunityAlerts={canOfferEliteOpportunityAlerts}
+    />
+  )
 }

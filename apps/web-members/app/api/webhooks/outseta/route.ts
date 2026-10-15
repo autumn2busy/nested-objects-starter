@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { verifyOutsetaSignature } from '@/lib/security';
 import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 import { recordConversionEvent } from '@/lib/conversion-events';
+import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer';
 import { mapOutsetaBillingStage } from '@/lib/outseta-billing-stage';
 import type { SyncResult } from '@/lib/active-campaign-sync-result';
 
@@ -141,6 +142,24 @@ function getSupabaseAdmin(): SupabaseClient {
  */
 function isPersonPayload(payload: OutsetaWebhookPayload): payload is OutsetaPerson {
   return 'Email' in payload && typeof payload.Email === 'string';
+}
+
+function subscriptionUidFromPayload(payload: OutsetaWebhookPayload) {
+  const account = isPersonPayload(payload)
+    ? payload.PersonAccount?.find(personAccount => personAccount.IsPrimary)?.Account
+      || payload.PersonAccount?.[0]?.Account
+    : payload;
+  const value = account?.CurrentSubscription?.Uid || account?.LatestSubscription?.Uid;
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{1,160}$/.test(value.trim()) ? value.trim() : null;
+}
+
+function subscriptionStartFromPayload(payload: OutsetaWebhookPayload) {
+  const account = isPersonPayload(payload)
+    ? payload.PersonAccount?.find(personAccount => personAccount.IsPrimary)?.Account
+      || payload.PersonAccount?.[0]?.Account
+    : payload;
+  const value = account?.CurrentSubscription?.StartDate || account?.LatestSubscription?.StartDate;
+  return typeof value === 'string' ? value : null;
 }
 
 function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateData['subscription_status'] {
@@ -452,6 +471,21 @@ export async function POST(request: NextRequest) {
       console.error(`[${requestId}] AC sync requires recovery`, { status: acSync.status, steps: acSync.steps });
     } else {
       console.log(`[${requestId}] AC sync result`, { status: acSync.status, steps: acSync.steps });
+    }
+
+    if (!acSync.recoveryRequired) {
+      const journeyRouting = await emitFreeJourneySourceEvent({
+        kind: 'signup',
+        occurredAt: subscriptionStartFromPayload(payload) || profileData.outseta_created_at,
+        outsetaPersonUid: profileData.outseta_person_uid,
+        subscriptionUid: subscriptionUidFromPayload(payload),
+      });
+      if (journeyRouting.recoveryRequired) {
+        console.error(`[${requestId}] Free journey routing requires recovery`, {
+          code: journeyRouting.code,
+          httpStatus: journeyRouting.httpStatus,
+        });
+      }
     }
 
     // Fire AC server-side events only when the subscription actually changes.

@@ -43,6 +43,14 @@ function createHarness({ deniedStorage, deniedMethod, rejectFetch = false } = {}
     Object.defineProperty(window, name, descriptor)
     Object.defineProperty(context, name, descriptor)
   }
+  context.URL = URL
+  context.require = () => {
+    const helperContext = { ...context, exports: {} }
+    vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../../../packages/acquisition-attribution.ts', import.meta.url), 'utf8'), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText, helperContext)
+    return helperContext.exports
+  }
   vm.runInNewContext(code, context)
   return { tracker: context.exports, requests, window, stores }
 }
@@ -62,9 +70,21 @@ test('events retain visitor and session IDs while each delivery receives its own
   assert.equal(view.body.sessionId, click.body.sessionId)
   assert.notEqual(view.body.clientEventId, click.body.clientEventId)
   assert.deepEqual(click.body.eventData, {
-    sourcePage: '/membership-pricing', utm_source: 'synthetic', source: 'synthetic-free-choice',
+    sourcePage: '/membership-pricing', utm_source: 'synthetic', first_utm_source: 'synthetic', last_utm_source: 'synthetic', landing_page: '/membership-pricing', source: 'synthetic-free-choice',
   })
   assert.equal(harness.window.dataLayer.length, 2)
+})
+
+test('signup start persists the selected plan as an intent signal', () => {
+  const harness = createHarness()
+  harness.tracker.trackSignupStarted('Pro')
+
+  assert.equal(harness.requests.length, 1)
+  assert.equal(harness.requests[0].body.event, 'signup_started')
+  assert.deepEqual(harness.requests[0].body.eventData, {
+    sourcePage: '/membership-pricing', utm_source: 'synthetic', first_utm_source: 'synthetic', last_utm_source: 'synthetic', landing_page: '/membership-pricing', plan: 'Pro',
+  })
+  assert.equal(harness.window.dataLayer[0].event, 'signup_started')
 })
 
 for (const storage of ['localStorage', 'sessionStorage']) {
@@ -95,7 +115,7 @@ test('a rejected first-party request does not surface an unhandled rejection to 
 })
 
 test('server-side calls do not attempt browser access or event delivery', () => {
-  const context = { exports: {} }
+  const context = { exports: {}, require: () => ({}) }
   vm.runInNewContext(code, context)
   assert.doesNotThrow(() => context.exports.trackPricingView())
 })

@@ -10,18 +10,18 @@ const supportingSteps = [
     icon: Calculator,
   },
   {
+    title: 'Explore hiring firms',
+    description: 'On Free, preview up to three firms without search or filters. Paid directory access depends on your plan.',
+    href: '/hiring-firms',
+    label: 'Explore hiring firms',
+    icon: Search,
+  },
+  {
     title: 'Know what to prepare',
     description: 'Review the work, equipment, and expectations before you apply.',
     href: '/roles/inspector',
     label: 'Read the inspector guide',
     icon: BookOpen,
-  },
-  {
-    title: 'Make your profile your own',
-    description: 'Keep your experience and contact details current. Your profile is private to you.',
-    href: '/profile',
-    label: 'Edit your private profile',
-    icon: ShieldCheck,
   },
 ] as const
 
@@ -31,29 +31,29 @@ export function InspectorStartGuide() {
     <div className="overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-sm">
       <div className="grid lg:grid-cols-[1.15fr_1fr]">
         <div className="bg-[#173f39] p-6 sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">Start here · Inspector workspace</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">Start here · Complete your setup</p>
           <div className="mt-5 flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-emerald-100">
-            <Search className="h-5 w-5" aria-hidden="true" />
+            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           </div>
-          <h2 className="mt-5 max-w-md text-3xl font-bold tracking-tight text-white">Find a firm that fits your work.</h2>
+          <h2 className="mt-5 max-w-md text-3xl font-bold tracking-tight text-white">Tell us what inspection work fits you.</h2>
           <p className="mt-4 max-w-md text-base leading-7 text-emerald-50/90">
-            Start with the hiring directory. Compare the firm details available with your plan, then check a firm&apos;s requirements before deciding where to apply.
+            Complete your private profile with a short headline and bio, your city and state, and your experience level. Add your Primary Services and select at least one Service Type You Offer.
           </p>
           <p className="mt-3 max-w-md text-sm leading-6 text-emerald-100">
-            Free includes up to 3 sample listings with no search or filters. Pro and higher include full directory search and firm intel.
+            These details help Nested Objects make onboarding and future opportunity guidance more relevant. Your profile stays private to you.
           </p>
           <Link
-            href="/hiring-firms"
+            href="/profile"
             className="mt-6 inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-white px-5 py-3 text-sm font-bold text-[#173f39] transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
-            Explore hiring firms
+            Complete my private profile
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <p className="mt-4 text-xs leading-5 text-emerald-100">You can explore before filling out your profile. Listings are a research starting point, not a job guarantee.</p>
+          <p className="mt-4 text-xs leading-5 text-emerald-100">Choose the answers that fit you today. You can update them later.</p>
         </div>
 
         <div className="p-6 sm:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Then, at your pace</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Then complete your first value step</p>
           <ul className="mt-2 divide-y divide-slate-100">
             {supportingSteps.map((step) => {
               const Icon = step.icon
@@ -77,7 +77,7 @@ export function InspectorStartGuide() {
               )
             })}
           </ul>
-          <p className="border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">Free includes the income calculator. Pro adds the core member toolkit, and Elite includes every member tool.</p>
+          <p className="border-t border-slate-100 pt-4 text-xs leading-5 text-slate-500">Your setup steps are to save the profile details above and complete one Income Scenarios calculation. Free includes the calculator and a limited three-firm preview.</p>
         </div>
       </div>
     </div>

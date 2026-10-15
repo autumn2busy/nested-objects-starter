@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
+import { getCurrentUser, getOutsetaUserId, PLAN_UIDS } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-server'
+import { reconcileFreeOnboardingCompletionFromEnvironment } from '@/lib/free-onboarding-completion'
+import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer'
 import { calculateTrustScore } from '@/lib/trust-score'
 import {
   PROFILE_CRITICAL_COLUMNS,
@@ -305,6 +307,7 @@ export async function PATCH(req: NextRequest) {
       result = data
     }
 
+    let journeyProfileEvidenceReady = false
     if (result) {
       const { total, tier, breakdown } = calculateTrustScore(result)
       const { data: updatedResult, error: trustError } = await supabase
@@ -319,8 +322,44 @@ export async function PATCH(req: NextRequest) {
         .single()
       
       if (!trustError && updatedResult) {
+        journeyProfileEvidenceReady = updatedResult.id === result.id
         result = updatedResult
       }
+    }
+
+    await reconcileFreeOnboardingCompletionFromEnvironment({
+      supabase,
+      outsetaPersonUid: userId,
+      subscriptionUid: outsetaUser['outseta:subscriptionUid'],
+      planUid: outsetaUser['outseta:planUid'],
+      freePlanUid: PLAN_UIDS.FREE,
+    })
+
+    const journeyPersonUid = outsetaUser?.sub
+    if (
+      journeyProfileEvidenceReady &&
+      typeof journeyPersonUid === 'string' &&
+      journeyPersonUid.length > 0 &&
+      result?.outseta_person_uid === journeyPersonUid
+    ) {
+      const journeyRouting = await emitFreeJourneySourceEvent({
+        kind: 'profile_saved',
+        occurredAt: result.updated_at,
+        outsetaPersonUid: journeyPersonUid,
+        subscriptionUid: outsetaUser?.['outseta:subscriptionUid'],
+      })
+      if (journeyRouting.recoveryRequired) {
+        console.error('[PROFILE_FREE_JOURNEY_ROUTING_RECOVERY]', {
+          code: journeyRouting.code,
+          httpStatus: journeyRouting.httpStatus,
+        })
+      }
+    } else {
+      console.error('[PROFILE_FREE_JOURNEY_ROUTING_WITHHELD]', {
+        code: journeyProfileEvidenceReady
+          ? 'saved_profile_person_binding_unconfirmed'
+          : 'profile_trust_write_unconfirmed',
+      })
     }
 
     return NextResponse.json({ profile: result })

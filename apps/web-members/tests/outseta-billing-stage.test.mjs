@@ -35,6 +35,7 @@ test('real webhook mapping passes correct statuses to sync and preserves stored 
   for (const [stage, expected] of [[3,'active'], [7,'past_due'], [6,'canceled'], [undefined,null]]) {
     let written
     let synchronized
+    let routed
     const existing = { id: 'synthetic-profile', user_email: 'synthetic@example.com',
       outseta_updated_at: '2026-09-01T00:00:00.000Z', outseta_account_id: 'synthetic-account',
       subscription_tier: 'pro', subscription_status: 'past_due', plan_uid: 'rQVqlLm6', plan_name: 'Pro',
@@ -53,18 +54,30 @@ test('real webhook mapping passes correct statuses to sync and preserves stored 
       '@/lib/security': { verifyOutsetaSignature: () => true },
       '@/lib/free-to-pro-lifecycle': { buildPaidLifecycleDecision: () => ({ shouldTrack: false, reason: 'fixture' }) },
       '@/lib/conversion-events': { recordConversionEvent: async () => { throw new Error('Unexpected conversion write') } },
+      '@/lib/free-journey-operation-producer': {
+        emitFreeJourneySourceEvent: async input => {
+          routed = input
+          return { status: 'disabled', code: 'producer_disabled', recoveryRequired: false, automaticRetry: false, httpStatus: null, evaluationId: null }
+        },
+      },
       '@/lib/outseta-billing-stage': mapping,
       '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async profile => { synchronized = profile; return { status: 'succeeded', recoveryRequired: false, automaticRetry: false, steps: [], logs: [] } } },
       '@/lib/ac-event-tracking': {},
     }, { process: { env: { NODE_ENV: 'test', SUPABASE_URL: 'synthetic', SUPABASE_SERVICE_ROLE_KEY: 'synthetic' } } })
-    const person = { Uid: 'synthetic-person', Email: 'synthetic@example.com', Updated: '2026-09-06T12:00:00.000Z',
+    const person = { Uid: 'synthetic-person', Email: 'synthetic@example.com', Created: '2026-09-01T12:00:00.000Z', Updated: '2026-09-06T12:00:00.000Z',
       PersonAccount: stage === undefined ? [] : [{ IsPrimary: true, Account: { Uid: 'synthetic-account', AccountStage: stage,
-        CurrentSubscription: { Plan: { Uid: 'rQVqlLm6', Name: 'Pro' } } } }] }
+        CurrentSubscription: { Uid: 'synthetic-cycle', StartDate: '2026-09-02T12:00:00.000Z', Plan: { Uid: 'rQVqlLm6', Name: 'Pro' } } } }] }
     const response = await route.POST({ text: async () => JSON.stringify(person), headers: { get: () => '' } })
     assert.equal(response.status, 200)
     assert.equal(synchronized.subscription_status, expected)
     if (expected === null) assert.equal('subscription_status' in written, false)
     else assert.equal(written.subscription_status, expected)
+    assert.deepEqual(JSON.parse(JSON.stringify(routed)), {
+      kind: 'signup',
+      occurredAt: stage === undefined ? '2026-09-01T12:00:00.000Z' : '2026-09-02T12:00:00.000Z',
+      outsetaPersonUid: 'synthetic-person',
+      subscriptionUid: stage === undefined ? null : 'synthetic-cycle',
+    })
   }
 })
 

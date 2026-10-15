@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export const CONVERSION_EVENT_NAMES = [
   'signup_started',
   'signup_completed',
+  'lifecycle_email_consent_requested',
   'profile_completed',
   'directory_viewed',
   'firm_view',
@@ -14,6 +15,7 @@ export const CONVERSION_EVENT_NAMES = [
   'upgrade_started',
   'start_trial',
   'outseta_modal_open',
+  'checkout_handoff',
   'purchase',
   'subscription_created',
   'subscription_upgraded',
@@ -48,6 +50,14 @@ export type ConversionEventInput = {
   planName?: string | null
   eventData?: Record<string, unknown>
   occurredAt?: string | null
+}
+
+export type ConversionEventReceipt = {
+  clientEventId: string
+  eventName: ConversionEventName
+  memberUid: string
+  lifecycleCycleId: string
+  occurredAt: string
 }
 
 export function isConversionEventName(value: unknown): value is ConversionEventName {
@@ -108,4 +118,35 @@ export async function recordConversionEvent(
     })
 
   if (error) throw error
+}
+
+export async function readConversionEventReceipt(
+  supabase: SupabaseClient,
+  expected: Omit<ConversionEventReceipt, 'occurredAt'>,
+): Promise<ConversionEventReceipt> {
+  const { data, error } = await supabase
+    .from('conversion_events')
+    .select('client_event_id, event_name, member_uid, occurred_at, event_data')
+    .eq('client_event_id', expected.clientEventId)
+    .eq('event_name', expected.eventName)
+    .eq('member_uid', expected.memberUid)
+    .limit(1)
+    .single()
+
+  if (error) throw error
+  const eventData = data?.event_data
+  const storedTimestamp = typeof data?.occurred_at === 'string' ? new Date(data.occurred_at) : null
+  const occurredAt = storedTimestamp && Number.isFinite(storedTimestamp.getTime())
+    ? storedTimestamp.toISOString()
+    : null
+  if (data?.client_event_id !== expected.clientEventId
+    || data?.event_name !== expected.eventName
+    || data?.member_uid !== expected.memberUid
+    || !eventData || typeof eventData !== 'object' || Array.isArray(eventData)
+    || eventData.lifecycleCycleId !== expected.lifecycleCycleId
+    || !occurredAt) {
+    throw new Error('Stored conversion receipt does not match the expected lifecycle event')
+  }
+
+  return { ...expected, occurredAt }
 }

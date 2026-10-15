@@ -2,6 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'url'
 import ts from 'typescript'
 import vm from 'vm'
@@ -10,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const appRoot = path.resolve(__dirname, '..')
 
 const checks = []
+const nodeTestResults = new Map()
 
 function read(relativePath) {
   const filePath = path.join(appRoot, relativePath)
@@ -28,6 +30,53 @@ function addCheck(name, relativePath, patterns) {
     relativePath,
     ok: missing.length === 0,
     missing: missing.map((pattern) => pattern.toString()),
+  })
+}
+
+function runNodeTest(relativePath) {
+  if (nodeTestResults.has(relativePath)) return nodeTestResults.get(relativePath)
+
+  const filePath = path.join(appRoot, relativePath)
+  const result = spawnSync(process.execPath, ['--test', '--test-reporter=tap', filePath], {
+    cwd: appRoot,
+    encoding: 'utf8',
+    timeout: 120_000,
+    windowsHide: true,
+  })
+  const output = `${result.stdout || ''}\n${result.stderr || ''}`
+  const failures = []
+  const passCount = Number(output.match(/# pass (\d+)/)?.[1] || 0)
+  const skippedCount = Number(output.match(/# skipped (\d+)/)?.[1] || 0)
+
+  if (result.error) failures.push(result.error.message)
+  if (result.status !== 0) failures.push(`node --test exited with status ${result.status ?? 'unknown'}`)
+  if (passCount === 0) failures.push('node --test reported no passing cases')
+  if (skippedCount !== 0) failures.push(`node --test reported ${skippedCount} skipped cases`)
+
+  const testResult = { output, failures }
+  nodeTestResults.set(relativePath, testResult)
+  return testResult
+}
+
+function addBehaviorCheck(name, relativePath, requiredCases, sourceRequirements = []) {
+  const result = runNodeTest(relativePath)
+  const missing = requiredCases
+    .filter((testName) => !result.output.includes(testName))
+    .map((testName) => `missing behavior case: ${testName}`)
+  for (const requirement of sourceRequirements) {
+    const source = read(requirement.relativePath)
+    for (const pattern of requirement.patterns) {
+      const present = pattern instanceof RegExp ? pattern.test(source) : source.includes(pattern)
+      if (!present) missing.push(`missing source contract in ${requirement.relativePath}: ${pattern}`)
+    }
+  }
+  const failures = [...result.failures, ...missing]
+
+  checks.push({
+    name,
+    relativePath: [relativePath, ...sourceRequirements.map((item) => item.relativePath)].join('; '),
+    ok: failures.length === 0,
+    missing: failures,
   })
 }
 
@@ -59,14 +108,14 @@ function loadLifecycleModule() {
     },
   }).outputText
 
-  const module = { exports: {} }
+  const lifecycleModule = { exports: {} }
   const execute = vm.runInNewContext(
     `(function(exports, module) { ${transpiled}\n})`,
     {},
     { filename: 'free-to-pro-lifecycle.ts' },
   )
-  execute(module.exports, module)
-  return module.exports
+  execute(lifecycleModule.exports, lifecycleModule)
+  return lifecycleModule.exports
 }
 
 function assertEqual(actual, expected, label) {
@@ -151,57 +200,41 @@ addCheck('Firm Apply/Contact CTAs require firm_intel', 'app/firms/[slug]/AuthCTA
   "window.location.href = '/membership-pricing'",
 ])
 
-addCheck('Outseta webhook emits paid transition events only on paid changes', 'app/api/webhooks/outseta/route.ts', [
-  'buildPaidLifecycleDecision',
-  'trackPurchase',
-  'trackSubscriptionUpgraded',
-  'lifecycleDecision.shouldTrack',
-  'lifecycleDecision.purchasePayload',
-  'no_subscription_event_needed',
-  'mapAccountStageToStatus(stage?: number, label?: string)',
-  "normalizedLabel.includes('trial')",
-  "normalizedLabel.includes('cancel')",
-  "normalizedLabel.includes('subscrib')",
-  'preserveStoredMembershipContext(profileData, existing)',
-  'subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null',
-  'mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel)',
+addBehaviorCheck('Outseta webhook preserves paid transition routing and withholds unknown billing state', 'tests/outseta-billing-stage.test.mjs', [
+  'Outseta numeric stages match the documented billing lifecycle without a label',
+  'missing, unrecognized, and contradictory billing evidence is unknown rather than active',
+  'real webhook mapping passes correct statuses to sync and preserves stored state on a plan-light update',
+  'unknown lifecycle does not write ACTIVE recurring payment or replace existing status tags',
+], [{
+  relativePath: 'app/api/webhooks/outseta/route.ts',
+  patterns: [
+    'buildPaidLifecycleDecision',
+    'trackPurchase',
+    'trackSubscriptionUpgraded',
+    'lifecycleDecision.shouldTrack',
+    'lifecycleDecision.purchasePayload',
+    'no_subscription_event_needed',
+    'preserveStoredMembershipContext(profileData, existing)',
+    'subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null',
+    'mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel)',
+  ],
+}])
+
+addBehaviorCheck('ActiveCampaign sync confirms replacement tags before removing conflicts', 'tests/active-campaign-sync.test.mjs', [
+  'replacement failure preserves its old dimension while independent status repair continues',
+  '422 is not treated as already applied without exact positive readback',
+  '422 concurrent exact association readback succeeds without retrying the write',
+  'replacement is confirmed before removal; redelivery does not reapply observed tags',
+  'failed removal reports partial cleanup without removing the replacement',
+  'tag read failure never triggers blind deletion or a claim of complete cleanup',
 ])
 
-addCheck('ActiveCampaign sync removes conflicting plan tags reliably', 'lib/active-campaign-deep-data.ts', [
-  "tagsMap.set(String(t.id), t.tag)",
-  "tagsMap.get(String(ct.tag))",
-  'shouldSyncPlanTag(profile)',
-  'Skipping plan tag sync because the Outseta payload has no concrete plan',
-  "nameLower.startsWith('plan-')",
-  'removeTagFromContact(ct.id, tagName, logs)',
-  'await addTagToContact(contactId, expectedTierTag, logs)',
-])
-
-addCheck('ActiveCampaign sync treats recurring payments as membership source of truth', 'lib/active-campaign-deep-data.ts', [
-  'isPaidTier(syncProfile)',
-  'await syncEcommerceOrder(syncProfile, customerId!, logs)',
-  'const recurringPaymentSynced = await syncRecurringPayment(syncProfile, customerId!, orderId, logs)',
-  'preserveStoredMembershipContext(profile, dbProfile, logs)',
-  'Preserving stored paid membership context for plan-light Outseta payload',
-  'getRecurringPaymentId(profile)',
-  'getSubscriptionDates(profile)',
-  'getCancellationDate(profile, nextPaymentDate)',
-  'storeRecurringPaymentId',
-  'subscription?.RenewalDate',
-  'profile.subscription_end_date',
-  'renewalDate: nextPaymentDate',
-  'nextPaymentDate',
-  'anchorDate: startDate',
-  'storeCreatedDate: startDate',
-  'storeModifiedDate',
-  'cancelledDate: cancellationDate',
-  'cancelAtPeriodEnd',
-  "case 'canceled': return 'CANCELLED'",
-  'billingInterval',
-  'paymentAmount: getPlanAmount(profile)',
-  'AC_MEMBERSHIP_RENEWAL_FIELD_ID',
-  'Number.parseInt(AC_CONNECTION_ID!, 10)',
-  'AC_CONNECTION_ID must be numeric',
+addBehaviorCheck('ActiveCampaign recurring mirrors stay downstream of verified membership state', 'tests/active-campaign-sync.test.mjs', [
+  'failed projection lookup prevents side effects instead of fabricating membership context',
+  'duplicate-order validation is resolved only through an exact customer/connection/external ID match',
+  'GraphQL error or missing receipt is failed, not a completed recurring mirror',
+  'order failure is reported while the independent recurring submission still runs',
+  'incomplete renewal field lookup prevents blind field creation',
 ])
 
 addCheck('Server event tracking exposes purchase helper', 'lib/ac-event-tracking.ts', [

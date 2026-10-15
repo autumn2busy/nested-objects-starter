@@ -272,3 +272,59 @@ test('payload digests use stable recursive key ordering', () => {
     payloadDigest({ a: { first: 1, second: 2 }, z: 1 }),
   )
 })
+
+test('the identical signed trigger is accepted once and rejected before a second dispatch', async () => {
+  const store = emptyAcceptanceStore()
+  const bodyText = '{"fixtureMode":"synthetic"}'
+  const request = signedRequest(bodyText)
+  let dispatchCount = 0
+  async function dispatchExactRequest() {
+    const auth = verifyAdminServiceRequest(request, bodyText, {
+      sharedSecret, autumnSubjectId: ownerSubject, allowedOrigin,
+    }, fixedNow)
+    await store.consumeNonce({
+      nonceDigest: auth.nonceDigest,
+      requestType: 'trigger.manual.conversion_review',
+      actorSubject: auth.actorSubject,
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      correlation: { correlationId: null, causationId: null, traceId: 'local-exact-replay' },
+    })
+    dispatchCount++
+  }
+  await dispatchExactRequest()
+  await assert.rejects(dispatchExactRequest, AdminControlPlaneReplayError)
+  assert.equal(dispatchCount, 1)
+  assert.equal(store.nonces.size, 1)
+  assert.equal(store.events.length, 1)
+})
+
+test('a correctly signed non-owner request creates no nonce, audit event or dispatch', async () => {
+  const store = emptyAcceptanceStore()
+  const bodyText = '{"fixtureMode":"synthetic"}'
+  const request = signedRequest(bodyText, { actorSubject: 'synthetic-non-owner' })
+  let dispatchCount = 0
+  await assert.rejects(async () => {
+    const auth = verifyAdminServiceRequest(request, bodyText, {
+      sharedSecret, autumnSubjectId: ownerSubject, allowedOrigin,
+    }, fixedNow)
+    await store.consumeNonce({
+      nonceDigest: auth.nonceDigest,
+      requestType: 'trigger.manual.conversion_review',
+      actorSubject: auth.actorSubject,
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      correlation: { correlationId: null, causationId: null, traceId: 'local-non-owner' },
+    })
+    dispatchCount++
+  }, AdminServiceAuthorizationError)
+  assert.equal(dispatchCount, 0)
+  assert.equal(store.nonces.size, 0)
+  assert.equal(store.events.length, 0)
+})
+
+function emptyAcceptanceStore() {
+  return new InMemoryAdminControlPlaneStore(ownerSubject, {
+    generatedAt: fixedNow.toISOString(), runs: [], unresolvedSignals: [], sourceWarnings: [],
+    topPriorities: [], experiments: [], reviews: [], awaitingActions: [],
+    delegationEnabled: false, executionEnabled: false,
+  })
+}

@@ -2,10 +2,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { getConversionAdminSession } from '@/lib/conversion-admin-auth'
-import {
-  buildConversionFunnel,
-  type ConversionEventRow,
-} from '@/lib/conversion-funnel'
+import { buildConversionFunnel } from '@/lib/conversion-funnel'
+import { readConversionReportEvents } from '@/lib/conversion-report-query'
+import { readConversionPaymentReport, unavailablePaymentReport } from '@/lib/conversion-payment-report'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 
 export const dynamic = 'force-dynamic'
@@ -15,7 +14,6 @@ type PageProps = {
 }
 
 const ALLOWED_WINDOWS = new Set([7, 14, 30, 90])
-const EVENT_LIMIT = 20_000
 
 function paramValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
@@ -38,30 +36,46 @@ function filterUrl(days: number, plan: string, source: string) {
 }
 
 export default async function ConversionFunnelPage({ searchParams = {} }: PageProps) {
-  const { isAdmin } = await getConversionAdminSession()
+  const { isAdmin, outsetaId } = await getConversionAdminSession()
   if (!isAdmin) redirect('/profile')
 
   const requestedDays = Number(paramValue(searchParams.days) || 30)
   const days = ALLOWED_WINDOWS.has(requestedDays) ? requestedDays : 30
   const selectedSource = paramValue(searchParams.source) || 'all'
   const selectedPlan = paramValue(searchParams.plan) || 'free'
-  const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+  const endDate = new Date(Date.now()).toISOString()
+  const startDate = new Date(Date.parse(endDate) - days * 24 * 60 * 60 * 1000).toISOString()
+  const attributionStart = new Date(Date.parse(startDate) - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const supabase = createServiceRoleClient()
-  const { data, error, count } = await supabase
-    .from('conversion_events')
-    .select('id, event_name, anonymous_id, member_uid, member_email, plan_uid, plan_name, source_page, source, reason, utm_source, utm_medium, utm_campaign, occurred_at, event_data', { count: 'exact' })
-    .gte('occurred_at', startDate)
-    .order('occurred_at', { ascending: true })
-    .limit(EVENT_LIMIT)
-
-  const rows = (data || []) as ConversionEventRow[]
-  const resultsLimited = count !== null ? count > rows.length : rows.length >= EVENT_LIMIT
-  const allFunnel = buildConversionFunnel(rows)
+  const { rows, error, count, resultsLimited } = await readConversionReportEvents(supabase, attributionStart, endDate)
+  const excludedMemberUids = [...(process.env.ADMIN_OUTSETA_IDS || '').split(',').map(uid => uid.trim()).filter(Boolean), ...(outsetaId ? [outsetaId] : [])]
+  const cohortWindow = { signupSince: startDate, signupUntil: endDate, excludedMemberUids }
+  const allFunnel = buildConversionFunnel(rows, cohortWindow)
   const funnel = buildConversionFunnel(rows, {
+    ...cohortWindow,
     source: selectedSource,
     plan: selectedPlan,
   })
+  let payments = unavailablePaymentReport(funnel.cohortSize, 'Conversion observations are incomplete.')
+  if (!error && !resultsLimited) {
+    const memberUids = funnel.cohortMembers.map(member => member.memberUid).filter((uid): uid is string => !!uid)
+    const accounts = new Map<string, string | null>()
+    let mappingFailed = false
+    if (memberUids.length) {
+      const profileResult = await supabase.from('profiles').select('outseta_person_uid,outseta_account_id')
+        .in('outseta_person_uid', memberUids).limit(1_000)
+      mappingFailed = !!profileResult.error
+      for (const profile of profileResult.data || []) {
+        const uid = profile.outseta_person_uid
+        if (accounts.has(uid) && accounts.get(uid) !== profile.outseta_account_id) accounts.set(uid, null)
+        else if (!accounts.has(uid)) accounts.set(uid, profile.outseta_account_id)
+      }
+    }
+    payments = mappingFailed ? unavailablePaymentReport(funnel.cohortSize, 'Billing identity lookup is unavailable.')
+      : await readConversionPaymentReport(funnel.cohortMembers.map(member => ({ memberUid: member.memberUid,
+        accountUid: member.memberUid ? accounts.get(member.memberUid) || null : null })), { startDate, endDate })
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -71,11 +85,11 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
             Admin command center
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
-            Signup and Plan-Change Signals
+            Signup, Attribution and Payment Evidence
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
             Review recorded activity linked to signup identities. These independent signals do not
-            establish a sequential funnel or confirm payment.
+            establish a sequential funnel. Payment evidence comes separately from read-only Outseta billing records.
           </p>
         </div>
         <div className="flex flex-wrap gap-4">
@@ -160,7 +174,7 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
             {resultsLimited
               ? `Only ${rows.length.toLocaleString()} of ${count?.toLocaleString() || 'an unknown number of'} matching events were returned. Counts below cover this partial result.`
               : `${rows.length.toLocaleString()} stored events were returned. This does not establish that all signups or actions were collected.`}
-            {' '}Missing signals do not prove abandonment. Payment receipts are unavailable here, so payment conversion rates are not shown.
+            {' '}Missing signals do not prove abandonment. An additional seven days of activity is read only to recover pre-signup attribution; it does not add older signups to the cohort. Payment conversion rates are not shown.
           </p>
           {allFunnel.ambiguousAnonymousIds > 0 ? (
             <p className="mt-2 text-sm">
@@ -169,6 +183,18 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
           ) : null}
         </section>
       )}
+
+      <section aria-label="Signup attribution" className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="font-semibold text-slate-950">Signup attribution coverage</h2>
+        <p className="mt-2 text-sm text-slate-700">
+          {error ? 'Attribution is unavailable.' : `${funnel.attributionCoverage.recovered} signup sources recovered from unambiguously linked activity before signup; ${funnel.attributionCoverage.unknown} remain direct or unknown.`}
+          {' '}Internal site placements describe entry points, not external acquisition campaigns. Later onboarding campaigns are not substituted for the original signup source.
+        </p>
+        {!error ? <p className="mt-2 text-sm text-slate-700">{funnel.attributionCoverage.campaignKnown} signup identities have linked pre-signup campaign tags; {funnel.cohortSize - funnel.attributionCoverage.campaignKnown} have no attributable campaign tags in these records.</p> : null}
+        <p className="mt-2 text-sm text-slate-700">
+          {allFunnel.excludedEvents} explicitly marked verification events or linked browser events excluded. Unmarked anonymous verification remains unidentifiable.
+        </p>
+      </section>
 
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -186,14 +212,52 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500">Payment outcome</p>
+          <p className="text-sm font-medium text-slate-500">Members with recorded payment</p>
           <p className="mt-2 text-2xl font-bold tracking-tight text-rose-700">
-            Unknown
+            {payments.status === 'complete' ? payments.recordedPaidMembers : 'Unknown'}
           </p>
           <p className="mt-2 text-sm text-slate-600">
-            Paid invoices or payment receipts are not available in this report.
+            {payments.status === 'complete' ? `${payments.matchedMembers} of ${payments.members} signup identities matched to billing accounts. Positive paid invoices or captured electronic payments are required.` : payments.reason}
           </p>
         </div>
+      </section>
+
+      <section aria-label="Pricing checkout handoffs" className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="text-xl font-bold text-slate-950">Pricing to checkout handoff</h2>
+        {error ? <p className="mt-2 text-sm text-slate-700">Handoff observations are unavailable.</p> : <>
+          <p className="mt-2 text-sm text-slate-700">
+            {funnel.checkoutHandoffs.generalUpgradeOnlyMembers} members have general upgrade interest without a recorded paid-plan selection;
+            {' '}{funnel.checkoutHandoffs.selectedPlanMembers} clicked a paid-plan button;
+            {' '}{funnel.checkoutHandoffs.selectedPlanWithoutHandoff} of those have no correlated handoff request.
+          </p>
+          <p className="mt-2 text-sm text-slate-700">
+            {funnel.checkoutHandoffs.attempts} correlated attempts: {funnel.checkoutHandoffs.visible} widgets observed visible,
+            {' '}{funnel.checkoutHandoffs.failed} reported opening or navigation failures,
+            {' '}{funnel.checkoutHandoffs.unobserved} unknown visibility,
+            {' '}{funnel.checkoutHandoffs.hostedRedirects} hosted redirects requested,
+            {' '}{funnel.checkoutHandoffs.closed} closed after appearing, and
+            {' '}{funnel.checkoutHandoffs.recoveryRedirects} recovery links selected.
+          </p>
+        </>}
+        <p className="mt-2 text-xs leading-5 text-slate-600">
+          New correlated evidence only. Older modal-open events record an attempt, not visibility.
+          A visible widget does not prove its selected plan, a completed checkout or payment.
+          Hosted arrival and unrecorded actions remain unknown. Closing does not establish abandonment.
+          Verification and admin exclusions apply. Incomplete collection cannot establish a conversion rate.
+        </p>
+      </section>
+
+      <section aria-label="Payment evidence" className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="text-xl font-bold text-slate-950">Read-only payment reconciliation</h2>
+        <p className="mt-2 text-sm text-slate-700">
+          {payments.status === 'unavailable' ? 'Billing outcomes are unavailable.' : `${payments.recordedPaidMembers} members with recorded payment; ${payments.trialingMembers} on a paid-plan trial; ${payments.pastDueMembers} past due; ${payments.refundedMembers} with fully refunded payments; ${payments.unknownMembers} with unknown billing coverage.`}
+        </p>
+        {payments.status === 'partial' ? <p className="mt-2 text-sm text-amber-900">{payments.reason} Recorded payments are a lower bound.</p> : null}
+        <p className="mt-2 text-xs leading-5 text-slate-600">
+          Plan-change events, zero-dollar invoices and Free accounts labelled Trialing are not payments.
+          These are Outseta billing records within this report window; direct live Stripe settlement is not verified here.
+          No billing settings or member access are changed.
+        </p>
       </section>
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -235,7 +299,7 @@ export default async function ConversionFunnelPage({ searchParams = {} }: PagePr
         <div className="border-b border-slate-200 p-5">
           <h2 className="text-xl font-bold text-slate-950">Members without a recorded paid-plan signal</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Linked members with a signup signal and no later paid-plan signal in these results. Their actual payment status is unknown.
+            Linked members with a signup signal and no later paid-plan signal in these results. This table tracks lifecycle signals; the separate payment summary does not assign individual settlement status here.
           </p>
         </div>
 

@@ -32,6 +32,9 @@ function createHarness({
   const requests = []
   const profileRequests = []
   const sdkWrites = []
+  const analyticsCalls = []
+  const outsetaAuthOpenCalls = []
+  const signupOrder = []
   const errors = []
   let cursor = 0
   let pendingEffects = []
@@ -115,6 +118,10 @@ function createHarness({
     Outseta: {
       getAccessToken: () => sdkToken,
       setAccessToken: token => { sdkWrites.push(token); sdkToken = token },
+      auth: { open: ({ widgetMode }) => {
+        outsetaAuthOpenCalls.push(widgetMode)
+        signupOrder.push(`handoff:${widgetMode}`)
+      } },
     },
     addEventListener(name, callback) {
       if (!listeners.has(name)) listeners.set(name, new Set())
@@ -165,7 +172,16 @@ function createHarness({
       if (name === 'react') return react
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }) }
       if (name === 'next/navigation') return { usePathname: () => '/inspector-dashboard' }
-      if (name === '@/lib/ac-events') return { trackOutsetaModalOpen() {} }
+      if (name === '@/lib/ac-events') return {
+        trackOutsetaModalOpen: ({ sourcePage, mode }) => {
+          analyticsCalls.push({ event: 'outseta_modal_open', sourcePage, mode })
+          signupOrder.push('event:outseta_modal_open')
+        },
+        trackSignupStarted: plan => {
+          analyticsCalls.push({ event: 'signup_started', plan })
+          signupOrder.push('event:signup_started')
+        },
+      }
       throw new Error(`Unexpected import: ${name}`)
     },
   })
@@ -217,7 +233,7 @@ function createHarness({
 
   render()
   return {
-    requests, profileRequests, sdkWrites, flush, advance, unmount,
+    requests, profileRequests, sdkWrites, analyticsCalls, outsetaAuthOpenCalls, signupOrder, flush, advance, unmount,
     get value() { return currentValue },
     get cookieUser() { return cookieUser },
     get pendingTimerCount() { return timers.size },
@@ -244,6 +260,27 @@ function createHarness({
 const sessionMethods = harness => harness.requests
   .filter(request => request.url === '/api/auth/session')
   .map(request => request.method)
+
+test('signup emits one start signal before one register handoff without network', async t => {
+  const harness = createHarness({ cookieUser: null })
+  t.after(harness.unmount)
+  await harness.flush()
+  const requestCount = harness.requests.length
+
+  harness.value.signup()
+
+  assert.deepEqual(harness.analyticsCalls, [
+    { event: 'signup_started', plan: undefined },
+    { event: 'outseta_modal_open', sourcePage: '/inspector-dashboard', mode: 'register' },
+  ])
+  assert.deepEqual(harness.outsetaAuthOpenCalls, ['register'])
+  assert.deepEqual(harness.signupOrder, [
+    'event:signup_started',
+    'event:outseta_modal_open',
+    'handoff:register',
+  ])
+  assert.equal(harness.requests.length, requestCount)
+})
 
 function assertCookieAuthenticated(harness) {
   assert.equal(harness.value.user?.sub, COOKIE_USER.sub)

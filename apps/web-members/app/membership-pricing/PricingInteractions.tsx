@@ -1,17 +1,21 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribution'
 
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
+import { beginPricingHandoff } from '@/lib/pricing-handoff'
 import {
   trackJoinFreeClick,
   trackOutsetaModalOpen,
   trackPricingCtaClick,
   trackPricingView,
+  trackSignupStarted,
   trackStartTrial,
   trackUpgradeStarted,
+  trackEvent,
 } from '@/lib/ac-events'
 
 function getCurrentPlanName(planUid: string | null, isAuthenticated: boolean) {
@@ -36,17 +40,48 @@ function scheduleIdleWork(callback: () => void) {
 }
 
 function usePricingActions() {
-  const { isAuthenticated, planUid, isLoading } = useAuth()
+  const { isAuthenticated, planUid, isLoading, user } = useAuth()
   const currentPlanName = getCurrentPlanName(planUid, isAuthenticated)
+  const [pending, setPending] = useState(false)
+  const [recovery, setRecovery] = useState<{ href: string; record: () => void } | null>(null)
+  const attempt = useRef<ReturnType<typeof beginPricingHandoff> | null>(null)
+  const busy = useRef(false)
+  useEffect(() => {
+    attempt.current?.stop()
+    busy.current = false
+    setPending(false)
+    setRecovery(null)
+    return () => { attempt.current?.stop(); busy.current = false }
+  }, [isAuthenticated, planUid, user?.sub])
 
   const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
-    if (isCurrentPlan || plan.waitlist) return
+    if (isCurrentPlan || plan.waitlist || busy.current) return
     if (typeof window === 'undefined') return
 
     const Outseta = window.Outseta
     const targetPlan = plan.name
     const targetPlanUid = plan.planUid
     const planPaymentTerm = getPlanPaymentTerm(plan)
+    attempt.current?.stop()
+    busy.current = true
+    setPending(true)
+    setRecovery(null)
+    const fallbackHref = isAuthenticated
+      ? 'https://nested-objects.outseta.com/profile#o-plan-change'
+      : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`, 'membership_pricing')
+    const context = { sourcePage: 'membership_pricing', currentPlan: currentPlanName ?? 'anonymous',
+      targetPlan, targetPlanUid, isAuthenticated, mode: isAuthenticated ? 'profile_plan_change' : 'register' }
+    const handoff = beginPricingHandoff({
+      widget: isAuthenticated ? 'profile' : 'auth',
+      emit: event => trackEvent('checkout_handoff', { ...context, ...event }),
+      observed: () => { busy.current = false; setPending(false) },
+      unavailable: () => {
+        busy.current = false
+        setPending(false)
+        setRecovery({ href: fallbackHref, record: () => handoff.recovery() })
+      },
+    })
+    attempt.current = handoff
 
     trackPricingCtaClick({
       sourcePage: 'membership_pricing',
@@ -54,6 +89,7 @@ function usePricingActions() {
       targetPlan,
       targetPlanUid,
       isAuthenticated,
+      handoffId: handoff.handoffId,
     })
 
     if (!isAuthenticated && targetPlan === 'Free') {
@@ -61,6 +97,7 @@ function usePricingActions() {
         sourcePage: 'membership_pricing',
         targetPlan,
         targetPlanUid,
+        handoffId: handoff.handoffId,
       })
     }
 
@@ -71,6 +108,7 @@ function usePricingActions() {
         targetPlanUid,
         value: 0,
         currency: 'USD',
+        handoffId: handoff.handoffId,
       })
     }
 
@@ -80,6 +118,7 @@ function usePricingActions() {
         fromPlan: currentPlanName ?? 'unknown',
         targetPlan,
         targetPlanUid,
+        handoffId: handoff.handoffId,
       })
     }
 
@@ -89,15 +128,22 @@ function usePricingActions() {
         mode: 'profile_plan_change',
         targetPlan,
         targetPlanUid,
+        handoffId: handoff.handoffId,
       })
 
-      if (Outseta?.profile?.open) {
-        Outseta.profile.open({ tab: 'planChange' })
-      } else {
-        window.location.href = 'https://nested-objects.outseta.com/profile#o-plan-change'
-      }
+      try {
+        if (Outseta?.profile?.open) {
+          Promise.resolve(Outseta.profile.open({ tab: 'planChange' })).catch(() => handoff.failed())
+          handoff.check()
+        } else {
+          handoff.redirect()
+          window.location.href = fallbackHref
+        }
+      } catch { if (Outseta?.profile?.open) handoff.failed(); else handoff.redirectFailed() }
       return
     }
+
+    trackSignupStarted(targetPlan)
 
     if (Outseta?.auth?.open) {
       trackOutsetaModalOpen({
@@ -106,14 +152,15 @@ function usePricingActions() {
         targetPlan,
         targetPlanUid,
         planPaymentTerm,
+        handoffId: handoff.handoffId,
       })
 
-      Outseta.auth.open({
+      try { Promise.resolve(Outseta.auth.open({
         widgetMode: 'register',
         planUid: plan.planUid,
         planPaymentTerm,
         skipPlanOptions: true,
-      })
+      })).catch(() => handoff.failed()); handoff.check() } catch { handoff.failed() }
       return
     }
 
@@ -123,9 +170,11 @@ function usePricingActions() {
       targetPlan,
       targetPlanUid,
       planPaymentTerm,
+      handoffId: handoff.handoffId,
     })
 
-    window.location.href = `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`
+    handoff.redirect()
+    try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
   }
 
   const openManageBilling = () => {
@@ -141,6 +190,8 @@ function usePricingActions() {
     openManageBilling,
     openPlanWidget,
     planUid,
+    pending,
+    recovery,
   }
 }
 
@@ -199,7 +250,7 @@ export function CurrentPlanBadge({ planUid: targetPlanUid }: { planUid: string }
 }
 
 export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
-  const { currentPlanName, isAuthenticated, openPlanWidget, planUid } = usePricingActions()
+  const { currentPlanName, isAuthenticated, openPlanWidget, planUid, pending, recovery } = usePricingActions()
   const isCurrentPlan = planUid === plan.planUid
 
   const buttonBase =
@@ -229,12 +280,14 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     <>
       <button
         type="button"
-        disabled={isCurrentPlan || plan.waitlist === true}
+        disabled={isCurrentPlan || plan.waitlist === true || pending}
+        aria-busy={pending}
         className={buttonClasses}
         onClick={() => openPlanWidget(plan, isCurrentPlan)}
       >
         {label}
       </button>
+      <PricingHandoffRecovery recovery={recovery} />
 
       {plan.name === 'Free' && (
         <p className="mt-2 text-center text-xs text-text-muted">
@@ -256,7 +309,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
 }
 
 export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
-  const { isAuthenticated, openManageBilling, openPlanWidget, planUid } = usePricingActions()
+  const { isAuthenticated, openManageBilling, openPlanWidget, planUid, pending, recovery } = usePricingActions()
 
   if (isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY)) {
     return (
@@ -272,8 +325,10 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
 
   if (isAuthenticated && planUid === PLAN_UIDS.PRO) {
     return (
-      <button
+      <><button
         type="button"
+        disabled={pending}
+        aria-busy={pending}
         onClick={() => {
           const elitePlan = membershipPlans.find((plan) => plan.planUid === PLAN_UIDS.ELITE)
           if (elitePlan) openPlanWidget(elitePlan, false)
@@ -281,19 +336,34 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
         className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
       >
         Upgrade to Elite
-      </button>
+      </button><PricingHandoffRecovery recovery={recovery} /></>
     )
   }
 
   return (
-    <button
+    <><button
       type="button"
+      disabled={pending}
+      aria-busy={pending}
       onClick={() => openPlanWidget(proPlan, false)}
       className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
       {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Due Today'}
-    </button>
+    </button><PricingHandoffRecovery recovery={recovery} /></>
   )
+}
+
+export function PricingHandoffRecovery({ recovery }: {
+  recovery: { href: string; record: () => void } | null
+}) {
+  if (!recovery) return null
+  return <div role="status" className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+    <p>We couldn’t confirm that the plan form opened. You can continue on the secure hosted page.</p>
+    <a href={recovery.href} onClick={recovery.record}
+      className="mt-2 inline-flex min-h-11 items-center font-semibold underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      Continue on secure plan page
+    </a>
+  </div>
 }
 
 export function PricingFinalCtaCopy() {

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { AcquisitionJourneyTracker } from '@/components/AcquisitionJourneyTracker'
 import Link from 'next/link'
 import Script from 'next/script'
 import './globals.css'
@@ -30,10 +32,10 @@ function SiteHeader() {
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
           <Link href="/guides" className="transition hover:text-brand">Guides</Link>
-          <Link href="/pricing" className="transition hover:text-brand">Pricing</Link>
+          <a href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="transition hover:text-brand">Pricing</a>
           <Link href="/about" className="transition hover:text-brand">About</Link>
           <a
-            href="https://members.nestedobjects.com/hiring-firms"
+            href="https://members.nestedobjects.com/hiring-firms" data-acquisition-source="public_navigation_1"
             className="transition hover:text-brand"
           >
             Directory
@@ -41,13 +43,13 @@ function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <a
-            href="https://members.nestedobjects.com"
+            href="https://members.nestedobjects.com" data-acquisition-source="public_navigation_2"
             className="text-sm font-medium text-slate-600 transition hover:text-brand"
           >
             Log in
           </a>
           <a
-            href="https://members.nestedobjects.com/membership-pricing"
+            href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_navigation_3"
             className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Join Free
@@ -76,8 +78,8 @@ function SiteFooter() {
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Resources</p>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li><Link href="/guides" className="hover:text-brand">Guides</Link></li>
-              <li><a href="https://members.nestedobjects.com/hiring-firms" className="hover:text-brand">Firm Directory</a></li>
-              <li><a href="https://members.nestedobjects.com/training" className="hover:text-brand">Training</a></li>
+              <li><a href="https://members.nestedobjects.com/hiring-firms" data-acquisition-source="public_navigation_4" className="hover:text-brand">Firm Directory</a></li>
+              <li><a href="https://members.nestedobjects.com/training" data-acquisition-source="public_navigation_5" className="hover:text-brand">Training</a></li>
             </ul>
           </div>
           <div>
@@ -85,13 +87,13 @@ function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li><Link href="/about" className="hover:text-brand">About</Link></li>
               <li><Link href="/contact" className="hover:text-brand">Contact</Link></li>
-              <li><Link href="/pricing" className="hover:text-brand">Pricing</Link></li>
+              <li><a href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_pricing_navigation" className="hover:text-brand">Pricing</a></li>
             </ul>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Brands</p>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
-              <li><a href="https://members.nestedobjects.com" className="hover:text-brand">Member Hub</a></li>
+              <li><a href="https://members.nestedobjects.com" data-acquisition-source="public_navigation_6" className="hover:text-brand">Member Hub</a></li>
               <li><a href="https://flynerdofficial.com" className="hover:text-brand">Fly Nerd</a></li>
             </ul>
           </div>
@@ -108,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <Script
+        {process.env.NODE_ENV === 'production' && <Script
           id="gtm-script"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
@@ -117,20 +119,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
               j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-5HPX4VTQ');
+              })(window,document,'script','dataLayer','GTM-5CTHWMFH');
             `,
           }}
-        />
+        />}
       </head>
       <body className="min-h-screen bg-brand-sand text-slate-900 antialiased">
-        <noscript>
+        {process.env.NODE_ENV === 'production' && <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-5HPX4VTQ"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-5CTHWMFH"
             height="0"
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}
           />
-        </noscript>
+        </noscript>}
+        <Suspense fallback={null}><AcquisitionJourneyTracker /></Suspense>
         <SiteHeader />
         {children}
         <SiteFooter />
