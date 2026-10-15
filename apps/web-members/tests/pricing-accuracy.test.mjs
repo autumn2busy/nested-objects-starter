@@ -19,6 +19,7 @@ let sdkCalls
 let analyticsCalls
 let stateUpdates
 let handoffTimers
+let effects
 const browser = { location: { href: '' }, setTimeout: callback => { handoffTimers.push(callback); return handoffTimers.length }, clearTimeout() {} }
 
 function load(relativePath, imports = {}) {
@@ -27,13 +28,13 @@ function load(relativePath, imports = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(code, {
-    exports, URL, console, window: browser, process: { env: {} },
+    exports, URL, console, AbortController, window: browser, process: { env: {} },
     document: { body: {}, querySelectorAll: () => [] },
     MutationObserver: class { observe() {} disconnect() {} },
     crypto: { randomUUID: () => 'synthetic-pricing-attempt' },
     require(name) {
       if (name === 'react/jsx-runtime') return jsxRuntime
-      if (name === 'react') return { ...React, useState: initial => [initial, value => stateUpdates.push(value)], useRef: initial => ({current:initial}), useEffect: () => {} }
+      if (name === 'react') return { ...React, useState: initial => [initial, value => stateUpdates.push(value)], useRef: initial => ({current:initial}), useEffect: callback => effects.push(callback) }
       if (name === 'lucide-react') return require('lucide-react')
       if (name in imports) return imports[name]
       throw new Error(`Unexpected import in ${relativePath}: ${name}`)
@@ -119,6 +120,7 @@ function reset(scenario = scenarios[0]) {
   analyticsCalls = []
   stateUpdates = []
   handoffTimers = []
+  effects = []
   browser.location.href = ''
   browser.Outseta = {
     auth: { open: options => sdkCalls.push({ widget: 'auth', options }) },
@@ -186,7 +188,7 @@ for (const scenario of scenarios) {
     })
   })
 
-  test(`${scenario.name}: plan and final CTAs preserve checkout intent and describe current access`, () => {
+  test(`${scenario.name}: plan and final CTAs preserve checkout intent and describe current access`, async () => {
     reset(scenario)
     for (const plan of publicPlans) {
       sdkCalls.length = 0
@@ -196,7 +198,7 @@ for (const scenario of scenarios) {
       const current = plan.planUid === scenario.planUid
       const unavailable = plan.waitlist === true
       assert.equal(button.props.disabled, current || unavailable)
-      button.props.onClick()
+      await button.props.onClick()
       if (current || unavailable) {
         assert.equal(sdkCalls.length, 0)
         assert.equal(analyticsCalls.length, 0)
@@ -228,7 +230,8 @@ for (const scenario of scenarios) {
     const proPlan = publicPlans.find(plan => plan.name === 'Pro')
     const finalButton = findButton(interactions.PricingFinalCta({ proPlan }))
     assert.equal(plain(renderToStaticMarkup(finalButton)), scenario.finalLabel)
-    finalButton.props.onClick()
+    await finalButton.props.onClick()
+    await Promise.resolve()
     if (scenario.finalTarget) {
       assert.equal(analyticsCalls.find(event => event.name === 'trackPricingCtaClick')?.payload.targetPlanUid,
         expectedPlans.find(plan => plan.name === scenario.finalTarget).planUid)
@@ -248,10 +251,12 @@ for (const scenario of scenarios) {
   })
 }
 
-test('checkout fallback destinations preserve the public plan UIDs and authenticated billing path', () => {
+test('checkout fallback destinations preserve the public plan UIDs and authenticated billing path', async () => {
   browser.Outseta = undefined
   for (const plan of publicPlans.filter(plan => !plan.waitlist)) {
-    findButton(interactions.PricingPlanButton({ plan })).props.onClick()
+    const opening = findButton(interactions.PricingPlanButton({ plan })).props.onClick()
+    handoffTimers.at(-2)() // bounded SDK-readiness deadline, before visibility timeout
+    await opening
     assert.equal(browser.location.href,
       `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`)
   }
@@ -265,16 +270,18 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   agencyButton.props.onClick()
   assert.equal(browser.location.href, '')
   authState = { isAuthenticated: true, isLoading: false, planUid: expectedPlans[0].planUid }
-  findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
+  const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
+  handoffTimers.at(-2)()
+  await opening
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile#o-plan-change')
   assert.equal(analyticsCalls.filter(event => event.name === 'trackSignupStarted').length, 3)
 })
 
-test('Free paid-plan click catches SDK failure and offers keyboard-accessible explicit recovery', () => {
+test('Free paid-plan click catches SDK failure and offers keyboard-accessible explicit recovery', async () => {
   reset(scenarios[1])
   browser.Outseta.profile.open = () => { throw new Error('private-provider-error-with-email@example.test') }
   const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
-  button.props.onClick()
+  await button.props.onClick()
   const diagnostic = analyticsCalls.filter(event => event.event === 'checkout_handoff')
   assert.deepEqual(diagnostic.map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
   assert.equal(new Set(diagnostic.map(event => event.payload.handoffId)).size, 1)
@@ -290,14 +297,61 @@ test('Free paid-plan click catches SDK failure and offers keyboard-accessible ex
   assert.equal(analyticsCalls.at(-1).payload.handoffStatus, 'recovery_redirect_requested')
 })
 
-test('silent SDK call permits no duplicate click and timeout stays unknown', () => {
+test('silent SDK call permits no duplicate click and timeout stays unknown', async () => {
   reset(scenarios[1])
   const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
-  button.props.onClick(); button.props.onClick()
+  await Promise.all([button.props.onClick(), button.props.onClick()])
   assert.equal(sdkCalls.length, 1)
   handoffTimers.at(-1)()
   assert.deepEqual(analyticsCalls.filter(event => event.event === 'checkout_handoff').map(event => event.payload.handoffStatus), ['requested','unobserved_timeout'])
   assert.equal(browser.location.href, '')
+})
+
+test('auth hydration cannot open anonymous registration for a signed-in member', async () => {
+  reset(scenarios[0])
+  authState.isLoading = true
+  for (const button of [findButton(interactions.PricingPlanButton({plan:publicPlans[1]})),
+    findButton(interactions.PricingFinalCta({proPlan:publicPlans[1]}))]) {
+    assert.equal(button.props.disabled,true)
+    assert.equal(button.props['aria-busy'],true)
+    assert.match(plain(renderToStaticMarkup(button)),/Checking your plan/)
+    await button.props.onClick()
+  }
+  assert.equal(sdkCalls.length,0)
+  assert.equal(analyticsCalls.length,0)
+  assert.equal(browser.location.href,'')
+})
+
+test('Free member waits for the profile module and opens once instead of redirecting to hosted login', async () => {
+  reset(scenarios[1])
+  delete browser.Outseta.profile
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const opening=button.props.onClick()
+  await button.props.onClick()
+  assert.equal(sdkCalls.length,0)
+  assert.equal(browser.location.href,'')
+  browser.Outseta.profile={open:options=>sdkCalls.push({widget:'profile',options})}
+  handoffTimers.at(-1)() // next readiness poll
+  await opening
+  assert.deepEqual(normalized(sdkCalls),[{widget:'profile',options:{tab:'planChange'}}])
+  assert.equal(browser.location.href,'')
+  assert.equal(analyticsCalls.filter(e=>e.name==='trackPricingCtaClick').length,1)
+  assert.deepEqual(analyticsCalls.filter(e=>e.event==='checkout_handoff').map(e=>e.payload.handoffStatus),['requested'])
+})
+
+test('unmount while the SDK loads prevents a later widget open or hosted redirect', async () => {
+  reset(scenarios[1])
+  delete browser.Outseta.profile
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const cleanup=effects[0]()
+  const opening=button.props.onClick()
+  cleanup()
+  browser.Outseta.profile={open:options=>sdkCalls.push(options)}
+  handoffTimers.forEach(timer=>timer())
+  await opening
+  assert.equal(sdkCalls.length,0)
+  assert.equal(browser.location.href,'')
+  assert.deepEqual(analyticsCalls.filter(e=>e.event==='checkout_handoff').map(e=>e.payload.handoffStatus),['requested'])
 })
 
 test('composed pricing JSON-LD removes unsupported ratings while retaining all base schemas and public offers', () => {

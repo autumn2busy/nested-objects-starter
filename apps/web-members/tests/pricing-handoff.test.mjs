@@ -73,6 +73,33 @@ test('visibility requires the correct provider popup, layout and visible ancesto
  rects=[{}];style={...style,display:'none'};assert.equal(dom.pricingWidgetVisible('auth'),false)
  element.parentElement={getAttribute:()=>null,hidden:true,parentElement:null};style.display='block';assert.equal(dom.pricingWidgetVisible('profile'),false)
 })
+
+test('readiness selects the requested module and has a bounded timeout',async()=>{
+ const timers=[],controller=new AbortController()
+ let available=false
+ const opening=helper.waitForPricingWidget('profile',controller.signal,{ready:()=>available,
+  schedule:(fn,ms)=>{const timer={fn,ms,active:true};timers.push(timer);return()=>{timer.active=false}}})
+ assert.equal(timers.find(t=>t.ms===8000).active,true)
+ available=true;timers.find(t=>t.ms===100).fn()
+ assert.equal(await opening,true)
+ assert.ok(timers.every(t=>!t.active))
+ const expired=[]
+ const missing=helper.waitForPricingWidget('auth',controller.signal,{ready:()=>false,
+  schedule:(fn,ms)=>{const timer={fn,ms,active:true};expired.push(timer);return()=>{timer.active=false}}})
+ expired.find(t=>t.ms===8000).fn()
+ assert.equal(await missing,false);assert.ok(expired.every(t=>!t.active))
+})
+
+test('identity change or unmount cancels SDK readiness without a late open',async()=>{
+ const timers=[],controller=new AbortController()
+ let reads=0
+ const opening=helper.waitForPricingWidget('profile',controller.signal,{ready:()=>{reads++;return false},
+  schedule:fn=>{const timer={fn,active:true};timers.push(timer);return()=>{timer.active=false}}})
+ controller.abort()
+ assert.equal(await opening,false);assert.ok(timers.every(t=>!t.active))
+ const before=reads;timers.forEach(t=>t.fn());assert.equal(reads,before)
+ assert.equal(await helper.waitForPricingWidget('profile',controller.signal,{ready:()=>{throw Error('Must not read after cancel')}}),false)
+})
 const base={id:'fixture',anonymous_id:null,member_uid:'synthetic-member',member_email:null,plan_uid:plans.PLAN_UIDS.FREE,plan_name:'Free',
  source_page:'/membership-pricing',source:'fixture',reason:null,utm_source:null,utm_medium:null,utm_campaign:null,
  occurred_at:'2026-10-12T12:00:00Z',event_data:{targetPlan:'Pro',targetPlanUid:plans.PLAN_UIDS.PRO}}

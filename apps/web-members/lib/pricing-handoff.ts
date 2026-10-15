@@ -8,6 +8,43 @@ export type PricingHandoffEvent = {
   reason?: 'sdk_exception' | 'sdk_unavailable' | 'visibility_unobserved' | 'navigation_exception'
 }
 
+// The loader and the provider modules finish asynchronously. Give the existing
+// script a bounded chance to become usable before taking the hosted fallback.
+export function waitForPricingWidget(widget: 'auth' | 'profile', signal: AbortSignal, dependencies: {
+  ready?: () => boolean
+  schedule?: (callback: () => void, milliseconds: number) => () => void
+} = {}): Promise<boolean> {
+  const ready = dependencies.ready || (() => typeof window.Outseta?.[widget]?.open === 'function')
+  const schedule = dependencies.schedule || ((callback, milliseconds) => {
+    const timer = window.setTimeout(callback, milliseconds)
+    return () => window.clearTimeout(timer)
+  })
+  if (signal.aborted) return Promise.resolve(false)
+  if (ready()) return Promise.resolve(true)
+  return new Promise(resolve => {
+    let settled = false
+    let stopPoll = () => {}
+    let stopDeadline = () => {}
+    const finish = (available: boolean) => {
+      if (settled) return
+      settled = true
+      stopPoll()
+      stopDeadline()
+      signal.removeEventListener('abort', onAbort)
+      resolve(available)
+    }
+    const onAbort = () => finish(false)
+    const poll = () => {
+      if (settled) return
+      if (ready()) finish(true)
+      else stopPoll = schedule(poll, 100)
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+    stopDeadline = schedule(() => finish(false), 8_000)
+    stopPoll = schedule(poll, 100)
+  })
+}
+
 // These scoped classes are present in Outseta's public auth/profile SDKs.
 // Initialization and a successful open() call alone do not prove visibility.
 export function pricingWidgetVisible(widget: 'auth' | 'profile'): boolean {
