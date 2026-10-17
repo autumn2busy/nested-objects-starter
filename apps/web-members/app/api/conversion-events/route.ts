@@ -1,3 +1,4 @@
+import { isVerificationTraffic } from '@/lib/verification-traffic'
 import { createHash } from 'crypto'
 import { NextResponse } from 'next/server'
 
@@ -256,7 +257,7 @@ export async function POST(request: Request) {
     }
 
     let activeCampaignTracked = false
-    if (memberEmail && body.event !== 'checkout_handoff') {
+    if (memberEmail && body.event !== 'checkout_handoff' && !isVerificationTraffic(eventData)) {
       activeCampaignTracked = await trackACServerEvent({
         email: memberEmail,
         event: body.event,
