@@ -15,233 +15,7 @@ import {
 } from '../dist/index.js'
 import freeJourneyEndpoint from '../dist-api/api/operations/free-journey.js'
 
-const now = '2026-10-10T12:00:00.000Z'
-const origin = 'https://members.example.test'
-const pathname = '/api/operations/free-journey'
-const secret = 'synthetic-free-journey-shared-secret-32-characters'
-const subject = 'webmembersproducer'
-const person = 'SyntheticPerson'
-const account = 'SyntheticAccount'
-const cycle = 'SyntheticCycle'
-const member = '31800000-0000-4000-8000-000000001211'
-const purpose = 'free_onboarding_and_conversion_email'
-const hash = parts => createHash('sha256').update(JSON.stringify(parts)).digest('hex')
-
-function sourceEvent(kind = 'income_scenario_completed') {
-  const event = {
-    contractVersion: 'free_journey_event_v1',
-    kind,
-    occurredAt: now,
-    outsetaPersonUid: person,
-    subscriptionUid: cycle,
-  }
-  return {
-    ...event,
-    idempotencyKey: `free-journey:${kind}:${hash([
-      event.contractVersion, kind, person, cycle, event.occurredAt,
-    ])}`,
-  }
-}
-
-function environment(overrides = {}) {
-  return {
-    FREE_JOURNEY_OPERATION_API_ENABLED: 'true',
-    FREE_JOURNEY_OPERATION_PREVIEW_ONLY: 'true',
-    FREE_JOURNEY_LIVE_READS_ENABLED: 'true',
-    FREE_JOURNEY_EXPECTED_527_STATUS: 'active',
-    FREE_JOURNEY_OPERATION_SHARED_SECRET: secret,
-    FREE_JOURNEY_OPERATION_PRODUCER_SUBJECT: subject,
-    FREE_JOURNEY_OPERATION_ALLOWED_ORIGIN: origin,
-    FREE_JOURNEY_SOURCE_REVIEW_REF: 'issue318-free-journey-source',
-    FREE_JOURNEY_SOURCE_REVIEWED_AT: '2026-10-10T11:00:00.000Z',
-    FREE_JOURNEY_SOURCE_REVIEW_EXPIRES_AT: '2026-10-10T13:00:00.000Z',
-    FREE_JOURNEY_EXCLUSION_POLICY_JSON: JSON.stringify({
-      internalDomains: ['nestedobjects.com'],
-      approvedInternalMemberEmails: [],
-      coldTagPatterns: ['cold', 'import'],
-      wixTagPatterns: ['wix'],
-      testPatterns: ['test'],
-      coworkerContactIds: [],
-      demoContactIds: [],
-      hiringFirmContactIds: [],
-    }),
-    SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
-    SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_synthetic_server_key_for_test_only',
-    OUTSETA_HOSTNAME: 'nested-objects.outseta.com',
-    OUTSETA_API_KEY: 'synthetic-outseta-key',
-    OUTSETA_API_SECRET: 'synthetic-outseta-secret',
-    AC_API_URL: 'https://synthetic.api-us1.com',
-    AC_API_KEY: 'synthetic-activecampaign-api-key',
-    ...overrides,
-  }
-}
-
-function signedRequest(value = { sourceEvent: sourceEvent() }, overrides = {}) {
-  const bodyText = typeof value === 'string' ? value : JSON.stringify(value)
-  const headers = createFreeJourneyOperationHeaders({
-    method: overrides.method ?? 'POST',
-    pathname: overrides.pathname ?? pathname,
-    bodyText,
-    producerSubject: overrides.subject ?? subject,
-    origin: overrides.origin ?? origin,
-    timestamp: overrides.timestamp ?? now,
-    nonce: overrides.nonce ?? '11111111-1111-4111-8111-111111111111',
-    sharedSecret: overrides.secret ?? secret,
-  })
-  if (overrides.tamperSignature) headers['x-free-journey-signature'] = '0'.repeat(64)
-  return new Request(`${origin}${overrides.pathname ?? pathname}`, {
-    method: overrides.method ?? 'POST',
-    headers: { 'content-type': 'application/json', ...headers },
-    body: bodyText,
-  })
-}
-
-function profileRow() {
-  return {
-    id: member,
-    outseta_person_uid: person,
-    outseta_account_id: account,
-    ac_contact_id: '41',
-    user_email: 'member@example.com',
-    email: 'member@example.com',
-    headline: 'Inspection services', bio: 'Synthetic profile', city: 'Atlanta', state: 'GA',
-    experience_level: 'new', primary_services: 'Property Inspections',
-    service_areas: ['Property Inspections'], updated_at: '2026-10-10T10:00:00.000Z',
-  }
-}
-
-function receipt(eventName) {
-  const income = eventName === 'income_scenario_completed'
-  const parts = [eventName, 'v1', person, cycle, ...(income ? [] : [purpose])]
-  return {
-    id: income ? '31800000-0000-4000-8000-000000001212' : '31800000-0000-4000-8000-000000001213',
-    client_event_id: `${eventName}:v1:${hash(parts)}`,
-    event_name: eventName,
-    member_uid: person,
-    source_page: income ? '/tools/income-calculator' : '/welcome',
-    source: income ? 'income_scenarios' : 'member_consent',
-    occurred_at: income ? '2026-10-10T10:30:00.000Z' : '2026-10-10T09:30:00.000Z',
-    event_data: {
-      sourcePage: income ? '/tools/income-calculator' : '/welcome',
-      source: income ? 'income_scenarios' : 'member_consent',
-      lifecycleCycleId: cycle,
-      ...(income ? { completionContract: 'v1' } : { consentContract: 'v1', purpose }),
-    },
-  }
-}
-
-function dependencies(options = {}) {
-  const calls = []
-  const onboardingTransport = async request => {
-    calls.push({ layer: 'supabase', method: request.method, url: request.url })
-    const url = new URL(request.url)
-    const row = url.pathname.endsWith('/profiles')
-      ? profileRow()
-      : receipt(url.searchParams.get('event_name').slice(3))
-    return { status: 200, body: [row], contentRange: '0-0/1', preferenceApplied: 'count=exact' }
-  }
-  const sourceTransport = async request => {
-    calls.push({ layer: request.provider, method: request.method, url: request.url })
-    const url = new URL(request.url)
-    if (request.provider === 'outseta') return { status: 200, body: {
-      Uid: account, IsDemo: false, AccountStage: 3, AccountStageLabel: 'Active',
-      Created: '2026-09-01T12:00:00.000Z',
-      CurrentSubscription: { Uid: cycle, StartDate: '2026-09-01T12:00:00.000Z', Plan: { Uid: 'L9nbKV9Z', Name: 'Free' } },
-      PersonAccount: [{ IsPrimary: true, Person: { Uid: person, Email: 'member@example.com' } }],
-    } }
-    if (url.pathname === '/api/3/contacts/41') return { status: 200, body: { contact: {
-      id: '41', email: 'member@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0',
-      cdate: '2026-09-01T12:00:00.000Z', udate: now,
-    } } }
-    if (url.pathname.endsWith('/contactLists')) {
-      const rows = options.noDoi
-        ? [{ id: '700', contact: '41', list: '12', form: '0', status: '1' }]
-        : [{ id: '701', contact: '41', list: '34', form: '90', status: '1' }]
-      return { status: 200, body: { contactLists: rows, meta: { total: String(rows.length) } } }
-    }
-    if (url.pathname.endsWith('/contactTags')) return { status: 200, body: {
-      contactTags: [{ id: '801', contact: '41', tag: '802' }],
-      tags: [{ id: '802', tag: 'plan-free' }], meta: { total: '1' },
-    } }
-    throw new Error(`Unexpected source read ${url.pathname}`)
-  }
-  const activeCampaignFetch = async (url, init = {}) => {
-    const path = String(url).split('/api/3/')[1]
-    const method = init.method ?? 'GET'
-    calls.push({ layer: 'writer-preview', method, url: String(url) })
-    assert.equal(method, 'GET')
-    const response = body => new Response(JSON.stringify(body), {
-      status: 200, headers: { 'content-type': 'application/json' },
-    })
-    if (path === 'contacts/41') return response({ contact: {
-      id: '41', email: 'member@example.com', bounced_hard: '0', bounced_soft: '0', deleted: '0',
-    } })
-    if (path === 'contacts/41/contactLists') return response({
-      contactLists: [{ id: '701', contact: '41', list: '34', form: '90', status: '1' }],
-    })
-    if (path === 'automations/527') return response({ automation: {
-      id: '527', status: options.automationStatus ?? '1',
-    } })
-    if (path === 'contacts/41/fieldValues') return response({ fieldValues: [] })
-    throw new Error(`Unexpected writer preview read ${path}`)
-  }
-  return {
-    value: {
-      now: () => now,
-      mode: 'fixture',
-      onboardingTransport,
-      sourceTransport,
-      activeCampaignFetch,
-    },
-    calls,
-  }
-}
-
-function operationalEnvironment(overrides = {}) {
-  return environment({
-    FREE_JOURNEY_OPERATION_PREVIEW_ONLY: 'false',
-    FREE_JOURNEY_EXPECTED_527_STATUS: 'active',
-    SUPABASE_URL: 'https://lzzghrjjsyzlvofpidis.supabase.co',
-    AGENT_RUNTIME_ENV: 'production',
-    VERCEL_ENV: 'production',
-    FREE_JOURNEY_PRODUCTION_PROJECT_REF: 'lzzghrjjsyzlvofpidis',
-    FREE_JOURNEY_OPERATIONAL_MODE: 'write',
-    FREE_JOURNEY_WRITE_ENABLED: 'true',
-    FREE_JOURNEY_ACTIVE_527_ENABLED: 'true',
-    FREE_JOURNEY_DURABLE_EXECUTOR_ENABLED: 'true',
-    FREE_JOURNEY_WRITE_APPROVAL_REF: 'owner-approved-free-journey-cycle-1',
-    FREE_JOURNEY_WRITE_APPROVED_AT: '2026-10-10T11:55:00.000Z',
-    FREE_JOURNEY_WRITE_APPROVAL_EXPIRES_AT: '2026-10-10T12:30:00.000Z',
-    FREE_JOURNEY_RUNTIME_VERSION: 'test-runtime-v1',
-    ...overrides,
-  })
-}
-
-function operationalDependencies() {
-  const base = dependencies()
-  const durableCalls = []
-  return {
-    value: {
-      ...base.value,
-      durableStore: new InMemoryDurableWorkflowStore(
-        FREE_JOURNEY_PRODUCTION_DESTINATION,
-        () => new Date(now),
-      ),
-      durableRunner: async (input, context) => {
-        durableCalls.push({ input, context })
-        return {
-          state: durableCalls.length === 1 ? 'completed' : 'reused',
-          runId: '31800000-0000-4000-8000-000000001527',
-          status: 'updated', desiredStage: 'conversion_eligible',
-          attemptedWrites: 2, confirmedWrites: 2, recoveryRequired: false,
-          automaticRetry: false, reasons: [], steps: [],
-        }
-      },
-    },
-    calls: base.calls,
-    durableCalls,
-  }
-}
+import { now, origin, pathname, secret, subject, person, account, cycle, member, purpose, hash, sourceEvent, environment, signedRequest, profileRow, receipt, dependencies, operationalEnvironment, operationalDependencies } from './free-journey-test-fixtures.mjs'
 
 test('signatures bind method, path, body, service subject, origin, timestamp and nonce', () => {
   const request = signedRequest()
@@ -277,6 +51,80 @@ test('runtime remains default-disabled and requires explicit Preview or exact Pr
   ]) assert.throws(() => loadFreeJourneyOperationRuntimeConfiguration(
     operationalEnvironment(changes),
   ), FreeJourneyOperationConfigurationError)
+})
+
+test('default transport uses documented Outseta authentication and reloads changed credentials', async t => {
+  const authorizationHeaders = []
+  let supabaseReads = 0
+  t.mock.method(globalThis, 'fetch', async (input, init) => {
+    const request = new Request(input, init)
+    const url = new URL(request.url)
+    assert.equal(request.method, 'GET')
+    assert.equal(request.redirect, 'error')
+    assert.equal(request.cache, 'no-store')
+    if (url.hostname === 'abcdefghijklmnopqrst.supabase.co') {
+      supabaseReads++
+      assert.equal(request.headers.get('authorization'), `Bearer ${environment().SUPABASE_SERVICE_ROLE_KEY}`)
+      const row = url.pathname.endsWith('/profiles')
+        ? profileRow()
+        : receipt(url.searchParams.get('event_name').slice(3))
+      return new Response(JSON.stringify([row]), { status: 200, headers: {
+        'content-type': 'application/json', 'content-range': '0-0/1', 'preference-applied': 'count=exact',
+      } })
+    }
+    assert.equal(url.origin, 'https://nested-objects.outseta.com')
+    assert.equal(url.pathname, `/api/v1/crm/accounts/${account}`)
+    assert.deepEqual([...url.searchParams.keys()], ['fields'])
+    assert(url.searchParams.get('fields').includes('CurrentSubscription.Plan.Uid'))
+    assert(url.searchParams.get('fields').includes('PersonAccount.Person.Uid'))
+    assert.equal(request.headers.get('accept'), 'application/json')
+    assert.equal(request.headers.get('api-token'), null)
+    assert.equal(request.headers.get('apikey'), null)
+    authorizationHeaders.push(request.headers.get('authorization'))
+    return new Response('Ignored non-JSON authentication error', { status: 401 })
+  })
+
+  for (const [apiKey, apiSecret] of [
+    ['synthetic-FIRST-key', 'synthetic-FIRST-secret'],
+    ['synthetic-SECOND-key', 'synthetic-SECOND-secret'],
+  ]) {
+    const result = await evaluateSignedFreeJourneyOperationRequest(signedRequest(), environment({
+      OUTSETA_HOSTNAME: '  NESTED-OBJECTS.OUTSETA.COM  ',
+      OUTSETA_API_KEY: `  ${apiKey}  `,
+      OUTSETA_API_SECRET: `  ${apiSecret}  `,
+    }), { now: () => now, mode: 'approved_live' })
+    assert.equal(result.status, 'withheld')
+    assert.deepEqual(result.reasons, ['outseta_http_failure_401'])
+    assert.equal(result.desiredStage, null)
+    assert.equal(result.attemptedWrites, 0)
+    assert.equal(result.confirmedWrites, 0)
+    assert.equal(result.automaticRetry, false)
+    assert.deepEqual(result.steps, [])
+    assert(!/synthetic-FIRST|synthetic-SECOND|Ignored non-JSON|SyntheticAccount/.test(JSON.stringify(result)))
+  }
+  assert.equal(supabaseReads, 6)
+  assert.deepEqual(authorizationHeaders, [
+    'Outseta synthetic-FIRST-key:synthetic-FIRST-secret',
+    'Outseta synthetic-SECOND-key:synthetic-SECOND-secret',
+  ])
+})
+
+test('Outseta tenant configuration rejects URL and authority injection before fetching', async t => {
+  let reads = 0
+  t.mock.method(globalThis, 'fetch', () => { reads++; throw new Error('Unexpected fetch') })
+  for (const hostname of [
+    'https://nested-objects.outseta.com',
+    'nested-objects.outseta.com/api/v1',
+    'user@nested-objects.outseta.com',
+    'nested-objects.outseta.com:443',
+    'nested-objects.outseta.com?tenant=other',
+    'nested-objects.outseta.com.example.test',
+  ]) {
+    await assert.rejects(evaluateSignedFreeJourneyOperationRequest(
+      signedRequest(), environment({ OUTSETA_HOSTNAME: hostname }), { now: () => now, mode: 'approved_live' },
+    ), FreeJourneyOperationConfigurationError)
+  }
+  assert.equal(reads, 0)
 })
 
 test('signed Preview can verify automation 527 while it remains inactive', async () => {
@@ -369,6 +217,22 @@ test('later confirmed DOI re-evaluates the same event from withheld to ready wit
   assert.equal(before.attemptedWrites + after.attemptedWrites, 0)
   assert([...beforeDeps.calls, ...afterDeps.calls].every(call => call.method === 'GET'))
 })
+
+for (const kind of ['consent_recorded', 'consent_check_requested']) {
+  test(`${kind} requires independently confirmed DOI and preserves zero-write Preview`, async () => {
+    const unconfirmed = dependencies({ noDoi: true })
+    const confirmed = dependencies()
+    const request = () => signedRequest({ sourceEvent: sourceEvent(kind) })
+    const before = await evaluateSignedFreeJourneyOperationRequest(request(), environment(), unconfirmed.value)
+    const after = await evaluateSignedFreeJourneyOperationRequest(request(), environment(), confirmed.value)
+    assert.equal(before.status, 'withheld')
+    assert.equal(after.status, 'ready')
+    assert.equal(after.attemptedWrites, 0)
+    assert.equal(after.confirmedWrites, 0)
+    assert.equal([...unconfirmed.calls, ...confirmed.calls].every(call => call.method === 'GET'), true)
+    assert.notEqual(sourceEvent(kind).idempotencyKey, sourceEvent('signup').idempotencyKey)
+  })
+}
 
 test('HTTP surface rejects unsupported methods and bad signatures with sanitized responses', async () => {
   const get = await freeJourneyEndpoint.fetch(new Request(`${origin}${pathname}`, { method: 'GET' }))

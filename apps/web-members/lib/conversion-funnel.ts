@@ -1,4 +1,5 @@
 import { PAID_PLANS } from './plan-config'
+import { summarizePricingHandoffs } from './pricing-handoff-report'
 
 export type ConversionEventRow = {
   id: string
@@ -93,6 +94,14 @@ export type StuckMember = {
   reason: string | null
 }
 
+export function isVerificationConversionEvent(row: ConversionEventRow) {
+  const data = row.event_data || {}
+  return /release_validation|attribution_20261011|pricing-route-check|route-repair|verification|synthetic|\bqa\b/i.test(
+    [row.source, row.utm_source, row.utm_medium, row.utm_campaign,
+      ...['first_utm_source', 'last_utm_source', 'first_utm_medium', 'last_utm_medium', 'first_utm_campaign', 'last_utm_campaign'].map(key => data[key])].join(' '),
+  )
+}
+
 function memberKey(row: ConversionEventRow) {
   if (row.member_uid) return `member:${row.member_uid}`
   if (row.member_email) return `email:${row.member_email.toLowerCase()}`
@@ -106,7 +115,26 @@ function getPlan(row: ConversionEventRow) {
 
 function getSource(row: ConversionEventRow) {
   const signupSource = typeof row.event_data?.signup_source === 'string' ? row.event_data.signup_source : null
-  return row.source || row.utm_source || signupSource || row.source_page || 'Direct / unknown'
+  if (row.source === 'outseta' || row.source_page === 'outseta_webhook') return 'Direct / unknown'
+  return row.utm_source || signupSource || row.source || 'Direct / unknown'
+}
+
+function signupAttribution(signup: ConversionEventRow, events: ConversionEventRow[], signupTime: number) {
+  const browserSignup = events.find(row => row.event_name === 'signup_completed'
+    && Date.parse(row.occurred_at) <= signupTime + 5 * 60 * 1000 && getSource(row) !== 'Direct / unknown')
+  if (browserSignup) return { source: getSource(browserSignup), basis: 'signup' as const, campaignSource: browserSignup.utm_source || null }
+  // Only activity observed before account creation can establish acquisition.
+  // A later onboarding-email campaign must not become the signup source.
+  const beforeSignup = events.filter(row => Date.parse(row.occurred_at) <= signupTime
+    && ['signup_started', 'join_free_click', 'pricing_view', 'pricing_cta_click'].includes(row.event_name))
+  const attributed = beforeSignup.find(row => typeof row.event_data?.first_utm_source === 'string' && row.event_data.first_utm_source)
+    || beforeSignup.find(row => row.utm_source || row.event_data?.signup_source || row.source)
+  if (attributed) {
+    const firstSource = attributed.event_data?.first_utm_source
+    const campaignSource = typeof firstSource === 'string' && firstSource ? firstSource : attributed.utm_source || null
+    return { source: campaignSource || getSource(attributed), basis: 'linked_pre_signup' as const, campaignSource }
+  }
+  return { source: getSource(signup), basis: getSource(signup) === 'Direct / unknown' ? 'unknown' as const : 'signup' as const, campaignSource: signup.utm_source || null }
 }
 
 const PAID_PLAN_NAMES = new Set(['starter', 'founders', 'pro', 'elite', 'agency'])
@@ -123,6 +151,7 @@ function hasPaidTarget(row: ConversionEventRow) {
 function stageIndex(row: ConversionEventRow) {
   const index = FUNNEL_STAGES.findIndex((stage) => stage.eventNames.includes(row.event_name))
   const stage = FUNNEL_STAGES[index]
+  if (stage?.key === 'pricing' && row.source === 'firm-profile' && row.reason === 'login-required') return -1
   if (stage?.key === 'intent' && !hasPaidTarget(row)) return -1
   if (stage?.key === 'checkout') {
     const mode = row.event_data?.mode
@@ -137,11 +166,31 @@ function percentage(numerator: number, denominator: number) {
 
 export function buildConversionFunnel(
   rows: ConversionEventRow[],
-  filters: { source?: string; plan?: string } = {},
+  filters: { source?: string; plan?: string; signupSince?: string; signupUntil?: string; excludedMemberUids?: string[] } = {},
 ) {
+  // Propagate explicit QA exclusions across the observed browser's activity.
+  const excludedMembers = new Set(filters.excludedMemberUids || [])
+  const isExcluded = (row: ConversionEventRow) => isVerificationConversionEvent(row) || (!!row.member_uid && excludedMembers.has(row.member_uid))
+  const verificationBrowsers = new Set(rows.filter(isExcluded).map(row => row.anonymous_id).filter(Boolean))
+  const excludedEvents = rows.filter(row => isExcluded(row) || verificationBrowsers.has(row.anonymous_id)).length
+  rows = rows.filter(row => !isExcluded(row) && !verificationBrowsers.has(row.anonymous_id))
+  // An email-only row can resolve to a UID only when that email maps to one UID.
+  const emailMembers = new Map<string, Set<string>>()
+  for (const row of rows) {
+    if (!row.member_uid || !row.member_email) continue
+    const email = row.member_email.toLowerCase()
+    const ids = emailMembers.get(email) || new Set<string>()
+    ids.add(row.member_uid)
+    emailMembers.set(email, ids)
+  }
+  const canonicalMemberKey = (row: ConversionEventRow) => {
+    if (row.member_uid) return memberKey(row)
+    const ids = row.member_email ? emailMembers.get(row.member_email.toLowerCase()) : undefined
+    return ids?.size === 1 ? `member:${[...ids][0]}` : memberKey(row)
+  }
   const anonymousToMember = new Map<string, string | null>()
   for (const row of rows) {
-    const key = memberKey(row)
+    const key = canonicalMemberKey(row)
     if (!key || !row.anonymous_id) continue
     const previous = anonymousToMember.get(row.anonymous_id)
     // Shared browser identifiers cannot safely attribute anonymous actions to
@@ -150,7 +199,7 @@ export function buildConversionFunnel(
   }
 
   const actorKey = (row: ConversionEventRow) =>
-    memberKey(row) ||
+    canonicalMemberKey(row) ||
     (row.anonymous_id ? anonymousToMember.get(row.anonymous_id) || `anonymous:${row.anonymous_id}` : `event:${row.id}`)
 
   const eventsByActor = new Map<string, ConversionEventRow[]>()
@@ -161,7 +210,7 @@ export function buildConversionFunnel(
     eventsByActor.set(key, actorEvents)
   }
 
-  const cohorts = new Map<string, { signup: ConversionEventRow; events: ConversionEventRow[] }>()
+  const cohorts = new Map<string, { signup: ConversionEventRow; events: ConversionEventRow[]; source: string; campaignSource: string | null; basis: 'signup' | 'linked_pre_signup' | 'unknown'; signupTime: number }>()
   for (const [key, actorEvents] of eventsByActor) {
     const ordered = [...actorEvents].sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at))
     const signupEvents = ordered.filter((row) => row.event_name === 'signup_completed')
@@ -169,19 +218,20 @@ export function buildConversionFunnel(
 
     // A recorded webhook can supply signup evidence, while browser events often
     // have better attribution. Neither establishes complete collection coverage.
-    const signup = signupEvents.find((row) => {
-      const source = getSource(row)
-      return source !== 'outseta' && source !== 'Direct / unknown'
-    }) || signupEvents[0]
+    const signup = signupEvents[0]
 
-    const source = getSource(signup)
-    const plan = getPlan(signup)
+    const signupTime = Math.min(...signupEvents.map((row) => Date.parse(row.occurred_at)))
+    if (filters.signupSince && signupTime < Date.parse(filters.signupSince)) continue
+    if (filters.signupUntil && signupTime >= Date.parse(filters.signupUntil)) continue
+    const attribution = signupAttribution(signup, ordered, signupTime)
+    const source = attribution.source
+    // The earliest recorded creation event defines the signup plan, not a later duplicate.
+    const plan = getPlan(signupEvents[0])
     if (filters.source && filters.source !== 'all' && source !== filters.source) continue
     if (filters.plan && filters.plan !== 'all' && plan.toLowerCase() !== filters.plan.toLowerCase()) continue
 
-    const signupTime = Math.min(...signupEvents.map((row) => Date.parse(row.occurred_at)))
     cohorts.set(key, {
-      signup,
+      signup: signupEvents[0], source, campaignSource: attribution.campaignSource, basis: attribution.basis, signupTime,
       events: ordered.filter((row) => Date.parse(row.occurred_at) >= signupTime),
     })
   }
@@ -225,7 +275,7 @@ export function buildConversionFunnel(
       latestStageKey: FUNNEL_STAGES[latest.index].key,
       latestStageLabel: FUNNEL_STAGES[latest.index].label,
       latestAt: latest.row.occurred_at,
-      source: getSource(cohort.signup),
+      source: cohort.source,
       plan: getPlan(identityEvent),
       reason: latest.row.reason,
     })
@@ -233,9 +283,19 @@ export function buildConversionFunnel(
 
   stuckMembers.sort((a, b) => Date.parse(b.latestAt) - Date.parse(a.latestAt))
 
-  const sources = [...new Set([...cohorts.values()].map((cohort) => getSource(cohort.signup)))].sort()
+  const sources = [...new Set([...cohorts.values()].map((cohort) => cohort.source))].sort()
   const plans = [...new Set([...cohorts.values()].map((cohort) => getPlan(cohort.signup)))].sort()
 
   const ambiguousAnonymousIds = [...anonymousToMember.values()].filter((key) => key === null).length
-  return { cohortSize, stages, stuckMembers, sources, plans, ambiguousAnonymousIds }
+  const cohortMembers = [...cohorts.entries()].map(([key, cohort]) => ({
+    memberUid: key.startsWith('member:') ? key.slice(7) : null,
+    signupAt: new Date(cohort.signupTime).toISOString(), source: cohort.source, attributionBasis: cohort.basis, campaignSource: cohort.campaignSource,
+  }))
+  const attributionCoverage = {
+    recovered: cohortMembers.filter(member => member.attributionBasis === 'linked_pre_signup').length,
+    unknown: cohortMembers.filter(member => member.attributionBasis === 'unknown').length,
+    campaignKnown: cohortMembers.filter(member => member.campaignSource !== null).length,
+  }
+  const checkoutHandoffs = summarizePricingHandoffs([...cohorts.values()].map(cohort => cohort.events), hasPaidTarget)
+  return { cohortSize, stages, stuckMembers, sources, plans, ambiguousAnonymousIds, cohortMembers, attributionCoverage, excludedEvents, checkoutHandoffs }
 }

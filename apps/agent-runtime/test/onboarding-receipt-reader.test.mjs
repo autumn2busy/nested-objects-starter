@@ -238,3 +238,34 @@ test('default transport enforces size and JSON limits without leaking response b
     }
   } finally { globalThis.fetch = previous }
 })
+
+test('exact-count consent read preserves signed signup evidence alongside legacy requests without broadening reads', async () => {
+  const event = 'lifecycle_email_consent_requested', purpose = 'free_onboarding_and_conversion_email'
+  for (const includeWelcome of [false, true]) {
+    const { client, calls } = setup((r, request) => {
+      if (new URL(request.url).searchParams.get('event_name') !== `eq.${event}`) return r
+      const signup = {
+        ...r.body[0], id: '31800000-0000-4000-8000-000000000929',
+        client_event_id: `${event}:signup-v1:${createHash('sha256').update(JSON.stringify([
+          event, 'signup-v1', 'SyntheticPerson', 'SyntheticCycle', purpose,
+        ])).digest('hex')}`,
+        source_page: '/outseta/signup', source: 'outseta_signup_form',
+        event_data: {
+          sourcePage: '/outseta/signup', source: 'outseta_signup_form', consentContract: 'signup-v1',
+          purpose, lifecycleCycleId: 'SyntheticCycle', outsetaAccountUid: 'SyntheticAccount',
+          consentProperty: 'NoLifecycleEmailRequested', consentRequested: true, evidenceKind: 'signed_signup_callback',
+          consentText: 'Email me getting-started guidance and occasional membership offers from Nested Objects. I can unsubscribe anytime.',
+          registrationOccurredAt: r.body[0].occurred_at,
+        },
+      }
+      return { ...r, body: includeWelcome ? [r.body[0], signup] : [signup], contentRange: includeWelcome ? '0-1/2' : '0-0/1' }
+    })
+    const stored = await client.collect()
+    assert.equal(stored.consentRequests.coverage, 'complete')
+    assert.equal(stored.consentRequests.rows.length, includeWelcome ? 2 : 1)
+    assert.equal(stored.consentRequests.rows.at(-1).event_data.consentContract, 'signup-v1')
+    assert.equal(calls.length, 3)
+    assert(calls.every(call => call.method === 'GET'))
+    assert.equal(stored.attemptedWrites, 0)
+  }
+})

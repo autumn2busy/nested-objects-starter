@@ -1,10 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
 import Script from 'next/script'
 import { ArrowRight, Search, GraduationCap, Bot, Shield, Users, TrendingUp, Star, CheckCircle2 } from 'lucide-react'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
-import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
+export const metadata: Metadata = { alternates: { canonical: 'https://nestedobjects.com/' } }
 
-const aggregateRatingLd = {
+const organizationLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Nested Objects',
@@ -19,36 +21,16 @@ const aggregateRatingLd = {
     '@type': 'Country',
     name: 'United States',
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: getAverageRating(),
-    bestRating: 5,
-    worstRating: 1,
-    reviewCount: TESTIMONIALS.length,
-  },
-  review: TESTIMONIALS.filter(t => t.source === 'google' || t.source === 'review').map((t) => ({
-    '@type': 'Review',
-    author: {
-      '@type': 'Person',
-      name: t.name,
-    },
-    datePublished: t.date,
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: t.rating,
-      bestRating: 5,
-    },
-    reviewBody: t.quote,
-  })),
+
 }
 
 export default function HomePage() {
   return (
     <>
       <Script
-        id="aggregate-rating-ld-json"
+        id="organization-ld-json"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
       />
       <main className="bg-brand-sand text-slate-900">
       {/* ── Hero ── */}
@@ -66,7 +48,7 @@ export default function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
-              href="https://members.nestedobjects.com/membership-pricing"
+              href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_home_1"
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Join Free — Access the Directory <ArrowRight className="h-4 w-4" />
@@ -172,7 +154,7 @@ export default function HomePage() {
             Upgrade anytime to unlock the full directory and AI tools.
           </p>
           <a
-            href="https://members.nestedobjects.com/membership-pricing"
+            href="https://members.nestedobjects.com/membership-pricing" data-acquisition-source="public_home_2"
             className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Join Free <ArrowRight className="h-4 w-4" />

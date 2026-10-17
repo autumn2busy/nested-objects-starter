@@ -1,6 +1,8 @@
 import { defineConfig } from 'nitro'
 import type { ModuleOptions } from 'workflow/nitro'
 
+import { freeJourneyRefreshDeployment } from './src/http/free-journey-refresh-deployment.js'
+
 const workflow: ModuleOptions = {
   dirs: ['./workflows'],
   runtime: 'nodejs22.x',
@@ -18,6 +20,7 @@ const config = {
   },
   modules: ['workflow/nitro'],
   serverDir: './server',
+  vercel: freeJourneyRefreshDeployment(process.env),
   workflow,
 }
 
