@@ -1,3 +1,4 @@
+import { isVerificationTraffic } from './verification-traffic'
 /**
  * ActiveCampaign and GA4 client-side event tracking.
  *
@@ -104,6 +105,8 @@ export function trackEvent(eventName: string, eventData?: EventData): void {
  */
 export function trackGa4Event(eventName: string, eventData?: EventData): void {
     if (typeof window === 'undefined') return
+    // Verification stays in the private ledger, including direct GA4 calls.
+    if (isVerificationTraffic({ ...getAttributionContext(), ...eventData })) return
 
     const acquisitionEvent = ['pricing_view', 'pricing_cta_click', 'join_free_click', 'signup_started',
         'upgrade_clicked', 'upgrade_started', 'outseta_modal_open', 'paywall_hit'].includes(eventName)

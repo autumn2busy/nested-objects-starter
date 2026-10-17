@@ -16,7 +16,7 @@ function load(path, imports = {}, globals = {}) {
 const helper=load('../lib/pricing-handoff.ts')
 const report=load('../lib/pricing-handoff-report.ts')
 const plans=load('../lib/plan-config.ts')
-const funnel=load('../lib/conversion-funnel.ts',{'./plan-config':plans,'./pricing-handoff-report':report})
+const funnel=load('../lib/conversion-funnel.ts',{'./plan-config':plans,'./verification-traffic': load('../lib/verification-traffic.ts'), './pricing-handoff-report':report})
 function harness(initial = false) {
  let visible=initial,check,stopCount=0,recovery=0,observed=0
  const timers=[],events=[]
