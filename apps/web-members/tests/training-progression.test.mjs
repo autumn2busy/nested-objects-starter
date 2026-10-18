@@ -15,10 +15,12 @@ function load(file, imports = {}, globals = {}) {
   return exports
 }
 const plan = load('../lib/plan-config.ts')
-const access = load('../lib/training-access.ts', { './plan-config': plan })
+const policy = load('../lib/training-access-policy.ts', { './plan-config': plan })
+let currentWaiverEligible = true
+const access = load('../lib/training-access.ts', { 'server-only': {}, './training-access-policy': policy, './training-waiver-entitlement': { verifyCurrentTrainingWaiverEntitlement: async () => currentWaiverEligible } })
 const modules = [1,2,3].map(n => ({ id: 'module-'+n, slug:'module-'+n, module_number:n, requires_previous_module:n>1, is_active:true }))
 const blank = { modules, completedModuleIds:[], waivedModuleIds:[] }
-const user = { sub:'person-a', 'outseta:accountUid':'account-a', 'outseta:planUid':plan.PLAN_UIDS.PRO }
+const user = { sub:'person-a', 'outseta:accountUid':'account-a', 'outseta:planUid':plan.PLAN_UIDS.PRO, 'outseta:subscriptionUid':'subscription-a' }
 const profile = { id:'profile-a', user_id:'legacy-a', outseta_person_uid:'person-a', outseta_account_id:'account-a' }
 const now = Date.parse('2026-10-18T12:00:00Z')
 const waiver = { profile_id:'profile-a', outseta_person_uid:'person-a', outseta_account_uid:'account-a', module_id:'module-2', prerequisite_module_id:'module-1', approved_at:'2026-10-18T11:00:00Z', expires_at:null, revoked_at:null }
@@ -159,3 +161,64 @@ test('lesson-only 100 percent displays lessons and assessment requirement separa
  });
  const html=renderToStaticMarkup(page.default());assert.match(html,/100% of lessons complete/);assert.match(html,/Assessment required: score 80% or higher/);assert.doesNotMatch(html,/Assessment Passed|Assessment passed and saved/);
 });
+
+const waiverMembership = load('../lib/training-waiver-entitlement.ts', {
+  'server-only': {}, './training-access-policy': policy,
+}, { process: { env: { OUTSETA_API_KEY:'fixture-key', OUTSETA_API_SECRET:'fixture-secret' } }, AbortSignal, URL })
+const livePaidAccount = {
+ Uid:'account-a', IsDemo:false, AccountStage:3, AccountStageLabel:'Subscribing',
+ PersonAccount:[{Person:{Uid:'person-a'}}],
+ CurrentSubscription:{Uid:'subscription-a',StartDate:'2026-10-16T17:07:34',EndDate:null,Plan:{Uid:plan.PLAN_UIDS.PRO},Account:{Uid:'account-a'}},
+}
+test('live waiver eligibility requires matching current paid subscription and preserves the UTC date contract',()=>{
+ assert.equal(waiverMembership.currentPaidTrainingWaiverEligible(livePaidAccount,user,now),true)
+ const canceling={...livePaidAccount,AccountStage:4,AccountStageLabel:'Canceling',CurrentSubscription:{...livePaidAccount.CurrentSubscription,EndDate:'2026-10-19T12:00:00'}}
+ assert.equal(waiverMembership.currentPaidTrainingWaiverEligible(canceling,user,now),true)
+ assert.equal(waiverMembership.currentPaidTrainingWaiverEligible({...canceling,CurrentSubscription:{...canceling.CurrentSubscription,EndDate:null}},user,now),false)
+})
+test('changed plan, expired or future term, malformed dates and latest-only snapshots cannot activate a waiver',()=>{
+ for(const change of [
+  {Plan:{Uid:plan.PLAN_UIDS.FREE}},{Uid:'subscription-other'},{Account:{Uid:'account-other'}},
+  {StartDate:'2026-10-19T00:00:00Z'},{StartDate:'2026-02-30T00:00:00Z'},
+  {EndDate:'2026-10-18T11:59:59Z'},{EndDate:'2026-10-18'},{EndDate:undefined},
+ ]) assert.equal(waiverMembership.currentPaidTrainingWaiverEligible({...livePaidAccount,CurrentSubscription:{...livePaidAccount.CurrentSubscription,...change}},user,now),false)
+ assert.equal(waiverMembership.currentPaidTrainingWaiverEligible({...livePaidAccount,CurrentSubscription:null,LatestSubscription:livePaidAccount.CurrentSubscription},user,now),false)
+})
+test('waiver lookup rejects trial, past-due, expired, conflicting stage and wrong person/account',()=>{
+ for(const change of [
+  {AccountStage:2,AccountStageLabel:'Trialing'},{AccountStage:5,AccountStageLabel:'Expired'},
+  {AccountStage:7,AccountStageLabel:'Past due'},{AccountStage:3,AccountStageLabel:'Expired'},
+  {IsDemo:true},{Uid:'account-other'},{PersonAccount:[{Person:{Uid:'person-other'}}]},
+  {PersonAccount:[{Person:{Uid:'person-a'}},{Person:{Uid:'person-a'}}]},
+ ]) assert.equal(waiverMembership.currentPaidTrainingWaiverEligible({...livePaidAccount,...change},user,now),false)
+})
+test('waiver provider read is one bounded authenticated account GET without caching or redirects',async()=>{
+ const calls=[]
+ assert.equal(await waiverMembership.verifyCurrentTrainingWaiverEntitlement(user,now,async(url,options)=>{
+  calls.push({url,options});return {ok:true,json:async()=>livePaidAccount}
+ }),true)
+ assert.equal(calls.length,1)
+ assert.equal(calls[0].url.origin,'https://nested-objects.outseta.com')
+ assert.equal(calls[0].url.pathname,'/api/v1/crm/accounts/account-a')
+ assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.cache,'no-store');assert.equal(calls[0].options.redirect,'error')
+ assert.match(calls[0].options.headers.Authorization,/^Outseta /);assert.ok(calls[0].options.signal)
+})
+test('provider failures and missing credentials do not become waiver eligibility',async()=>{
+ for(const fetcher of [async()=>{throw Error('timeout')},async()=>({ok:false}),async()=>({ok:true,json:async()=>{throw Error('invalid json')}})]) {
+  assert.equal(await waiverMembership.verifyCurrentTrainingWaiverEntitlement(user,now,fetcher),false)
+ }
+ const unconfigured=load('../lib/training-waiver-entitlement.ts',{'server-only':{},'./training-access-policy':policy},{process:{env:{}},AbortSignal,URL})
+ let calls=0
+ assert.equal(await unconfigured.verifyCurrentTrainingWaiverEntitlement(user,now,async()=>{calls++;return {ok:true}}),false)
+ assert.equal(calls,0)
+})
+test('failed current eligibility removes only waiver access and retains earned quiz progress',async()=>{
+ currentWaiverEligible=false
+ try {
+  const state=await access.readTrainingAccess(db({tables:{training_prerequisite_waivers:[waiver],quiz_attempts:[{user_id:'person-a',module_id:'module-1',passed:true}]}}),user,now)
+  assert.deepEqual([...state.waivedModuleIds],[]);assert.deepEqual([...state.completedModuleIds],['module-1'])
+  assert.equal(access.canOpenTrainingModule(plan.PLAN_UIDS.PRO,modules[1],state),true)
+  const unearned=await access.readTrainingAccess(db({tables:{training_prerequisite_waivers:[waiver]}}),user,now)
+  assert.equal(access.canOpenTrainingModule(plan.PLAN_UIDS.PRO,modules[1],unearned),false)
+ } finally {currentWaiverEligible=true}
+})

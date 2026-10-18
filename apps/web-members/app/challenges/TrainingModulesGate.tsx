@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, ChevronRight, Lock, CheckCircle2, Shield } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
-import { canOpenTrainingModule } from '@/lib/training-access'
+import { canOpenTrainingModule } from '@/lib/training-access-policy'
 
 type TrainingModule = {
   id: string
