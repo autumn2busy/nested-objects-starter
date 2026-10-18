@@ -20,4 +20,3 @@ export function canOpenTrainingModule(planUid: unknown, module: TrainingModuleAc
   if (!previous) return false
   return state.completedModuleIds.includes(previous.id) || state.waivedModuleIds.includes(module.id)
 }
-
