@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
+import { canOpenTrainingModule, readTrainingAccess } from '@/lib/training-access'
+
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 import { persistQuizCompletion } from './quiz-complete-service'
 import {
-    getLookupUserIds,
-    logNoRowsTelemetry,
     resolveTrainingIdentity,
     runTrainingUserIdMigrationOncePerRuntime,
 } from '@/lib/training-identity'
@@ -34,14 +34,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { module_id, score, passed, total_questions } = await request.json()
+        const { module_id, score } = await request.json()
+        const passed = typeof score === 'number' && score >= 80
 
-        if (!module_id || score === undefined || passed === undefined) {
+        if (typeof module_id !== 'string' || !/^[A-Za-z0-9_-]{1,160}$/.test(module_id) || typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
         const supabase = createServiceRoleClient()
 
+        const state = await readTrainingAccess(supabase, user)
+        const trainingModule = state.modules.find(item => item.id === module_id || item.slug === module_id || String(item.module_number) === module_id)
+        if (!trainingModule || !canOpenTrainingModule(user['outseta:planUid'], trainingModule, state)) {
+            return NextResponse.json({ error: 'Training access required' }, { status: 403 })
+        }
         const identity = await resolveTrainingIdentity({
             supabase,
             outsetaId,
@@ -57,29 +63,14 @@ export async function POST(request: Request) {
         await runTrainingUserIdMigrationOncePerRuntime(supabase, identity)
 
         const profile = identity.profile
-        const lookupIds = getLookupUserIds(identity)
 
-        // Resolve module_id (slug or number) to UUID if necessary
-        let finalModuleId = module_id
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(module_id)) {
-            const { data: mod } = await supabase
-                .from('training_modules')
-                .select('id')
-                .or(`slug.eq.${module_id},module_number.eq.${parseInt(module_id) || 0}`)
-                .single()
-
-            if (mod) {
-                finalModuleId = mod.id
-            } else {
-                console.warn(`[QUIZ] Could not resolve module_id "${module_id}" to a UUID. Attempting persistence anyway.`)
-            }
-        }
-
-        console.log(`[QUIZ] User ${identity.canonicalUserId} (profile ${profile.id}) completed quiz for module ${finalModuleId} (input: ${module_id}): score=${score}, passed=${passed}`)
+        const finalModuleId = trainingModule.id
 
         const persistenceResult = await persistQuizCompletion({
             supabase,
             userId: identity.canonicalUserId,
+            profileId: profile.id,
+            previousCompletedModuleIds: state.completedModuleIds,
             moduleId: finalModuleId,
             score,
             passed,
