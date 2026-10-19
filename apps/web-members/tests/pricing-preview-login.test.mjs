@@ -57,6 +57,7 @@ function header({ path = '/membership-pricing', previewHost = host, ready = asyn
   let pathname = path, authenticated = false, refIndex = 0
   const refs = [], cleanups = [], states = [], opens = [], waits = []
   const browser = { location: { href: origin + pathname }, Outseta: { auth: { open: options => opens.push(options) } } }
+  const sessions = []
   const jsx = (type, props) => ({ type, props })
   const { SiteHeader } = load('../components/SiteHeader.tsx', {
     'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'fragment' },
@@ -71,6 +72,10 @@ function header({ path = '/membership-pricing', previewHost = host, ready = asyn
     './auth-provider': { useAuth: () => ({ user: null, isLoading: false, isAuthenticated: authenticated }) },
     './FreeSignupCta': { FreeSignupCta: 'signup' }, './ui/button': { Button: 'button', buttonVariants: () => '' },
     '@/lib/pricing-preview-login': helper,
+    '@/lib/pricing-login-session': { retainPricingLoginSession: (sdk, callback) => {
+      const session = { sdk, callback, stopped: false }; sessions.push(session)
+      return () => { session.stopped = true }
+    } },
     '@/lib/pricing-handoff': { waitForPricingWidget: (widget, signal) => { waits.push(widget); return ready(signal) } },
   }, { window: browser })
   const render = () => { refIndex = 0; return SiteHeader({ pricingPreviewHost: previewHost }) }
@@ -82,7 +87,7 @@ function header({ path = '/membership-pricing', previewHost = host, ready = asyn
     return null
   }
   return {
-    opens, waits, states, browser,
+    opens, waits, states, browser, sessions,
     click() {
       const link = find(tree)
       assert.ok(link, 'existing Login anchor is rendered')
@@ -111,7 +116,10 @@ test('warmed SDK uses per-interaction callback after navigation into pricing, on
   assert.equal(page.opens.length, 1)
   assert.equal(page.opens[0].widgetMode, 'login')
   assert.equal(page.opens[0].authenticationCallbackUrl, callbackFor(host, origin + '/membership-pricing'))
+  assert.equal(page.sessions.length, 1)
+  assert.equal(page.sessions[0].callback, page.opens[0].authenticationCallbackUrl)
   page.navigate('/about-us')
+  assert.equal(page.sessions[0].stopped, true)
   const unrelated = page.click(); await unrelated.promise
   assert.deepEqual(unrelated.stops, [])
   assert.equal(page.opens.length, 1)
@@ -123,6 +131,7 @@ test('Production retains the existing normal Login behavior', async () => {
   assert.deepEqual(click.stops, [])
   assert.deepEqual(page.waits, [])
   assert.deepEqual(page.opens, [])
+  assert.deepEqual(page.sessions, [])
 })
 
 test('readiness failure presents a retry error without opening or navigating elsewhere', async () => {

@@ -115,7 +115,8 @@ const scenarios = [
 ]
 
 function reset(scenario = scenarios[0]) {
-  authState = { isAuthenticated: scenario.planUid !== null, isLoading: false, planUid: scenario.planUid }
+  authState = { isAuthenticated: scenario.planUid !== null, isLoading: false, planUid: scenario.planUid,
+    user: scenario.planUid ? { sub: 'synthetic-pricing-member' } : null }
   sdkCalls = []
   analyticsCalls = []
   stateUpdates = []
@@ -123,6 +124,7 @@ function reset(scenario = scenarios[0]) {
   effects = []
   browser.location.href = ''
   browser.Outseta = {
+    getJwtPayload: () => ({ sub: 'synthetic-pricing-member', exp: Date.now() / 1000 + 3600 }),
     auth: { open: options => sdkCalls.push({ widget: 'auth', options }) },
     profile: { open: options => sdkCalls.push({ widget: 'profile', options }) },
   }
@@ -337,6 +339,22 @@ test('Free member waits for the profile module and opens once instead of redirec
   assert.equal(browser.location.href,'')
   assert.equal(analyticsCalls.filter(e=>e.name==='trackPricingCtaClick').length,1)
   assert.deepEqual(analyticsCalls.filter(e=>e.event==='checkout_handoff').map(e=>e.payload.handoffStatus),['requested'])
+})
+
+test('cookie-only, stale and different-account SDK sessions use the existing secure hosted route without a blank widget', async () => {
+  for (const claims of [null, {sub:'someone-else',exp:Date.now()/1000+3600},
+    {sub:'synthetic-pricing-member',exp:0}, {sub:'synthetic-pricing-member'}]) {
+    reset(scenarios.find(scenario=>scenario.name==='Free'))
+    browser.Outseta.getJwtPayload = () => claims
+    const button = interactions.PricingPlanButton({plan: datasets.membershipPlans.find(plan=>plan.name==='Pro')})
+    await findButton(button).props.onClick()
+    assert.equal(sdkCalls.length,0)
+    assert.equal(browser.location.href,'https://nested-objects.outseta.com/profile#o-plan-change')
+    const events=analyticsCalls.filter(call=>call.event==='checkout_handoff')
+    assert.deepEqual(events.map(event=>event.payload.handoffStatus),['requested','hosted_redirect_requested'])
+    assert.equal(events.at(-1).payload.reason,'provider_session_unavailable')
+    assert.equal(analyticsCalls.some(call=>JSON.stringify(call.payload).includes('someone-else')),false)
+  }
 })
 
 test('unmount while the SDK loads prevents a later widget open or hosted redirect', async () => {

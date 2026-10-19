@@ -5,7 +5,17 @@ export type PricingHandoffEvent = {
   handoffContract: 'pricing-handoff-v1'
   handoffId: string
   handoffStatus: PricingHandoffStatus
-  reason?: 'sdk_exception' | 'sdk_unavailable' | 'visibility_unobserved' | 'navigation_exception'
+  reason?: 'sdk_exception' | 'sdk_unavailable' | 'provider_session_unavailable' | 'visibility_unobserved' | 'navigation_exception'
+}
+
+// A site cookie does not authenticate the provider's browser widget. Never open
+// a blank widget or a different cached account just because open() exists.
+export function pricingProfileSessionAvailable(memberUid: string | undefined): boolean {
+  try {
+    const claims = window.Outseta?.getJwtPayload?.()
+    return Boolean(memberUid && claims?.sub === memberUid
+      && typeof claims.exp === 'number' && claims.exp > Date.now() / 1000)
+  } catch { return false }
 }
 
 // The loader and the provider modules finish asynchronously. Give the existing
@@ -128,7 +138,9 @@ export function beginPricingHandoff(options: {
     check,
     stop,
     failed() { if (!active) return; emit('open_failed', 'sdk_exception'); unavailable() },
-    redirect() { stop(); emit('hosted_redirect_requested', 'sdk_unavailable') },
+    redirect(reason: 'sdk_unavailable' | 'provider_session_unavailable' = 'sdk_unavailable') {
+      stop(); emit('hosted_redirect_requested', reason)
+    },
     redirectFailed() { emit('hosted_redirect_failed', 'navigation_exception'); options.unavailable() },
     recovery() { emit('recovery_redirect_requested') },
   }

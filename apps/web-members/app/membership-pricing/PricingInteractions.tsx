@@ -6,7 +6,7 @@ import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribu
 import { useAuth } from '@/components/auth-provider'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
-import { beginPricingHandoff, waitForPricingWidget } from '@/lib/pricing-handoff'
+import { beginPricingHandoff, pricingProfileSessionAvailable, waitForPricingWidget } from '@/lib/pricing-handoff'
 import {
   trackJoinFreeClick,
   trackOutsetaModalOpen,
@@ -140,6 +140,11 @@ function usePricingActions() {
       const Outseta = window.Outseta
       try {
         if (Outseta?.profile?.open) {
+          if (!pricingProfileSessionAvailable(user?.sub)) {
+            handoff.redirect('provider_session_unavailable')
+            try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
+            return
+          }
           Promise.resolve(Outseta.profile.open({ tab: 'planChange' })).catch(() => handoff.failed())
           handoff.check()
         } else {

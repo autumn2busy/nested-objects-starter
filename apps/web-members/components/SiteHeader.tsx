@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState, useRef, type MouseEvent } from 'react'
 import { pricingPreviewLoginCallback } from '@/lib/pricing-preview-login'
+import { retainPricingLoginSession } from '@/lib/pricing-login-session'
 import { waitForPricingWidget } from '@/lib/pricing-handoff'
 import { Camera, Loader2, Menu, X } from 'lucide-react'
 
@@ -48,6 +49,7 @@ export function SiteHeader({ containerClassName, pricingPreviewHost }: SiteHeade
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const previewLoginAttempt = useRef<AbortController | null>(null)
+  const stopPricingLoginSession = useRef<(() => void) | null>(null)
   const [previewLoginError, setPreviewLoginError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -55,6 +57,8 @@ export function SiteHeader({ containerClassName, pricingPreviewHost }: SiteHeade
     return () => {
       previewLoginAttempt.current?.abort()
       previewLoginAttempt.current = null
+      stopPricingLoginSession.current?.()
+      stopPricingLoginSession.current = null
     }
   }, [pathname, isAuthenticated])
 
@@ -75,6 +79,13 @@ export function SiteHeader({ containerClassName, pricingPreviewHost }: SiteHeade
       if (attempt.signal.aborted || isAuthenticated
         || callback !== pricingPreviewLoginCallback(pricingPreviewHost, window.location.href)) return
       if (!ready) throw new Error('Sign-in unavailable')
+      stopPricingLoginSession.current?.()
+      stopPricingLoginSession.current = retainPricingLoginSession(window.Outseta, callback, {
+        failed: () => {
+          window.Outseta.auth.close?.()
+          setPreviewLoginError('Sign-in could not be completed. Please try Login again.')
+        },
+      })
       // Per-interaction options also cover an SDK initialized on another page.
       window.Outseta.auth.open({ widgetMode: 'login', authenticationCallbackUrl: callback })
     } catch {
