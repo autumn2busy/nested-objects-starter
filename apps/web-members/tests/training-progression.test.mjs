@@ -115,18 +115,91 @@ test('failed 73 percent result can save without turning into a pass',async()=>{
  const result=await receipt.saveTrainingQuiz({module_id:'module-1',score:73,total_questions:15},async()=>({status:200,json:async()=>({success:true,passed:false,score:73})}))
  assert.equal(result.saved,true);assert.equal(result.passed,false)
 })
-test('waiver migration permits only service-role access and contains no live member seed',async()=>{
-  const { PGlite }=require('@electric-sql/pglite');const pg=new PGlite()
+async function waiverDatabase() {
+  const { PGlite } = require('@electric-sql/pglite')
+  const pg = new PGlite()
+  await pg.exec(`
+    CREATE ROLE anon;
+    CREATE ROLE authenticated;
+    CREATE ROLE service_role BYPASSRLS;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+    CREATE TABLE public.profiles(id uuid primary key);
+    CREATE TABLE public.training_modules(id uuid primary key);
+  `)
+  const migration = readFileSync(new URL('../../../supabase/migrations/20261018133810_training_prerequisite_waivers.sql', import.meta.url), 'utf8')
+  await pg.exec(migration)
+  return pg
+}
+test('waiver migration narrows inherited default grants, forces RLS and contains no member seed', async () => {
+  const pg = await waiverDatabase()
   try {
-    await pg.exec('CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE TABLE public.profiles(id uuid primary key); CREATE TABLE public.training_modules(id uuid primary key);')
-    const migration=readFileSync(new URL('../../../supabase/migrations/20261018133810_training_prerequisite_waivers.sql',import.meta.url),'utf8')
-    await pg.exec(migration)
-    const {rows}=await pg.query("SELECT has_table_privilege('anon','public.training_prerequisite_waivers','SELECT') as anon_read, has_table_privilege('authenticated','public.training_prerequisite_waivers','INSERT') as member_write, has_table_privilege('service_role','public.training_prerequisite_waivers','SELECT') as server_read")
-    assert.deepEqual(rows,[{anon_read:false,member_write:false,server_read:true}])
-    assert.equal((await pg.query('SELECT count(*)::int as count FROM public.training_prerequisite_waivers')).rows[0].count,0)
+    const { rows } = await pg.query(`
+      SELECT has_table_privilege('service_role','public.profiles','DELETE') AS broad_default_reproduced,
+        has_table_privilege('anon','public.training_prerequisite_waivers','SELECT') AS anon_read,
+        has_table_privilege('authenticated','public.training_prerequisite_waivers','INSERT') AS member_write,
+        has_table_privilege('service_role','public.training_prerequisite_waivers','SELECT') AS server_read,
+        has_table_privilege('service_role','public.training_prerequisite_waivers','INSERT') AS server_insert,
+        has_table_privilege('service_role','public.training_prerequisite_waivers','UPDATE') AS server_table_update,
+        has_table_privilege('service_role','public.training_prerequisite_waivers','DELETE') AS server_delete,
+        has_table_privilege('service_role','public.training_prerequisite_waivers','TRUNCATE') AS server_truncate,
+        has_column_privilege('service_role','public.training_prerequisite_waivers','profile_id','UPDATE') AS server_identity_update,
+        has_column_privilege('service_role','public.training_prerequisite_waivers','reason','UPDATE') AS server_reason_update,
+        has_column_privilege('service_role','public.training_prerequisite_waivers','approval_reference','UPDATE') AS server_approval_update,
+        has_column_privilege('service_role','public.training_prerequisite_waivers','revoked_at','UPDATE') AS server_revoke,
+        relrowsecurity AS rls_enabled, relforcerowsecurity AS rls_forced
+      FROM pg_class WHERE oid = 'public.training_prerequisite_waivers'::regclass
+    `)
+    assert.deepEqual(rows, [{
+      broad_default_reproduced:true, anon_read:false, member_write:false,
+      server_read:true, server_insert:true, server_table_update:false, server_delete:false, server_truncate:false,
+      server_identity_update:false, server_reason_update:false, server_approval_update:false, server_revoke:true,
+      rls_enabled:true, rls_forced:true,
+    }])
+    assert.equal((await pg.query('SELECT count(*)::int as count FROM public.training_prerequisite_waivers')).rows[0].count, 0)
   } finally { await pg.close() }
 })
-
+test('service role can insert and revoke a waiver, but cannot rewrite audit history, delete or undo revocation', async () => {
+  const pg = await waiverDatabase()
+  const fixtureProfile = '00000000-0000-4000-8000-000000000001'
+  const prerequisite = '00000000-0000-4000-8000-000000000002'
+  const target = '00000000-0000-4000-8000-000000000003'
+  try {
+    await pg.query('INSERT INTO public.profiles VALUES ($1)', [fixtureProfile])
+    await pg.query('INSERT INTO public.training_modules VALUES ($1), ($2)', [prerequisite, target])
+    await pg.exec('SET ROLE service_role')
+    const insert = `INSERT INTO public.training_prerequisite_waivers
+      (profile_id, outseta_person_uid, outseta_account_uid, module_id, prerequisite_module_id, reason, approval_reference, approved_at)
+      VALUES ($1, 'fixture-person', 'fixture-account', $2, $3, 'Fixture waiver', $4, '2026-10-18T12:00:00Z') RETURNING id`
+    const args = [fixtureProfile, target, prerequisite, 'fixture-approval-1']
+    const id = (await pg.query(insert, args)).rows[0].id
+    await assert.rejects(pg.query(insert, args), { code:'23505' })
+    for (const statement of [
+      "UPDATE public.training_prerequisite_waivers SET reason = 'Rewritten' WHERE id = $1",
+      'UPDATE public.training_prerequisite_waivers SET profile_id = profile_id WHERE id = $1',
+      "UPDATE public.training_prerequisite_waivers SET approval_reference = 'Rewritten' WHERE id = $1",
+      'DELETE FROM public.training_prerequisite_waivers WHERE id = $1',
+    ]) await assert.rejects(pg.query(statement, [id]), { code:'42501' })
+    await assert.rejects(pg.exec('TRUNCATE public.training_prerequisite_waivers'), { code:'42501' })
+    await pg.query("UPDATE public.training_prerequisite_waivers SET revoked_at = '2026-10-19T12:00:00Z' WHERE id = $1", [id])
+    await assert.rejects(pg.query('UPDATE public.training_prerequisite_waivers SET revoked_at = NULL WHERE id = $1', [id]), { code:'23514' })
+    await assert.rejects(pg.query("UPDATE public.training_prerequisite_waivers SET revoked_at = '2026-10-20T12:00:00Z' WHERE id = $1", [id]), { code:'23514' })
+    await pg.query('UPDATE public.training_prerequisite_waivers SET revoked_at = revoked_at WHERE id = $1', [id])
+    await pg.query(insert, [fixtureProfile, target, prerequisite, 'fixture-approval-2'])
+    const rows = (await pg.query(`SELECT reason, approval_reference,
+      revoked_at = '2026-10-19T12:00:00Z'::timestamptz AS original_revocation
+      FROM public.training_prerequisite_waivers ORDER BY approval_reference`)).rows
+    assert.deepEqual(rows, [
+      {reason:'Fixture waiver', approval_reference:'fixture-approval-1', original_revocation:true},
+      {reason:'Fixture waiver', approval_reference:'fixture-approval-2', original_revocation:null},
+    ])
+    for (const role of ['anon', 'authenticated']) {
+      await pg.exec('RESET ROLE; SET ROLE ' + role)
+      await assert.rejects(pg.query('SELECT id FROM public.training_prerequisite_waivers'), { code:'42501' })
+      await assert.rejects(pg.query(insert, args), { code:'42501' })
+    }
+  } finally { await pg.close() }
+})
 
 test('actual quiz POST enforces plan and per-module waiver before persistence, and derives pass from score', async()=>{
  for(const scenario of [

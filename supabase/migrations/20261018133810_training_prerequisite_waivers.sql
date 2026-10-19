@@ -20,8 +20,31 @@ create unique index training_prerequisite_waivers_member_module_idx
   on public.training_prerequisite_waivers(profile_id, module_id) where revoked_at is null;
 alter table public.training_prerequisite_waivers enable row level security;
 alter table public.training_prerequisite_waivers force row level security;
-revoke all on public.training_prerequisite_waivers from public, anon, authenticated;
+-- Clear inherited default grants before granting the narrow server capabilities.
+revoke all on public.training_prerequisite_waivers from public, anon, authenticated, service_role;
 grant select, insert on public.training_prerequisite_waivers to service_role;
 grant update (revoked_at) on public.training_prerequisite_waivers to service_role;
+
+-- A revoked approval remains historical; a fresh approval requires a new row.
+create function public.enforce_training_waiver_revocation()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if old.revoked_at is not null and new.revoked_at is distinct from old.revoked_at then
+    raise exception 'A training waiver revocation cannot be cleared or rewritten'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.enforce_training_waiver_revocation()
+  from public, anon, authenticated, service_role;
+create trigger training_prerequisite_waivers_revocation_guard
+  before update of revoked_at on public.training_prerequisite_waivers
+  for each row execute function public.enforce_training_waiver_revocation();
+
 comment on table public.training_prerequisite_waivers is
   'Audited member-specific prerequisite exception; never grants plan entitlement or changes quiz/lesson completion. Server only; revoke instead of delete.';
