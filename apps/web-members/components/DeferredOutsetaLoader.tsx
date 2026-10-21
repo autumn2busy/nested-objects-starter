@@ -11,6 +11,7 @@ const PUBLIC_IDLE_DELAY_MS = 10000
 const IMMEDIATE_PATH_PREFIXES = [
   '/auth/callback',
   '/directory-preview',
+  '/membership-pricing',
   '/profile',
   '/security',
   '/upgrade',
@@ -42,7 +43,7 @@ export function DeferredOutsetaLoader() {
 
     window.o_options = {
       domain: OUTSETA_DOMAIN,
-      load: 'auth',
+      load: 'auth,profile',
       tokenStorage: 'local',
     }
 

@@ -158,7 +158,10 @@ export default function RootLayout({
           {!intelligenceStaging && <ActiveCampaignTracker />}
           {!intelligenceStaging && <Suspense fallback={null}><AcquisitionJourneyTracker /></Suspense>}
           <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip pb-20 md:pb-0">
-            <SiteHeader containerClassName={contentContainerClass} />
+            <SiteHeader
+              containerClassName={contentContainerClass}
+              pricingPreviewHost={process.env.VERCEL_ENV === 'preview' ? process.env.VERCEL_URL : undefined}
+            />
             <main id="main-content" className="min-w-0 flex-1 overflow-x-clip">{children}</main>
             <SiteFooter containerClassName={contentContainerClass} />
           </div>
