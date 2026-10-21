@@ -71,7 +71,8 @@ function usePricingActions() {
     setPending(true)
     setRecovery(null)
     const fallbackHref = isAuthenticated
-      ? 'https://nested-objects.outseta.com/profile#o-plan-change'
+      // Hosted login retains the query in its callback, but drops URL fragments.
+      ? 'https://nested-objects.outseta.com/profile?tab=planChange'
       : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`, 'membership_pricing')
     const context = { sourcePage: 'membership_pricing', currentPlan: currentPlanName ?? 'anonymous',
       targetPlan, targetPlanUid, isAuthenticated, mode: isAuthenticated ? 'profile_plan_change' : 'register' }
