@@ -275,7 +275,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
   handoffTimers.at(-2)()
   await opening
-  assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile#o-plan-change')
+  assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile?tab=planChange')
   assert.equal(analyticsCalls.filter(event => event.name === 'trackSignupStarted').length, 3)
 })
 
@@ -293,7 +293,7 @@ test('Free paid-plan click catches SDK failure and offers keyboard-accessible ex
   const recovery = stateUpdates.findLast(value => value && typeof value === 'object' && value.href)
   const html = renderToStaticMarkup(interactions.PricingHandoffRecovery({ recovery }))
   assert.match(html, /role="status"/)
-  assert.match(html, /href="https:\/\/nested-objects.outseta.com\/profile#o-plan-change"/)
+  assert.match(html, /href="https:\/\/nested-objects.outseta.com\/profile\?tab=planChange"/)
   assert.match(html, /Continue on secure plan page/)
   recovery.record()
   assert.equal(analyticsCalls.at(-1).payload.handoffStatus, 'recovery_redirect_requested')
@@ -349,7 +349,7 @@ test('cookie-only, stale and different-account SDK sessions use the existing sec
     const button = interactions.PricingPlanButton({plan: datasets.membershipPlans.find(plan=>plan.name==='Pro')})
     await findButton(button).props.onClick()
     assert.equal(sdkCalls.length,0)
-    assert.equal(browser.location.href,'https://nested-objects.outseta.com/profile#o-plan-change')
+    assert.equal(browser.location.href,'https://nested-objects.outseta.com/profile?tab=planChange')
     const events=analyticsCalls.filter(call=>call.event==='checkout_handoff')
     assert.deepEqual(events.map(event=>event.payload.handoffStatus),['requested','hosted_redirect_requested'])
     assert.equal(events.at(-1).payload.reason,'provider_session_unavailable')
