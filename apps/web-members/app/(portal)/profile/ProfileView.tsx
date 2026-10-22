@@ -19,6 +19,8 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { trackProfileCompleted } from '@/lib/ac-events'
 import { getPlanDisplayLabel } from '@/lib/plan-config'
 import { ELITE_OPPORTUNITY_ALERTS_OPT_IN_URL } from '@/lib/opportunity-alert-consent'
+import { ACCOUNT_SETTINGS_URL } from '@/lib/membership-management'
+import { MembershipManagementPanel } from '@/components/outseta/MembershipManagement'
 
 // --- Types ---
 
@@ -527,18 +529,6 @@ export default function ProfileView({
     }))
   }
 
-  // Open Outseta profile modal
-  const openOutsetaProfile = () => {
-    if (typeof window === 'undefined') return
-
-    if ((window as any).Outseta?.profile?.open) {
-      (window as any).Outseta.profile.open()
-      return
-    }
-
-    window.location.href = 'https://nested-objects.outseta.com/profile'
-  }
-
   // Computed values
   const displayName = profile?.display_name || profile?.full_name || profile?.first_name || 'Member'
   const email = profile?.email || profile?.user_email || user?.email || ''
@@ -575,6 +565,8 @@ export default function ProfileView({
           <h1 className="text-3xl font-bold text-slate-900">Your Vendor Profile</h1>
           <p className="text-slate-600 mt-1">Manage your profile, track your trust score, and showcase your qualifications.</p>
         </header>
+
+        <MembershipManagementPanel planLabel={subscriptionLabel} />
 
         {/* Error/Success Messages */}
         {error && (
@@ -707,12 +699,12 @@ export default function ProfileView({
                   <User className="w-5 h-5 text-brand-copper" />
                   Account Information
                 </h3>
-                <button
-                  onClick={openOutsetaProfile}
-                  className="text-sm text-brand-copper hover:text-brand-copperDark flex items-center gap-1"
+                <a
+                  href={ACCOUNT_SETTINGS_URL}
+                  className="min-h-11 px-2 text-sm text-brand-copper hover:text-brand-copperDark flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Edit account <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+                </a>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

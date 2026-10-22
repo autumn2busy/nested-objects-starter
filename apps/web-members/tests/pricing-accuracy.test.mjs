@@ -44,6 +44,9 @@ function load(relativePath, imports = {}) {
 }
 
 const planConfig = load('../lib/plan-config.ts')
+const management = load('../components/outseta/MembershipManagement.tsx', {
+  '@/lib/membership-management': load('../lib/membership-management.ts'),
+})
 const datasets = load('../lib/ai-datasets.ts', { './plan-config': planConfig })
 const testimonials = load('../lib/testimonials.ts')
 const seo = load('../lib/seo.ts', {
@@ -60,6 +63,7 @@ const analytics = Object.fromEntries([
 ].map(name => [name, payload => analyticsCalls.push({ name, payload })]))
 analytics.trackEvent = (event, payload) => analyticsCalls.push({ name: 'trackEvent', event, payload })
 const interactions = load('../app/membership-pricing/PricingInteractions.tsx', {
+  '@/components/outseta/MembershipManagement': management,
   '@/components/auth-provider': auth,
   '@/lib/ai-datasets': datasets,
   '@/lib/plan-config': planConfig,
@@ -110,8 +114,8 @@ const scenarios = [
   { name: 'visitor', planUid: null, finalLabel: 'Start Pro Trial - $0 Due Today', finalTarget: 'Pro' },
   { name: 'Free', planUid: 'L9nbKV9Z', finalLabel: 'Upgrade to Pro', finalTarget: 'Pro' },
   { name: 'Pro', planUid: 'rQVqlLm6', finalLabel: 'Upgrade to Elite', finalTarget: 'Elite' },
-  { name: 'Elite', planUid: 'NmdnNO90', finalLabel: 'Open manage plan & billing', finalTarget: null },
-  { name: 'Agency', planUid: 'rmk5Xk9g', finalLabel: 'Open manage plan & billing', finalTarget: null },
+  { name: 'Elite', planUid: 'NmdnNO90', finalLabel: 'Manage or cancel membership', finalTarget: null },
+  { name: 'Agency', planUid: 'rmk5Xk9g', finalLabel: 'Manage or cancel membership', finalTarget: null },
 ]
 
 function reset(scenario = scenarios[0]) {
@@ -230,18 +234,20 @@ for (const scenario of scenarios) {
     sdkCalls.length = 0
     analyticsCalls.length = 0
     const proPlan = publicPlans.find(plan => plan.name === 'Pro')
-    const finalButton = findButton(interactions.PricingFinalCta({ proPlan }))
-    assert.equal(plain(renderToStaticMarkup(finalButton)), scenario.finalLabel)
-    await finalButton.props.onClick()
-    await Promise.resolve()
+    const finalCta = interactions.PricingFinalCta({ proPlan })
+    assert.equal(plain(renderToStaticMarkup(finalCta)), scenario.finalLabel)
     if (scenario.finalTarget) {
+      await findButton(finalCta).props.onClick()
+      await Promise.resolve()
       assert.equal(analyticsCalls.find(event => event.name === 'trackPricingCtaClick')?.payload.targetPlanUid,
         expectedPlans.find(plan => plan.name === scenario.finalTarget).planUid)
       assert.deepEqual(normalized(analyticsCalls
         .filter(event => event.name === 'trackSignupStarted')
         .map(event => event.payload)), scenario.planUid === null ? [scenario.finalTarget] : [])
     } else {
-      assert.deepEqual(normalized(sdkCalls), [{ widget: 'profile', options: { tab: 'billing' } }])
+      assert.match(renderToStaticMarkup(finalCta), /href="https:\/\/nested-objects\.outseta\.com\/profile\?tab=plan"/)
+      assert.deepEqual(normalized(sdkCalls), [])
+      assert.equal(analyticsCalls.length, 0)
     }
 
     const html = render(membership.MembershipView)
@@ -252,6 +258,19 @@ for (const scenario of scenarios) {
     assert.doesNotMatch(plain(finalSection), /firms, intel, and tools/i)
   })
 }
+
+test('every signed-in plan has a management link by its pricing plan badge without calling the SDK', () => {
+  for (const scenario of [...scenarios.slice(1), { name: 'Founders', planUid: planConfig.PLAN_UIDS.FOUNDERS }]) {
+    reset(scenario)
+    browser.Outseta = new Proxy({}, { get() { throw new Error('SDK must not be read for management navigation') } })
+    const html = render(interactions.PricingHeroAccountStatus)
+    assert.match(html, /Manage or cancel membership/)
+    assert.match(html, /href="https:\/\/nested-objects\.outseta\.com\/profile\?tab=plan"/)
+    assert.equal(analyticsCalls.length, 0)
+  }
+  reset()
+  assert.doesNotMatch(render(interactions.PricingHeroAccountStatus), /Manage or cancel membership/)
+})
 
 test('checkout fallback destinations preserve the public plan UIDs and authenticated billing path', async () => {
   browser.Outseta = undefined

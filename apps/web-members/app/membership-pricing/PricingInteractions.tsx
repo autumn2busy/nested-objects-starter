@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribution'
 
 import { useAuth } from '@/components/auth-provider'
+import { MembershipManagementLink } from '@/components/outseta/MembershipManagement'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
 import { beginPricingHandoff, pricingProfileSessionAvailable, waitForPricingWidget } from '@/lib/pricing-handoff'
@@ -194,17 +195,10 @@ function usePricingActions() {
     try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
   }
 
-  const openManageBilling = () => {
-    if (isAuthenticated) {
-      window.Outseta?.profile?.open({ tab: 'billing' })
-    }
-  }
-
   return {
     currentPlanName,
     isAuthenticated,
     isLoading,
-    openManageBilling,
     openPlanWidget,
     planUid,
     pending,
@@ -236,10 +230,15 @@ export function PricingHeroAccountStatus() {
 
   if (!isLoading && isAuthenticated && currentPlanName) {
     return (
-      <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
-        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
-      </p>
+      <div>
+        <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
+        </p>
+        <div className="mt-2">
+          <MembershipManagementLink className="text-slate-700 hover:text-slate-950" />
+        </div>
+      </div>
     )
   }
 
@@ -328,17 +327,11 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
 }
 
 export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
-  const { isAuthenticated, isLoading, openManageBilling, openPlanWidget, planUid, pending, recovery } = usePricingActions()
+  const { isAuthenticated, isLoading, openPlanWidget, planUid, pending, recovery } = usePricingActions()
 
   if (isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY)) {
     return (
-      <button
-        type="button"
-        onClick={openManageBilling}
-        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-      >
-        Open manage plan &amp; billing
-      </button>
+      <MembershipManagementLink className="mt-6 bg-white text-slate-900 hover:bg-slate-100" />
     )
   }
 
@@ -387,6 +380,12 @@ export function PricingHandoffRecovery({ recovery }: {
 
 export function PricingFinalCtaCopy() {
   const { isAuthenticated, planUid } = usePricingActions()
+
+  if (isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY)) {
+    return <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
+      Review your plan, billing, and cancellation options in your secure account.
+    </p>
+  }
 
   return (
     <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
