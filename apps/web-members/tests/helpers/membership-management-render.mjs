@@ -33,7 +33,9 @@ export function createManagementRenderer(authState, sourceFor = relative => read
     'next/image': { default: () => null },
     '../lib/logoData': { logoDataUrl: '' },
   })
-  const native = tag => ({ children, variant: _variant, size: _size, ...props }) => React.createElement(tag, props, children)
+  const native = tag => function NativeFixture({ children, variant: _variant, size: _size, ...props }) {
+    return React.createElement(tag, props, children)
+  }
   const profile = load('app/(portal)/profile/ProfileView.tsx', {
     'next/link': { default: native('a') },
     '@/components/auth-provider': auth,
