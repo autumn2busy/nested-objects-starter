@@ -5,12 +5,13 @@ import { createManagementRenderer, React, renderToStaticMarkup } from './helpers
 const auth = planUid => ({ isAuthenticated: true, isLoading: false, planUid, user: { sub: 'synthetic-management-member' }, hasAccess: () => true })
 const plans = ['L9nbKV9Z', 'rQVqlLm6', 'NmdnNO90', 'rmk5Xk9g', 'pWrBRnWn']
 
-test('management is a native Plan link without SDK handlers, tokens, or automatic cancellation', () => {
+test('management is a native Plan link without SDK calls, tokens, or automatic cancellation', () => {
   const { MembershipManagementLink, destinations } = createManagementRenderer(auth(plans[0]))
   const element = MembershipManagementLink({})
   assert.equal(element.type, 'a')
   assert.equal(element.props.href, destinations.MEMBERSHIP_MANAGEMENT_URL)
   assert.equal(element.props.onClick, undefined)
+  assert.equal(element.props.onClickCapture, destinations.preserveHostedAccountNavigation)
   assert.equal(element.props.role, undefined)
   assert.match(element.props.className, /min-h-11/)
   assert.match(element.props.className, /focus-visible:outline/)
@@ -19,6 +20,23 @@ test('management is a native Plan link without SDK handlers, tokens, or automati
   assert.equal(url.pathname, '/profile')
   assert.equal(url.hash, '')
   assert.deepEqual([...url.searchParams], [['tab', 'plan']])
+})
+
+test('capture prevents SDK interception while preserving native pointer, keyboard and modified link defaults', () => {
+  const { MembershipManagementLink } = createManagementRenderer(auth(plans[0]))
+  for (const activation of [{ detail: 1 }, { detail: 0 }, { ctrlKey: true }, { metaKey: true }]) {
+    const event = new Event('click', { bubbles: true, cancelable: true })
+    let captureStopped = false
+    MembershipManagementLink({}).props.onClickCapture({
+      ...activation,
+      nativeEvent: event,
+      stopPropagation() { captureStopped = true; event.stopPropagation() },
+      preventDefault() { throw new Error('Native link default must remain available') },
+    })
+    assert.equal(captureStopped, true)
+    assert.equal(event.cancelBubble, true)
+    assert.equal(event.defaultPrevented, false)
+  }
 })
 
 for (const plan of plans) {

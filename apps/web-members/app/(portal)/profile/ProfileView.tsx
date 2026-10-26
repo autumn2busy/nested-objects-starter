@@ -19,7 +19,7 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload'
 import { trackProfileCompleted } from '@/lib/ac-events'
 import { getPlanDisplayLabel } from '@/lib/plan-config'
 import { ELITE_OPPORTUNITY_ALERTS_OPT_IN_URL } from '@/lib/opportunity-alert-consent'
-import { ACCOUNT_SETTINGS_URL } from '@/lib/membership-management'
+import { ACCOUNT_SETTINGS_URL, preserveHostedAccountNavigation } from '@/lib/membership-management'
 import { MembershipManagementPanel } from '@/components/outseta/MembershipManagement'
 
 // --- Types ---
@@ -701,6 +701,7 @@ export default function ProfileView({
                 </h3>
                 <a
                   href={ACCOUNT_SETTINGS_URL}
+                  onClickCapture={preserveHostedAccountNavigation}
                   className="min-h-11 px-2 text-sm text-brand-copper hover:text-brand-copperDark flex items-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Edit account <ExternalLink className="w-3.5 h-3.5" />

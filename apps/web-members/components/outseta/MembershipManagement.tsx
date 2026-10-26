@@ -1,9 +1,12 @@
-import { MEMBERSHIP_MANAGEMENT_URL } from '@/lib/membership-management'
+'use client'
+
+import { MEMBERSHIP_MANAGEMENT_URL, preserveHostedAccountNavigation } from '@/lib/membership-management'
 
 export function MembershipManagementLink({ className = '' }: { className?: string }) {
   return (
     <a
       href={MEMBERSHIP_MANAGEMENT_URL}
+      onClickCapture={preserveHostedAccountNavigation}
       className={`inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-center text-sm font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
     >
       Manage or cancel membership
