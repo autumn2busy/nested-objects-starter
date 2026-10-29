@@ -82,6 +82,7 @@ function createHarness({
       trackACServerEvent: async event => { calls.campaigns.push(clone(event)); return true },
     },
     '@/lib/conversion-events': conversion,
+    '@/lib/verification-traffic': load('../lib/verification-traffic.ts'),
     '@/lib/free-onboarding-completion': {
       reconcileFreeOnboardingCompletionFromEnvironment: async input => {
         calls.completions.push({
@@ -121,7 +122,7 @@ function createHarness({
       body: JSON.stringify({
         event: 'pricing_view', clientEventId: 'event:synthetic-1',
         anonymousId: 'anon:synthetic', sessionId: 'session:synthetic',
-        eventData: { sourcePage: '/membership-pricing', utm_source: 'synthetic' },
+        eventData: { sourcePage: '/membership-pricing', utm_source: 'example_campaign' },
         ...overrides,
       }),
     }))
@@ -145,7 +146,7 @@ test('anonymous intent is persisted without caller-supplied member or plan ident
   assert.equal(row.plan_uid, null)
   assert.equal(row.plan_name, null)
   assert.equal(row.source_page, '/membership-pricing')
-  assert.equal(row.utm_source, 'synthetic')
+  assert.equal(row.utm_source, 'example_campaign')
   assert.equal(harness.calls.campaigns.length, 0)
 })
 
@@ -678,4 +679,19 @@ test('rate-limit backend failure is temporary unavailability, not client throttl
   assert.equal(harness.calls.clients, 0)
   assert.equal(harness.calls.writes.length, 0)
   assert.equal(harness.calls.campaigns.length, 0)
+})
+
+test('marked pricing verification persists privately without any ActiveCampaign event', async () => {
+  for (const marker of [
+    { utm_source: 'verification' }, { utm_medium: 'qa' }, { utm_campaign: 'verification_pricing_422' },
+    { first_utm_source: 'synthetic' }, { last_utm_campaign: 'release_validation' },
+  ]) {
+    const h = createHarness({ user: { uid: 'invented-member', email: 'member@example.test' } })
+    const response = await h.post({ event: 'pricing_cta_click', eventData: { sourcePage: '/membership-pricing', ...marker } })
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), { recorded: true, activeCampaignTracked: false })
+    assert.equal(h.storedRows.size, 1)
+    assert.equal(h.calls.campaigns.length, 0)
+    assert.equal(h.calls.journeys.length, 0)
+  }
 })

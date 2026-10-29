@@ -11,10 +11,10 @@ const code = ts.transpileModule(source, {
 
 // Execute the real tracker with synthetic browser storage and a recording fetch.
 // No external analytics SDK, credential, browser session, or network is available.
-function createHarness({ deniedStorage, deniedMethod, rejectFetch = false } = {}) {
+function createHarness({ deniedStorage, deniedMethod, rejectFetch = false, search = '?utm_source=example_campaign' } = {}) {
   const requests = []
   const stores = { localStorage: new Map(), sessionStorage: new Map() }
-  const window = { location: { pathname: '/membership-pricing', search: '?utm_source=synthetic' }, dataLayer: [] }
+  const window = { location: { pathname: '/membership-pricing', search }, dataLayer: [] }
   const context = { exports: {}, window, URLSearchParams }
   let nextId = 0
   context.crypto = { randomUUID: () => `synthetic-${++nextId}` }
@@ -44,7 +44,14 @@ function createHarness({ deniedStorage, deniedMethod, rejectFetch = false } = {}
     Object.defineProperty(context, name, descriptor)
   }
   context.URL = URL
-  context.require = () => {
+  context.require = name => {
+    if (name === './verification-traffic') {
+      const qa = { exports: {} }
+      vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../lib/verification-traffic.ts', import.meta.url), 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText, qa)
+      return qa.exports
+    }
     const helperContext = { ...context, exports: {} }
     vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../../../packages/acquisition-attribution.ts', import.meta.url), 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -57,8 +64,8 @@ function createHarness({ deniedStorage, deniedMethod, rejectFetch = false } = {}
 
 test('events retain visitor and session IDs while each delivery receives its own key', () => {
   const harness = createHarness()
-  harness.tracker.trackPricingView({ source: 'synthetic-plan-list' })
-  harness.tracker.trackJoinFreeClick({ source: 'synthetic-free-choice' })
+  harness.tracker.trackPricingView({ source: 'plan-list' })
+  harness.tracker.trackJoinFreeClick({ source: 'free-choice' })
   assert.equal(harness.requests.length, 2)
   const [view, click] = harness.requests
   assert.equal(view.url, '/api/conversion-events')
@@ -70,7 +77,7 @@ test('events retain visitor and session IDs while each delivery receives its own
   assert.equal(view.body.sessionId, click.body.sessionId)
   assert.notEqual(view.body.clientEventId, click.body.clientEventId)
   assert.deepEqual(click.body.eventData, {
-    sourcePage: '/membership-pricing', utm_source: 'synthetic', first_utm_source: 'synthetic', last_utm_source: 'synthetic', landing_page: '/membership-pricing', source: 'synthetic-free-choice',
+    sourcePage: '/membership-pricing', utm_source: 'example_campaign', first_utm_source: 'example_campaign', last_utm_source: 'example_campaign', landing_page: '/membership-pricing', source: 'free-choice',
   })
   assert.equal(harness.window.dataLayer.length, 2)
 })
@@ -82,7 +89,7 @@ test('signup start persists the selected plan as an intent signal', () => {
   assert.equal(harness.requests.length, 1)
   assert.equal(harness.requests[0].body.event, 'signup_started')
   assert.deepEqual(harness.requests[0].body.eventData, {
-    sourcePage: '/membership-pricing', utm_source: 'synthetic', first_utm_source: 'synthetic', last_utm_source: 'synthetic', landing_page: '/membership-pricing', plan: 'Pro',
+    sourcePage: '/membership-pricing', utm_source: 'example_campaign', first_utm_source: 'example_campaign', last_utm_source: 'example_campaign', landing_page: '/membership-pricing', plan: 'Pro',
   })
   assert.equal(harness.window.dataLayer[0].event, 'signup_started')
 })
@@ -90,7 +97,7 @@ test('signup start persists the selected plan as an intent signal', () => {
 for (const storage of ['localStorage', 'sessionStorage']) {
   test(`denied ${storage} property preserves the action and best-effort event delivery`, () => {
     const harness = createHarness({ deniedStorage: storage })
-    assert.doesNotThrow(() => harness.tracker.trackPricingCtaClick({ source: 'synthetic-plan' }))
+    assert.doesNotThrow(() => harness.tracker.trackPricingCtaClick({ source: 'plan-choice' }))
     assert.equal(harness.requests.length, 1)
     assert.equal(harness.requests[0].body.event, 'pricing_cta_click')
     assert.match(harness.requests[0].body.anonymousId, /^anon:/)
@@ -118,4 +125,17 @@ test('server-side calls do not attempt browser access or event delivery', () => 
   const context = { exports: {}, require: () => ({}) }
   vm.runInNewContext(code, context)
   assert.doesNotThrow(() => context.exports.trackPricingView())
+})
+
+test('verification preserves private receipts while suppressing dataLayer and direct gtag forwarding', () => {
+  const h = createHarness({ search: '?utm_source=verification&utm_campaign=pricing_qa' })
+  const ga = []
+  h.window.gtag = (...args) => ga.push(args)
+  h.tracker.trackPricingCtaClick({ plan: 'Pro' })
+  h.tracker.trackGa4Event('upgrade_clicked', { plan: 'Pro' })
+  assert.equal(h.requests.length, 1)
+  assert.equal(h.requests[0].body.event, 'pricing_cta_click')
+  assert.equal(h.requests[0].body.eventData.utm_source, 'verification')
+  assert.equal(ga.length, 0)
+  assert.equal(h.window.dataLayer.length, 0)
 })

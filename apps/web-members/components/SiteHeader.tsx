@@ -3,7 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef, type MouseEvent } from 'react'
+import { pricingPreviewLoginCallback } from '@/lib/pricing-preview-login'
+import { retainPricingLoginSession } from '@/lib/pricing-login-session'
+import { waitForPricingWidget } from '@/lib/pricing-handoff'
 import { Camera, Loader2, Menu, X } from 'lucide-react'
 
 import { useAuth } from './auth-provider'
@@ -12,6 +15,7 @@ import { Button, buttonVariants } from './ui/button'
 
 type SiteHeaderProps = {
   containerClassName?: string
+  pricingPreviewHost?: string
 }
 
 const navLinks = [
@@ -28,7 +32,7 @@ const navLinks = [
 
 const authSlotClass = 'flex h-12 w-[9.75rem] shrink-0 items-center justify-end gap-2 text-sm font-semibold sm:w-[20rem] sm:gap-3'
 
-export function SiteHeader({ containerClassName }: SiteHeaderProps) {
+export function SiteHeader({ containerClassName, pricingPreviewHost }: SiteHeaderProps) {
   const pathname = usePathname()
   const {
     user,
@@ -44,6 +48,52 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
   const [isNavOpen, setIsNavOpen] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  const previewLoginAttempt = useRef<AbortController | null>(null)
+  const stopPricingLoginSession = useRef<(() => void) | null>(null)
+  const [previewLoginError, setPreviewLoginError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPreviewLoginError(null)
+    return () => {
+      previewLoginAttempt.current?.abort()
+      previewLoginAttempt.current = null
+      stopPricingLoginSession.current?.()
+      stopPricingLoginSession.current = null
+    }
+  }, [pathname, isAuthenticated])
+
+  const handlePreviewPricingLogin = async (event: MouseEvent<HTMLAnchorElement>) => {
+    const callback = pricingPreviewLoginCallback(pricingPreviewHost, window.location.href)
+    if (!callback) return
+    // Stop the generic provider link handler before waiting, including modified
+    // clicks; it otherwise uses the account-wide Production return URL.
+    event.preventDefault()
+    event.stopPropagation()
+    event.nativeEvent.stopImmediatePropagation()
+    if (previewLoginAttempt.current) return
+    const attempt = new AbortController()
+    previewLoginAttempt.current = attempt
+    setPreviewLoginError(null)
+    try {
+      const ready = await waitForPricingWidget('auth', attempt.signal)
+      if (attempt.signal.aborted || isAuthenticated
+        || callback !== pricingPreviewLoginCallback(pricingPreviewHost, window.location.href)) return
+      if (!ready) throw new Error('Sign-in unavailable')
+      stopPricingLoginSession.current?.()
+      stopPricingLoginSession.current = retainPricingLoginSession(window.Outseta, callback, {
+        failed: () => {
+          window.Outseta.auth.close?.()
+          setPreviewLoginError('Sign-in could not be completed. Please try Login again.')
+        },
+      })
+      // Per-interaction options also cover an SDK initialized on another page.
+      window.Outseta.auth.open({ widgetMode: 'login', authenticationCallbackUrl: callback })
+    } catch {
+      if (!attempt.signal.aborted) setPreviewLoginError('Sign-in is not ready. Please try Login again.')
+    } finally {
+      if (previewLoginAttempt.current === attempt) previewLoginAttempt.current = null
+    }
+  }
 
   const containerClass =
     containerClassName ?? 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8'
@@ -295,8 +345,10 @@ export function SiteHeader({ containerClassName }: SiteHeaderProps) {
             </div>
           ) : (
             <div className="flex w-full items-center justify-end gap-2">
+              {previewLoginError && <p role="alert" className="absolute right-4 top-full mt-2 max-w-sm rounded-md bg-white p-3 text-sm text-red-800 shadow-lg">{previewLoginError}</p>}
               <a
                 href="https://nested-objects.outseta.com/auth?widgetMode=login#o-anonymous"
+                onClickCapture={handlePreviewPricingLogin}
                 className={buttonVariants({
                   variant: 'secondary',
                   size: 'sm',

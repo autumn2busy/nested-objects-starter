@@ -90,7 +90,7 @@ export const pricingFaqs = [
     },
     {
         question: 'Can I change plans or cancel anytime?',
-        answer: 'Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time. You keep access until the end of your billing period, and Pro includes a 7-day free trial before paid billing begins.',
+        answer: 'Yes. Choose Manage or cancel membership on your profile or signed-in pricing page. Sign in if asked, then use Plan to change your plan or select Cancel subscription and review the confirmation. Normal cancellation preserves access through your current trial or billing period.',
     },
     {
         question: 'What happens after the 7-day Pro trial?',
@@ -155,7 +155,7 @@ function MembershipContent() {
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" aria-hidden />
                     <div>
                         <p className="font-semibold text-slate-900">Cancel anytime</p>
-                        <p className="mt-1 text-xs text-slate-600">Cancel before renewal from billing settings.</p>
+                        <p className="mt-1 text-xs text-slate-600">Review cancellation on your secure Plan page.</p>
                     </div>
                 </div>
                 <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
@@ -392,7 +392,7 @@ function MembershipContent() {
                                 are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">
-                                You can cancel anytime before renewal from your billing settings.
+                                Use Manage or cancel membership on your profile or signed-in pricing page to review cancellation before renewal.
                             </p>
                         </div>
                     </aside>

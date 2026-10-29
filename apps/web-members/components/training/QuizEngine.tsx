@@ -9,9 +9,11 @@ type QuizEngineProps = {
     questions: TrainingQuestion[]
     onComplete: (score: number) => void
     moduleId: string
+    saveStatus?: 'idle' | 'saving' | 'saved' | 'error'
+    onRetrySave?: () => void
 }
 
-export default function QuizEngine({ questions, onComplete, moduleId }: QuizEngineProps) {
+export default function QuizEngine({ questions, onComplete, moduleId, saveStatus, onRetrySave }: QuizEngineProps) {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [selectedOption, setSelectedOption] = useState<string | null>(null)
     const [showFeedback, setShowFeedback] = useState(false)
@@ -84,7 +86,7 @@ export default function QuizEngine({ questions, onComplete, moduleId }: QuizEngi
                 </div>
 
                 <h2 className="text-3xl font-bold text-slate-800 mb-2">
-                    {passed ? 'Assessment Passed!' : 'Assessment Failed'}
+                    {passed ? (saveStatus === 'saved' ? 'Assessment passed and saved' : 'Passing score') : 'Assessment Failed'}
                 </h2>
 
                 <p className="text-slate-600 mb-8">
@@ -92,6 +94,8 @@ export default function QuizEngine({ questions, onComplete, moduleId }: QuizEngi
                     {passed ? ' Great job!' : ' You need 80% to pass.'}
                 </p>
 
+                {saveStatus && <p role="status" className="mb-4">{saveStatus === 'saving' ? 'Saving assessment result…' : saveStatus === 'saved' ? 'Assessment result saved.' : saveStatus === 'error' ? 'Assessment result was not saved. Retry saving before leaving this page.' : 'Result has not been saved yet.'}</p>}
+                {saveStatus === 'error' && onRetrySave && <button onClick={onRetrySave} className="mb-4 rounded-lg bg-emerald-700 px-5 py-3 font-semibold text-white">Retry saving result</button>}
                 <div className="flex justify-center gap-4">
                     <Link
                         href={`/challenges/${moduleId}`}

@@ -23,9 +23,11 @@ interface DynamicQuizProps {
   questions: QuizQuestion[];
   passingScore?: number;
   onComplete?: (score: number, passed: boolean) => void;
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'error';
+  onRetrySave?: () => void;
 }
 
-const DynamicQuiz = ({ questions, passingScore = 80, onComplete }: DynamicQuizProps) => {
+const DynamicQuiz = ({ questions, passingScore = 80, onComplete, saveStatus, onRetrySave }: DynamicQuizProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showExplanation, setShowExplanation] = useState(false);
@@ -100,7 +102,7 @@ const DynamicQuiz = ({ questions, passingScore = 80, onComplete }: DynamicQuizPr
         </div>
 
         <h2 className="text-2xl font-bold text-slate-900 mb-2">
-          {passed ? 'Module Passed!' : 'Try Again'}
+          {passed ? (saveStatus === 'saved' ? 'Assessment passed and saved' : 'Passing score') : 'Try Again'}
         </h2>
 
         <div className="text-4xl font-bold mb-6 text-slate-900">
@@ -113,7 +115,10 @@ const DynamicQuiz = ({ questions, passingScore = 80, onComplete }: DynamicQuizPr
             : `You need ${passingScore}% to pass. Review the material and try again.`}
         </p>
 
+        {saveStatus && <p role="status" className="mb-4 text-sm">{saveStatus === 'saving' ? 'Saving assessment result…' : saveStatus === 'saved' ? 'Assessment result saved.' : saveStatus === 'error' ? 'Assessment result was not saved. Retry saving before leaving this page.' : 'Result has not been saved yet.'}</p>}
+        {saveStatus === 'error' && onRetrySave && <button onClick={onRetrySave} className="mb-4 rounded-lg bg-emerald-700 px-5 py-3 font-semibold text-white">Retry saving result</button>}
         <button
+          disabled={saveStatus === 'saving'}
           onClick={handleRetake}
           className="px-8 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition flex items-center gap-2 mx-auto"
         >

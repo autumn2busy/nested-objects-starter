@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/web-members/**'
       - 'supabase/migrations/*contact_submissions*.sql'
+      - 'supabase/migrations/*training_prerequisite_waivers*.sql'
       - 'supabase/validation/*contact_receipt*.sql'
       - '.github/workflows/member-public-surfaces.yml'
 
@@ -35,6 +36,14 @@ jobs:
       - name: Verify signed login handoff and portal protection
         working-directory: apps/web-members
         run: node --test tests/auth-login-return.test.mjs tests/auth-provider-session-race.test.mjs tests/member-profile-access.test.mjs tests/inspector-start-guide.test.mjs tests/homepage-free-signup.test.mjs tests/directory-filter-access.test.mjs
+
+      - name: Verify training progression and private prerequisite waivers
+        working-directory: apps/web-members
+        run: node --test tests/training-progression.test.mjs tests/quiz-complete-service.test.js
+
+      - name: Verify membership management and checkout recovery
+        working-directory: apps/web-members
+        run: node --test tests/membership-management.test.mjs tests/outseta-pricing-loader.test.mjs tests/pricing-accuracy.test.mjs tests/pricing-handoff.test.mjs tests/pricing-login-session.test.mjs tests/pricing-preview-login.test.mjs
 
       - name: Lint and typecheck member app
         working-directory: apps/web-members

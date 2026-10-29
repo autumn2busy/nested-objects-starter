@@ -62,7 +62,7 @@ test('persistQuizCompletion writes passing attempt and returns completedModuleId
     const supabase = new MockSupabase()
     const result = await persistQuizCompletion({
         supabase,
-        outsetaId: 'user-123',
+        userId: 'user-123',
         moduleId: 'module-abc',
         score: 90,
         passed: true,
@@ -74,3 +74,20 @@ test('persistQuizCompletion writes passing attempt and returns completedModuleId
     assert.equal(supabase.quizAttempts.length, 1)
     assert.equal(supabase.quizAttempts[0].attempt_number, 1)
 })
+
+
+test('a failed assessment insert returns an explicit retryable failure for passing and failing scores', async () => {
+ for (const score of [73,93]) {
+  const supabase=new MockSupabase(); const from=supabase.from.bind(supabase);
+  supabase.from=(table)=>{const q=from(table);if(table==='quiz_attempts')q.insert=async()=>({error:{code:'fixture_failure'}});return q};
+  const result=await persistQuizCompletion({supabase,userId:'user-123',moduleId:'module-abc',score,passed:score>=80});
+  assert.equal(result.ok,false);assert.equal(result.error.retryable,true);assert.equal(supabase.trainingProgress.length,0);
+ }
+});
+test('a later failed retake preserves previously saved passing progress', async () => {
+ const supabase=new MockSupabase();
+ await persistQuizCompletion({supabase,userId:'user-123',moduleId:'module-abc',score:93,passed:true});
+ const prior=structuredClone(supabase.trainingProgress);
+ const result=await persistQuizCompletion({supabase,userId:'user-123',moduleId:'module-abc',score:73,passed:false,previousCompletedModuleIds:['module-abc']});
+ assert.equal(result.ok,true);assert.deepEqual(supabase.trainingProgress,prior);assert.equal(supabase.quizAttempts.length,2);assert.equal(supabase.quizAttempts[1].score,73);assert.equal(supabase.quizAttempts[1].passed,false);
+});
