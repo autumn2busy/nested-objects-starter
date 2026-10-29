@@ -12,7 +12,7 @@ export default function InspectorsPage() {
   return <main id="main-content" className="page-shell py-12 sm:py-16">
     <p className="eyebrow text-brand">Experience preview · Step 1</p>
     <h1 className="section-title">Start with the person behind the profile.</h1>
-    <p className="section-copy mb-8 max-w-3xl">Explore how location, experience, and inspection interests could make a firm introduction more useful. Try a city or specialty, then open a sample profile.</p>
+    <p className="section-copy mb-8 max-w-3xl">Compare sample locations, inspector-selected inspection types, and preparation signals. Search by city or specialty, filter by selected type, then open a profile for the full context.</p>
     <DemoNotice />
     <InspectorExplorer />
   </main>

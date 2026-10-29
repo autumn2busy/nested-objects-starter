@@ -19,6 +19,12 @@ test('query and specialty filters intersect', () => {
   assert.deepEqual(filterDemoInspectors('Miami', 'Insurance Inspection').map(x=>x.name), ['Tony Rodriguez'])
   assert.equal(filterDemoInspectors('Atlanta', 'Insurance Inspection').length, 0)
 })
+test('inspection-type filtering uses explicit selections rather than inferred experience specialties', () => {
+  assert.deepEqual(filterDemoInspectors('', 'Occupancy Verification').map(x=>x.id), ['insp-001','insp-006'])
+  assert.equal(filterDemoInspectors('James', 'Occupancy Verification').length, 0)
+  assert.equal(filterDemoInspectors('Commercial Appraisal', '').length, 1)
+  assert.equal(filterDemoInspectors('', 'Commercial Appraisal').length, 0)
+})
 test('no-match search returns no made-up results or coverage', () => {
   assert.deepEqual(filterDemoInspectors('unrepresented area', ''), [])
 })
@@ -28,5 +34,5 @@ test('filtering never mutates the original sample data', () => {
   assert.equal(JSON.stringify(demoInspectors),before)
 })
 test('public fixtures contain no contact, member IDs, performance, or verification fields', () => {
-  for(const person of demoInspectors) assert.deepEqual(Object.keys(person).sort(), ['id','location','name','specialties','yearsExp'])
+  for(const person of demoInspectors) assert.deepEqual(Object.keys(person).sort(), ['id','inspectionTypes','location','name','specialties','yearsExp'])
 })

@@ -28,6 +28,19 @@ export const demoMemberSignals: Record<string, ScoreProfile & { shieldId: string
 
 type SamplePerson = { id: string; name: string; location: string; specialties: readonly string[]; yearsExp: number }
 
+type SampleResumeState = 'shared' | 'private' | 'not_uploaded' | 'unavailable'
+const sampleResumeStates: Record<string, SampleResumeState> = {
+  'insp-001': 'shared', 'insp-002': 'private', 'insp-003': 'not_uploaded',
+  'insp-004': 'shared', 'insp-005': 'shared', 'insp-006': 'unavailable',
+}
+export function getSampleResumeState(id: string): SampleResumeState {
+  return sampleResumeStates[id] ?? 'unavailable'
+}
+export const sampleResumeLabels: Record<SampleResumeState, string> = {
+  shared: 'Shared sample résumé', private: 'Private · sample state',
+  not_uploaded: 'Not uploaded · sample state', unavailable: 'Unavailable · sample state',
+}
+
 export function getDemoProfileDetails(person: SamplePerson) {
   const signals = demoMemberSignals[person.id]
   if (!signals) throw new Error('Unknown fictional profile')
@@ -67,4 +80,45 @@ export function getDemoProfileDetails(person: SamplePerson) {
       : signals.background_check_status === 'pending_verification' ? 'Pending verification · sample status'
       : 'Not started · sample status',
   }
+}
+
+// Keep the downloaded example tied to the same fictional data as the on-screen résumé.
+export function createSampleResumeDownload(person: SamplePerson) {
+  const details = getDemoProfileDetails(person)
+  if (getSampleResumeState(person.id) !== 'shared') throw new Error('Sample résumé is not shared')
+  const text = [
+    'NESTED OBJECTS — FICTIONAL SAMPLE RÉSUMÉ',
+    'Demonstration only. Not a real member résumé or an application for work.',
+    '',
+    person.name,
+    `Independent field inspector · ${person.location}`,
+    '',
+    'PROFESSIONAL SUMMARY',
+    details.summary,
+    '',
+    'FIRM & CONTRACT EXPERIENCE — FICTIONAL',
+    ...details.workHistory.flatMap(work => [
+      `${work.company} (fictional)`,
+      `${work.role} · ${work.period}`,
+      work.description,
+      ...work.bullets.map(bullet => `- ${bullet}`),
+      '',
+    ]),
+    'SERVICES & SKILLS',
+    ...details.skills.map(skill => `- ${skill}`),
+    '',
+    'TRAINING & PROFILE SIGNALS — DEMONSTRATION VALUES',
+    `Training: ${details.signals.training_modules_completed} of ${details.signals.training_modules_total} modules.`,
+    `Illustrative Trust Score: ${details.score.total}/100 (${details.score.tier}).`,
+    `Score breakdown: training ${details.score.breakdown.training}/50; background check ${details.score.breakdown.background}/50.`,
+    `Profile completion: ${details.profileCompletion}% (shown separately from Trust Score).`,
+    `Background check: ${details.backgroundLabel}.`,
+    `Sample ShieldID: ${details.signals.shieldId ?? 'Not supplied'}.`,
+    '',
+    'All experience, companies, scores and screening signals above are fictional.',
+    'DEMO-ONLY identifiers are not valid credentials. No screening or availability is verified.',
+    'Nested Objects sample — no real member data or contact details included.',
+    '',
+  ].join('\r\n')
+  return { filename: `nested-objects-${person.id}-fictional-resume.txt`, text }
 }

@@ -1,21 +1,24 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Download } from 'lucide-react'
 import { demoInspectors } from '../../../../lib/demo-inspectors'
-import { getDemoProfileDetails } from '../../../../lib/demo-profile-details'
+import { getDemoProfileDetails, getSampleResumeState } from '../../../../lib/demo-profile-details'
 import { DemoNotice } from '../../../../components/DemoNotice'
 
 export const dynamicParams = false
-export function generateStaticParams() { return demoInspectors.map(({ id }) => ({ id })) }
+export function generateStaticParams() { return demoInspectors.filter(person => getSampleResumeState(person.id) === 'shared').map(({ id }) => ({ id })) }
 export const metadata: Metadata = { title: 'Fictional inspector résumé', robots: { index: false, follow: false } }
 
 export default function SampleResumePage({ params }: { params: { id: string } }) {
   const person = demoInspectors.find(item => item.id === params.id)
-  if (!person) notFound()
+  if (!person || getSampleResumeState(person.id) !== 'shared') notFound()
   const details = getDemoProfileDetails(person)
   return <main id="main-content" className="page-shell py-12">
-    <Link href={`/inspectors/${person.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-brand"><ArrowLeft size={16} aria-hidden />Back to sample profile</Link>
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <Link href={`/inspectors/${person.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-brand"><ArrowLeft size={16} aria-hidden />Back to sample profile</Link>
+      <a href={`/inspectors/${person.id}/resume/download`} download className="button button-secondary"><Download size={16} aria-hidden />Download sample résumé (.txt)</a>
+    </div>
     <div className="my-7"><DemoNotice /></div>
     <article className="b2b-card mx-auto max-w-4xl p-7 sm:p-12">
       <header className="border-b border-slate-200 pb-7">

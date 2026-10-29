@@ -6,7 +6,7 @@ async function load(relative) {
   const compiled = ts.transpileModule(fs.readFileSync(new URL(relative, import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText
   return import('data:text/javascript;base64,' + Buffer.from(compiled).toString('base64'))
 }
-const { calculateSampleTrustScore, demoMemberSignals, getDemoProfileDetails } = await load('../lib/demo-profile-details.ts')
+const { calculateSampleTrustScore, demoMemberSignals, getDemoProfileDetails, createSampleResumeDownload, getSampleResumeState } = await load('../lib/demo-profile-details.ts')
 const { calculateTrustScore } = await load('../../web-members/lib/trust-score.ts')
 const { demoInspectors } = await load('../lib/demo-inspectors.ts')
 test('sample Trust Score matches the current member-side calculation across statuses, progress, and caps', () => {
@@ -44,4 +44,33 @@ test('sample history, identifiers, and resume are consistent and contain no cont
 })
 test('unknown inspector identifiers cannot receive an invented member profile', () => {
   assert.throws(()=>getDemoProfileDetails({...demoInspectors[0],id:'unknown'}),/Unknown fictional profile/)
+  assert.throws(()=>createSampleResumeDownload({...demoInspectors[0],id:'unknown'}),/Unknown fictional profile/)
+})
+test('downloaded résumés retain fictional disclosures and the displayed profile data', () => {
+  for (const person of demoInspectors) {
+    const details=getDemoProfileDetails(person)
+    if (getSampleResumeState(person.id) !== 'shared') {
+      assert.throws(()=>createSampleResumeDownload(person), /not shared/)
+      continue
+    }
+    const resume=createSampleResumeDownload(person)
+    assert.equal(resume.filename,`nested-objects-${person.id}-fictional-resume.txt`)
+    assert.ok(resume.text.startsWith('NESTED OBJECTS — FICTIONAL SAMPLE RÉSUMÉ\r\n'))
+    for (const value of [person.name,person.location,details.summary,details.backgroundLabel,...details.skills]) assert.ok(resume.text.includes(value))
+    for (const work of details.workHistory) {
+      for (const value of [work.company+' (fictional)',work.role,work.period,work.description,...work.bullets]) assert.ok(resume.text.includes(value))
+    }
+    assert.ok(resume.text.includes(`Illustrative Trust Score: ${details.score.total}/100`))
+    assert.ok(resume.text.includes('No screening or availability is verified.'))
+    assert.doesNotMatch(resume.text,/@|https?:\/\//)
+  }
+})
+test('private, not-uploaded and unavailable samples never produce a resume download', () => {
+  assert.equal(getSampleResumeState('insp-002'),'private')
+  assert.equal(getSampleResumeState('insp-003'),'not_uploaded')
+  assert.equal(getSampleResumeState('insp-006'),'unavailable')
+  assert.equal(getSampleResumeState('unknown'),'unavailable')
+  for (const id of ['insp-002','insp-003','insp-006']) {
+    assert.throws(()=>createSampleResumeDownload(demoInspectors.find(p=>p.id===id)),/not shared/)
+  }
 })
