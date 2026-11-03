@@ -15,7 +15,7 @@ export function MobileActionBar() {
         { href: '/tools', label: 'Tools', icon: Wrench },
       ]
     : [
-        { href: '/membership-pricing', label: 'Trial', icon: Sparkles },
+        { href: '/membership-pricing', label: 'Plans', icon: Sparkles },
         { href: '/hiring-firms', label: 'Firms', icon: Search },
         { href: '/tools', label: 'Tools', icon: Wrench },
       ]

@@ -623,7 +623,7 @@ function ModuleOverviewContent() {
                         </p>
                         <h2 className="mt-2 text-2xl font-semibold text-slate-900">Unlock this module</h2>
                         <p className="mt-2 text-sm text-slate-600">
-                            Log in or start your 7-day trial to access full lessons, tools, and certification progress.
+                            Log in to use your training access, or create an account and explore membership options.
                         </p>
                         <div className="mt-6 flex flex-col gap-3">
                             {!isAuthenticated ? (
@@ -638,7 +638,7 @@ function ModuleOverviewContent() {
                                         onClick={signup}
                                         className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-brand-copper hover:text-brand-copper"
                                     >
-                                        Start 7-day trial
+                                        Create an account
                                     </button>
                                 </>
                             ) : (
@@ -646,7 +646,7 @@ function ModuleOverviewContent() {
                                     href="/upgrade"
                                     className="inline-flex items-center justify-center rounded-full bg-brand-copper px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-copperDark"
                                 >
-                                    Start 7-day trial
+                                    Compare membership plans
                                 </Link>
                             )}
                         </div>
