@@ -88,7 +88,6 @@ export const membershipPlans: MembershipPlan[] = [
       'Client, company, and job tracking tools',
       'Weather and route planning tools',
       'Weekly insights and updates',
-      '7 day free trial',
     ],
   },
   {
