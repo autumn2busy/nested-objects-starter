@@ -220,7 +220,7 @@ function MemberTrainingModules({ modules }: TrainingModulesGateProps) {
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-900">Unlock the Training Center</h2>
                 <p className="mt-2 text-sm text-slate-600">
-                  Log in or start your 7-day trial to access lessons, tools, and certification progress.
+                  Log in to continue, or create an account to explore training and membership options.
                 </p>
                 <div className="mt-6 flex flex-col gap-3">
                   <button
@@ -233,7 +233,7 @@ function MemberTrainingModules({ modules }: TrainingModulesGateProps) {
                     onClick={signup}
                     className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-brand-copper hover:text-brand-copper"
                   >
-                    Start 7-day trial
+                    Create an account
                   </button>
                 </div>
               </div>
