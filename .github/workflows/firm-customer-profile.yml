@@ -1,0 +1,32 @@
+name: Firm Customer Profile Boundary
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-firms/**'
+      - 'supabase/migrations/*firm_customer_profiles.sql'
+      - '.github/workflows/firm-customer-profile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-firm-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: apps/web-firms/package-lock.json
+      - name: Install locked firm dependencies without lifecycle scripts
+        working-directory: apps/web-firms
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify demo preservation, firm auth and private PostgreSQL profiles
+        working-directory: apps/web-firms
+        run: npm test
+      - name: Typecheck firm application without creating production assets
+        working-directory: apps/web-firms
+        run: npx --no-install tsc --noEmit --incremental false
