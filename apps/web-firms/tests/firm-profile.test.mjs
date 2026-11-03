@@ -13,6 +13,7 @@ function load(name) {
 }
 const { authorizeFirm } = await import(load('access'))
 const { parseProfile,parseRevision } = await import(load('validation'))
+const { assertFirmSessionTokenSize,MAX_FIRM_SESSION_TOKEN_BYTES } = await import(load('contracts'))
 const claims = { sub:'person01','outseta:accountUid':'account1','outseta:subscriptionUid':'subscr01','outseta:planUid':'wmjGbGQV','outseta:isPrimary':'1' }
 const account = { Uid:'account1',IsDemo:false,AccountStage:3,PrimaryContact:{Uid:'person01'},CurrentSubscription:{Uid:'subscr01',Plan:{Uid:'wmjGbGQV'},Account:{Uid:'account1'}},PersonAccount:[{Person:{Uid:'person01'}}] }
 const profile = {legalName:'Fixture Firm',displayName:'Fixture',website:'https://example.test',address:'',primaryContactName:'Fixture Contact',primaryContactEmail:'fixture@example.test',serviceZips:['30301','30301'],inspectionTypes:['Occupancy'],requirements:'Exterior only'}
@@ -45,4 +46,11 @@ test('stale primary claim, missing current primary and different primary never a
   assert.throws(()=>authorizeFirm({...claims,'outseta:isPrimary':'0'},account),/Current firm role/)
   const staff=authorizeFirm({...claims,sub:'staff001','outseta:isPrimary':'0'},{...account,PersonAccount:[...account.PersonAccount,{Person:{Uid:'staff001'}}]})
   assert.equal(staff.isPrimary,false)
+})
+test('firm session size limits use UTF-8 bytes and reject above the conservative cookie budget',()=>{
+  assert.equal(MAX_FIRM_SESSION_TOKEN_BYTES,3500)
+  assert.doesNotThrow(()=>assertFirmSessionTokenSize('a'.repeat(3500)))
+  assert.throws(()=>assertFirmSessionTokenSize('a'.repeat(3501)),/supported browser session size/)
+  assert.doesNotThrow(()=>assertFirmSessionTokenSize('é'.repeat(1750)))
+  assert.throws(()=>assertFirmSessionTokenSize('é'.repeat(1751)),/supported browser session size/)
 })

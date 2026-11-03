@@ -2,7 +2,7 @@ import 'server-only'
 import { cookies } from 'next/headers'
 import { authorizeFirm } from './access'
 import { OUTSETA_ISSUER, verifyFirmJwt } from './token'
-import { FirmProfileError, type FirmProfile, type FirmProfileInput, type VerifiedFirmIdentity } from './contracts'
+import { assertFirmSessionTokenSize, FirmProfileError, type FirmProfile, type FirmProfileInput, type VerifiedFirmIdentity } from './contracts'
 
 export const FIRM_SESSION_COOKIE = '__Host-no_firm_session'
 export const FIRM_STATE_COOKIE = '__Host-no_firm_login'
@@ -20,7 +20,8 @@ export function requireEnabled() {
 }
 export async function verifyFirmToken(token: string) {
   requireEnabled()
-  if (!token || token.length > 10000) throw new FirmProfileError(401, 'Please sign in to your firm account.')
+  if (!token) throw new FirmProfileError(401, 'Please sign in to your firm account.')
+  assertFirmSessionTokenSize(token)
   let claims
   try {
     claims = await verifyFirmJwt(token)

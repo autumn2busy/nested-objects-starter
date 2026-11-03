@@ -5,6 +5,8 @@ import ts from 'typescript'
 import { SignJWT,generateKeyPair,exportJWK,createLocalJWKSet } from 'jose'
 let source=ts.transpileModule(fs.readFileSync(new URL('../lib/firm-profile/token.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText
 source=source.replace("from 'jose'","from "+JSON.stringify(import.meta.resolve('jose')))
+const contractCode=ts.transpileModule(fs.readFileSync(new URL('../lib/firm-profile/contracts.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText
+source=source.replace("from './contracts'","from "+JSON.stringify('data:text/javascript;base64,'+Buffer.from(contractCode).toString('base64')))
 const { verifyFirmJwt, OUTSETA_ISSUER }=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))
 const {privateKey,publicKey}=await generateKeyPair('RS256')
 const jwk={...await exportJWK(publicKey),kid:'fixture-key',alg:'RS256'}
