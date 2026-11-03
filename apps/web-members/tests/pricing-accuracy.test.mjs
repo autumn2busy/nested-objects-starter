@@ -57,6 +57,10 @@ const auth = {
   useAuth: () => authState,
   AuthProvider: ({ children }) => children,
 }
+const mobileActions = load('../components/MobileActionBar.tsx', {
+  '@/components/auth-provider': auth,
+  'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
+})
 const analytics = Object.fromEntries([
   'trackJoinFreeClick', 'trackOutsetaModalOpen', 'trackPricingCtaClick',
   'trackPricingView', 'trackSignupStarted', 'trackStartTrial', 'trackUpgradeStarted', 'trackEvent',
@@ -111,7 +115,7 @@ const expectedPlans = [
 ]
 const publicPlans = datasets.membershipPlans.filter(plan => planConfig.isPublicPlanUid(plan.planUid))
 const scenarios = [
-  { name: 'visitor', planUid: null, finalLabel: 'Start Pro Trial - $0 Due Today', finalTarget: 'Pro' },
+  { name: 'visitor', planUid: null, finalLabel: 'Start Pro — $49/month', finalTarget: 'Pro' },
   { name: 'Free', planUid: 'L9nbKV9Z', finalLabel: 'Upgrade to Pro', finalTarget: 'Pro' },
   { name: 'Pro', planUid: 'rQVqlLm6', finalLabel: 'Upgrade to Elite', finalTarget: 'Elite' },
   { name: 'Elite', planUid: 'NmdnNO90', finalLabel: 'Manage or cancel membership', finalTarget: null },
@@ -215,6 +219,7 @@ for (const scenario of scenarios) {
       }
       const intent = analyticsCalls.find(event => event.name === 'trackPricingCtaClick')
       assert.equal(intent?.payload.targetPlanUid, plan.planUid)
+      assert.equal(analyticsCalls.some(event => event.name === 'trackStartTrial'), false)
       const signupStarts = analyticsCalls.filter(event => event.name === 'trackSignupStarted')
       if (scenario.planUid === null) {
         assert.deepEqual(normalized(signupStarts.map(event => event.payload)), [plan.name])
@@ -427,7 +432,7 @@ test('visible tool-availability FAQ and FAQ JSON-LD give the same access boundar
   const toolFaq = faqSchema.mainEntity.find(question => /tool/i.test(question.name))
   assert.ok(toolFaq, 'A tool-availability question must be present')
   assertToolAccessCopy(toolFaq.acceptedAnswer.text)
-  assert.match(toolFaq.acceptedAnswer.text, /Pro trial/)
+  assert.match(toolFaq.acceptedAnswer.text, /Existing trial access is unchanged/)
   const visibleHtml = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
   assert.ok(plain(visibleHtml).includes(toolFaq.name))
   assert.ok(plain(visibleHtml).includes(toolFaq.acceptedAnswer.text))
@@ -440,4 +445,76 @@ test('pricing retains the real visible testimonial strip independently of struct
   assert.match(plain(strip), /verified member reviews/)
   assert.ok(plain(strip).includes(`${testimonials.TESTIMONIALS.length}+`))
   assert.ok(strip.includes('aria-label="5 out of 5 stars"'))
+})
+
+test('new Pro signup shows the monthly price and paid terms without a zero-due or trial promotion', () => {
+  const html = render(membership.MembershipView)
+  const text = plain(html)
+  assert.match(text, /Start Pro — \$49\/month/)
+  assert.match(text, /New Pro subscriptions are billed at signup\. No free trial\./)
+  assert.doesNotMatch(text, /\$0 due today|7.day (?:Pro |free )?trial|test Pro for seven days|before paid billing begins/i)
+  assert.match(text, /Existing trials and subscriptions retain their current terms/)
+  assert.match(text, /Your first 7 days inside the hub/)
+  assert.match(text, /Day 6 to 7/)
+  const pro = publicPlans.find(plan => plan.name === 'Pro')
+  assert.equal(pro.price, '$49')
+  assert.equal(pro.features.some(feature => /trial/i.test(feature)), false)
+})
+
+test('anonymous Pro selection records intent and handoff, never a trial, subscription or payment outcome', async () => {
+  const pro = publicPlans.find(plan => plan.name === 'Pro')
+  for (const component of [() => interactions.PricingPlanButton({ plan: pro }),
+    () => interactions.PricingFinalCta({ proPlan: pro })]) {
+    reset()
+    await findButton(component()).props.onClick()
+    assert.deepEqual(analyticsCalls.map(call => call.name),
+      ['trackEvent', 'trackPricingCtaClick', 'trackSignupStarted', 'trackOutsetaModalOpen'])
+    const receipt = analyticsCalls[0]
+    assert.equal(receipt.event, 'checkout_handoff')
+    assert.equal(receipt.payload.handoffStatus, 'requested')
+    assert.equal(receipt.payload.targetPlanUid, 'rQVqlLm6')
+    assert.equal(receipt.payload.handoffId, analyticsCalls[1].payload.handoffId)
+    assert.equal(analyticsCalls[2].payload, 'Pro')
+    assert.equal(analyticsCalls.some(call => /purchase|subscription|trial/i.test(call.name + (call.event || ''))), false)
+    assert.deepEqual(normalized(sdkCalls), [{ widget: 'auth', options: {
+      widgetMode: 'register', planUid: 'rQVqlLm6', planPaymentTerm: 'month', skipPlanOptions: true,
+    } }])
+  }
+})
+
+test('billing FAQ matches rendered JSON-LD and preserves existing trial terms', () => {
+  const html = render(page.default)
+  const faq = schemasFrom(html).find(schema => schema['@type'] === 'FAQPage')
+  const billing = faq.mainEntity.find(question => question.name === 'When does a new Pro subscription start billing?')
+  assert.ok(billing)
+  assert.match(billing.acceptedAnswer.text, /\$49\/month.*billed at signup, with no free trial/)
+  assert.match(billing.acceptedAnswer.text, /Existing trials and subscriptions retain their current terms/)
+  assert.ok(plain(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')).includes(billing.acceptedAnswer.text))
+})
+
+test('Free preview and legacy plans retain their prices and promised features', () => {
+  const free = publicPlans.find(plan => plan.name === 'Free')
+  assert.equal(free.price, '$0')
+  assert.equal(free.period, 'forever')
+  assert.ok(free.features.includes('Preview up to 3 free firms'))
+  assert.ok(free.features.includes('Income scenario planner using your own assumptions'))
+  assert.match(plain(render(interactions.PricingPlanButton.bind(null, { plan: free }))), /No credit card required/)
+  for (const [uid, price, period] of [[planConfig.PLAN_UIDS.FOUNDERS, '$37', 'year'], [planConfig.PLAN_UIDS.STARTER, '$99', 'quarter']]) {
+    const plan = datasets.membershipPlans.find(item => item.planUid === uid)
+    assert.equal(plan.price, price)
+    assert.equal(plan.period, period)
+    assert.equal(plan.hidden, true)
+    assert.ok(plan.features.some(feature => /Full directory access/.test(feature)))
+    assert.ok(plan.features.includes('Full training portal access'))
+  }
+})
+
+test('mobile pricing entry says Plans while authenticated Hub navigation stays unchanged', () => {
+  const guest = render(mobileActions.MobileActionBar)
+  assert.match(guest, /href="\/membership-pricing"/)
+  assert.match(plain(guest), /^Plans Firms Tools$/)
+  reset(scenarios[1])
+  const member = render(mobileActions.MobileActionBar)
+  assert.match(member, /href="\/inspector-dashboard"/)
+  assert.match(plain(member), /^Hub Firms Tools$/)
 })
