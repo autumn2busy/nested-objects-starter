@@ -48,6 +48,7 @@ test('real webhook mapping passes correct statuses to sync and preserves stored 
       return query
     } }
     const route = load('../app/api/webhooks/outseta/route.ts', {
+      '@/lib/member-offboarding': { readMemberOffboardingState: async () => 'allowed' },
       'next/server': { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200 }) } },
       '@supabase/supabase-js': { createClient: () => db },
       crypto: { default: { randomUUID: () => 'synthetic-request' } },

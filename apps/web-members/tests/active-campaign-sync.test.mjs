@@ -326,6 +326,7 @@ test('real webhook reports failed AC sync separately from the saved projection a
       return query
     } }
     const route = load('../app/api/webhooks/outseta/route.ts', {
+      '@/lib/member-offboarding': { readMemberOffboardingState: async () => 'allowed' },
       'next/server': { NextResponse: { json: (body, init) => ({ body, status: init?.status ?? 200 }) } },
       '@supabase/supabase-js': { createClient: () => db },
       crypto: { default: { randomUUID: () => 'request-fixture' } },
