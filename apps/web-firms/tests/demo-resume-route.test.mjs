@@ -16,7 +16,7 @@ const { GET, generateStaticParams } = await import(moduleUrl(source))
 
 test('resume endpoint serves a disclosed attachment only for shared sample records', async () => {
   assert.deepEqual(generateStaticParams().map(p=>p.id), ['insp-001','insp-004','insp-005'])
-  const response = GET(new Request('https://example.test/'), {params:{id:'insp-001'}})
+  const response = await GET(new Request('https://example.test/'), {params:Promise.resolve({id:'insp-001'})})
   assert.equal(response.status,200)
   assert.equal(response.headers.get('content-type'),'text/plain; charset=utf-8')
   assert.equal(response.headers.get('x-content-type-options'),'nosniff')
@@ -30,7 +30,7 @@ test('resume endpoint serves a disclosed attachment only for shared sample recor
 
 test('direct resume URLs cannot expose private, missing, unavailable or unknown samples', async () => {
   for(const id of ['insp-002','insp-003','insp-006','unknown','../../members']) {
-    const response=GET(new Request('https://example.test/'),{params:{id}})
+    const response=await GET(new Request('https://example.test/'),{params:Promise.resolve({id})})
     assert.equal(response.status,404)
     assert.equal(response.headers.get('content-disposition'),null)
     assert.equal(await response.text(),'Sample résumé not found.')

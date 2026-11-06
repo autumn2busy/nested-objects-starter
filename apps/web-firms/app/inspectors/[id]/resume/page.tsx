@@ -10,8 +10,9 @@ export const dynamicParams = false
 export function generateStaticParams() { return demoInspectors.filter(person => getSampleResumeState(person.id) === 'shared').map(({ id }) => ({ id })) }
 export const metadata: Metadata = { title: 'Fictional inspector résumé', robots: { index: false, follow: false } }
 
-export default function SampleResumePage({ params }: { params: { id: string } }) {
-  const person = demoInspectors.find(item => item.id === params.id)
+export default async function SampleResumePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const person = demoInspectors.find(item => item.id === id)
   if (!person || getSampleResumeState(person.id) !== 'shared') notFound()
   const details = getDemoProfileDetails(person)
   return <main id="main-content" className="page-shell py-12">

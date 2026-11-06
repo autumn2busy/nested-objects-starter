@@ -42,7 +42,7 @@ export async function verifyFirmToken(token: string) {
   return { identity, expiresAt: claims.exp! }
 }
 export async function firmSession() {
-  const token = cookies().get(FIRM_SESSION_COOKIE)?.value
+  const token = (await cookies()).get(FIRM_SESSION_COOKIE)?.value
   if (!token) throw new FirmProfileError(401, 'Please sign in to your firm account.')
   return (await verifyFirmToken(token)).identity
 }
