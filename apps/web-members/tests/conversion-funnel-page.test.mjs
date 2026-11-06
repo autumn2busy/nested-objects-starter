@@ -30,7 +30,7 @@ function load(relativePath, imports = {}) {
 }
 
 const plans = load('../lib/plan-config.ts')
-const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans, './pricing-handoff-report': load('../lib/pricing-handoff-report.ts') })
+const funnel = load('../lib/conversion-funnel.ts', { './plan-config': plans, './verification-traffic': load('../lib/verification-traffic.ts'), './pricing-handoff-report': load('../lib/pricing-handoff-report.ts') })
 const reportQuery = load('../lib/conversion-report-query.ts')
 const paymentUnavailable = (members, reason) => ({ status: 'unavailable', reason, members, matchedMembers: 0,
   recordedPaidMembers: 0, trialingMembers: 0, pastDueMembers: 0, refundedMembers: 0, unknownMembers: members })

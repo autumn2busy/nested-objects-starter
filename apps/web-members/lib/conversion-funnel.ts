@@ -1,3 +1,4 @@
+import { isVerificationTraffic } from './verification-traffic'
 import { PAID_PLANS } from './plan-config'
 import { summarizePricingHandoffs } from './pricing-handoff-report'
 
@@ -95,11 +96,11 @@ export type StuckMember = {
 }
 
 export function isVerificationConversionEvent(row: ConversionEventRow) {
-  const data = row.event_data || {}
-  return /release_validation|attribution_20261011|pricing-route-check|route-repair|verification|synthetic|\bqa\b/i.test(
-    [row.source, row.utm_source, row.utm_medium, row.utm_campaign,
-      ...['first_utm_source', 'last_utm_source', 'first_utm_medium', 'last_utm_medium', 'first_utm_campaign', 'last_utm_campaign'].map(key => data[key])].join(' '),
-  )
+  return isVerificationTraffic({
+    ...row.event_data,
+    source: row.source, utm_source: row.utm_source,
+    utm_medium: row.utm_medium, utm_campaign: row.utm_campaign,
+  })
 }
 
 function memberKey(row: ConversionEventRow) {

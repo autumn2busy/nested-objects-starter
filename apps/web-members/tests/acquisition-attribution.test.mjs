@@ -23,7 +23,11 @@ function harness({ url = 'https://nestedobjects.com/guides/example?utm_source=go
   }
   vm.runInNewContext(helperCode, context)
   const helper = context.exports
-  const trackerContext = { ...context, exports: {}, require: () => helper }
+  const qaContext = { exports: {} }
+  vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../lib/verification-traffic.ts', import.meta.url), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, qaContext)
+  const trackerContext = { ...context, exports: {}, require: name => name === './verification-traffic' ? qaContext.exports : helper }
   vm.runInNewContext(trackerCode, trackerContext)
   return { helper, tracker: trackerContext.exports, window, stores, requests, context }
 }

@@ -759,7 +759,7 @@ export default async function StateLandingPage({
                             href="/membership-pricing"
                             className="inline-flex w-full items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-brand-copperDark sm:w-auto"
                         >
-                            Start the 7-day Pro trial
+                            Compare membership plans
                         </Link>
                         <Link
                             href={`/hiring-firms?state=${stateInfo.code}`}
