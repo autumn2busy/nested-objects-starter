@@ -82,6 +82,11 @@ test('release and later cancellation preserve both audit records with one active
   ])
   await hold(db, 'Acct0002', 'Event003', 'Pers0001')
   assert.equal((await db.query('select count(*)::int as n from public.member_offboarding_holds')).rows[0].n, 3)
+  await db.exec(`insert into public.member_offboarding_holds
+    (account_uid, person_uid, source_event_uid, source_event_at, reason)
+    values ('TestAccount', 'TestPerson', 'ApprovedAcceptance', now(), 'acceptance_test')`)
+  assert.equal((await db.query(`select reason from public.member_offboarding_holds
+    where account_uid = 'TestAccount'`)).rows[0].reason, 'acceptance_test')
 })
 
 test('release needs an approval reference and cannot rewrite source history or reactivate a released row', async t => {

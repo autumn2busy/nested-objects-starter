@@ -14,7 +14,6 @@ import {
   trackPricingCtaClick,
   trackPricingView,
   trackSignupStarted,
-  trackStartTrial,
   trackUpgradeStarted,
   trackEvent,
 } from '@/lib/ac-events'
@@ -103,17 +102,6 @@ function usePricingActions() {
         sourcePage: 'membership_pricing',
         targetPlan,
         targetPlanUid,
-        handoffId: handoff.handoffId,
-      })
-    }
-
-    if (!isAuthenticated && targetPlan === 'Pro') {
-      trackStartTrial({
-        sourcePage: 'membership_pricing',
-        targetPlan,
-        targetPlanUid,
-        value: 0,
-        currency: 'USD',
         handoffId: handoff.handoffId,
       })
     }
@@ -245,7 +233,7 @@ export function PricingHeroAccountStatus() {
   if (!isLoading && !isAuthenticated) {
     return (
       <p className="mx-auto mt-4 max-w-[16rem] text-sm text-slate-500 min-[380px]:max-w-[18rem] sm:max-w-none">
-        Start Pro with $0 due today for 7 days, or create a Free account with no card required.
+        Start Pro at $49/month, billed at signup, or create a Free account with no card required.
       </p>
     )
   }
@@ -289,7 +277,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     if (isCurrentPlan) return 'Current plan'
     if (plan.waitlist) return plan.name === 'Agency' ? 'Team access in preparation' : 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Due Today'
+    if (!isAuthenticated && plan.name === 'Pro') return `Start Pro — ${plan.price}/month`
     if (isAuthenticated) return `Upgrade to ${plan.name}`
     return 'Sign up'
   })()
@@ -314,7 +302,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
       )}
       {plan.planUid === PLAN_UIDS.PRO && (
         <p className="mt-2 text-center text-xs text-brand-copper">
-          7-day free trial. Cancel before paid billing begins.
+          New Pro subscriptions are billed at signup. No free trial. Existing trial terms are unchanged.
         </p>
       )}
       {isCurrentPlan && currentPlanName && (
@@ -360,7 +348,7 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
       onClick={() => openPlanWidget(proPlan, false)}
       className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
-      {isLoading ? 'Checking your plan…' : pending ? 'Opening plan form…' : isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Due Today'}
+      {isLoading ? 'Checking your plan…' : pending ? 'Opening plan form…' : isAuthenticated ? 'Upgrade to Pro' : `Start Pro — ${proPlan.price}/month`}
     </button><PricingHandoffRecovery recovery={recovery} /></>
   )
 }
@@ -391,7 +379,7 @@ export function PricingFinalCtaCopy() {
     <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
       {isAuthenticated && planUid === PLAN_UIDS.PRO
         ? 'Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews.'
-        : 'Start Pro with $0 due today so you can see firms, intel, and training in one place before paid billing begins.'}
+        : 'Pro brings firm intel, training, and the core toolkit together for $49/month. New subscriptions are billed at signup, with no free trial.'}
     </p>
   )
 }

@@ -6,7 +6,7 @@ create table public.member_offboarding_holds (
   person_uid text not null check (person_uid ~ '^[A-Za-z0-9_-]{1,128}$'),
   source_event_uid text not null check (source_event_uid ~ '^[A-Za-z0-9_-]{1,128}$'),
   source_event_at timestamptz not null,
-  reason text not null check (reason in ('cancellation', 'owner_removal')),
+  reason text not null check (reason in ('cancellation', 'owner_removal', 'acceptance_test')),
   blocked_at timestamptz not null default now(),
   released_at timestamptz,
   release_approval_ref text,
