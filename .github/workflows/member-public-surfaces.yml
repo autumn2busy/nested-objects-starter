@@ -6,6 +6,7 @@ on:
       - 'apps/web-members/**'
       - 'supabase/migrations/*contact_submissions*.sql'
       - 'supabase/migrations/*training_prerequisite_waivers*.sql'
+      - 'supabase/migrations/*member_offboarding_holds*.sql'
       - 'supabase/validation/*contact_receipt*.sql'
       - '.github/workflows/member-public-surfaces.yml'
 
@@ -40,6 +41,10 @@ jobs:
       - name: Verify training progression and private prerequisite waivers
         working-directory: apps/web-members
         run: node --test tests/training-progression.test.mjs tests/quiz-complete-service.test.js
+
+      - name: Verify immediate access holds and webhook suppression
+        working-directory: apps/web-members
+        run: node --test tests/member-offboarding.test.mjs tests/member-offboarding-migration.test.mjs tests/active-campaign-sync.test.mjs tests/outseta-billing-stage.test.mjs
 
       - name: Verify membership management and checkout recovery
         working-directory: apps/web-members

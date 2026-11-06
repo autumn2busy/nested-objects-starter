@@ -12,6 +12,7 @@ import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 import { recordConversionEvent } from '@/lib/conversion-events';
 import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer';
 import { mapOutsetaBillingStage } from '@/lib/outseta-billing-stage';
+import { readMemberOffboardingState } from '@/lib/member-offboarding';
 import type { SyncResult } from '@/lib/active-campaign-sync-result';
 
 // =================================================================
@@ -337,6 +338,16 @@ export async function POST(request: NextRequest) {
 
     // Map to profile data
     let profileData = mapOutsetaToProfile(payload);
+    const offboarding = await readMemberOffboardingState({
+      accountUid: profileData.outseta_account_id,
+      personUid: profileData.outseta_person_uid,
+    });
+    if (offboarding === 'unavailable') {
+      return NextResponse.json({ error: 'Membership status temporarily unavailable' }, { status: 503 });
+    }
+    if (offboarding === 'blocked') {
+      return NextResponse.json({ success: true, operation: 'suppressed', reason: 'offboarded', requestId });
+    }
     console.log(`[${requestId}] Processing: ${profileData.email} | Person UID: ${profileData.outseta_person_uid}`);
 
     const supabase = getSupabaseAdmin();

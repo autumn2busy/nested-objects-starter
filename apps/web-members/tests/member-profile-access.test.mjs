@@ -49,6 +49,7 @@ const navigation = {
 }
 const planConfig = load('../lib/plan-config.ts', {})
 const auth = load('../lib/auth-server.ts', {
+  './member-offboarding': { readMemberOffboardingState: async () => 'allowed' },
   jose: { jwtVerify, createRemoteJWKSet: () => localKeys },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
   './plan-config': planConfig,

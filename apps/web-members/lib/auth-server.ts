@@ -1,6 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
 import { PLAN_UIDS, getPlanName as getConfiguredPlanName } from './plan-config'
+import { readMemberOffboardingState } from './member-offboarding'
 
 export { PLAN_UIDS } from './plan-config'
 
@@ -79,6 +80,12 @@ export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPaylo
     const { payload } = await jwtVerify(cleanToken, JWKS, {
       issuer: 'https://nested-objects.outseta.com'
     })
+
+    const offboarding = await readMemberOffboardingState({
+      accountUid: payload['outseta:accountUid'],
+      personUid: payload.sub,
+    })
+    if (offboarding !== 'allowed') return null
 
     return payload as unknown as OutsetaJWTPayload
   } catch (error: any) {

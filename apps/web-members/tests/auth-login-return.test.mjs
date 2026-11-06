@@ -37,6 +37,7 @@ const memberToolAccess = load('../lib/member-tool-access.ts', {
   './plan-config': planConfig,
 })
 const auth = load('../lib/auth-server.ts', {
+  './member-offboarding': { readMemberOffboardingState: async () => 'allowed' },
   jose: {
     jwtVerify,
     createRemoteJWKSet(url) {
