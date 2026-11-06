@@ -8,12 +8,14 @@ import { DemoNotice } from '../../../components/DemoNotice'
 
 export const dynamicParams = false
 export function generateStaticParams() { return demoInspectors.map(({ id }) => ({ id })) }
-export function generateMetadata({ params }: { params: { id: string } }): Metadata {
-  const person = demoInspectors.find(item => item.id === params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const person = demoInspectors.find(item => item.id === id)
   return { title: person ? person.name + ' — Fictional sample' : 'Sample not found', robots: { index: false, follow: true } }
 }
-export default function SampleProfilePage({ params }: { params: { id: string } }) {
-  const person = demoInspectors.find(item => item.id === params.id)
+export default async function SampleProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const person = demoInspectors.find(item => item.id === id)
   if (!person) notFound()
   const details = getDemoProfileDetails(person)
   const resumeState = getSampleResumeState(person.id)
