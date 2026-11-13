@@ -79,7 +79,7 @@ function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li><Link href="/guides" className="hover:text-brand">Guides</Link></li>
               <li><a href="https://members.nestedobjects.com/hiring-firms" data-acquisition-source="public_navigation_4" className="hover:text-brand">Firm Directory</a></li>
-              <li><a href="https://members.nestedobjects.com/training" data-acquisition-source="public_navigation_5" className="hover:text-brand">Training</a></li>
+              <li><a href="https://members.nestedobjects.com/challenges" data-acquisition-source="public_navigation_5" className="hover:text-brand">Training</a></li>
             </ul>
           </div>
           <div>
