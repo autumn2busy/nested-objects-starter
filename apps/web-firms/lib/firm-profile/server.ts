@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { authorizeFirm } from './access'
 import { OUTSETA_ISSUER, verifyFirmJwt } from './token'
 import { assertFirmSessionTokenSize, FirmProfileError, type FirmProfile, type FirmProfileInput, type VerifiedFirmIdentity } from './contracts'
+import { isFirmOffboardingUid, readFirmOffboardingAccess } from './offboarding'
 
 export const FIRM_SESSION_COOKIE = '__Host-no_firm_session'
 export const FIRM_STATE_COOKIE = '__Host-no_firm_login'
@@ -26,8 +27,11 @@ export async function verifyFirmToken(token: string) {
   try {
     claims = await verifyFirmJwt(token)
   } catch { throw new FirmProfileError(401, 'Your firm sign-in expired. Please sign in again.') }
-  const accountUid = claims['outseta:accountUid']
-  if (typeof accountUid !== 'string' || !/^[a-zA-Z0-9]{4,40}$/.test(accountUid)) throw new FirmProfileError(403, 'Firm account could not be verified.')
+  const accountUid = claims['outseta:accountUid'], personUid = claims.sub
+  if (!isFirmOffboardingUid(accountUid) || !isFirmOffboardingUid(personUid)) throw new FirmProfileError(403, 'Firm account could not be verified.')
+  const offboardingAccess = await readFirmOffboardingAccess({ accountUid, personUid })
+  if (offboardingAccess === 'blocked') throw new FirmProfileError(403, 'Firm account access is on hold. Please contact Nested Objects.')
+  if (offboardingAccess === 'unavailable') throw new FirmProfileError(503, 'Firm access verification is temporarily unavailable.')
   const key = process.env.OUTSETA_API_KEY, secret = process.env.OUTSETA_API_SECRET
   if (!key || !secret) throw new FirmProfileError(503, 'Firm membership verification is unavailable.')
   const url = new URL(`${issuer}/api/v1/crm/accounts/${encodeURIComponent(accountUid)}`)
