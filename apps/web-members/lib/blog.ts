@@ -221,7 +221,7 @@ Field inspectors can build a profitable weekly route by grouping orders geograph
             },
             {
                 label: 'Explore preservation guide',
-                href: '/guides/how-to-start-a-property-preservation-business',
+                href: 'https://www.nestedobjects.com/guides/how-to-start-a-property-preservation-business',
                 description: 'Use the long-form guide for licensing, insurance, equipment, and scaling basics.',
             },
             {
