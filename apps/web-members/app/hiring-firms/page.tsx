@@ -260,6 +260,10 @@ async function getFirms(
         'client_reviews',
         'description',
         'services',
+        'recommendation_status',
+        'reputation_notice',
+        'reputation_sources',
+        'reputation_reviewed_at',
       ].join(','),
     )
     params.set('is_published', 'eq.true')
