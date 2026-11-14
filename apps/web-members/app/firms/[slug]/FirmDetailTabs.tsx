@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { FirmRow } from './page'
+import { normalizeFirmWorkSetting } from '@/lib/firm-work-setting'
 
 type Props = {
     firm: FirmRow
@@ -25,9 +26,9 @@ function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value
     return (
         <div className="flex items-start gap-3 py-2.5">
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand/50" />
-            <div>
+            <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-                <p className="mt-0.5 text-sm text-text-primary">{value}</p>
+                <p className="mt-0.5 break-words text-sm text-text-primary [overflow-wrap:anywhere]">{value}</p>
             </div>
         </div>
     )
@@ -89,9 +90,7 @@ export function FirmDetailTabs({
                         {firm.industry_focus && (
                             <InfoRow icon={Briefcase} label="Industry focus" value={firm.industry_focus} />
                         )}
-                        {firm.source && (
-                            <InfoRow icon={Building2} label="Work Setting" value={firm.source} />
-                        )}
+                        <InfoRow icon={Building2} label="Work Setting" value={normalizeFirmWorkSetting(firm.source) ?? 'Not confirmed'} />
                         {firm.company_type && (
                             <InfoRow icon={Building2} label="Company type" value={firm.company_type} />
                         )}

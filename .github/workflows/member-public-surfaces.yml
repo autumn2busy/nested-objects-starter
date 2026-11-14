@@ -33,6 +33,10 @@ jobs:
         working-directory: apps/web-members
         run: npm run audit:member-surfaces
 
+      - name: Verify directory field semantics and profile formatting
+        working-directory: apps/web-members
+        run: node --test tests/firm-work-setting.test.mjs tests/firm-web-link.test.mjs tests/firm-data-quality-audit.test.mjs tests/directory-filter-access.test.mjs
+
       - name: Verify signed login handoff and portal protection
         working-directory: apps/web-members
         run: node --test tests/auth-login-return.test.mjs tests/auth-provider-session-race.test.mjs tests/member-profile-access.test.mjs tests/inspector-start-guide.test.mjs tests/homepage-free-signup.test.mjs tests/directory-filter-access.test.mjs

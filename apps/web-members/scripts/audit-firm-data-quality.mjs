@@ -25,7 +25,7 @@ const args = new Map(
 
 const localJsonPath = args.get('local-json')
 const limit = Number.parseInt(args.get('limit') || '0', 10)
-const reportsDir = path.join(appRoot, 'reports')
+const reportsDir = args.get('reports-dir') ? path.resolve(args.get('reports-dir')) : path.join(appRoot, 'reports')
 const runDate = new Date().toISOString().slice(0, 10)
 
 const REQUIRED_VALUE_FIELDS = [
@@ -99,6 +99,7 @@ const HIGH_VALUE_FIELDS = [
 ]
 
 const PRIORITY_ORDER = {
+  P0_MISPLACED_RESEARCH: -1,
   P0_DUPLICATE_REVIEW: 0,
   P0_DIRECTORY_INTEGRITY: 1,
   P1_CONTACT_GAP: 2,
@@ -154,8 +155,13 @@ function scoreFirm(firm) {
   return Math.round((earned / total) * 100)
 }
 
+function hasMisplacedNotes(value) {
+  return typeof value === 'string' && (value.length > 80 || /research|cleanup|confidence:|scope:|https?:\/\//i.test(value))
+}
+
 function getPriority(firm, missingFields, duplicateFlags) {
   const missingHighValue = missingFields.filter((field) => HIGH_VALUE_FIELDS.includes(field))
+  if (hasMisplacedNotes(firm.source)) return 'P0_MISPLACED_RESEARCH'
   if (duplicateFlags.length > 0) return 'P0_DUPLICATE_REVIEW'
   if (isBlank(firm.slug) || isBlank(firm.name)) return 'P0_DIRECTORY_INTEGRITY'
   if (missingHighValue.includes('vendor_page_url') && missingHighValue.includes('email') && missingHighValue.includes('phone')) {
@@ -267,6 +273,8 @@ function buildReport(firms) {
       priority,
       missing_fields: missingFields,
       duplicate_flags: duplicateFlags,
+      source: normalizeScalar(firm.source),
+      misplaced_research_notes: hasMisplacedNotes(firm.source),
       industry_focus: normalizeScalar(firm.industry_focus),
       geographic_coverage: normalizeScalar(firm.geographic_coverage),
       url: normalizeScalar(firm.url || firm.website),
@@ -297,6 +305,11 @@ function buildReport(firms) {
 
   return {
     generated_at: new Date().toISOString(),
+    factual_accuracy_verified: false,
+    score_meaning: 'Field completeness only; does not validate factual accuracy or URL reachability.',
+    misplaced_research_count: audited.filter(firm => firm.misplaced_research_notes).length,
+    undated_verification_count: audited.filter(firm => !firm.verified_at).length,
+    not_vendor_verified_count: audited.filter(firm => firm.vendor_verified !== true).length,
     total_firms: firms.length,
     published_firms: publishedFirms.length,
     unpublished_firms: firms.length - publishedFirms.length,
@@ -342,6 +355,7 @@ function toMarkdown(report) {
     .sort((a, b) => (PRIORITY_ORDER[a[0]] ?? 99) - (PRIORITY_ORDER[b[0]] ?? 99))
 
   const nextActions = []
+  if (report.misplaced_research_count > 0) nextActions.push('Keep research notes as provenance; prevent them rendering or filtering as work settings. Review the flagged records without deleting their evidence.')
   if (report.duplicate_name_groups.length > 0 || report.duplicate_url_groups.length > 0) {
     nextActions.push('Resolve duplicate name and URL groups before any enrichment batch.')
   }
@@ -370,7 +384,10 @@ Generated: ${report.generated_at}
 - Total firms: ${report.total_firms}
 - Published firms: ${report.published_firms}
 - Unpublished firms: ${report.unpublished_firms}
-- Average quality score: ${report.average_score}
+- Average field-completeness score: ${report.average_score} (not factual verification)
+- Misplaced research notes in work setting: ${report.misplaced_research_count}
+- No dated verification: ${report.undated_verification_count}
+- Not vendor verified: ${report.not_vendor_verified_count}
 - Duplicate name groups: ${report.duplicate_name_groups.length}
 - Duplicate URL groups: ${report.duplicate_url_groups.length}
 
