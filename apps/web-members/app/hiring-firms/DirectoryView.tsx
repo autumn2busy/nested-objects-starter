@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select'
 import { StarRating } from '@/components/ui/StarRating'
 import { US_STATES } from './constants'
 import { normalizeFirmWorkSetting } from '@/lib/firm-work-setting'
+import { normalizeFirmWebLink } from '@/lib/firm-web-link'
 import {
   DirectoryAnalytics,
   DirectoryLoginLink,
@@ -393,8 +394,8 @@ function NotaryDirectoryPanel({ access }: { access: DirectoryAccess }) {
 function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
   const email = hasDisplayValue(firm.email) ? firm.email : null
   const phone = hasDisplayValue(firm.phone) ? firm.phone : null
-  const vendorPageUrl = hasDisplayValue(firm.vendor_page_url) ? firm.vendor_page_url : null
-  const websiteUrl = hasDisplayValue(firm.url) ? firm.url : null
+  const vendorPageUrl = normalizeFirmWebLink(firm.vendor_page_url)
+  const websiteUrl = normalizeFirmWebLink(firm.url)
   const source = normalizeFirmWorkSetting(firm.source)
   const payText =
     firm.pay_min != null || firm.pay_max != null

@@ -20,6 +20,7 @@ import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 import { getCurrentUser } from '@/lib/auth-server'
 import { PAID_PLANS } from '@/lib/plan-config'
 import { normalizeFirmWorkSetting } from '@/lib/firm-work-setting'
+import { normalizeFirmWebLink } from '@/lib/firm-web-link'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -136,21 +137,7 @@ function isTrustedLogoUrl(logoUrl: string | null): logoUrl is string {
 
 /* ── Metadata ──────────────────────────────────────────── */
 
-function normalizeExternalHref(rawUrl: string | null): string | null {
-  if (!rawUrl) return null
-  const trimmedUrl = rawUrl.trim()
-  if (!trimmedUrl) return null
-
-  const normalized = trimmedUrl.toLowerCase()
-  if (['n/a', 'na', 'none', 'null', '-', '--', 'unknown', 'tbd'].includes(normalized)) return null
-
-  if (/^(https?:|mailto:|tel:)/i.test(trimmedUrl)) return trimmedUrl
-  if (/^(www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/.*)?$/i.test(trimmedUrl)) {
-    return `https://${trimmedUrl}`
-  }
-
-  return null
-}
+const normalizeExternalHref = normalizeFirmWebLink
 
 function getFirmSeoTitle(name: string): string {
   const compactName = name

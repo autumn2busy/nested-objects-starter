@@ -25,6 +25,7 @@ function load(relativePath, imports = {}, globals = {}) {
       if (name === 'react') return React
       if (name === 'react/jsx-runtime') return jsxRuntime
       if (name === 'lucide-react') return require('lucide-react')
+      if (name === '@/lib/firm-web-link') return load('../lib/firm-web-link.ts')
       if (name === '@/lib/firm-work-setting') return load('../lib/firm-work-setting.ts')
       if (name in imports) return imports[name]
       throw new Error(`Unexpected import in ${relativePath}: ${name}`)
