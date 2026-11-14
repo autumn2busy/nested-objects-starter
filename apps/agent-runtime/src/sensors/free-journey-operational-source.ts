@@ -5,6 +5,7 @@ import { classifyMarketingContact } from './activecampaign-audit.js'
 import type { OnboardingStoredSources } from './onboarding-receipt-reader.js'
 
 const FREE_PLAN_UID = 'L9nbKV9Z'
+export const DIRECTORY_PASS_PLAN_UID = 'EWBk3dmr'
 const CONSENT_LIST_ID = '34'
 const CONSENT_FORM_ID = '90'
 const PURPOSE = 'free_onboarding_and_conversion_email' as const
@@ -26,6 +27,7 @@ const policySchema = z.object({
   expiresAt: timestamp,
   outsetaHostname: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.outseta\.com$/),
   activeCampaignHostname: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.api-us1\.com$/),
+  directoryPassPlanUid: z.literal(DIRECTORY_PASS_PLAN_UID).nullable().default(null),
   pageSize: z.number().int().min(1).max(100),
   maxPages: z.number().int().min(1).max(5),
   maxRequests: z.number().int().min(4).max(100),
@@ -239,7 +241,7 @@ export class FreeJourneyOperationalSourceCollector {
       }
       const lifecycle = authoritativeLifecycle(account.AccountStage, account.AccountStageLabel)
       if (!lifecycle) return withheld('outseta_lifecycle_unknown_or_conflicting')
-      const tier = authoritativeTier(subscription.Plan.Uid)
+      const tier = authoritativeTier(subscription.Plan.Uid, this.#policy.directoryPassPlanUid)
 
       const acBase = `https://${this.#policy.activeCampaignHostname}`
       const rawContact = await this.#request('activecampaign', new URL(`/api/3/contacts/${profile.ac_contact_id}`, acBase))
@@ -514,7 +516,11 @@ function normalizeOutsetaTimestamp(value: string): string | null {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null
 }
 
-function authoritativeTier(planUid: string): 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown' {
+function authoritativeTier(
+  planUid: string,
+  directoryPassPlanUid: typeof DIRECTORY_PASS_PLAN_UID | null,
+): 'free' | 'directory_pass' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown' {
+  if (directoryPassPlanUid !== null && planUid === directoryPassPlanUid) return 'directory_pass'
   return planTiers[planUid as keyof typeof planTiers] ?? 'unknown'
 }
 

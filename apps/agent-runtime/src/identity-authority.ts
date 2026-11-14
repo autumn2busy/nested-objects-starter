@@ -1,7 +1,7 @@
 import { ContractValidationError } from './contracts.js'
 
 export type MembershipSource = 'outseta' | 'supabase_profiles' | 'activecampaign' | 'stripe' | 'manual' | 'other'
-export type MembershipTier = 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
+export type MembershipTier = 'free' | 'directory_pass' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
 export type MembershipStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused' | 'incomplete' | 'unknown'
 export type RevenueState = 'known' | 'partial' | 'unknown' | 'not_applicable'
 
@@ -185,6 +185,9 @@ function assertMembershipSnapshot(snapshot: MembershipSnapshot): void {
     if (snapshot.mrr !== null || snapshot.arr !== null || snapshot.lifetimeRevenue !== null) {
       throw new ContractValidationError('Unknown revenue state cannot carry invented revenue values')
     }
+  }
+  if (snapshot.membershipTier === 'directory_pass' && (snapshot.mrr !== null || snapshot.arr !== null)) {
+    throw new ContractValidationError('Directory Pass is nonrecurring and cannot carry MRR or ARR')
   }
   for (const [field, value] of [
     ['mrr', snapshot.mrr],

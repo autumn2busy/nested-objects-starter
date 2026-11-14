@@ -12,7 +12,7 @@ export const metadata: Metadata = generatePageMetadata({
 
 // Generate structured data from the same explicit allowlist as the visible cards.
 const productSchemas = membershipPlans
-  .filter((plan) => isPublicPlanUid(plan.planUid))
+  .filter((plan) => isPublicPlanUid(plan.planUid) && !plan.checkoutUnavailable)
   .map((plan) =>
     getProductSchema({
       name: `Nested Objects ${plan.name} Plan`,

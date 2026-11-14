@@ -25,7 +25,7 @@ export default function ConciergeSection() {
         <div className="rounded-2xl border border-brand-copper/20 bg-brand-dark p-5 text-slate-100">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-copper">Elite perks</p>
             <p className="mt-2 text-sm text-slate-100">
-                Active Elite and Agency members can request a 15-minute concierge call or book a 1-to-1 gaming session to talk strategy, routes, and partner intros.
+                Existing Elite and Agency members can request a 15-minute concierge call or book a 1-to-1 gaming session to talk strategy, routes, and partner intros.
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
                 {isLoading ? (
@@ -63,7 +63,7 @@ export default function ConciergeSection() {
                             href="/membership-pricing"
                             className="inline-flex items-center justify-center rounded-full border border-white/40 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
                         >
-                            Upgrade to Elite
+                            Compare current plans
                         </Link>
                     </>
                 )}

@@ -17,6 +17,7 @@ import {
 } from '../runtime/free-journey-production-destination.js'
 import type { DurableDestinationBinding } from '../runtime/staging-destination.js'
 import {
+  DIRECTORY_PASS_PLAN_UID,
   FreeJourneyOperationalSourceCollector,
   type FreeJourneyOperationalSourcePolicy,
   type FreeJourneyOperationalSourceTransport,
@@ -378,9 +379,11 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
   const supabaseServiceRoleKey = required(environment.SUPABASE_SERVICE_ROLE_KEY)
   const outsetaApiKey = required(environment.OUTSETA_API_KEY)
   const outsetaApiSecret = required(environment.OUTSETA_API_SECRET)
+  const directoryPassPlanUid = required(environment.OUTSETA_DIRECTORY_PASS_PLAN_UID)
   const activeCampaignApiKey = required(environment.AC_API_KEY)
   if (!isServiceRoleKey(supabaseServiceRoleKey)
-    || outsetaApiKey.length < 10 || outsetaApiSecret.length < 10 || activeCampaignApiKey.length < 20) {
+    || outsetaApiKey.length < 10 || outsetaApiSecret.length < 10
+    || directoryPassPlanUid !== DIRECTORY_PASS_PLAN_UID || activeCampaignApiKey.length < 20) {
     throw new FreeJourneyOperationConfigurationError()
   }
   const previewOnly = environment.FREE_JOURNEY_OPERATION_PREVIEW_ONLY === 'true'
@@ -424,6 +427,7 @@ export function loadFreeJourneyOperationRuntimeConfiguration(
     expiresAt: required(environment.FREE_JOURNEY_SOURCE_REVIEW_EXPIRES_AT),
     outsetaHostname: required(environment.OUTSETA_HOSTNAME).toLowerCase(),
     activeCampaignHostname: activeCampaign.hostname,
+    directoryPassPlanUid,
     pageSize: 100,
     maxPages: 5,
     maxRequests: 100,

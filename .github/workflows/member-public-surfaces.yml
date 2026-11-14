@@ -43,8 +43,11 @@ jobs:
 
       - name: Verify membership management and checkout recovery
         working-directory: apps/web-members
-        run: node --test tests/membership-management.test.mjs tests/outseta-pricing-loader.test.mjs tests/pricing-accuracy.test.mjs tests/pricing-handoff.test.mjs tests/pricing-login-session.test.mjs tests/pricing-preview-login.test.mjs
+        run: node --test tests/membership-management.test.mjs tests/outseta-pricing-loader.test.mjs tests/pricing-accuracy.test.mjs tests/pricing-handoff.test.mjs tests/pricing-login-session.test.mjs tests/pricing-preview-login.test.mjs tests/directory-pass-plan-access.test.mjs tests/directory-pass-entitlement.test.mjs tests/directory-pass-marketing-boundary.test.mjs
 
+      - name: Verify Directory Pass billing and profile-tier migration
+        working-directory: apps/web-members
+        run: node --test tests/active-campaign-sync.test.mjs tests/outseta-billing-stage.test.mjs tests/directory-pass-lifecycle.test.mjs tests/directory-pass-tier-migration.test.mjs
       - name: Lint and typecheck member app
         working-directory: apps/web-members
         run: |

@@ -118,8 +118,9 @@ function createHarness({
     Outseta: {
       getAccessToken: () => sdkToken,
       setAccessToken: token => { sdkWrites.push(token); sdkToken = token },
-      auth: { open: ({ widgetMode }) => {
-        outsetaAuthOpenCalls.push(widgetMode)
+      auth: { open: options => {
+        const { widgetMode } = options
+        outsetaAuthOpenCalls.push(options)
         signupOrder.push(`handoff:${widgetMode}`)
       } },
     },
@@ -182,6 +183,7 @@ function createHarness({
           signupOrder.push('event:signup_started')
         },
       }
+      if (name === '@/lib/plan-config') return { isDirectoryPassPlanUid: () => false, PLAN_UIDS: { FREE: 'L9nbKV9Z' } }
       throw new Error(`Unexpected import: ${name}`)
     },
   })
@@ -273,7 +275,7 @@ test('signup emits one start signal before one register handoff without network'
     { event: 'signup_started', plan: undefined },
     { event: 'outseta_modal_open', sourcePage: '/inspector-dashboard', mode: 'register' },
   ])
-  assert.deepEqual(harness.outsetaAuthOpenCalls, ['register'])
+  assert.deepEqual(JSON.parse(JSON.stringify(harness.outsetaAuthOpenCalls)), [{ widgetMode: 'register', planUid: 'L9nbKV9Z', skipPlanOptions: true }])
   assert.deepEqual(harness.signupOrder, [
     'event:signup_started',
     'event:outseta_modal_open',

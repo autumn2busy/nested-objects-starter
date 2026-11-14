@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { isDirectoryPassPlanUid } from "@/lib/plan-config";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -99,6 +100,7 @@ export function DashboardView({ showOnboarding }: DashboardViewProps) {
     }, [authLoading]);
 
     const planLabel = (() => {
+        if (isDirectoryPassPlanUid(planUid)) return "Directory Pass";
         switch (planUid) {
             case 'L9nbKV9Z': return 'Free';
             case 'zWZD0rQp': return 'Directory';

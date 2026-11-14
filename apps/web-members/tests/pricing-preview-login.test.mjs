@@ -60,6 +60,7 @@ function header({ path = '/membership-pricing', previewHost = host, ready = asyn
   const sessions = []
   const jsx = (type, props) => ({ type, props })
   const { SiteHeader } = load('../components/SiteHeader.tsx', {
+    '@/lib/plan-config': load('../lib/plan-config.ts'),
     'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'fragment' },
     react: {
       useMemo: fn => fn(), useState: initial => [initial, value => states.push(value)],

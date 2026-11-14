@@ -28,7 +28,7 @@ function load(relativePath, imports = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(code, {
-    exports, URL, console, AbortController, window: browser, process: { env: {} },
+    exports, URL, console, AbortController, window: browser, process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: 'PassTest1', NEXT_PUBLIC_DIRECTORY_PASS_CHECKOUT_ENABLED: 'true' } },
     document: { body: {}, querySelectorAll: () => [] },
     MutationObserver: class { observe() {} disconnect() {} },
     crypto: { randomUUID: () => 'synthetic-pricing-attempt' },
@@ -109,15 +109,15 @@ const layout = load('../app/layout.tsx', {
 
 const expectedPlans = [
   { name: 'Free', planUid: 'L9nbKV9Z', price: '$0', period: 'forever' },
+  { name: 'Directory Pass', planUid: 'PassTest1', price: '$199', period: '12 months' },
   { name: 'Pro', planUid: 'rQVqlLm6', price: '$49', period: 'month' },
-  { name: 'Elite', planUid: 'NmdnNO90', price: '$97', period: 'month' },
   { name: 'Agency', planUid: 'rmk5Xk9g', price: '$297', period: 'month' },
 ]
 const publicPlans = datasets.membershipPlans.filter(plan => planConfig.isPublicPlanUid(plan.planUid))
 const scenarios = [
   { name: 'visitor', planUid: null, finalLabel: 'Start Pro — $49/month', finalTarget: 'Pro' },
   { name: 'Free', planUid: 'L9nbKV9Z', finalLabel: 'Upgrade to Pro', finalTarget: 'Pro' },
-  { name: 'Pro', planUid: 'rQVqlLm6', finalLabel: 'Upgrade to Elite', finalTarget: 'Elite' },
+  { name: 'Pro', planUid: 'rQVqlLm6', finalLabel: 'Manage or cancel membership', finalTarget: null },
   { name: 'Elite', planUid: 'NmdnNO90', finalLabel: 'Manage or cancel membership', finalTarget: null },
   { name: 'Agency', planUid: 'rmk5Xk9g', finalLabel: 'Manage or cancel membership', finalTarget: null },
 ]
@@ -163,6 +163,9 @@ function assertToolAccessCopy(html, planName) {
   const text = plain(html)
   if (planName === 'Free') {
     assert.match(text, /Free includes the income scenario planner only/i)
+  } else if (planName === 'Directory Pass') {
+    assert.match(text, /directory/i)
+    assert.match(text, /Pro|training/i)
   } else if (planName === 'Pro') {
     for (const tool of ['client and company tracking', 'AI Concierge', 'AI Resume', 'job tracking', 'weather', 'route planning']) {
       assert.ok(text.includes(tool), `Pro purchase copy omits ${tool}`)
@@ -171,15 +174,15 @@ function assertToolAccessCopy(html, planName) {
     assert.match(text, /every member tool/i)
     assert.match(text, /route economics/i)
   } else {
-    assert.match(text, /Free includes the income scenario planner/i)
-    assert.match(text, /Pro includes the core/i)
-    assert.match(text, /Elite includes every member tool/i)
+    assert.match(text, /Directory Pass/i)
+    assert.match(text, /Pro.*(?:core|training)/i)
+    assert.match(text, /Existing members (?:keep their purchased|retain their) access and terms/i)
   }
   assert.doesNotMatch(text, /connected tools.*remain unavailable/i)
   assert.doesNotMatch(text, /member tools.*preview.only|disabled on every plan|disabled on all plans/i)
 }
 
-test('public plan prices, billing periods and checkout UIDs stay unchanged', () => {
+test('approved public offers have exact prices and separate checkout UIDs', () => {
   assert.deepEqual(normalized(publicPlans.map(({ name, planUid, price, period }) => ({ name, planUid, price, period }))), expectedPlans)
 })
 
@@ -206,7 +209,7 @@ for (const scenario of scenarios) {
       const button = findButton(interactions.PricingPlanButton({ plan }))
       assert.ok(button)
       const current = plan.planUid === scenario.planUid
-      const unavailable = plan.waitlist === true
+      const unavailable = plan.waitlist === true || plan.checkoutUnavailable === true
       assert.equal(button.props.disabled, current || unavailable)
       await button.props.onClick()
       if (current || unavailable) {
@@ -227,11 +230,11 @@ for (const scenario of scenarios) {
         assert.equal(signupStarts.length, 0)
       }
       assert.deepEqual(normalized(sdkCalls), scenario.planUid ? [
-        { widget: 'profile', options: { tab: 'planChange' } },
+        { widget: 'profile', options: { tab: 'planChange', ...(plan.name === 'Directory Pass' ? { stateProps: { planUid: plan.planUid, planPaymentTerm: 'oneTime' } } : {}) } },
       ] : [
         { widget: 'auth', options: {
           widgetMode: 'register', planUid: plan.planUid, skipPlanOptions: true,
-          ...(plan.period === 'month' ? { planPaymentTerm: 'month' } : {}),
+          ...(plan.paymentTerm ? { planPaymentTerm: plan.paymentTerm } : plan.period === 'month' ? { planPaymentTerm: 'month' } : {}),
         } },
       ])
     }
@@ -284,11 +287,11 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
     handoffTimers.at(-2)() // bounded SDK-readiness deadline, before visibility timeout
     await opening
     assert.equal(browser.location.href,
-      `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`)
+      `https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true${plan.paymentTerm ? `&planPaymentTerm=${plan.paymentTerm}` : plan.period === 'month' ? '&planPaymentTerm=month' : ''}`)
   }
   assert.deepEqual(normalized(analyticsCalls
     .filter(event => event.name === 'trackSignupStarted')
-    .map(event => event.payload)), ['Free', 'Pro', 'Elite'])
+    .map(event => event.payload)), ['Free', 'Directory Pass', 'Pro'])
   const agency = publicPlans.find(plan => plan.name === 'Agency')
   browser.location.href = ''
   const agencyButton = findButton(interactions.PricingPlanButton({ plan: agency }))
@@ -296,7 +299,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   agencyButton.props.onClick()
   assert.equal(browser.location.href, '')
   authState = { isAuthenticated: true, isLoading: false, planUid: expectedPlans[0].planUid }
-  const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
+  const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') })).props.onClick()
   handoffTimers.at(-2)()
   await opening
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile?tab=planChange')
@@ -306,7 +309,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
 test('Free paid-plan click catches SDK failure and offers keyboard-accessible explicit recovery', async () => {
   reset(scenarios[1])
   browser.Outseta.profile.open = () => { throw new Error('private-provider-error-with-email@example.test') }
-  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') }))
   await button.props.onClick()
   const diagnostic = analyticsCalls.filter(event => event.event === 'checkout_handoff')
   assert.deepEqual(diagnostic.map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
@@ -325,7 +328,7 @@ test('Free paid-plan click catches SDK failure and offers keyboard-accessible ex
 
 test('silent SDK call permits no duplicate click and timeout stays unknown', async () => {
   reset(scenarios[1])
-  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') }))
   await Promise.all([button.props.onClick(), button.props.onClick()])
   assert.equal(sdkCalls.length, 1)
   handoffTimers.at(-1)()
@@ -336,8 +339,8 @@ test('silent SDK call permits no duplicate click and timeout stays unknown', asy
 test('auth hydration cannot open anonymous registration for a signed-in member', async () => {
   reset(scenarios[0])
   authState.isLoading = true
-  for (const button of [findButton(interactions.PricingPlanButton({plan:publicPlans[1]})),
-    findButton(interactions.PricingFinalCta({proPlan:publicPlans[1]}))]) {
+  for (const button of [findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')})),
+    findButton(interactions.PricingFinalCta({proPlan:publicPlans.find(plan => plan.name === 'Pro')}))]) {
     assert.equal(button.props.disabled,true)
     assert.equal(button.props['aria-busy'],true)
     assert.match(plain(renderToStaticMarkup(button)),/Checking your plan/)
@@ -351,7 +354,7 @@ test('auth hydration cannot open anonymous registration for a signed-in member',
 test('Free member waits for the profile module and opens once instead of redirecting to hosted login', async () => {
   reset(scenarios[1])
   delete browser.Outseta.profile
-  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')}))
   const opening=button.props.onClick()
   await button.props.onClick()
   assert.equal(sdkCalls.length,0)
@@ -384,7 +387,7 @@ test('cookie-only, stale and different-account SDK sessions use the existing sec
 test('unmount while the SDK loads prevents a later widget open or hosted redirect', async () => {
   reset(scenarios[1])
   delete browser.Outseta.profile
-  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')}))
   const cleanup=effects[0]()
   const opening=button.props.onClick()
   cleanup()
@@ -432,7 +435,7 @@ test('visible tool-availability FAQ and FAQ JSON-LD give the same access boundar
   const toolFaq = faqSchema.mainEntity.find(question => /tool/i.test(question.name))
   assert.ok(toolFaq, 'A tool-availability question must be present')
   assertToolAccessCopy(toolFaq.acceptedAnswer.text)
-  assert.match(toolFaq.acceptedAnswer.text, /Existing trial access is unchanged/)
+  assert.match(toolFaq.acceptedAnswer.text, /Existing members keep their purchased access and terms/)
   const visibleHtml = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
   assert.ok(plain(visibleHtml).includes(toolFaq.name))
   assert.ok(plain(visibleHtml).includes(toolFaq.acceptedAnswer.text))
@@ -517,4 +520,46 @@ test('mobile pricing entry says Plans while authenticated Hub navigation stays u
   const member = render(mobileActions.MobileActionBar)
   assert.match(member, /href="\/inspector-dashboard"/)
   assert.match(plain(member), /^Hub Firms Tools$/)
+})
+
+test('retired Elite and an unconfigured Directory Pass cannot open checkout or emit signup intent', async () => {
+  for (const plan of [datasets.membershipPlans.find(plan => plan.name === 'Elite'),
+    { ...datasets.membershipPlans.find(plan => plan.name === 'Directory Pass'), planUid: '', checkoutUnavailable: true }]) {
+    reset()
+    const button = findButton(interactions.PricingPlanButton({ plan }))
+    assert.equal(button.props.disabled, true)
+    await button.props.onClick()
+    assert.equal(sdkCalls.length, 0)
+    assert.equal(analyticsCalls.length, 0)
+    assert.equal(browser.location.href, '')
+  }
+})
+
+test('Directory Pass uses a one-time checkout and explicitly excludes automatic renewal', async () => {
+  const plan = publicPlans.find(plan => plan.name === 'Directory Pass')
+  await findButton(interactions.PricingPlanButton({ plan })).props.onClick()
+  assert.equal(sdkCalls[0].options.planPaymentTerm, 'oneTime')
+  assert.equal(sdkCalls[0].options.planUid, 'PassTest1')
+  assert.match(plain(render(membership.MembershipView)), /no automatic renewal/i)
+  assert.equal(plan.price, '$199')
+  assert.equal(plan.period, '12 months')
+  assert.equal(planConfig.PAID_PLANS.includes(planConfig.PLAN_UIDS.ELITE), true)
+  assert.equal(planConfig.isPublicPlanUid(planConfig.PLAN_UIDS.ELITE), false)
+})
+
+test('signed-in Directory Pass handoff selects the one-time plan using profile stateProps', async () => {
+  reset(scenarios[1])
+  const plan = publicPlans.find(plan => plan.name === 'Directory Pass')
+  await findButton(interactions.PricingPlanButton({ plan })).props.onClick()
+  assert.deepEqual(normalized(sdkCalls), [{ widget: 'profile', options: { tab: 'planChange', stateProps: { planUid: 'PassTest1', planPaymentTerm: 'oneTime' } } }])
+})
+
+test('Directory Pass never falls back to an unpinned provider plan selector', async () => {
+  reset(scenarios[1])
+  browser.Outseta.getJwtPayload = () => ({ sub: 'different-account', exp: Date.now() / 1000 + 3600 })
+  await findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Directory Pass') })).props.onClick()
+  assert.equal(browser.location.href, '')
+  assert.equal(sdkCalls.length, 0)
+  assert.deepEqual(analyticsCalls.filter(event => event.event === 'checkout_handoff').map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
+  assert.equal(stateUpdates.findLast(value => value && typeof value === 'object' && value.href).href, '/membership-pricing')
 })

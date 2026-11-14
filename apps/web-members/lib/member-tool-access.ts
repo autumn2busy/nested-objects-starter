@@ -1,4 +1,4 @@
-import { PLAN_UIDS } from './plan-config'
+import { DIRECTORY_PASS_PLAN_UID, PLAN_UIDS } from './plan-config'
 
 export const MEMBER_TOOL_IDS = {
   INCOME_SCENARIO: 'income_scenario',
@@ -31,6 +31,7 @@ export const ENABLED_MEMBER_TOOL_PATHS = Object.freeze(
 )
 
 export const KNOWN_MEMBER_PLAN_UIDS = Object.freeze([
+  ...(DIRECTORY_PASS_PLAN_UID ? [DIRECTORY_PASS_PLAN_UID] : []),
   PLAN_UIDS.FREE,
   PLAN_UIDS.STARTER,
   PLAN_UIDS.PRO,

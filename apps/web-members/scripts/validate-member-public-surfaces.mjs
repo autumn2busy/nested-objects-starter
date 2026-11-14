@@ -36,7 +36,7 @@ for (const required of [
   "href: '/tools/notary-route-calculator'",
   "href: '/tools/ai-concierge'",
   "href: '/tools/job-tracker'",
-  'Elite includes every member tool',
+  'Existing Elite and Agency members retain every member tool',
 ]) {
   requireText(toolsSource, required, `member-tools catalog is missing ${JSON.stringify(required)}`)
 }
@@ -80,11 +80,11 @@ if (toolLayoutSource.includes("href: '/inspector-dashboard'")) {
   failures.push('public tool layout still exposes Dashboard navigation to signed-out visitors')
 }
 
-for (const publicPlan of ['PLAN_UIDS.FREE', 'PLAN_UIDS.PRO', 'PLAN_UIDS.ELITE', 'PLAN_UIDS.AGENCY']) {
+for (const publicPlan of ['PLAN_UIDS.FREE', 'PLAN_UIDS.PRO', 'PLAN_UIDS.AGENCY']) {
   requireText(publicPlanBlock(planSource), publicPlan, `public pricing allowlist omits ${publicPlan}`)
 }
 
-for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER']) {
+for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER', 'PLAN_UIDS.ELITE']) {
   if (publicPlanBlock(planSource).includes(legacyPlan)) {
     failures.push(`public pricing allowlist includes legacy plan ${legacyPlan}`)
   }
@@ -93,7 +93,7 @@ for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER']) {
 
 requireText(
   pricingSource,
-  '.filter((plan) => isPublicPlanUid(plan.planUid))',
+  "(plan.name === 'Directory Pass' || isPublicPlanUid(plan.planUid))",
   'pricing render does not use the explicit public-plan allowlist',
 )
 
@@ -115,7 +115,7 @@ requireText(homeSource, 'href="/tools"', 'homepage does not link to the member-t
 requireText(homeSource, 'href="/tools/income-calculator"', 'homepage does not link to the available income planner')
 requireText(homeSource, 'Results are estimates, not income promises.', 'homepage income-planner copy omits its estimate boundary')
 requireText(pricingPageSource, 'Field Inspector Membership Plans', 'pricing metadata is not field-inspector-first')
-requireText(pricingPageSource, '.filter((plan) => isPublicPlanUid(plan.planUid))', 'pricing schema does not reuse the public-plan allowlist')
+requireText(pricingPageSource, '.filter((plan) => isPublicPlanUid(plan.planUid) && !plan.checkoutUnavailable)', 'pricing schema does not reuse the public-plan allowlist')
 
 const publicFreeBlock = extractObjectBetween(planDataSource, 'planUid: PLAN_UIDS.FREE', 'planUid: PLAN_UIDS.STARTER')
 const publicProBlock = extractObjectBetween(planDataSource, 'planUid: PLAN_UIDS.PRO', 'planUid: PLAN_UIDS.ELITE')

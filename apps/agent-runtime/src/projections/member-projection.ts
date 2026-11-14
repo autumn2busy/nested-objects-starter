@@ -1,7 +1,7 @@
 import type { CorrelationContext, SourceReference } from '../contracts.js'
 import { ContractValidationError } from '../contracts.js'
 
-type ProjectedMembershipTier = 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
+type ProjectedMembershipTier = 'free' | 'directory_pass' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
 type ProjectedMembershipStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused' | 'incomplete' | 'unknown'
 
 export interface ProfileSourceRow {
@@ -592,6 +592,8 @@ function latestEvent(events: ConversionEventSourceRow[], name: string): Conversi
 
 function normalizeTier(value: unknown): ProjectedMembershipTier {
   const normalized = normalizeText(value)?.toLowerCase() ?? ''
+  if (normalized === 'directory pass — 12 months') return 'directory_pass'
+  if (normalized.replace(/[\s-]+/g, '_') === 'directory_pass') return 'directory_pass'
   if (normalized.includes('agency')) return 'agency'
   if (normalized.includes('elite')) return 'elite'
   if (normalized.includes('pro')) return 'pro'

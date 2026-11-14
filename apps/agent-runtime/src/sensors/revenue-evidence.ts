@@ -30,7 +30,7 @@ const charge = z.object({
 const account = z.object({
   accountRef: id, stripeCustomerRef: id, stripeAccountRef: id, livemode: z.boolean(),
   subscriptionRef: id, identityState: z.enum(['verified', 'unknown', 'conflict']),
-  plan: z.enum(['free', 'pro', 'elite', 'agency', 'starter', 'founders', 'unknown']),
+  plan: z.enum(['free', 'directory_pass', 'pro', 'elite', 'agency', 'starter', 'founders', 'unknown']),
   subscriptionStatus: z.enum(['active', 'trialing', 'canceled', 'past_due', 'unknown']),
 }).strict()
 const allocation = z.object({

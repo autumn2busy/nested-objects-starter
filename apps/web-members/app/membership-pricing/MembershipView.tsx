@@ -29,8 +29,8 @@ const proBenefitHighlights = [
 
 const planDecisionPrompts = [
     'Start Free if you only need a 3-firm directory preview.',
-    'Start Pro if you are ready to compare firms seriously this week.',
-    'Upgrade later if you need Elite or Agency-level strategy support.',
+    'Choose the Directory Pass for 12 months of firm research with one $199 payment.',
+    'Choose Pro at $49/month when you also need training and core member tools.',
 ]
 
 const decisionConfidenceItems = [
@@ -39,11 +39,11 @@ const decisionConfidenceItems = [
         body: 'Use Free when you want to explore the hub, preview 3 firms, and decide whether field work belongs in your plans.',
     },
     {
-        title: 'Pro is for deciding',
-        body: 'Choose Pro when you are actively comparing firms, checking requirements, building a shortlist, or preparing applications.',
+        title: 'Directory Pass is for research',
+        body: 'Pay $199 once for 12 months of directory search, filters and firm profiles. No automatic renewal. Pro training and tools are separate.',
     },
     {
-        title: 'Paid access is instant',
+        title: 'Pro is for ongoing support',
         body: 'New Pro subscriptions are billed at signup and renew monthly unless canceled. Paid memberships are non-refundable.',
     },
 ]
@@ -69,7 +69,8 @@ const trustAssuranceItems = [
     },
 ]
 
-function memberToolAccessSummary(planUid: string) {
+function memberToolAccessSummary(planUid: string, planName?: string) {
+    if (planName === 'Directory Pass') return 'Directory only: search, filters and firm profiles. Includes the income scenario planner; training and Pro tools are not included.'
     if (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY) {
         return 'Every member tool is included, including route economics.'
     }
@@ -85,8 +86,16 @@ function memberToolAccessSummary(planUid: string) {
 
 export const pricingFaqs = [
     {
+        question: 'Does the Directory Pass renew automatically?',
+        answer: 'No. The Directory Pass costs $199 once for 12 months of directory access. It does not renew or charge you automatically. Directory access ends after 12 months; a later purchase requires your explicit choice.',
+    },
+    {
+        question: 'What happens to existing Elite and legacy memberships?',
+        answer: 'Elite is closed to new signups. Existing Elite, Pro, Agency, Starter and Founders members retain their purchased access and billing terms. No existing subscription is automatically moved to the Directory Pass.',
+    },
+    {
         question: 'Which member tools does each plan include?',
-        answer: 'Free includes the income scenario planner. Pro includes the core tracking, AI, weather, and routing toolkit. Elite includes every member tool, including route economics. Existing trial access is unchanged.',
+        answer: 'Free and Directory Pass include the income scenario planner. Directory Pass adds directory search, filters and firm profiles for 12 months. Pro includes the training library and core tracking, AI, weather and routing tools. Existing members keep their purchased access and terms.',
     },
     {
         question: 'Can I change plans or cancel anytime?',
@@ -102,7 +111,7 @@ export const pricingFaqs = [
     },
     {
         question: 'Which plan should I choose first?',
-        answer: 'Choose Free if you only want a directory preview and no card on file. Choose Pro if you are ready to compare the full firm directory, requirements, pay clues, route fit, training, and readiness resources during the next week.',
+        answer: 'Choose Free for three sample listings, Directory Pass for full directory research at $199 once for 12 months without automatic renewal, or Pro at $49/month for the directory plus training and core tools.',
     },
     {
         question: 'What payment methods do you accept?',
@@ -126,7 +135,7 @@ function MembershipContent() {
                     Membership
                 </p>
                 <h1 className="mx-auto mt-4 max-w-[calc(100vw-2rem)] text-balance text-2xl font-bold leading-tight tracking-tight text-slate-900 min-[380px]:max-w-[22rem] min-[380px]:text-3xl sm:max-w-none sm:text-4xl md:text-5xl">
-                    Choose the hub that matches your lane in the field.
+                    Directory access or the full working toolkit.
                 </h1>
                 <p className="mx-auto mt-4 max-w-[18rem] text-base text-slate-600 min-[380px]:max-w-[20rem] sm:max-w-none sm:text-lg">
                     Nested Objects is built first for field inspectors, with adjacent paths for mobile notaries,
@@ -221,7 +230,7 @@ function MembershipContent() {
                             Pick the plan by what you need to decide this week.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            Preview 3 firms for free, then choose Pro when the full firm intel, training,
+                            Preview 3 firms for free, choose the Directory Pass for research, or Pro when training,
                             and readiness resources fit your route.
                         </p>
                     </div>
@@ -277,13 +286,13 @@ function MembershipContent() {
                     {/* Plan cards */}
                     <div className="grid gap-6 md:grid-cols-2">
                         {membershipPlans
-                            .filter((plan) => isPublicPlanUid(plan.planUid))
+                            .filter((plan) => !plan.hidden && (plan.name === 'Directory Pass' || isPublicPlanUid(plan.planUid)))
                             .map((plan) => {
                                 const isPro = plan.planUid === PLAN_UIDS.PRO
 
                                 return (
                                     <article
-                                        key={plan.planUid}
+                                        key={plan.name}
                                         className={`relative flex h-full flex-col rounded-2xl border bg-white/80 p-6 shadow-sm ring-1 ring-slate-100 backdrop-blur ${plan.highlight
                                             ? 'border-brand-copper/80 ring-brand-copper/20 shadow-lg shadow-brand-copper/20'
                                             : 'border-slate-200'
@@ -318,7 +327,7 @@ function MembershipContent() {
 
                                         <div className="mb-5 flex items-baseline gap-1">
                                             <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
-                                            <span className="text-sm text-slate-500">/ {plan.period}</span>
+                                            <span className="text-sm text-slate-500">{plan.paymentTerm === 'oneTime' ? 'once · 12 months' : `/ ${plan.period}`}</span>
                                         </div>
 
                                         <ul className="mb-6 space-y-2 text-sm text-slate-700">
@@ -335,7 +344,7 @@ function MembershipContent() {
                                         <div className="mt-auto">
                                             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
                                                 <p className="font-semibold">Member tools available now</p>
-                                                <p className="mt-1">{memberToolAccessSummary(plan.planUid)}</p>
+                                                <p className="mt-1">{memberToolAccessSummary(plan.planUid, plan.name)}</p>
                                             </div>
                                             <PricingPlanButton plan={plan} />
                                         </div>
@@ -426,7 +435,7 @@ function MembershipContent() {
                 <PricingFinalCtaCopy />
 
                 <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-amber-100">
-                    Free includes the income scenario planner. Pro includes the core toolkit. Elite includes every member tool.
+                    Directory Pass: $199 once for 12 months, no automatic renewal. Pro: $49/month for directory, training and core tools. Existing members retain their access and terms.
                 </p>
 
                 <PricingFinalCta proPlan={proPlan} />

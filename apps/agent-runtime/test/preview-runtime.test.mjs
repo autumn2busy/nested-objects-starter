@@ -235,6 +235,27 @@ test('preview contract rejects production member and Outseta identifiers', () =>
   )
 })
 
+test('preview contract preserves Directory Pass as a distinct nonrecurring tier', () => {
+  const base = validPayload()
+  const parsed = parsePreviewEvaluationRequest(validPayload({
+    profiles: [{
+      ...base.profiles[0], subscription_tier: 'directory_pass',
+      plan_uid: 'synthetic-directory-pass-plan', plan_name: 'Directory Pass',
+    }],
+    conversionEvents: [{
+      ...base.conversionEvents[0], plan_uid: 'synthetic-directory-pass-plan', plan_name: 'Directory Pass',
+    }],
+    productAccessByMemberId: {
+      [memberId]: { ...base.productAccessByMemberId[memberId], accessTier: 'directory_pass' },
+    },
+    activeCampaignMirrorByMemberId: {
+      [memberId]: { ...base.activeCampaignMirrorByMemberId[memberId], planName: 'Directory Pass' },
+    },
+  }))
+  assert.equal(parsed.profiles[0].subscription_tier, 'directory_pass')
+  assert.equal(parsed.productAccessByMemberId[memberId].accessTier, 'directory_pass')
+})
+
 test('dry-run preview returns aggregate intelligence without returning PII or external IDs', async () => {
   const configuration = loadPreviewRuntimeConfiguration(previewEnvironment())
   const first = await evaluatePreviewRequest(validPayload(), configuration, fixedNow)

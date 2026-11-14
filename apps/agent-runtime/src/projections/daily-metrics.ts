@@ -32,7 +32,7 @@ export function buildDailyBusinessMetrics(input: BuildDailyMetricsInput): Metric
   }
 
   const signups = canonicalSignupEvents(events.filter((event) => event.event_name === 'signup_completed'))
-  for (const tier of ['free', 'pro', 'elite', 'starter', 'founders', 'agency', 'unknown'] as const) {
+  for (const tier of ['free', 'directory_pass', 'pro', 'elite', 'starter', 'founders', 'agency', 'unknown'] as const) {
     const value = signups.filter((event) => normalizeTier(event.plan_name ?? event.event_data?.plan) === tier).length
     addCount(`members.new.${tier}`, 'growth', value, ['signup_completed'], { tier })
   }
@@ -137,6 +137,8 @@ function unknownMetric(
 
 function normalizeTier(value: unknown): string {
   const text = typeof value === 'string' ? value.toLowerCase() : ''
+  if (text.trim() === 'directory pass — 12 months') return 'directory_pass'
+  if (text.trim().replace(/[\s-]+/g, '_') === 'directory_pass') return 'directory_pass'
   if (text.includes('elite')) return 'elite'
   if (text.includes('pro')) return 'pro'
   if (text.includes('founder')) return 'founders'

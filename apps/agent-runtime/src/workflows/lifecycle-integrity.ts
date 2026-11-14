@@ -328,6 +328,8 @@ function isPaidTier(tier: string): boolean {
 
 function normalizeTier(value: string | null): string {
   const text = value?.toLowerCase() ?? ''
+  if (text.trim() === 'directory pass — 12 months') return 'directory_pass'
+  if (text.trim().replace(/[\s-]+/g, '_') === 'directory_pass') return 'directory_pass'
   if (text.includes('elite')) return 'elite'
   if (text.includes('pro')) return 'pro'
   if (text.includes('founder')) return 'founders'

@@ -76,7 +76,7 @@ const directoryFaqs = [
   },
   {
     question: 'Which plans include directory search and firm intel?',
-    answer: 'Pro, Elite and Agency include full directory access, search, filters, and detailed firm intel. Review the current membership plans for pricing and included features. Current hiring, rates and requirements must be confirmed with each firm.',
+    answer: 'Directory Pass and Pro include full directory access, search, filters, and detailed firm intel. Review the current membership plans for pricing and included features. Current hiring, rates and requirements must be confirmed with each firm.',
   },
   {
     question: 'Will the Free sample match my state or inspection type?',
@@ -159,7 +159,7 @@ export default function HomePage() {
             </div>
             <p className="mt-3 text-xs leading-relaxed text-slate-500">
               Free: up to 3 sample listings. No search or filters. No credit card required.
-              Pro and higher include full directory search and firm intel.
+              Directory Pass and Pro include full directory search and firm intel.
             </p>
           </div>
         </section>
@@ -270,7 +270,7 @@ export default function HomePage() {
                   detailed firm intel and available application/contact information, then verify it with the firm.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-amber-700">
-                  Included with Pro, Elite and Agency
+                  Included with Directory Pass and Pro
                 </p>
                 <Link
                   href="/membership-pricing"
@@ -284,7 +284,7 @@ export default function HomePage() {
                 <h3 className="text-sm font-semibold text-slate-900">Member tools</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   Free members can use the income scenario planner. Pro adds tracking, AI, weather, and route planning.
-                  Elite includes every member tool, including route economics.
+                  Existing Elite and Agency members retain every member tool, including route economics.
                 </p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                   Access expands with your plan
@@ -332,7 +332,7 @@ export default function HomePage() {
                   Choose paid access when you need search.
                 </h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Pro and higher add full directory search, filters and firm intel. Compare the
+                  Directory Pass and Pro add full directory search, filters and firm intel. Compare the
                   membership options before choosing whether that access fits your needs.
                 </p>
               </li>
@@ -439,7 +439,7 @@ export default function HomePage() {
                   Need to search for relevant firms?
                 </h2>
                 <p className="mt-2 text-sm text-slate-100">
-                  Pro and higher include full directory search and firm intel. Compare plans
+                  Directory Pass and Pro include full directory search and firm intel. Compare plans
                   when you need to research beyond the Free sample.
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-slate-100/90">
@@ -484,7 +484,7 @@ export default function HomePage() {
               Choose the access you actually need.
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">
-              Free is up to 3 sample firm listings, with no search or filters. Pro and higher
+              Free is up to 3 sample firm listings, with no search or filters. Directory Pass and Pro
               include full directory search and detailed firm intel. Choose a sample or compare paid access.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">

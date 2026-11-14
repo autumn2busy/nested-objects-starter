@@ -1,4 +1,6 @@
-export type SubscriptionTier = 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency'
+import { DIRECTORY_PASS_BILLING, isConfiguredDirectoryPass, type MembershipTier } from '@/lib/outseta-plan-billing'
+
+export type SubscriptionTier = MembershipTier
 
 type ProfileOperation = 'insert' | 'update' | string
 
@@ -36,6 +38,7 @@ export function isPaidTier(tier?: SubscriptionTier | null): boolean {
 
 export function getPlanValue(tier: SubscriptionTier): number {
     switch (tier) {
+        case 'directory_pass': return DIRECTORY_PASS_BILLING.amount
         case 'starter': return 99
         case 'founders': return 37
         case 'pro': return 49
@@ -60,6 +63,10 @@ export function buildPaidLifecycleDecision({
     const newTier = current.subscription_tier ?? 'free'
     const newPlanName = current.plan_name || newTier
     const newPlanUid = current.plan_uid
+    if (newTier === 'directory_pass' || isConfiguredDirectoryPass(newPlanUid)) {
+        // A membership event is neither a settled $199 receipt nor a recurring subscription.
+        return { shouldTrack: false, reason: 'one_time_payment_evidence_required' }
+    }
     const previousWasPaid = isPaidTier(previousTier)
     const newIsPaid = isPaidTier(newTier)
     const planChanged =

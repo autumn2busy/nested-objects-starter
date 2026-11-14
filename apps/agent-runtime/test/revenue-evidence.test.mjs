@@ -97,6 +97,18 @@ test('revenue evidence counts captured minor units and successful refunds, not n
   assert.ok(result.metrics.every((item) => !item.metricName.includes('upgrade')))
 })
 
+test('Directory Pass and unknown plans preserve verified one-time collection truth without creating MRR or ARR', () => {
+  for (const plan of ['directory_pass', 'unknown']) {
+    const input = fixture()
+    input.stripe.rows[0].amountCapturedMinor = 19_900
+    input.outseta.rows[0].plan = plan
+    input.allocations.rows[0].amountMinor = 19_900
+    const result = adaptRevenueEvidence(input)
+    assert.deepEqual(values(result), { gross: 19_900, retained: 19_900, membership: 19_900 })
+    assertUnknown(result, 'revenue.mrr', 'revenue.arr')
+  }
+})
+
 test('revenue evidence ignores failed and canceled refunds but withholds unresolved refund outcomes', () => {
   for (const status of ['failed', 'canceled']) {
     const input = fixture()

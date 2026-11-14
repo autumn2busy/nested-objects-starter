@@ -57,7 +57,7 @@ export function TechHero() {
 
                 {/* Subhead */}
                 <p className="mx-auto mb-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:mb-10 sm:text-xl">
-                    Pro and higher unlock directory search, filters, and detailed firm intel.
+                    Directory Pass and Pro unlock directory search, filters, and detailed firm intel.
                     Research companies before you spend time applying, and confirm current opportunities directly with each firm.
                 </p>
 

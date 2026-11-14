@@ -57,6 +57,7 @@ function environment(overrides = {}) {
     OUTSETA_HOSTNAME: 'nested-objects.outseta.com',
     OUTSETA_API_KEY: 'synthetic-outseta-key',
     OUTSETA_API_SECRET: 'synthetic-outseta-secret',
+    OUTSETA_DIRECTORY_PASS_PLAN_UID: 'EWBk3dmr',
     AC_API_URL: 'https://synthetic.api-us1.com',
     AC_API_KEY: 'synthetic-activecampaign-api-key',
     ...overrides,
