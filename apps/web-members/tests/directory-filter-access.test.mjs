@@ -325,3 +325,40 @@ test('a research timestamp alone never labels a directory card vendor verified',
   const verified = renderToStaticMarkup(React.createElement(directory.DirectoryView, { ...props, initialFirms: [{ ...props.initialFirms[0], vendor_verified: true }] }))
   assert.match(verified, /<span>Vendor verified<\/span>/)
 })
+
+// Emulate exact PostgREST source equality: OR aliases include Remote; an AND rejects it.
+test('the actual paid server query ORs work-setting aliases and excludes matching research prose', async () => {
+  const candidates = [
+    { ...firms[0], source: 'Remote' },
+    { ...firms[1], source: 'Field + Remote' },
+    { ...firms[2], source: 'Research/cleanup: Remote application endpoint' },
+  ]
+  const constants = load('../app/hiring-firms/constants.ts')
+  const page = load('../app/hiring-firms/page.tsx', {
+    'next/link': nextLink, './DirectoryView': directory,
+    '@/lib/seo': { generatePageMetadata: value => value, getFAQPageSchema: value => value },
+    './constants': constants,
+    './state-data': load('../app/hiring-firms/state-data.ts', { './constants': constants }),
+    '@/lib/testimonials': { TESTIMONIALS: [], getAverageRating: () => 0 },
+    '@/lib/auth-server': { getCurrentUser: async () => ({ 'outseta:planUid': 'rQVqlLm6' }) },
+    '@/lib/plan-config': load('../lib/plan-config.ts'),
+  }, {
+    process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://fixture.example', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'synthetic' } },
+    async fetch(url) {
+      const query = new URL(url).searchParams.get('and')
+      const isOr = query.startsWith('(or(') && query.endsWith('))')
+      const terms = query.slice(isOr ? 4 : 1, isOr ? -2 : -1).split(',')
+      assert.ok(terms.every(term => term.startsWith('source.eq.')))
+      const rows = candidates.filter(firm => isOr
+        ? terms.some(term => firm.source === term.slice('source.eq.'.length))
+        : terms.every(term => firm.source === term.slice('source.eq.'.length)))
+      return { ok: true, headers: { get: name => name === 'content-range' ? '0-0/' + rows.length : null }, json: async () => rows }
+    },
+  })
+  const tree = await page.default({ searchParams: Promise.resolve({ source: 'Remote/Desk' }) })
+  const view = findElement(tree, node => node.type === directory.DirectoryView)
+  assert.equal(view.props.totalCount, 1)
+  assert.equal(view.props.initialFirms.length, 1)
+  assert.equal(view.props.initialFirms[0].id, candidates[0].id)
+  assert.equal(view.props.initialFirms[0].source, 'Remote / Desk')
+})
