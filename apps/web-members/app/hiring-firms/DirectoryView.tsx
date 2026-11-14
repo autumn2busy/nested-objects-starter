@@ -7,6 +7,7 @@ import { FieldHelperText, FieldLabel, Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { StarRating } from '@/components/ui/StarRating'
 import { US_STATES } from './constants'
+import { normalizeFirmWorkSetting } from '@/lib/firm-work-setting'
 import {
   DirectoryAnalytics,
   DirectoryLoginLink,
@@ -91,6 +92,7 @@ export type Firm = {
   contractor_rating: number | null
   rating_count?: number | null
   verified_at?: string | null
+  vendor_verified?: boolean | null
   phone: string | null
   email: string | null
   address: string | null
@@ -393,7 +395,7 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
   const phone = hasDisplayValue(firm.phone) ? firm.phone : null
   const vendorPageUrl = hasDisplayValue(firm.vendor_page_url) ? firm.vendor_page_url : null
   const websiteUrl = hasDisplayValue(firm.url) ? firm.url : null
-  const source = hasDisplayValue(firm.source) ? firm.source : null
+  const source = normalizeFirmWorkSetting(firm.source)
   const payText =
     firm.pay_min != null || firm.pay_max != null
       ? [
@@ -433,10 +435,10 @@ function FirmCard({ firm, canTrack }: { firm: Firm; canTrack: boolean }) {
           </div>
           <div className="min-w-0 space-y-0.5 break-words">
             <h3 className="text-lg font-semibold leading-tight text-slate-900">{firm.name}</h3>
-            {firm.verified_at ? (
+            {firm.vendor_verified === true ? (
               <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
                 <BadgeCheck className="h-3.5 w-3.5" />
-                <span>Verified</span>
+                <span>Vendor verified</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -535,7 +537,7 @@ function TeaserCard({ firm }: { firm: Firm }) {
           <div className="h-10 w-10 rounded-full bg-slate-300" />
           <div className="space-y-1">
             <div className="text-lg font-semibold text-slate-900">{firm.name}</div>
-            <div className="text-[10px] text-slate-400">Verified Firm</div>
+            <div className="text-[10px] text-slate-400">Firm profile</div>
           </div>
         </div>
         <div className="mt-4 text-xs leading-relaxed text-slate-700">
@@ -761,7 +763,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
 
       {access.isFree && firms.length > displayedFirms.length && (
         <p className="mt-4 text-xs text-slate-600">
-          Showing {displayedFirms.length} of {totalCount} verified firms on the Free preview. Upgrade to unlock them all.
+          Showing {displayedFirms.length} of {totalCount} firms on the Free preview. Upgrade to unlock them all.
         </p>
       )}
 

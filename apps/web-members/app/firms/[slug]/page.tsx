@@ -19,6 +19,7 @@ import { FirmViewTracker } from './FirmViewTracker'
 import { formatPay, parseCategories, parseSocialLinks } from './firm-helpers'
 import { getCurrentUser } from '@/lib/auth-server'
 import { PAID_PLANS } from '@/lib/plan-config'
+import { normalizeFirmWorkSetting } from '@/lib/firm-work-setting'
 
 /* Dev SSL fix */
 if (process.env.NODE_ENV === 'development') {
@@ -95,12 +96,12 @@ const _getFirmBySlug = async (slug: string): Promise<FirmRow | null> => {
     .eq('is_published', true)
     .maybeSingle()
   if (error) { console.error('Error loading firm by slug', error); return null }
-  return data as FirmRow | null
+  return data ? { ...data, source: normalizeFirmWorkSetting(data.source) } as FirmRow : null
 }
 
 const getFirmBySlugCached = unstable_cache(
   _getFirmBySlug,
-  ['firm-by-slug'],
+  ['firm-by-slug-display-v2'],
   { tags: ['firms'] }
 )
 

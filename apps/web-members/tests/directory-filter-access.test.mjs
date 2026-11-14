@@ -25,6 +25,7 @@ function load(relativePath, imports = {}, globals = {}) {
       if (name === 'react') return React
       if (name === 'react/jsx-runtime') return jsxRuntime
       if (name === 'lucide-react') return require('lucide-react')
+      if (name === '@/lib/firm-work-setting') return load('../lib/firm-work-setting.ts')
       if (name in imports) return imports[name]
       throw new Error(`Unexpected import in ${relativePath}: ${name}`)
     },
@@ -303,3 +304,23 @@ for (const scenario of scenarios.slice(2)) {
     for (const [name, value] of Object.entries(filters)) assert.equal(destination.searchParams.get(name), value)
   })
 }
+
+// A provenance note must never become customer-facing work-setting copy.
+test('published research notes do not leak into actual paid directory cards', () => {
+  const scenario = scenarios.find(item => item.name === 'Pro')
+  const marker = 'Official-site research 2026-10-12. Website: https://research.invalid Scope: no application submitted'
+  const props = { ...propsFor(scenario), initialFirms: [{ ...firms[0], source: marker }] }
+  const html = renderToStaticMarkup(React.createElement(directory.DirectoryView, props))
+  assert.doesNotMatch(html, /Official-site research|research\.invalid|no application submitted/)
+  assert.match(plain(html), /Work setting not specified/)
+})
+
+test('a research timestamp alone never labels a directory card vendor verified', () => {
+  const scenario = scenarios.find(item => item.name === 'Pro')
+  const props = { ...propsFor(scenario), initialFirms: [{ ...firms[0], verified_at: '2026-11-14T00:00:00Z', vendor_verified: false }] }
+  const unverified = renderToStaticMarkup(React.createElement(directory.DirectoryView, props))
+  assert.doesNotMatch(unverified, /<span>Vendor verified<\/span>/)
+  assert.match(unverified, /Directory Listed/)
+  const verified = renderToStaticMarkup(React.createElement(directory.DirectoryView, { ...props, initialFirms: [{ ...props.initialFirms[0], vendor_verified: true }] }))
+  assert.match(verified, /<span>Vendor verified<\/span>/)
+})

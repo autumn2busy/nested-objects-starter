@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { normalizeFirmWorkSetting, firmWorkSettingFilter } from '@/lib/firm-work-setting'
 import { DirectoryView } from './DirectoryView'
 import type { DirectoryAccess, DirectoryFilters, Firm } from './DirectoryView'
 import { generatePageMetadata, getFAQPageSchema } from '@/lib/seo'
@@ -189,8 +190,7 @@ function buildIndustryOrFilter(industry: string) {
 
 function buildSourceOrFilter(source: string) {
   if (!source || source === 'ALL') return null
-  const q = sanitizeFilterValue(source)
-  return `source.ilike.*${q}*`
+  return firmWorkSettingFilter(source)
 }
 
 function sanitizeFreePreviewFirms(firms: Firm[]) {
@@ -250,6 +250,7 @@ async function getFirms(
         'contractor_rating',
         'rating_count',
         'verified_at',
+        'vendor_verified',
         'phone',
         'email',
         'address',
@@ -330,7 +331,7 @@ async function getFirms(
     const countFromHeader = contentRange
       ? Number.parseInt(contentRange.split('/')[1] ?? '', 10)
       : Number.NaN
-    let firms = (await res.json()) as Firm[]
+    let firms = ((await res.json()) as Firm[]).map(firm => ({ ...firm, source: normalizeFirmWorkSetting(firm.source) }))
 
     // Apply pay range filter client-side (numeric comparison)
     if (payMinFilter && !isNaN(payMinFilter) && payMinFilter > 0) {
