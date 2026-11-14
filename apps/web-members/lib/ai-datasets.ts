@@ -1,4 +1,4 @@
-import { DIRECTORY_PASS_PLAN_UID, PLAN_NAMES, PLAN_UIDS } from './plan-config'
+import { DIRECTORY_PASS_PLAN_UID, DIRECTORY_PASS_CHECKOUT_ENABLED, PLAN_NAMES, PLAN_UIDS } from './plan-config'
 
 export type MembershipPlan = {
   name: string
@@ -78,7 +78,7 @@ export const membershipPlans: MembershipPlan[] = [
     price: '$199',
     period: '12 months',
     paymentTerm: 'oneTime',
-    checkoutUnavailable: !DIRECTORY_PASS_PLAN_UID,
+    checkoutUnavailable: !DIRECTORY_PASS_PLAN_UID || !DIRECTORY_PASS_CHECKOUT_ENABLED,
     headline: 'Full directory. One payment. Twelve months.',
     description: 'Research firms with full directory search, filters, and firm profiles for 12 months. One $199 payment; no automatic renewal. Training and Pro tools are not included.',
     highlight: false,

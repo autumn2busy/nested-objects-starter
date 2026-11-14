@@ -33,7 +33,7 @@ const exactContextSchema = z.object({
     sourceSystem: z.literal('outseta'), authoritative: z.literal(true), isCurrent: z.literal(true),
     identityState: z.literal('verified'), sourceRecordId: id,
     outsetaPersonUid: id, outsetaAccountUid: id, subscriptionUid: id,
-    tier: z.enum(['free', 'starter', 'founders', 'pro', 'elite', 'agency', 'unknown']),
+    tier: z.enum(['free', 'directory_pass', 'starter', 'founders', 'pro', 'elite', 'agency', 'unknown']),
     lifecycle: z.enum(['active', 'trialing', 'past_due', 'canceled', 'paused', 'inactive', 'unknown']),
     memberSince: timestamp, cycleStartedAt: timestamp,
   }).strict(),

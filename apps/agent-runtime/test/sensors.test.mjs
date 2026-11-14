@@ -162,6 +162,9 @@ test('ActiveCampaign sensor identifies required lifecycle and hygiene cases with
     assert.equal(serialized.includes(observation.contact.email), false)
   }
   assert.ok(result.metrics.every((metric) => metric.domain === 'marketing' && metric.provenance.revenueAuthority === false))
+  const pass = result.classifications.find((item) => item.sourceContactId === 'ac-pass')
+  assert.equal(pass.membershipTier, 'directory_pass')
+  assert.equal(pass.classification, 'current_member')
 })
 
 test('Phase C contact authority joins by stored ActiveCampaign contact ID, never by email alone', () => {
@@ -258,6 +261,7 @@ function ownerAllowlist() {
 
 function activeCampaignFixture() {
   const paidMembership = membership('member-paid', 'pro', 'active')
+  const directoryPassMembership = membership('member-pass', 'directory_pass', 'active')
   const canceledMembership = membership('member-canceled', 'pro', 'canceled')
   const freeMembership = membership('member-free', 'free', 'active')
   return {
@@ -275,6 +279,17 @@ function activeCampaignFixture() {
       { ...automation('automation-stale', 'reengagement', []), lastActivityAt: '2026-01-01T00:00:00.000Z' },
     ],
     contacts: [
+      {
+        contact: { ...contact('ac-pass', 'pass@example.com'), tagNames: ['plan-free'] },
+        membership: directoryPassMembership,
+        planLabel: 'Directory Pass — 12 months',
+        automationIds: [],
+        onboardingEnteredAt: fixedNow,
+        purchaseObservedAt: '2026-08-20T00:00:00.000Z',
+        currentEngagementCount: 1,
+        priorEngagementCount: 1,
+        highIntentScore: null,
+      },
       {
         contact: { ...contact('ac-paid', 'paid@example.com'), bounced: true },
         membership: paidMembership,

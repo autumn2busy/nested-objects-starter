@@ -12,6 +12,7 @@ import { buildPaidLifecycleDecision } from '@/lib/free-to-pro-lifecycle';
 import { recordConversionEvent } from '@/lib/conversion-events';
 import { emitFreeJourneySourceEvent } from '@/lib/free-journey-operation-producer';
 import { mapOutsetaBillingStage } from '@/lib/outseta-billing-stage';
+import { isConfiguredDirectoryPass, mapOutsetaPlanTier, outsetaSubscriptionEndDate, type MembershipTier } from '@/lib/outseta-plan-billing';
 import type { SyncResult } from '@/lib/active-campaign-sync-result';
 
 // =================================================================
@@ -41,6 +42,8 @@ interface OutsetaPlan {
   Name: string;
   MonthlyRate?: number;
   AnnualRate?: number;
+  OneTimeRate?: number;
+  ExpiresAfterMonths?: number;
 }
 
 interface OutsetaSubscription {
@@ -48,8 +51,9 @@ interface OutsetaSubscription {
   BillingRenewalTerm?: number;
   Plan?: OutsetaPlan;
   StartDate?: string;
-  EndDate?: string;
-  RenewalDate?: string;
+  EndDate?: string | null;
+  RenewalDate?: string | null;
+  ExpirationDate?: string | null;
 }
 
 interface OutsetaAccount {
@@ -104,7 +108,7 @@ export interface ProfileUpdateData {
   full_name: string | null;
   display_name: string | null;
   phone: string | null;
-  subscription_tier: 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency';
+  subscription_tier: MembershipTier;
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused' | null;
   subscription_start_date: string | null;
   subscription_end_date: string | null;
@@ -167,16 +171,7 @@ function mapAccountStageToStatus(stage?: number, label?: string): ProfileUpdateD
 }
 
 function mapPlanToTier(planName?: string, planUid?: string): ProfileUpdateData['subscription_tier'] {
-  if (planUid === 'pWrBRnWn') return 'founders';
-  if (!planName) return 'free';
-  const normalized = planName.toLowerCase();
-  if (normalized.includes('agency')) return 'agency';
-  if (normalized.includes('elite')) return 'elite';
-  if (normalized.includes('pro')) return 'pro';
-  if (normalized.includes('founder')) return 'founders';
-  if (normalized.includes('founders')) return 'founders';
-  if (normalized.includes('starter') || normalized.includes('directory')) return 'starter';
-  return 'free';
+  return mapOutsetaPlanTier(planName, planUid);
 }
 
 function isPaidTier(tier?: ProfileUpdateData['subscription_tier'] | null) {
@@ -194,12 +189,12 @@ function preserveStoredMembershipContext(
   return {
     ...incoming,
     outseta_account_id: incoming.outseta_account_id || existing.outseta_account_id,
-    subscription_tier: existing.subscription_tier!,
+    subscription_tier: isConfiguredDirectoryPass(existing.plan_uid) ? 'directory_pass' : existing.subscription_tier!,
     subscription_start_date: incoming.subscription_start_date || existing.subscription_start_date,
     subscription_end_date: incoming.subscription_end_date || existing.subscription_end_date,
     plan_uid: existing.plan_uid,
     plan_name: existing.plan_name,
-    billing_renewal_term: incoming.billing_renewal_term || existing.billing_renewal_term,
+    billing_renewal_term: incoming.billing_renewal_term ?? existing.billing_renewal_term,
   };
 }
 
@@ -240,10 +235,10 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
       subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
       subscription_status: mapAccountStageToStatus(account?.AccountStage, account?.AccountStageLabel),
       subscription_start_date: subscription?.StartDate || null,
-      subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
+      subscription_end_date: outsetaSubscriptionEndDate(subscription),
       plan_uid: plan?.Uid || null,
       plan_name: plan?.Name || null,
-      billing_renewal_term: subscription?.BillingRenewalTerm || null,
+      billing_renewal_term: subscription?.BillingRenewalTerm ?? null,
       outseta_created_at: person.Created || null,
       outseta_updated_at: person.Updated || new Date().toISOString(),
       outseta_data: payload,
@@ -284,10 +279,10 @@ function mapOutsetaToProfile(payload: OutsetaWebhookPayload): ProfileUpdateData 
     subscription_tier: mapPlanToTier(plan?.Name, plan?.Uid),
     subscription_status: mapAccountStageToStatus(account.AccountStage, account.AccountStageLabel),
     subscription_start_date: subscription?.StartDate || null,
-    subscription_end_date: subscription?.RenewalDate || subscription?.EndDate || null,
+    subscription_end_date: outsetaSubscriptionEndDate(subscription),
     plan_uid: plan?.Uid || null,
     plan_name: plan?.Name || null,
-    billing_renewal_term: subscription?.BillingRenewalTerm || null,
+    billing_renewal_term: subscription?.BillingRenewalTerm ?? null,
     outseta_created_at: person.Created || null,
     outseta_updated_at: person.Updated || new Date().toISOString(),
     outseta_data: payload,
@@ -473,7 +468,7 @@ export async function POST(request: NextRequest) {
       console.log(`[${requestId}] AC sync result`, { status: acSync.status, steps: acSync.steps });
     }
 
-    if (!acSync.recoveryRequired) {
+    if (!acSync.recoveryRequired && profileData.subscription_tier !== 'directory_pass') {
       const journeyRouting = await emitFreeJourneySourceEvent({
         kind: 'signup',
         occurredAt: subscriptionStartFromPayload(payload) || profileData.outseta_created_at,

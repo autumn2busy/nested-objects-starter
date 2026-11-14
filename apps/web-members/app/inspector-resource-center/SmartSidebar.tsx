@@ -17,6 +17,7 @@ import {
     Users,
 } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
+import { isDirectoryPassPlanUid } from '@/lib/plan-config'
 
 // ── Plan UIDs from auth-provider ─────────────────────────────────────
 // Starter = L9nbKV9Z, Directory = zWZD0rQp, Pro = rQVqlLm6
@@ -36,6 +37,7 @@ type Recommendation = {
 }
 
 function getTierLabel(planUid: string | null): string {
+    if (isDirectoryPassPlanUid(planUid)) return 'Directory Pass'
     const map: Record<string, string> = {
         L9nbKV9Z: 'Starter',
         zWZD0rQp: 'Directory',
@@ -130,6 +132,13 @@ function getRecommendations(
         ]
     }
 
+    if (tier === 'Directory Pass') {
+        return [
+            { icon: <Search className="w-5 h-5" />, eyebrow: 'Directory', title: 'Research firms and build your shortlist', description: 'Use your 12-month directory access to review firm profiles, coverage and application details.', href: '/hiring-firms' },
+            { icon: <TrendingUp className="w-5 h-5" />, eyebrow: 'Calculator', title: 'Plan your income assumptions', description: 'Use the income scenario planner to compare your own costs and assumptions.', href: '/tools/income-calculator' },
+            { icon: <BookOpen className="w-5 h-5" />, eyebrow: 'Pro membership', title: 'Add training and core tools with Pro', description: 'Directory Pass does not include the training library or Pro tools. Compare Pro at $49/month.', href: '/membership-pricing' },
+        ]
+    }
     // ── Directory pass ───────────────────────────────────────────────
     if (tier === 'Directory') {
         return [
@@ -345,8 +354,8 @@ export default function SmartSidebar() {
                     </p>
                     <p className="mt-1 text-slate-200">
                         {tier === 'Pro'
-                            ? 'Elite members get partner referrals, 1-to-1 gaming sessions, and concierge calls.'
-                            : 'Pro members unlock the full directory, full training, and readiness resources.'}
+                            ? 'Your Pro membership includes the directory, training and core member tools.'
+                            : 'Choose Directory Pass for directory research, or Pro for the directory, training and core tools.'}
                     </p>
                     <Link
                         href="/membership-pricing"

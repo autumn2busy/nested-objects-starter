@@ -39,7 +39,14 @@ test('runtime remains default-disabled and requires explicit Preview or exact Pr
     { FREE_JOURNEY_LIVE_READS_ENABLED: 'false' },
     { FREE_JOURNEY_EXCLUSION_POLICY_JSON: undefined },
     { FREE_JOURNEY_EXCLUSION_POLICY_JSON: '{}' },
+    { OUTSETA_DIRECTORY_PASS_PLAN_UID: undefined },
+    { OUTSETA_DIRECTORY_PASS_PLAN_UID: 'wrong-directory-pass-uid' },
   ]) assert.throws(() => loadFreeJourneyOperationRuntimeConfiguration(environment(changes)), FreeJourneyOperationConfigurationError)
+
+  assert.equal(
+    loadFreeJourneyOperationRuntimeConfiguration(environment()).sourcePolicy.directoryPassPlanUid,
+    'EWBk3dmr',
+  )
 
   for (const changes of [
     { FREE_JOURNEY_OPERATIONAL_MODE: undefined },

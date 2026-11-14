@@ -282,7 +282,7 @@ export default function InspectorRolePage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />
-                  A preview of planned member tools, with execution still disabled.
+                  Use the income scenario planner and compare the tools included with each plan.
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-2 w-2 shrink-0 bg-brand-copper" aria-hidden="true" />

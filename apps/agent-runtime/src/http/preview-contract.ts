@@ -29,9 +29,9 @@ const nullableTimestampSchema = timestampSchema.nullable().optional()
 const emptyOptionalTextSchema = z.union([z.literal(''), z.null()]).optional()
 const limitedStringArraySchema = (maximumItems: number, maximumLength = 200) =>
   z.array(z.string().trim().min(1).max(maximumLength)).max(maximumItems)
-const membershipTierSchema = z.enum(['free', 'starter', 'founders', 'pro', 'elite', 'agency', 'unknown'])
+const membershipTierSchema = z.enum(['free', 'directory_pass', 'starter', 'founders', 'pro', 'elite', 'agency', 'unknown'])
 const membershipStatusSchema = z.enum(['active', 'trialing', 'past_due', 'canceled', 'paused', 'incomplete', 'unknown'])
-const planNameSchema = z.enum(['Free', 'Starter', 'Founders', 'Pro', 'Elite', 'Agency', 'Unknown'])
+const planNameSchema = z.enum(['Free', 'Directory Pass', 'Starter', 'Founders', 'Pro', 'Elite', 'Agency', 'Unknown'])
 const conversionEventNameSchema = z.enum([
   'pricing_viewed',
   'pricing_cta_clicked',

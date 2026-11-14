@@ -211,6 +211,31 @@ test('exact stable links and complete relationship pagination produce one server
   assert.equal(calls.filter(call => new URL(call.url).pathname.endsWith('/contactLists')).length, 2)
 })
 
+test('exact configured Directory Pass UID remains paid despite legacy Free tags and cannot enter the Free journey', async () => {
+  const passSubscription = {
+    ...accountBody().CurrentSubscription,
+    Plan: { Uid: 'EWBk3dmr', Name: 'Directory Pass' },
+  }
+  const { result, calls } = await collect(
+    { account: { CurrentSubscription: passSubscription }, tagName: 'plan-free' },
+    { directoryPassPlanUid: 'EWBk3dmr' },
+  )
+  assert.equal(result.status, 'ready')
+  assert.equal(result.external.memberships.rows[0].tier, 'directory_pass')
+  const preview = previewFreeJourneySources({
+    onboarding: {
+      outsetaPersonUid: person, now, maxSnapshotAgeMs: 60_000,
+      profiles: storedSources().profiles, completionEvents: storedSources().completionEvents,
+    },
+    ...result.external,
+    consentRequests: storedSources().consentRequests,
+  })
+  assert.equal(preview.status, 'withheld')
+  assert.deepEqual(preview.reasons, ['not_current_free_member'])
+  assert.equal(preview.attemptedWrites, 0)
+  assert(calls.every(call => call.method === 'GET'))
+})
+
 test('missing or contradictory stable authority withholds before downstream use', async () => {
   const cases = [
     [{ account: { PersonAccount: [{ IsPrimary: true, Person: { Uid: 'OtherPerson', Email: 'member@example.com' } }] } }, 'outseta_primary_person_conflict'],

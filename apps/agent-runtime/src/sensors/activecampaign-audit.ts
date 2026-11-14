@@ -13,7 +13,7 @@ export type MarketingContactClassification =
 
 export type MarketingEngagementState = 'clicked' | 'opened' | 'visited' | 'stale' | 'never_engaged' | 'unknown'
 export type AssetBusinessScope = 'nested_objects' | 'legacy' | 'internal' | 'test' | 'unknown'
-export type MarketingTier = 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
+export type MarketingTier = 'free' | 'directory_pass' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown'
 export type MarketingLifecycle = 'active' | 'trialing' | 'canceling' | 'canceled' | 'inactive' | 'past_due' | 'paused' | 'incomplete' | 'unknown'
 export type MarketingSource = 'cold_import' | 'wix' | 'vercel'
 export type MarketingAudienceTrait = 'internal' | 'coworker' | 'test' | 'demo' | 'hiring_firm'
@@ -276,9 +276,11 @@ function deriveEngagementState(
 }
 
 export function normalizeMarketingTier(value: string | null | undefined): MarketingTier {
-  const normalized = normalizeName(value ?? '')
+  const label = normalizeName(value ?? '')
+  if (label === 'directory pass — 12 months') return 'directory_pass'
+  const normalized = label.replace(/[\s-]+/g, '_')
   if (normalized === 'founder') return 'founders'
-  return ['free', 'starter', 'founders', 'pro', 'elite', 'agency'].includes(normalized) ? normalized as MarketingTier : 'unknown'
+  return ['free', 'directory_pass', 'starter', 'founders', 'pro', 'elite', 'agency'].includes(normalized) ? normalized as MarketingTier : 'unknown'
 }
 
 export function normalizeMarketingLifecycle(value: string | null | undefined): MarketingLifecycle {

@@ -76,7 +76,7 @@ export interface FreeJourneyEvidenceInput {
         authoritative: true;
         identityState: 'verified' | 'conflict' | 'unknown';
         isCurrent: boolean;
-        tier: 'free' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown';
+        tier: 'free' | 'directory_pass' | 'starter' | 'founders' | 'pro' | 'elite' | 'agency' | 'unknown';
         lifecycle: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused' | 'inactive' | 'unknown';
         memberSince: string;
         cycleStartedAt: string;

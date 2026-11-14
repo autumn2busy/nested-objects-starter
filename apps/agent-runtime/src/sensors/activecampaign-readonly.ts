@@ -895,6 +895,8 @@ function scopeKey(scope: ActiveCampaignReadScope): string {
 
 function normalizeTier(value: string | null | undefined): string {
   const normalized = value?.trim().toLowerCase() ?? 'unknown'
+  if (normalized === 'directory pass — 12 months') return 'directory_pass'
+  if (normalized.replace(/[\s-]+/g, '_') === 'directory_pass') return 'directory_pass'
   if (normalized.includes('agency')) return 'agency'
   if (normalized.includes('elite')) return 'elite'
   if (normalized.includes('pro')) return 'pro'

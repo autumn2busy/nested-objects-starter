@@ -2,6 +2,7 @@ import type { ProfileUpdateData } from '@/app/api/webhooks/outseta/route';
 import { env } from '@/lib/env';
 import { createServiceRoleClient } from '@/lib/supabase-admin';
 import { AcSyncError, AcSyncRun, type SyncResult } from '@/lib/active-campaign-sync-result';
+import { DIRECTORY_PASS_BILLING, isConfiguredDirectoryPass, isUnverifiedDirectoryPass } from '@/lib/outseta-plan-billing';
 
 const AC_API_URL = env.acApiUrl;
 const AC_API_KEY = env.acApiKey;
@@ -22,7 +23,7 @@ interface StoredMembershipContext {
     billing_renewal_term?: number | null;
 }
 
-const PAID_TIERS = new Set(['starter', 'founders', 'pro', 'elite', 'agency']);
+const PAID_TIERS = new Set(['starter', 'founders', 'pro', 'elite', 'agency', 'directory_pass']);
 
 function isPaidTier(profile: ProfileUpdateData) {
     return PAID_TIERS.has(profile.subscription_tier);
@@ -68,6 +69,7 @@ function getOriginOrderId(profile: ProfileUpdateData) {
 
 function getPlanAmount(profile: ProfileUpdateData) {
     switch (profile.subscription_tier) {
+        case 'directory_pass': return DIRECTORY_PASS_BILLING.amount;
         case 'starter': return 99;
         case 'founders': return 37;
         case 'pro': return 49;
@@ -120,7 +122,7 @@ function preserveStoredMembershipContext(
         subscription_end_date: profile.subscription_end_date || storedProfile.subscription_end_date || null,
         plan_uid: storedProfile.plan_uid || null,
         plan_name: storedProfile.plan_name || null,
-        billing_renewal_term: profile.billing_renewal_term || storedProfile.billing_renewal_term || null,
+        billing_renewal_term: profile.billing_renewal_term ?? storedProfile.billing_renewal_term ?? null,
     };
 }
 
@@ -198,7 +200,15 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
             return;
         }
         const dbProfile = stored.profile;
-        const syncProfile = preserveStoredMembershipContext(profile, dbProfile, run.logs);
+        const preservedProfile = preserveStoredMembershipContext(profile, dbProfile, run.logs);
+        const directoryPass = isConfiguredDirectoryPass(preservedProfile.plan_uid);
+        if (isUnverifiedDirectoryPass(preservedProfile)) {
+            throw new AcSyncError('directory_pass_uid_unverified');
+        }
+        // Exact UID wins over an older Starter projection, including plan-light updates.
+        const syncProfile: ProfileUpdateData = directoryPass
+            ? { ...preservedProfile, subscription_tier: 'directory_pass' }
+            : preservedProfile;
         const contactId = await run.attempt('contact', async () => {
             const id = await syncContact(syncProfile);
             if (dbProfile?.ac_contact_id && String(dbProfile.ac_contact_id) !== id) {
@@ -228,7 +238,14 @@ export async function syncFullProfileDeepData(profile: ProfileUpdateData): Promi
 
         // Customer failure must not prevent independent membership tag sync.
         await syncTags(contactId, syncProfile, run);
-        if (!isPaidTier(syncProfile) || !syncProfile.plan_uid) {
+        if (directoryPass) {
+            // Membership webhooks establish a product, not a settled one-time payment.
+            // Await payment-grade evidence before creating a $199 order. ExpirationDate
+            // is access expiry, never a renewal or a recurring-payment schedule.
+            run.record('order', 'skipped', 'one_time_payment_evidence_required');
+            run.record('recurring', 'skipped', 'nonrecurring_directory_pass');
+            run.record('renewal_field', 'skipped', 'nonrecurring_directory_pass');
+        } else if (!isPaidTier(syncProfile) || !syncProfile.plan_uid) {
             run.record('order', 'skipped', 'free_or_no_plan');
             run.record('recurring', 'skipped', 'free_or_no_plan');
         } else if (!customerId) {
@@ -355,7 +372,8 @@ async function readContactTags(contactId: string): Promise<ContactTag[]> {
 }
 
 async function syncTags(contactId: string, profile: ProfileUpdateData, run: AcSyncRun) {
-    const tagTier = profile.subscription_tier === 'founders' ? 'founder' : profile.subscription_tier;
+    const tagTier = profile.subscription_tier === 'founders' ? 'founder'
+        : profile.subscription_tier === 'directory_pass' ? 'directory-pass' : profile.subscription_tier;
     const expectedTierTag = shouldSyncPlanTag(profile) ? `plan-${tagTier}` : null;
     const expectedStatusTag = profile.subscription_status ? `status-${profile.subscription_status}` : null;
     const existing = await run.attempt('tag_read', () => readContactTags(contactId));

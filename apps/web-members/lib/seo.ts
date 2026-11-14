@@ -9,7 +9,7 @@
  */
 
 import { getSiteUrl } from '@/lib/seo-env'
-import { PLAN_UIDS, DIRECTORY_PASS_PLAN_UID } from '@/lib/plan-config'
+import { PLAN_UIDS, DIRECTORY_PASS_PLAN_UID, DIRECTORY_PASS_CHECKOUT_ENABLED } from '@/lib/plan-config'
 
 // Base URL - validated environment variable with local dev fallback
 export const SITE_URL = getSiteUrl()
@@ -30,7 +30,7 @@ export const CONTACT_PHONE_DISPLAY = '+1-615-739-7029'
 
 const SOFTWARE_APPLICATION_OFFERS = [
     { name: 'Free', planUid: PLAN_UIDS.FREE, price: '0' },
-    ...(DIRECTORY_PASS_PLAN_UID ? [{ name: 'Directory Pass', planUid: DIRECTORY_PASS_PLAN_UID, price: '199' }] : []),
+    ...(DIRECTORY_PASS_PLAN_UID && DIRECTORY_PASS_CHECKOUT_ENABLED ? [{ name: 'Directory Pass', planUid: DIRECTORY_PASS_PLAN_UID, price: '199' }] : []),
     { name: 'Pro', planUid: PLAN_UIDS.PRO, price: '49' },
     { name: 'Agency', planUid: PLAN_UIDS.AGENCY, price: '297' },
 ] as const

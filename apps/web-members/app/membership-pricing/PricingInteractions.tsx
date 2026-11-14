@@ -279,7 +279,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     if (isLoading) return 'Checking your plan…'
     if (pending) return 'Opening plan form…'
     if (isCurrentPlan) return 'Current plan'
-    if (plan.checkoutUnavailable) return 'Checkout setup in progress'
+    if (plan.checkoutUnavailable) return 'Directory Pass opens soon'
     if (plan.name === 'Directory Pass') return 'Get 12 months — $199 once'
     if (plan.waitlist) return plan.name === 'Agency' ? 'Team access in preparation' : 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'

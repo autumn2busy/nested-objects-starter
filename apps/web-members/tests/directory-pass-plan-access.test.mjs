@@ -3,12 +3,12 @@ import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
-function load(path, imports = {}, uid = 'PassTest1') {
+function load(path, imports = {}, uid = 'PassTest1', checkoutEnabled = false) {
   const exports = {}
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText
-  vm.runInNewContext(code, { exports, process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: uid } },
+  vm.runInNewContext(code, { exports, process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: uid, NEXT_PUBLIC_DIRECTORY_PASS_CHECKOUT_ENABLED: checkoutEnabled ? 'true' : 'false' } },
     require(name) { if (name in imports) return imports[name]; throw Error(`Unexpected import: ${name}`) } })
   return exports
 }
@@ -35,4 +35,16 @@ test('missing, malformed and legacy-colliding pass configuration never enables a
     assert.equal(config.isDirectoryPassPlanUid(uid), false, uid)
     assert.equal(config.isPublicPlanUid(config.PLAN_UIDS.ELITE), false)
   }
+})
+
+test('a checkout hold blocks new Pass purchases without revoking purchased directory access', () => {
+  const held = load('../lib/plan-config.ts')
+  const heldPlans = load('../lib/ai-datasets.ts', { './plan-config': held })
+  assert.equal(held.DIRECTORY_PASS_CHECKOUT_ENABLED, false)
+  assert.equal(held.PAID_PLANS.includes('PassTest1'), true)
+  assert.equal(heldPlans.membershipPlans.find(plan => plan.name === 'Directory Pass').checkoutUnavailable, true)
+  const enabled = load('../lib/plan-config.ts', {}, 'PassTest1', true)
+  const enabledPlans = load('../lib/ai-datasets.ts', { './plan-config': enabled })
+  assert.equal(enabledPlans.membershipPlans.find(plan => plan.name === 'Directory Pass').checkoutUnavailable, false)
+  assert.equal(enabledPlans.membershipPlans.find(plan => plan.name === 'Pro').price, '$49')
 })

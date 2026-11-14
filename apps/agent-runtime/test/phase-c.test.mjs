@@ -233,6 +233,11 @@ test('daily metrics preserve unknown revenue instead of inventing zero', () => {
     conversionEvents: [
       event('event-1', 'signup_completed', { plan_name: 'Pro', source: 'browser' }),
       event('event-signup-webhook', 'signup_completed', { plan_name: 'Pro', source: 'outseta', source_page: 'outseta_webhook', client_event_id: 'outseta-signup-1' }),
+      event('event-directory-pass', 'signup_completed', {
+        member_uid: 'outseta-person-directory-pass', member_email: 'pass@example.com', anonymous_id: 'anon-pass',
+        plan_name: 'Directory Pass — 12 months', source: 'outseta', source_page: 'outseta_webhook',
+        client_event_id: 'outseta-signup-directory-pass',
+      }),
       event('event-2', 'paywall_hit'),
     ],
     correlation,
@@ -240,6 +245,8 @@ test('daily metrics preserve unknown revenue instead of inventing zero', () => {
     observedAt: fixedNow,
   })
   assert.equal(metrics.find((metric) => metric.metricName === 'members.new.pro').value, 1)
+  assert.equal(metrics.find((metric) => metric.metricName === 'members.new.directory_pass').value, 1)
+  assert.equal(metrics.find((metric) => metric.metricName === 'members.new.starter').value, 0)
   assert.equal(metrics.find((metric) => metric.metricName === 'product.paywall_hits').value, 1)
   const mrr = metrics.find((metric) => metric.metricName === 'revenue.mrr')
   assert.equal(mrr.valueState, 'unknown')
@@ -280,6 +287,24 @@ test('lifecycle integrity detects paid access and ActiveCampaign plan mismatches
   assert.ok(signals.some((signal) => signal.signalType === 'lifecycle.paid_access_mismatch'))
   assert.ok(signals.some((signal) => signal.signalType === 'marketing.plan_state_conflict'))
   assert.ok(signals.every((signal) => signal.id === stableUuid('nested-objects-intelligence-signal', signal.fingerprint)))
+})
+
+test('lifecycle integrity keeps matching Directory Pass access and marketing mirrors out of mismatch findings', () => {
+  const projection = buildMemberProjectionBatch({
+    profiles: [profile({ subscription_tier: 'Directory Pass', plan_uid: 'EWBk3dmr' })],
+    conversionEvents: [], correlation, observedAt: fixedNow,
+  }).projections[0]
+  addOutsetaMembershipFixture(projection)
+  projection.memberships.at(-1).membershipTier = 'directory_pass'
+  projection.memberships.at(-1).planUid = 'EWBk3dmr'
+  const signals = evaluateLifecycleIntegrity({
+    projection,
+    productAccess: { memberId: profileId, accessTier: 'Directory Pass — 12 months', accessStatus: 'active', directoryAccess: true, observedAt: fixedNow },
+    activeCampaignMirror: { contactId: 'ac-pass', planName: 'Directory Pass — 12 months', lifecycleStatus: 'active', onboardingEnteredAt: fixedNow, observedAt: fixedNow },
+    marketingClassification: null, correlation, now: fixedNow,
+  })
+  assert.equal(signals.some(signal => signal.signalType === 'lifecycle.paid_access_mismatch'), false)
+  assert.equal(signals.some(signal => signal.signalType === 'marketing.plan_state_conflict'), false)
 })
 
 test('lifecycle integrity treats inactive access status as a paid-access mismatch', () => {

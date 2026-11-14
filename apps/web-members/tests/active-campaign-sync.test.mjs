@@ -15,11 +15,13 @@ function load(relative, modules = {}, extras = {}) {
   return context.exports
 }
 const resultModule = load('../lib/active-campaign-sync-result.ts')
+const planBilling = load('../lib/outseta-plan-billing.ts', { '@/lib/plan-config': load('../lib/plan-config.ts') },
+  { process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: 'PassFixture199' } } })
 const profile = { outseta_person_uid: 'person-fixture', outseta_account_id: 'account-fixture',
   user_email: 'synthetic@example.com', email: 'synthetic@example.com', subscription_tier: 'pro',
   subscription_status: 'active', plan_uid: 'plan-fixture', plan_name: 'Pro',
   subscription_start_date: '2026-09-01T00:00:00.000Z', outseta_data: {} }
-const tagNames = ['plan-pro', 'status-active', 'antigravity-subscription', 'launch-2026-03-01', 'plan-free', 'status-canceled']
+const tagNames = ['plan-pro', 'status-active', 'antigravity-subscription', 'launch-2026-03-01', 'plan-free', 'status-canceled', 'plan-directory-pass', 'plan-starter']
 const tagId = name => String(101 + tagNames.indexOf(name))
 const response = (data, status = 200) => ({ ok: status >= 200 && status < 300, status, json: async () => data })
 
@@ -72,10 +74,59 @@ function fixture(options = {}) {
     '@/lib/env': { env: { acApiUrl: 'https://synthetic.invalid', acApiKey: 'synthetic', acConnectionId: '4', ...options.env } },
     '@/lib/supabase-admin': { createServiceRoleClient: () => db },
     '@/lib/active-campaign-sync-result': resultModule,
+    '@/lib/outseta-plan-billing': planBilling,
   }, { fetch })
   return { run: (overrides = {}) => sync.syncFullProfileDeepData({ ...profile, ...overrides }), requests, writes, tags, lists, customer }
 }
 const failed = (result, step, code) => result.steps.some(item => item.step === step && item.state === 'failed' && (!code || item.code === code))
+
+for (const tier of ['directory_pass', 'starter']) {
+  test('exact Directory Pass UID overrides ' + tier + ' mirror without orders, recurring payments, renewal dates or consent', async () => {
+    const f = fixture({ tags: ['plan-starter', 'status-active'] })
+    const result = await f.run({ subscription_tier: tier, plan_uid: 'PassFixture199', plan_name: 'Directory Pass',
+      billing_renewal_term: 4, subscription_end_date: '2027-11-14T00:00:00Z',
+      outseta_data: { CurrentSubscription: { Uid: 'pass-cycle', BillingRenewalTerm: 4,
+        StartDate: '2026-11-14T00:00:00Z', ExpirationDate: '2027-11-14T00:00:00Z',
+        Plan: { Uid: 'PassFixture199', OneTimeRate: 199, ExpiresAfterMonths: 12 } } } })
+    assert.equal(result.recoveryRequired, false)
+    assert.equal(f.requests.some(r => ['ecomOrders', 'ecom/graphql', 'fieldValues', 'fieldValues/9', 'contacts/1/fieldValues'].includes(r.path)), false)
+    assert.equal(f.requests.some(r => r.path.startsWith('contactLists')), false)
+    assert.ok(f.tags.some(t => t.tag === tagId('plan-directory-pass')))
+    assert.equal(f.tags.some(t => t.tag === tagId('plan-starter')), false)
+    assert.ok(result.steps.some(s => s.step === 'order' && s.code === 'one_time_payment_evidence_required'))
+    assert.ok(result.steps.some(s => s.step === 'recurring' && s.code === 'nonrecurring_directory_pass'))
+  })
+}
+
+test('plan-light update preserves exact Directory Pass classification without restarting billing', async () => {
+  const f = fixture({ stored: { subscription_tier: 'directory_pass', plan_uid: 'PassFixture199', plan_name: 'Directory Pass', billing_renewal_term: 4 } })
+  const result = await f.run({ subscription_tier: 'free', plan_uid: null, plan_name: null, outseta_data: {} })
+  assert.equal(result.recoveryRequired, false)
+  assert.equal(f.requests.some(r => ['ecomOrders', 'ecom/graphql'].includes(r.path)), false)
+  assert.ok(f.tags.some(t => t.tag === tagId('plan-directory-pass')))
+})
+
+for (const tier of ['directory_pass', 'starter']) {
+  test('unrecognized Directory Pass UID with ' + tier + ' projection is withheld before provider writes', async () => {
+    const f = fixture()
+    const result = await f.run({ subscription_tier: tier, plan_uid: 'UnverifiedPass', plan_name: 'Directory Pass' })
+    assert.equal(result.recoveryRequired, true)
+    assert.equal(f.requests.length, 0)
+    assert.ok(failed(result, 'orchestration', 'directory_pass_uid_unverified'))
+  })
+}
+
+test('legacy Starter retains its $99 three-month recurring contract', async () => {
+  const f = fixture()
+  await f.run({ subscription_tier: 'starter', plan_uid: 'zWZD0rQp', plan_name: 'Starter', billing_renewal_term: null,
+    outseta_data: { CurrentSubscription: { RenewalDate: '2026-12-01T00:00:00.000Z' } } })
+  assert.equal(f.requests.find(r => r.path === 'ecomOrders').body.ecomOrder.totalPrice, 9900)
+  const recurring = f.requests.find(r => r.path === 'ecom/graphql').body.variables.recurringPayments[0]
+  assert.equal(recurring.paymentAmount, 99)
+  assert.equal(recurring.billingInterval, 'MONTHLY')
+  assert.equal(recurring.billingIntervalCount, 3)
+  assert.equal(recurring.renewalDate, '2026-12-01T00:00:00.000Z')
+})
 
 for (const status of ['0', '1', '2', '3', 'unknown', null]) {
   test('membership sync preserves list status ' + status + ' and existing ecommerce consent', async () => {
@@ -336,6 +387,7 @@ test('real webhook reports failed AC sync separately from the saved projection a
         emitFreeJourneySourceEvent: async () => ({ status: 'disabled', code: 'producer_disabled', recoveryRequired: false, automaticRetry: false, httpStatus: null, evaluationId: null }),
       },
       '@/lib/outseta-billing-stage': load('../lib/outseta-billing-stage.ts'),
+      '@/lib/outseta-plan-billing': planBilling,
       '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async () => {
         attempts++
         if (throws) throw new Error('private provider payload')

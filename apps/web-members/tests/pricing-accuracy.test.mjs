@@ -28,7 +28,7 @@ function load(relativePath, imports = {}) {
   }).outputText
   const exports = {}
   vm.runInNewContext(code, {
-    exports, URL, console, AbortController, window: browser, process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: 'PassTest1' } },
+    exports, URL, console, AbortController, window: browser, process: { env: { NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID: 'PassTest1', NEXT_PUBLIC_DIRECTORY_PASS_CHECKOUT_ENABLED: 'true' } },
     document: { body: {}, querySelectorAll: () => [] },
     MutationObserver: class { observe() {} disconnect() {} },
     crypto: { randomUUID: () => 'synthetic-pricing-attempt' },

@@ -37,14 +37,19 @@ function eligibility(changes = {}) {
 const selected = input => evaluateMarketingJourneys(input).filter(d => d.eligible).map(d => d.journey)
 const decision = (input, name) => evaluateMarketingJourneys(input).find(d => d.journey === name)
 
-test('all six member tiers survive absent marketing tags and historical Wix/import sources', () => {
-  for (const tier of ['free', 'starter', 'founders', 'pro', 'elite', 'agency']) {
+test('all seven member tiers survive absent marketing tags and historical Wix/import sources', () => {
+  for (const tier of ['free', 'directory_pass', 'starter', 'founders', 'pro', 'elite', 'agency']) {
     const c = classify({ tagNames: ['WIX', 'contacts.csv'] }, { membershipTier: tier }, { vercelContactIds: ['synthetic-ac'] })
     assert.equal(c.membershipTier, tier)
     assert.equal(c.classification, 'current_member')
     assert.deepEqual(c.sourceMarkers, ['cold_import', 'wix', 'vercel'])
     assert.equal(c.excludedFromMarketingAnalysis, false)
     assert.equal(JSON.stringify(c).includes('@'), false)
+  }
+  for (const tier of ['Directory Pass', 'directory-pass', 'Directory Pass — 12 months']) {
+    const c = classify({}, { membershipTier: tier })
+    assert.equal(c.membershipTier, 'directory_pass')
+    assert.equal(c.classification, 'current_member')
   }
 })
 
@@ -170,7 +175,7 @@ test('late completion permits review only after both gates, with all plan and co
   input.activation.occurredAt = dateAgo(1)
   input.onboardingCompletion.occurredAt = now
   assert.equal(decision(input, 'free_to_pro').eligible, true)
-  for (const tier of ['starter', 'founders', 'pro', 'elite', 'agency']) {
+  for (const tier of ['directory_pass', 'starter', 'founders', 'pro', 'elite', 'agency']) {
     assert.equal(decision({ ...input, classification: classify({}, { membershipTier: tier }) }, 'free_to_pro').eligible, false)
   }
   for (const contactChanges of [{ unsubscribed: true }, { bounced: true }, { marketingConsent: 'unknown' }]) {

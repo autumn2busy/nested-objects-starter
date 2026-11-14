@@ -29,7 +29,7 @@ export async function MemberToolPageAccess({ tool, title, children }: MemberTool
         <ToolAccessMessage
           tone="warning"
           title={`${title} is not included with this plan`}
-          description="Free members can use the income scenario planner. Pro includes the core member toolset, and Elite includes every member tool."
+          description="Free and Directory Pass include the income scenario planner. Pro includes the core member toolset. Existing Elite and Agency members retain every member tool."
           actions={(
             <div className="flex flex-wrap gap-3">
               <Link className="rounded-full border border-brand-copper/40 px-4 py-2 text-sm font-semibold" href="/membership-pricing">

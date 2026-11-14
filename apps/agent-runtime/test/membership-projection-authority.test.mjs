@@ -48,7 +48,7 @@ function lifecycle(projection) {
   })
 }
 
-for (const tier of ['free', 'pro', 'elite', 'agency']) {
+for (const tier of ['free', 'directory_pass', 'pro', 'elite', 'agency']) {
   test(`${tier} profile remains a mirror, not proof of current membership`, () => {
     const projection = project({ subscription_tier: tier })
     assert.equal(projection.memberships.length, 1)
@@ -73,6 +73,29 @@ for (const tier of ['free', 'pro', 'elite', 'agency']) {
     assert.equal(truth.revenueUsable, false)
   })
 }
+
+test('Directory Pass mirror labels remain distinct while generic legacy Directory remains Starter', () => {
+  for (const label of ['Directory Pass', 'directory_pass', 'directory-pass', 'Directory Pass — 12 months']) {
+    assert.equal(project({ subscription_tier: label }).memberships[0].membershipTier, 'directory_pass')
+  }
+  assert.equal(project({
+    subscription_tier: null, plan_name: 'Directory Pass — 12 months',
+  }).memberships[0].membershipTier, 'directory_pass')
+  assert.equal(project({ subscription_tier: 'Directory' }).memberships[0].membershipTier, 'starter')
+})
+
+test('Directory Pass is paid but cannot carry recurring revenue', () => {
+  const [mirror] = project({ subscription_tier: 'directory_pass', plan_uid: 'EWBk3dmr' }).memberships
+  const authority = {
+    ...snapshot(mirror), sourceSystem: 'outseta', isAuthoritative: true, authorityRank: 100,
+    revenueState: 'known', lifetimeRevenue: 19_900, mrr: null, arr: null,
+  }
+  const result = resolveMembershipTruth([authority])
+  assert.equal(result.paid, true)
+  assert.equal(result.revenueUsable, true)
+  assert.throws(() => resolveMembershipTruth([{ ...authority, mrr: 19_900 }]), /cannot carry MRR or ARR/)
+  assert.throws(() => resolveMembershipTruth([{ ...authority, arr: 19_900 }]), /cannot carry MRR or ARR/)
+})
 
 test('copied person, account, plan and provider timestamp fields cannot create an Outseta snapshot', () => {
   for (const field of [null, 'outseta_person_uid', 'outseta_account_id', 'plan_uid', 'outseta_updated_at']) {

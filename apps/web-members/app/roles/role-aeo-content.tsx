@@ -66,14 +66,14 @@ function getDecisionGuide(content: RoleAeoContent) {
         detail: 'Compare firms, service areas, reviews, and requirement clues.',
       },
       {
-        label: 'Income tool preview',
+        label: 'Income scenario planner',
         href: '/tools',
-        detail: 'Preview the planned route-income workflow. Calculation remains disabled.',
+        detail: 'Use the income scenario planner and compare member tools by plan.',
       },
       {
         label: 'Membership plans',
         href: '/membership-pricing',
-        detail: 'Use Pro when you are ready to compare firms seriously.',
+        detail: 'Choose Directory Pass for directory research, or Pro when you also need training and core tools.',
       },
     ],
   }
@@ -156,9 +156,9 @@ export const roleAeoContent = {
           detail: 'Start with a state page, then compare firms serving nearby counties.',
         },
         {
-          label: 'Income tool preview',
+          label: 'Income scenario planner',
           href: '/tools',
-          detail: 'Preview the planned net-route workflow. Calculation remains disabled.',
+          detail: 'Use your own cost assumptions in the income scenario planner; compare Pro tools for tracking and routing.',
         },
       ],
     },
@@ -317,14 +317,14 @@ export const roleAeoContent = {
           detail: 'Find signing services, vendor programs, and notary-adjacent firms.',
         },
         {
-          label: 'Route tool preview',
+          label: 'Compare member tools',
           href: '/tools',
-          detail: 'Preview the planned signing-route workflow. Calculation remains disabled.',
+          detail: 'Use the income scenario planner and compare the tracking and routing tools included with Pro.',
         },
         {
-          label: 'Company tracker preview',
+          label: 'Company tracking access',
           href: '/tools',
-          detail: 'Preview the planned firm-tracking workflow. Saving remains disabled.',
+          detail: 'Company tracking is included with Pro and eligible legacy memberships. Review access before using it.',
         },
       ],
     },
@@ -483,9 +483,9 @@ export const roleAeoContent = {
           detail: 'Compare field-service firms by work type, route fit, and requirements.',
         },
         {
-          label: 'Income tool preview',
+          label: 'Income scenario planner',
           href: '/tools',
-          detail: 'Preview the planned stacked-assignment workflow. Calculation remains disabled.',
+          detail: 'Use the income scenario planner and review the tracking and routing tools available with Pro.',
         },
         {
           label: 'Resource center',
@@ -531,7 +531,7 @@ export const roleAeoContent = {
       },
       {
         question: 'How does Nested Objects help inspectors choose firms?',
-        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, training, readiness resources, and plan-based tools. Free includes the income calculator, Pro adds the core toolkit, and Elite includes every member tool.',
+        answer: 'Nested Objects organizes firm profiles, role guidance, pay clues, requirement notes, training, readiness resources, and plan-based tools. Free and Directory Pass include the income calculator. Directory Pass adds directory research; Pro adds training and core tools. Existing Elite and Agency members retain their purchased tools.',
       },
     ],
   },

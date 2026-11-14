@@ -19,6 +19,10 @@ export const DIRECTORY_PASS_PLAN_UID = /^[A-Za-z0-9]{4,40}$/.test(configuredDire
 export function isDirectoryPassPlanUid(planUid: string | null | undefined): boolean {
     return Boolean(DIRECTORY_PASS_PLAN_UID && planUid === DIRECTORY_PASS_PLAN_UID)
 }
+// Stop new purchases independently of already-purchased access during staged releases.
+export const DIRECTORY_PASS_CHECKOUT_ENABLED = typeof process !== 'undefined'
+    && process.env.NEXT_PUBLIC_DIRECTORY_PASS_CHECKOUT_ENABLED === 'true'
+
 export type PlanUid = typeof PLAN_UIDS[keyof typeof PLAN_UIDS]
 
 export const PLAN_NAMES: Record<PlanUid, string> = {

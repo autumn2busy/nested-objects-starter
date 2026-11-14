@@ -15,6 +15,7 @@ function load(relative, modules = {}, extras = {}) {
   return context.exports
 }
 const mapping = load('../lib/outseta-billing-stage.ts')
+const planBilling = load('../lib/outseta-plan-billing.ts', { '@/lib/plan-config': load('../lib/plan-config.ts') })
 
 test('Outseta numeric stages match the documented billing lifecycle without a label', () => {
   for (const [stage, expected] of [[2,'trialing'],[3,'active'],[4,'canceled'],[5,'canceled'],[6,'canceled'],[7,'past_due'],[8,'trialing']]) {
@@ -61,6 +62,7 @@ test('real webhook mapping passes correct statuses to sync and preserves stored 
         },
       },
       '@/lib/outseta-billing-stage': mapping,
+      '@/lib/outseta-plan-billing': planBilling,
       '@/lib/active-campaign-deep-data': { syncFullProfileDeepData: async profile => { synchronized = profile; return { status: 'succeeded', recoveryRequired: false, automaticRetry: false, steps: [], logs: [] } } },
       '@/lib/ac-event-tracking': {},
     }, { process: { env: { NODE_ENV: 'test', SUPABASE_URL: 'synthetic', SUPABASE_SERVICE_ROLE_KEY: 'synthetic' } } })
@@ -88,6 +90,7 @@ test('unknown lifecycle does not write ACTIVE recurring payment or replace exist
     '@/lib/env': { env: { acApiUrl:'https://synthetic.invalid', acApiKey:'synthetic', acConnectionId:'4' } },
     '@/lib/supabase-admin': { createServiceRoleClient: () => ({ from: () => query }) },
     '@/lib/active-campaign-sync-result': load('../lib/active-campaign-sync-result.ts'),
+    '@/lib/outseta-plan-billing': planBilling,
   }, { AbortSignal, fetch: async (url, options = {}) => {
     const body = options.body ? JSON.parse(options.body) : null
     requests.push({ url, method: options.method ?? 'GET', body })
