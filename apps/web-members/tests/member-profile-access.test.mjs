@@ -52,6 +52,9 @@ const auth = load('../lib/auth-server.ts', {
   jose: { jwtVerify, createRemoteJWKSet: () => localKeys },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
   './plan-config': planConfig,
+  './directory-pass-entitlement': {
+    async verifyCurrentDirectoryPassEntitlement() { throw new Error('Legacy auth path must not query Directory Pass authority') },
+  },
 })
 const access = load('../lib/member-profile-access.ts', {
   'server-only': {},

@@ -182,6 +182,7 @@ function createHarness({
           signupOrder.push('event:signup_started')
         },
       }
+      if (name === '@/lib/plan-config') return { isDirectoryPassPlanUid: () => false }
       throw new Error(`Unexpected import: ${name}`)
     },
   })

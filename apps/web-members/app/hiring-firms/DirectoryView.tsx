@@ -630,8 +630,8 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
           </h2>
           <p className="mt-1 text-xs">
             {!access.isAuthenticated
-              ? 'Sign in to use your existing plan. Free includes up to 3 sample listings with no search or filters. Pro and higher include full directory search and firm intel.'
-              : 'Free includes up to 3 sample firm listings with no search or filters. The sample is not matched to your state or inspection type. Locked previews are not additional accessible listings. Pro and higher include full directory search and firm intel.'}
+              ? 'Sign in to use your existing plan. Free includes up to 3 sample listings with no search or filters. Directory Pass and Pro include full directory search and firm intel.'
+              : 'Free includes up to 3 sample firm listings with no search or filters. The sample is not matched to your state or inspection type. Locked previews are not additional accessible listings. Directory Pass and Pro include full directory search and firm intel.'}
           </p>
           <div className="flex flex-wrap gap-3">
             {!access.isAuthenticated ? (
@@ -681,7 +681,7 @@ export function DirectoryView({ initialFirms, totalCount, page, limit, filters, 
               <p className="text-lg font-bold text-slate-900">Need to research beyond the Free sample?</p>
               <p className="mt-2 text-sm text-slate-600">
                 You can view up to {FREE_VISIBLE_COUNT} sample listings. The {teaserFirms.length} locked previews are not additional accessible listings.
-                Free has no search or filters. Pro and higher add full directory search, filters and firm intel.
+                Free has no search or filters. Directory Pass and Pro add full directory search, filters and firm intel.
               </p>
               <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <DirectoryUpgradeLink

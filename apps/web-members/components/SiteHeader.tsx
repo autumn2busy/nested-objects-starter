@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { isDirectoryPassPlanUid } from '@/lib/plan-config'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState, useRef, type MouseEvent } from 'react'
@@ -123,6 +124,7 @@ export function SiteHeader({ containerClassName, pricingPreviewHost }: SiteHeade
   }
 
   const planLabel = (() => {
+    if (isDirectoryPassPlanUid(planUid)) return 'Directory Pass'
     switch (planUid) {
       case 'L9nbKV9Z':
         return 'Free'

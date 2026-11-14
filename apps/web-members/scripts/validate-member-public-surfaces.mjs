@@ -80,11 +80,11 @@ if (toolLayoutSource.includes("href: '/inspector-dashboard'")) {
   failures.push('public tool layout still exposes Dashboard navigation to signed-out visitors')
 }
 
-for (const publicPlan of ['PLAN_UIDS.FREE', 'PLAN_UIDS.PRO', 'PLAN_UIDS.ELITE', 'PLAN_UIDS.AGENCY']) {
+for (const publicPlan of ['PLAN_UIDS.FREE', 'PLAN_UIDS.PRO', 'PLAN_UIDS.AGENCY']) {
   requireText(publicPlanBlock(planSource), publicPlan, `public pricing allowlist omits ${publicPlan}`)
 }
 
-for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER']) {
+for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER', 'PLAN_UIDS.ELITE']) {
   if (publicPlanBlock(planSource).includes(legacyPlan)) {
     failures.push(`public pricing allowlist includes legacy plan ${legacyPlan}`)
   }
@@ -93,7 +93,7 @@ for (const legacyPlan of ['PLAN_UIDS.FOUNDERS', 'PLAN_UIDS.STARTER']) {
 
 requireText(
   pricingSource,
-  '.filter((plan) => isPublicPlanUid(plan.planUid))',
+  "(plan.name === 'Directory Pass' || isPublicPlanUid(plan.planUid))",
   'pricing render does not use the explicit public-plan allowlist',
 )
 

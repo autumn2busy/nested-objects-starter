@@ -46,6 +46,9 @@ const auth = load('../lib/auth-server.ts', {
   },
   'next/headers': { cookies: () => ({ get: () => sessionToken ? { value: sessionToken } : undefined }) },
   './plan-config': planConfig,
+  './directory-pass-entitlement': {
+    async verifyCurrentDirectoryPassEntitlement() { throw new Error('Legacy auth path must not query Directory Pass authority') },
+  },
 })
 const { middleware } = load('../middleware.ts', {
   'next/server': { NextResponse },

@@ -6,7 +6,7 @@ import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribu
 import { useAuth } from '@/components/auth-provider'
 import { MembershipManagementLink } from '@/components/outseta/MembershipManagement'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
-import { PLAN_UIDS } from '@/lib/plan-config'
+import { isPublicPlanUid, PLAN_UIDS } from '@/lib/plan-config'
 import { beginPricingHandoff, pricingProfileSessionAvailable, waitForPricingWidget } from '@/lib/pricing-handoff'
 import {
   trackJoinFreeClick,
@@ -23,6 +23,7 @@ function getCurrentPlanName(planUid: string | null, isAuthenticated: boolean) {
 }
 
 function getPlanPaymentTerm(plan: MembershipPlan) {
+  if (plan.paymentTerm) return plan.paymentTerm
   if (plan.period === 'forever') return undefined
   return plan.period.includes('month') ? 'month' : 'oneTime'
 }
@@ -57,7 +58,7 @@ function usePricingActions() {
   }, [isAuthenticated, planUid, user?.sub])
 
   const openPlanWidget = async (plan: MembershipPlan, isCurrentPlan: boolean) => {
-    if (isLoading || isCurrentPlan || plan.waitlist || busy.current) return
+    if (isLoading || isCurrentPlan || plan.waitlist || plan.checkoutUnavailable || !isPublicPlanUid(plan.planUid) || busy.current) return
     if (typeof window === 'undefined') return
 
     readiness.current?.abort()
@@ -73,7 +74,7 @@ function usePricingActions() {
     const fallbackHref = isAuthenticated
       // Hosted login retains the query in its callback, but drops URL fragments.
       ? 'https://nested-objects.outseta.com/profile?tab=planChange'
-      : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`, 'membership_pricing')
+      : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true${planPaymentTerm ? `&planPaymentTerm=${planPaymentTerm}` : ''}`, 'membership_pricing')
     const context = { sourcePage: 'membership_pricing', currentPlan: currentPlanName ?? 'anonymous',
       targetPlan, targetPlanUid, isAuthenticated, mode: isAuthenticated ? 'profile_plan_change' : 'register' }
     const handoff = beginPricingHandoff({
@@ -233,7 +234,7 @@ export function PricingHeroAccountStatus() {
   if (!isLoading && !isAuthenticated) {
     return (
       <p className="mx-auto mt-4 max-w-[16rem] text-sm text-slate-500 min-[380px]:max-w-[18rem] sm:max-w-none">
-        Start Pro at $49/month, billed at signup, or create a Free account with no card required.
+        Choose the Directory Pass for $199 once and 12 months of access, Pro at $49/month, or the Free preview.
       </p>
     )
   }
@@ -263,7 +264,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
   let buttonClasses = ''
   if (isCurrentPlan) {
     buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-100 text-slate-500`
-  } else if (plan.waitlist) {
+  } else if (plan.waitlist || plan.checkoutUnavailable) {
     buttonClasses = `${buttonBase} cursor-not-allowed bg-slate-50 text-slate-400 border border-slate-200`
   } else if (plan.highlight) {
     buttonClasses = `${buttonBase} bg-brand-copper text-white shadow-sm hover:bg-brand-copperDark`
@@ -275,6 +276,8 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     if (isLoading) return 'Checking your plan…'
     if (pending) return 'Opening plan form…'
     if (isCurrentPlan) return 'Current plan'
+    if (plan.checkoutUnavailable) return 'Checkout setup in progress'
+    if (plan.name === 'Directory Pass') return 'Get 12 months — $199 once'
     if (plan.waitlist) return plan.name === 'Agency' ? 'Team access in preparation' : 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
     if (!isAuthenticated && plan.name === 'Pro') return `Start Pro — ${plan.price}/month`
@@ -286,7 +289,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     <>
       <button
         type="button"
-        disabled={isLoading || isCurrentPlan || plan.waitlist === true || pending}
+        disabled={isLoading || isCurrentPlan || plan.waitlist === true || plan.checkoutUnavailable === true || !isPublicPlanUid(plan.planUid) || pending}
         aria-busy={isLoading || pending}
         className={buttonClasses}
         onClick={() => openPlanWidget(plan, isCurrentPlan)}
@@ -324,22 +327,8 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
   }
 
   if (isAuthenticated && planUid === PLAN_UIDS.PRO) {
-    return (
-      <><button
-        type="button"
-        disabled={isLoading || pending}
-        aria-busy={isLoading || pending}
-        onClick={() => {
-          const elitePlan = membershipPlans.find((plan) => plan.planUid === PLAN_UIDS.ELITE)
-          if (elitePlan) openPlanWidget(elitePlan, false)
-        }}
-        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-      >
-        {pending ? 'Opening plan form…' : 'Upgrade to Elite'}
-      </button><PricingHandoffRecovery recovery={recovery} /></>
-    )
+    return <MembershipManagementLink className="mt-6 bg-white text-slate-900 hover:bg-slate-100" />
   }
-
   return (
     <><button
       type="button"
@@ -378,7 +367,7 @@ export function PricingFinalCtaCopy() {
   return (
     <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
       {isAuthenticated && planUid === PLAN_UIDS.PRO
-        ? 'Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews.'
+        ? 'Your Pro membership includes the directory, training and core tools. Your existing access and billing terms are unchanged.'
         : 'Pro brings firm intel, training, and the core toolkit together for $49/month. New subscriptions are billed at signup, with no free trial.'}
     </p>
   )

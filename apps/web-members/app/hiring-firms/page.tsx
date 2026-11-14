@@ -7,7 +7,7 @@ import { US_STATES } from './constants'
 import { ALL_STATE_SLUGS, STATE_MAP, TOP_STATES } from './state-data'
 import { TESTIMONIALS, getAverageRating } from '@/lib/testimonials'
 import { getCurrentUser } from '@/lib/auth-server'
-import { PLAN_UIDS } from '@/lib/plan-config'
+import { PAID_PLANS } from '@/lib/plan-config'
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'Field Inspection Companies Hiring | Firm Directory',
@@ -603,8 +603,9 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
   const user = await getCurrentUser()
   const planUid = user?.['outseta:planUid'] ?? null
   const isGuest = !user
-  const isFree = planUid === PLAN_UIDS.FREE
-  const isRestricted = isGuest || isFree
+  const hasFullDirectoryAccess = Boolean(planUid && PAID_PLANS.includes(planUid))
+  const isFree = Boolean(user) && !hasFullDirectoryAccess
+  const isRestricted = !hasFullDirectoryAccess
 
   const page = isRestricted ? DEFAULT_PAGE : parsePositiveInt(params?.page, DEFAULT_PAGE)
   const limit = isRestricted
@@ -628,7 +629,7 @@ export default async function DirectoryPage({ searchParams }: DirectoryPageProps
     pay,
     sort,
   )
-  const directoryFirms = isGuest ? [] : isFree ? sanitizeFreePreviewFirms(firms) : firms
+  const directoryFirms = isGuest ? [] : isRestricted ? sanitizeFreePreviewFirms(firms) : firms
   const stateIndex = getStateIndex()
   const filters: DirectoryFilters = {
     state: stateFilter,

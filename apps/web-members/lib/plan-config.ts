@@ -10,6 +10,15 @@ export const PLAN_UIDS = {
     FOUNDERS: 'pWrBRnWn', // $37/yr legacy plan — same access level as Starter
 } as const
 
+// A new provider UID must be verified before checkout is enabled. Never reuse a
+// legacy plan: its existing members keep their purchased access and terms.
+const configuredDirectoryPassUid = typeof process === 'undefined' ? '' : process.env.NEXT_PUBLIC_OUTSETA_DIRECTORY_PASS_PLAN_UID ?? ''
+export const DIRECTORY_PASS_PLAN_UID = /^[A-Za-z0-9]{4,40}$/.test(configuredDirectoryPassUid)
+    && !Object.values(PLAN_UIDS).some(uid => uid === configuredDirectoryPassUid)
+    ? configuredDirectoryPassUid : ''
+export function isDirectoryPassPlanUid(planUid: string | null | undefined): boolean {
+    return Boolean(DIRECTORY_PASS_PLAN_UID && planUid === DIRECTORY_PASS_PLAN_UID)
+}
 export type PlanUid = typeof PLAN_UIDS[keyof typeof PLAN_UIDS]
 
 export const PLAN_NAMES: Record<PlanUid, string> = {
@@ -22,6 +31,7 @@ export const PLAN_NAMES: Record<PlanUid, string> = {
 }
 
 export function getPlanName(planUid: string | null | undefined): string | null {
+    if (isDirectoryPassPlanUid(planUid)) return 'Directory Pass'
     if (!planUid || !Object.prototype.hasOwnProperty.call(PLAN_NAMES, planUid)) {
         return null
     }
@@ -33,7 +43,7 @@ export function getPlanDisplayLabel(planUid: string | null | undefined): string 
     const planName = getPlanName(planUid)
     if (!planName) return null
 
-    return planUid === PLAN_UIDS.FOUNDERS ? planName : `${planName} Plan`
+    return planUid === PLAN_UIDS.FOUNDERS || isDirectoryPassPlanUid(planUid) ? planName : `${planName} Plan`
 }
 
 // Public checkout is intentionally allowlisted. Legacy plans stay valid for
@@ -41,10 +51,9 @@ export function getPlanDisplayLabel(planUid: string | null | undefined): string 
 export const PUBLIC_PLAN_UIDS: readonly string[] = [
     PLAN_UIDS.FREE,
     PLAN_UIDS.PRO,
-    PLAN_UIDS.ELITE,
     PLAN_UIDS.AGENCY,
+    ...(DIRECTORY_PASS_PLAN_UID ? [DIRECTORY_PASS_PLAN_UID] : []),
 ]
-
 export function isPublicPlanUid(planUid: string): boolean {
     return PUBLIC_PLAN_UIDS.includes(planUid)
 }
@@ -56,6 +65,7 @@ export const PAID_PLANS: readonly string[] = [
     PLAN_UIDS.PRO,      // $49/mo
     PLAN_UIDS.ELITE,    // $97/mo
     PLAN_UIDS.AGENCY,   // $297/mo
+    ...(DIRECTORY_PASS_PLAN_UID ? [DIRECTORY_PASS_PLAN_UID] : []),
 ]
 
 export const PRO_OR_HIGHER: readonly string[] = [

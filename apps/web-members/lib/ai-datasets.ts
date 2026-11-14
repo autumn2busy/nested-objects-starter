@@ -1,10 +1,12 @@
-import { PLAN_NAMES, PLAN_UIDS } from './plan-config'
+import { DIRECTORY_PASS_PLAN_UID, PLAN_NAMES, PLAN_UIDS } from './plan-config'
 
 export type MembershipPlan = {
   name: string
   planUid: string
   price: string
   period: string
+  paymentTerm?: 'month' | 'year' | 'quarter' | 'oneTime'
+  checkoutUnavailable?: boolean
   headline: string
   description: string
   highlight: boolean
@@ -71,6 +73,25 @@ export const membershipPlans: MembershipPlan[] = [
     ],
   },
   {
+    name: 'Directory Pass',
+    planUid: DIRECTORY_PASS_PLAN_UID,
+    price: '$199',
+    period: '12 months',
+    paymentTerm: 'oneTime',
+    checkoutUnavailable: !DIRECTORY_PASS_PLAN_UID,
+    headline: 'Full directory. One payment. Twelve months.',
+    description: 'Research firms with full directory search, filters, and firm profiles for 12 months. One $199 payment; no automatic renewal. Training and Pro tools are not included.',
+    highlight: false,
+    features: [
+      'Full firm directory access — all listings, all states',
+      'Directory search, filters, and firm profiles',
+      'Directory updates during your 12 months of access',
+      'One $199 payment — no automatic renewal',
+      'Income scenario planner included with your account',
+      'Training library, AI, tracking and routing tools require Pro',
+    ],
+  },
+  {
     name: PLAN_NAMES[PLAN_UIDS.PRO],
     planUid: PLAN_UIDS.PRO,
     price: '$49',
@@ -92,6 +113,7 @@ export const membershipPlans: MembershipPlan[] = [
   },
   {
     name: PLAN_NAMES[PLAN_UIDS.ELITE],
+    hidden: true, // Closed to new signups; preserve existing Elite rights and terms.
     planUid: PLAN_UIDS.ELITE,
     price: '$97',
     period: 'month',

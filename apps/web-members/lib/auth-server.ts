@@ -1,6 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import { cookies } from 'next/headers'
-import { PLAN_UIDS, getPlanName as getConfiguredPlanName } from './plan-config'
+import { DIRECTORY_PASS_PLAN_UID, PLAN_UIDS, getPlanName as getConfiguredPlanName, isDirectoryPassPlanUid } from './plan-config'
+import { verifyCurrentDirectoryPassEntitlement } from './directory-pass-entitlement'
 
 export { PLAN_UIDS } from './plan-config'
 
@@ -22,6 +23,7 @@ export interface OutsetaJWTPayload {
 export const FEATURE_ACCESS: Record<string, string[]> = {
   directory_access: [
     PLAN_UIDS.FREE,
+    ...(DIRECTORY_PASS_PLAN_UID ? [DIRECTORY_PASS_PLAN_UID] : []),
     PLAN_UIDS.STARTER,
     PLAN_UIDS.PRO,
     PLAN_UIDS.ELITE,
@@ -80,7 +82,14 @@ export async function verifyOutsetaToken(token: string): Promise<OutsetaJWTPaylo
       issuer: 'https://nested-objects.outseta.com'
     })
 
-    return payload as unknown as OutsetaJWTPayload
+    const verified = payload as unknown as OutsetaJWTPayload
+    if (isDirectoryPassPlanUid(verified['outseta:planUid'])
+      && !await verifyCurrentDirectoryPassEntitlement(verified)) {
+      // The signed identity remains valid, but an expired or unavailable pass
+      // must lose paid directory access and retain only the existing Free baseline.
+      return { ...verified, 'outseta:planUid': PLAN_UIDS.FREE }
+    }
+    return verified
   } catch (error: any) {
     console.error('[AUTH] Error verifying Outseta token:', error?.code, error?.message)
     return null

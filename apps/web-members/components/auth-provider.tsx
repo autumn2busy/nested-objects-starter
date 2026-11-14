@@ -10,6 +10,7 @@ import React, {
 } from 'react'
 import { usePathname } from 'next/navigation'
 import { trackOutsetaModalOpen, trackSignupStarted } from '@/lib/ac-events'
+import { isDirectoryPassPlanUid } from '@/lib/plan-config'
 
 type JwtPayload = {
   email?: string
@@ -402,6 +403,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasAccess = (feature?: string) => {
     if (!isAuthenticated) return false
     if (!feature) return true
+
+    // A directory-only pass is not a numeric tier between legacy plans.
+    if (isDirectoryPassPlanUid(planUid)) {
+      return ['directory_access', 'firm_intel', 'job_board', 'training_safety', 'readiness_guides', 'sponsor_equipment_links'].includes(feature)
+    }
 
     const minPlan = FEATURE_MIN_PLAN[feature]
     // Default to "deny" for unknown features so new feature flags are opt-in secure
