@@ -6,7 +6,7 @@ import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribu
 import { useAuth } from '@/components/auth-provider'
 import { MembershipManagementLink } from '@/components/outseta/MembershipManagement'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
-import { isPublicPlanUid, PLAN_UIDS } from '@/lib/plan-config'
+import { isPublicPlanUid, isDirectoryPassPlanUid, PLAN_UIDS } from '@/lib/plan-config'
 import { beginPricingHandoff, pricingProfileSessionAvailable, waitForPricingWidget } from '@/lib/pricing-handoff'
 import {
   trackJoinFreeClick,
@@ -71,7 +71,8 @@ function usePricingActions() {
     busy.current = true
     setPending(true)
     setRecovery(null)
-    const fallbackHref = isAuthenticated
+    const directoryPassChange = isAuthenticated && isDirectoryPassPlanUid(targetPlanUid)
+    const fallbackHref = directoryPassChange ? '/membership-pricing' : isAuthenticated
       // Hosted login retains the query in its callback, but drops URL fragments.
       ? 'https://nested-objects.outseta.com/profile?tab=planChange'
       : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true${planPaymentTerm ? `&planPaymentTerm=${planPaymentTerm}` : ''}`, 'membership_pricing')
@@ -132,13 +133,15 @@ function usePricingActions() {
       try {
         if (Outseta?.profile?.open) {
           if (!pricingProfileSessionAvailable(user?.sub)) {
+            if (directoryPassChange) { handoff.failed(); return }
             handoff.redirect('provider_session_unavailable')
             try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
             return
           }
-          Promise.resolve(Outseta.profile.open({ tab: 'planChange' })).catch(() => handoff.failed())
+          Promise.resolve(Outseta.profile.open({ tab: 'planChange', ...(directoryPassChange ? { stateProps: { planUid: targetPlanUid, planPaymentTerm: 'oneTime' } } : {}) })).catch(() => handoff.failed())
           handoff.check()
         } else {
+          if (directoryPassChange) { handoff.failed(); return }
           handoff.redirect()
           window.location.href = fallbackHref
         }

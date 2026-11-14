@@ -230,7 +230,7 @@ for (const scenario of scenarios) {
         assert.equal(signupStarts.length, 0)
       }
       assert.deepEqual(normalized(sdkCalls), scenario.planUid ? [
-        { widget: 'profile', options: { tab: 'planChange' } },
+        { widget: 'profile', options: { tab: 'planChange', ...(plan.name === 'Directory Pass' ? { stateProps: { planUid: plan.planUid, planPaymentTerm: 'oneTime' } } : {}) } },
       ] : [
         { widget: 'auth', options: {
           widgetMode: 'register', planUid: plan.planUid, skipPlanOptions: true,
@@ -299,7 +299,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
   agencyButton.props.onClick()
   assert.equal(browser.location.href, '')
   authState = { isAuthenticated: true, isLoading: false, planUid: expectedPlans[0].planUid }
-  const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] })).props.onClick()
+  const opening = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') })).props.onClick()
   handoffTimers.at(-2)()
   await opening
   assert.equal(browser.location.href, 'https://nested-objects.outseta.com/profile?tab=planChange')
@@ -309,7 +309,7 @@ test('checkout fallback destinations preserve the public plan UIDs and authentic
 test('Free paid-plan click catches SDK failure and offers keyboard-accessible explicit recovery', async () => {
   reset(scenarios[1])
   browser.Outseta.profile.open = () => { throw new Error('private-provider-error-with-email@example.test') }
-  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') }))
   await button.props.onClick()
   const diagnostic = analyticsCalls.filter(event => event.event === 'checkout_handoff')
   assert.deepEqual(diagnostic.map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
@@ -328,7 +328,7 @@ test('Free paid-plan click catches SDK failure and offers keyboard-accessible ex
 
 test('silent SDK call permits no duplicate click and timeout stays unknown', async () => {
   reset(scenarios[1])
-  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans[1] }))
+  const button = findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Pro') }))
   await Promise.all([button.props.onClick(), button.props.onClick()])
   assert.equal(sdkCalls.length, 1)
   handoffTimers.at(-1)()
@@ -339,8 +339,8 @@ test('silent SDK call permits no duplicate click and timeout stays unknown', asy
 test('auth hydration cannot open anonymous registration for a signed-in member', async () => {
   reset(scenarios[0])
   authState.isLoading = true
-  for (const button of [findButton(interactions.PricingPlanButton({plan:publicPlans[1]})),
-    findButton(interactions.PricingFinalCta({proPlan:publicPlans[1]}))]) {
+  for (const button of [findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')})),
+    findButton(interactions.PricingFinalCta({proPlan:publicPlans.find(plan => plan.name === 'Pro')}))]) {
     assert.equal(button.props.disabled,true)
     assert.equal(button.props['aria-busy'],true)
     assert.match(plain(renderToStaticMarkup(button)),/Checking your plan/)
@@ -354,7 +354,7 @@ test('auth hydration cannot open anonymous registration for a signed-in member',
 test('Free member waits for the profile module and opens once instead of redirecting to hosted login', async () => {
   reset(scenarios[1])
   delete browser.Outseta.profile
-  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')}))
   const opening=button.props.onClick()
   await button.props.onClick()
   assert.equal(sdkCalls.length,0)
@@ -387,7 +387,7 @@ test('cookie-only, stale and different-account SDK sessions use the existing sec
 test('unmount while the SDK loads prevents a later widget open or hosted redirect', async () => {
   reset(scenarios[1])
   delete browser.Outseta.profile
-  const button=findButton(interactions.PricingPlanButton({plan:publicPlans[1]}))
+  const button=findButton(interactions.PricingPlanButton({plan:publicPlans.find(plan => plan.name === 'Pro')}))
   const cleanup=effects[0]()
   const opening=button.props.onClick()
   cleanup()
@@ -545,4 +545,21 @@ test('Directory Pass uses a one-time checkout and explicitly excludes automatic 
   assert.equal(plan.period, '12 months')
   assert.equal(planConfig.PAID_PLANS.includes(planConfig.PLAN_UIDS.ELITE), true)
   assert.equal(planConfig.isPublicPlanUid(planConfig.PLAN_UIDS.ELITE), false)
+})
+
+test('signed-in Directory Pass handoff selects the one-time plan using profile stateProps', async () => {
+  reset(scenarios[1])
+  const plan = publicPlans.find(plan => plan.name === 'Directory Pass')
+  await findButton(interactions.PricingPlanButton({ plan })).props.onClick()
+  assert.deepEqual(normalized(sdkCalls), [{ widget: 'profile', options: { tab: 'planChange', stateProps: { planUid: 'PassTest1', planPaymentTerm: 'oneTime' } } }])
+})
+
+test('Directory Pass never falls back to an unpinned provider plan selector', async () => {
+  reset(scenarios[1])
+  browser.Outseta.getJwtPayload = () => ({ sub: 'different-account', exp: Date.now() / 1000 + 3600 })
+  await findButton(interactions.PricingPlanButton({ plan: publicPlans.find(plan => plan.name === 'Directory Pass') })).props.onClick()
+  assert.equal(browser.location.href, '')
+  assert.equal(sdkCalls.length, 0)
+  assert.deepEqual(analyticsCalls.filter(event => event.event === 'checkout_handoff').map(event => event.payload.handoffStatus), ['requested', 'open_failed'])
+  assert.equal(stateUpdates.findLast(value => value && typeof value === 'object' && value.href).href, '/membership-pricing')
 })

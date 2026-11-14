@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 import { usePathname } from 'next/navigation'
 import { trackOutsetaModalOpen, trackSignupStarted } from '@/lib/ac-events'
-import { isDirectoryPassPlanUid } from '@/lib/plan-config'
+import { isDirectoryPassPlanUid, PLAN_UIDS } from '@/lib/plan-config'
 
 type JwtPayload = {
   email?: string
@@ -455,10 +455,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (Outseta?.auth?.open) {
-        Outseta.auth.open({ widgetMode: 'register' })
+        Outseta.auth.open({ widgetMode: 'register', planUid: PLAN_UIDS.FREE, skipPlanOptions: true })
       } else {
         window.location.href =
-          'https://nested-objects.outseta.com/auth?widgetMode=register#o-anonymous'
+          'https://nested-objects.outseta.com/auth?widgetMode=register&planUid=L9nbKV9Z&skipPlanOptions=true#o-anonymous'
       }
     } catch (error) {
       console.error('Error opening Outseta signup', error)

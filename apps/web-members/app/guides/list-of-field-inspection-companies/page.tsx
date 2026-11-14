@@ -227,10 +227,10 @@ export default async function FieldInspectionCompaniesPage() {
                                         <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
                                         <h3 className="text-2xl font-extrabold text-slate-900 mb-3 tracking-tight">Unlock the Full List</h3>
                                         <p className="text-slate-600 mb-8 font-medium leading-relaxed">
-                                            Create a free account to instantly uncover <strong>{companies.length - visibleCount} more top-rated companies</strong> and access our entire field vendor network.
+                                            Create a free account for three sample firm listings. Choose the $199 Directory Pass for 12 months of full directory access without automatic renewal, or Pro at $49/month for the directory, training and core tools.
                                         </p>
                                         <a
-                                            href="https://nested-objects.outseta.com/auth?widgetMode=register"
+                                            href="https://nested-objects.outseta.com/auth?widgetMode=register&planUid=L9nbKV9Z&skipPlanOptions=true"
                                             className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-6 py-4 text-base font-bold text-white shadow hover:bg-emerald-400 transition-colors"
                                         >
                                             Create Free Account
