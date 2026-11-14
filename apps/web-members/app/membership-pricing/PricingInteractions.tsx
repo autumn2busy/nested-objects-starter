@@ -4,16 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { decorateAcquisitionUrl } from '../../../../packages/acquisition-attribution'
 
 import { useAuth } from '@/components/auth-provider'
+import { MembershipManagementLink } from '@/components/outseta/MembershipManagement'
 import { membershipPlans, type MembershipPlan } from '@/lib/ai-datasets'
 import { PLAN_UIDS } from '@/lib/plan-config'
-import { beginPricingHandoff } from '@/lib/pricing-handoff'
+import { beginPricingHandoff, pricingProfileSessionAvailable, waitForPricingWidget } from '@/lib/pricing-handoff'
 import {
   trackJoinFreeClick,
   trackOutsetaModalOpen,
   trackPricingCtaClick,
   trackPricingView,
   trackSignupStarted,
-  trackStartTrial,
   trackUpgradeStarted,
   trackEvent,
 } from '@/lib/ac-events'
@@ -45,20 +45,24 @@ function usePricingActions() {
   const [pending, setPending] = useState(false)
   const [recovery, setRecovery] = useState<{ href: string; record: () => void } | null>(null)
   const attempt = useRef<ReturnType<typeof beginPricingHandoff> | null>(null)
+  const readiness = useRef<AbortController | null>(null)
   const busy = useRef(false)
   useEffect(() => {
+    readiness.current?.abort()
     attempt.current?.stop()
     busy.current = false
     setPending(false)
     setRecovery(null)
-    return () => { attempt.current?.stop(); busy.current = false }
+    return () => { readiness.current?.abort(); attempt.current?.stop(); busy.current = false }
   }, [isAuthenticated, planUid, user?.sub])
 
-  const openPlanWidget = (plan: MembershipPlan, isCurrentPlan: boolean) => {
-    if (isCurrentPlan || plan.waitlist || busy.current) return
+  const openPlanWidget = async (plan: MembershipPlan, isCurrentPlan: boolean) => {
+    if (isLoading || isCurrentPlan || plan.waitlist || busy.current) return
     if (typeof window === 'undefined') return
 
-    const Outseta = window.Outseta
+    readiness.current?.abort()
+    const controller = new AbortController()
+    readiness.current = controller
     const targetPlan = plan.name
     const targetPlanUid = plan.planUid
     const planPaymentTerm = getPlanPaymentTerm(plan)
@@ -67,7 +71,8 @@ function usePricingActions() {
     setPending(true)
     setRecovery(null)
     const fallbackHref = isAuthenticated
-      ? 'https://nested-objects.outseta.com/profile#o-plan-change'
+      // Hosted login retains the query in its callback, but drops URL fragments.
+      ? 'https://nested-objects.outseta.com/profile?tab=planChange'
       : decorateAcquisitionUrl(`https://nested-objects.outseta.com/auth?widgetMode=register&planUid=${plan.planUid}&skipPlanOptions=true`, 'membership_pricing')
     const context = { sourcePage: 'membership_pricing', currentPlan: currentPlanName ?? 'anonymous',
       targetPlan, targetPlanUid, isAuthenticated, mode: isAuthenticated ? 'profile_plan_change' : 'register' }
@@ -101,17 +106,6 @@ function usePricingActions() {
       })
     }
 
-    if (!isAuthenticated && targetPlan === 'Pro') {
-      trackStartTrial({
-        sourcePage: 'membership_pricing',
-        targetPlan,
-        targetPlanUid,
-        value: 0,
-        currency: 'USD',
-        handoffId: handoff.handoffId,
-      })
-    }
-
     if (isAuthenticated && targetPlan !== currentPlanName) {
       trackUpgradeStarted({
         sourcePage: 'membership_pricing',
@@ -131,8 +125,16 @@ function usePricingActions() {
         handoffId: handoff.handoffId,
       })
 
+      await waitForPricingWidget('profile', controller.signal)
+      if (controller.signal.aborted) return
+      const Outseta = window.Outseta
       try {
         if (Outseta?.profile?.open) {
+          if (!pricingProfileSessionAvailable(user?.sub)) {
+            handoff.redirect('provider_session_unavailable')
+            try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
+            return
+          }
           Promise.resolve(Outseta.profile.open({ tab: 'planChange' })).catch(() => handoff.failed())
           handoff.check()
         } else {
@@ -144,6 +146,10 @@ function usePricingActions() {
     }
 
     trackSignupStarted(targetPlan)
+
+    await waitForPricingWidget('auth', controller.signal)
+    if (controller.signal.aborted) return
+    const Outseta = window.Outseta
 
     if (Outseta?.auth?.open) {
       trackOutsetaModalOpen({
@@ -177,17 +183,10 @@ function usePricingActions() {
     try { window.location.href = fallbackHref } catch { handoff.redirectFailed() }
   }
 
-  const openManageBilling = () => {
-    if (isAuthenticated) {
-      window.Outseta?.profile?.open({ tab: 'billing' })
-    }
-  }
-
   return {
     currentPlanName,
     isAuthenticated,
     isLoading,
-    openManageBilling,
     openPlanWidget,
     planUid,
     pending,
@@ -219,17 +218,22 @@ export function PricingHeroAccountStatus() {
 
   if (!isLoading && isAuthenticated && currentPlanName) {
     return (
-      <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
-        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
-      </p>
+      <div>
+        <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          Signed in. Current plan: <span className="font-semibold">{currentPlanName}</span>
+        </p>
+        <div className="mt-2">
+          <MembershipManagementLink className="text-slate-700 hover:text-slate-950" />
+        </div>
+      </div>
     )
   }
 
   if (!isLoading && !isAuthenticated) {
     return (
       <p className="mx-auto mt-4 max-w-[16rem] text-sm text-slate-500 min-[380px]:max-w-[18rem] sm:max-w-none">
-        Start Pro with $0 due today for 7 days, or create a Free account with no card required.
+        Start Pro at $49/month, billed at signup, or create a Free account with no card required.
       </p>
     )
   }
@@ -250,7 +254,7 @@ export function CurrentPlanBadge({ planUid: targetPlanUid }: { planUid: string }
 }
 
 export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
-  const { currentPlanName, isAuthenticated, openPlanWidget, planUid, pending, recovery } = usePricingActions()
+  const { currentPlanName, isAuthenticated, isLoading, openPlanWidget, planUid, pending, recovery } = usePricingActions()
   const isCurrentPlan = planUid === plan.planUid
 
   const buttonBase =
@@ -268,10 +272,12 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
   }
 
   const label = (() => {
+    if (isLoading) return 'Checking your plan…'
+    if (pending) return 'Opening plan form…'
     if (isCurrentPlan) return 'Current plan'
     if (plan.waitlist) return plan.name === 'Agency' ? 'Team access in preparation' : 'Join Waitlist'
     if (!isAuthenticated && plan.name === 'Free') return 'Join for Free'
-    if (!isAuthenticated && plan.name === 'Pro') return 'Start Pro Trial - $0 Due Today'
+    if (!isAuthenticated && plan.name === 'Pro') return `Start Pro — ${plan.price}/month`
     if (isAuthenticated) return `Upgrade to ${plan.name}`
     return 'Sign up'
   })()
@@ -280,8 +286,8 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
     <>
       <button
         type="button"
-        disabled={isCurrentPlan || plan.waitlist === true || pending}
-        aria-busy={pending}
+        disabled={isLoading || isCurrentPlan || plan.waitlist === true || pending}
+        aria-busy={isLoading || pending}
         className={buttonClasses}
         onClick={() => openPlanWidget(plan, isCurrentPlan)}
       >
@@ -296,7 +302,7 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
       )}
       {plan.planUid === PLAN_UIDS.PRO && (
         <p className="mt-2 text-center text-xs text-brand-copper">
-          7-day free trial. Cancel before paid billing begins.
+          New Pro subscriptions are billed at signup. No free trial. Existing trial terms are unchanged.
         </p>
       )}
       {isCurrentPlan && currentPlanName && (
@@ -309,17 +315,11 @@ export function PricingPlanButton({ plan }: { plan: MembershipPlan }) {
 }
 
 export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
-  const { isAuthenticated, openManageBilling, openPlanWidget, planUid, pending, recovery } = usePricingActions()
+  const { isAuthenticated, isLoading, openPlanWidget, planUid, pending, recovery } = usePricingActions()
 
   if (isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY)) {
     return (
-      <button
-        type="button"
-        onClick={openManageBilling}
-        className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-      >
-        Open manage plan &amp; billing
-      </button>
+      <MembershipManagementLink className="mt-6 bg-white text-slate-900 hover:bg-slate-100" />
     )
   }
 
@@ -327,15 +327,15 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
     return (
       <><button
         type="button"
-        disabled={pending}
-        aria-busy={pending}
+        disabled={isLoading || pending}
+        aria-busy={isLoading || pending}
         onClick={() => {
           const elitePlan = membershipPlans.find((plan) => plan.planUid === PLAN_UIDS.ELITE)
           if (elitePlan) openPlanWidget(elitePlan, false)
         }}
         className="mt-6 inline-flex items-center justify-center rounded-lg bg-brand-copper px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-copperDark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
       >
-        Upgrade to Elite
+        {pending ? 'Opening plan form…' : 'Upgrade to Elite'}
       </button><PricingHandoffRecovery recovery={recovery} /></>
     )
   }
@@ -343,12 +343,12 @@ export function PricingFinalCta({ proPlan }: { proPlan: MembershipPlan }) {
   return (
     <><button
       type="button"
-      disabled={pending}
-      aria-busy={pending}
+      disabled={isLoading || pending}
+      aria-busy={isLoading || pending}
       onClick={() => openPlanWidget(proPlan, false)}
       className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
-      {isAuthenticated ? 'Upgrade to Pro' : 'Start Pro Trial - $0 Due Today'}
+      {isLoading ? 'Checking your plan…' : pending ? 'Opening plan form…' : isAuthenticated ? 'Upgrade to Pro' : `Start Pro — ${proPlan.price}/month`}
     </button><PricingHandoffRecovery recovery={recovery} /></>
   )
 }
@@ -369,11 +369,17 @@ export function PricingHandoffRecovery({ recovery }: {
 export function PricingFinalCtaCopy() {
   const { isAuthenticated, planUid } = usePricingActions()
 
+  if (isAuthenticated && (planUid === PLAN_UIDS.ELITE || planUid === PLAN_UIDS.AGENCY)) {
+    return <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
+      Review your plan, billing, and cancellation options in your secure account.
+    </p>
+  }
+
   return (
     <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-100 sm:text-base">
       {isAuthenticated && planUid === PLAN_UIDS.PRO
         ? 'Upgrade to Elite for 1-to-1 strategy sessions, partner referrals, and concierge routing reviews.'
-        : 'Start Pro with $0 due today so you can see firms, intel, and training in one place before paid billing begins.'}
+        : 'Pro brings firm intel, training, and the core toolkit together for $49/month. New subscriptions are billed at signup, with no free trial.'}
     </p>
   )
 }

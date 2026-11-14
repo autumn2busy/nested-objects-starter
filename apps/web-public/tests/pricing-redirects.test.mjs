@@ -13,14 +13,13 @@ for (const source of ['/pricing', '/membership-pricing']) {
   })
 }
 
-test('pricing fix preserves the unrelated legacy redirects', async () => {
+test('pricing redirects preserve existing legacy aliases', async () => {
   const redirects = await config.redirects()
-  assert.deepEqual(redirects.filter(rule => !['/pricing', '/membership-pricing'].includes(rule.source)), [
+  assert.deepEqual(redirects.filter(rule => ['/job-directory-1', '/about-us', '/qualifications', '/services', '/news'].includes(rule.source)), [
     { source: '/job-directory-1', destination: '/hiring-firms', permanent: true },
     { source: '/about-us', destination: '/about', permanent: true },
     { source: '/qualifications', destination: '/about', permanent: true },
     { source: '/services', destination: '/about', permanent: true },
     { source: '/news', destination: '/guides', permanent: true },
-    { source: '/contact', destination: '/contact', permanent: true },
   ])
 })

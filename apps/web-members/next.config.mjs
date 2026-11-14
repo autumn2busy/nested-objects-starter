@@ -45,6 +45,8 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Recover old curriculum links without redirecting /training/ media files.
+      { source: '/training', destination: '/challenges', permanent: true },
       {
         source: '/profile/:id',
         destination: '/members/:id',

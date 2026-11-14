@@ -41,6 +41,10 @@ jobs:
         working-directory: apps/web-members
         run: node --test tests/training-progression.test.mjs tests/quiz-complete-service.test.js
 
+      - name: Verify membership management and checkout recovery
+        working-directory: apps/web-members
+        run: node --test tests/membership-management.test.mjs tests/outseta-pricing-loader.test.mjs tests/pricing-accuracy.test.mjs tests/pricing-handoff.test.mjs tests/pricing-login-session.test.mjs tests/pricing-preview-login.test.mjs
+
       - name: Lint and typecheck member app
         working-directory: apps/web-members
         run: |

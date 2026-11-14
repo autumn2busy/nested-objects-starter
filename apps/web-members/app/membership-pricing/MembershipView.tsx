@@ -40,11 +40,11 @@ const decisionConfidenceItems = [
     },
     {
         title: 'Pro is for deciding',
-        body: 'Use the trial when you are actively comparing firms, checking requirements, building a shortlist, or preparing applications.',
+        body: 'Choose Pro when you are actively comparing firms, checking requirements, building a shortlist, or preparing applications.',
     },
     {
         title: 'Paid access is instant',
-        body: 'After the trial, digital access continues automatically unless you cancel before billing. Paid memberships are non-refundable.',
+        body: 'New Pro subscriptions are billed at signup and renew monthly unless canceled. Paid memberships are non-refundable.',
     },
 ]
 
@@ -63,7 +63,7 @@ const trustAssuranceItems = [
     },
     {
         title: 'Refund expectations',
-        body: 'Pro trials bill after day 7 unless canceled. Paid digital access is non-refundable once membership access begins.',
+        body: 'New Pro subscriptions have no free trial. Paid digital access is non-refundable once membership access begins.',
         href: '/refund-policy',
         label: 'Refund policy',
     },
@@ -85,20 +85,20 @@ function memberToolAccessSummary(planUid: string) {
 
 export const pricingFaqs = [
     {
-        question: 'Can I run member tools during the trial or on a paid plan?',
-        answer: 'Yes. Free includes the income scenario planner. Pro includes the core tracking, AI, weather, and routing toolkit during the 7-day Pro trial and after billing begins. Elite includes every member tool, including route economics.',
+        question: 'Which member tools does each plan include?',
+        answer: 'Free includes the income scenario planner. Pro includes the core tracking, AI, weather, and routing toolkit. Elite includes every member tool, including route economics. Existing trial access is unchanged.',
     },
     {
         question: 'Can I change plans or cancel anytime?',
-        answer: 'Yes. You can upgrade, downgrade, or cancel from the Outseta billing widget at any time. You keep access until the end of your billing period, and Pro includes a 7-day free trial before paid billing begins.',
+        answer: 'Yes. Choose Manage or cancel membership on your profile or signed-in pricing page. Sign in if asked, then use Plan to change your plan or select Cancel subscription and review the confirmation. Normal cancellation preserves access through your current trial or billing period.',
     },
     {
-        question: 'What happens after the 7-day Pro trial?',
-        answer: 'Pro starts with $0 due today. If you do not cancel before the trial ends, the membership renews as paid digital access using the billing terms shown during checkout.',
+        question: 'When does a new Pro subscription start billing?',
+        answer: 'New Pro subscriptions cost $49/month and are billed at signup, with no free trial. Review the billing terms shown during checkout. Existing trials and subscriptions retain their current terms.',
     },
     {
         question: 'Do you offer refunds?',
-        answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, training, and templates is non-refundable. Use the 7-day Pro trial to make sure the currently available hub fits before billing starts.',
+        answer: 'No. Nested Objects is a digital membership, so paid access to firm intel, training, and templates is non-refundable. Use the Free directory preview and review plan features before subscribing.',
     },
     {
         question: 'Which plan should I choose first?',
@@ -147,15 +147,15 @@ function MembershipContent() {
                 <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
                     <Clock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
                     <div>
-                        <p className="font-semibold text-slate-900">7-day Pro trial</p>
-                        <p className="mt-1 text-xs text-slate-600">$0 due today. Cancel before billing.</p>
+                        <p className="font-semibold text-slate-900">Pro: {proPlan.price}/month</p>
+                        <p className="mt-1 text-xs text-slate-600">New subscriptions bill at signup. No free trial.</p>
                     </div>
                 </div>
                 <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" aria-hidden />
                     <div>
                         <p className="font-semibold text-slate-900">Cancel anytime</p>
-                        <p className="mt-1 text-xs text-slate-600">Cancel before renewal from billing settings.</p>
+                        <p className="mt-1 text-xs text-slate-600">Review cancellation on your secure Plan page.</p>
                     </div>
                 </div>
                 <div className="flex items-start gap-3 border border-slate-200 bg-white p-4 shadow-sm">
@@ -171,14 +171,14 @@ function MembershipContent() {
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)] lg:items-start">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-copper">
-                            Pro trial path
+                            Pro membership
                         </p>
                         <h2 className="mt-2 text-xl font-semibold text-slate-950 sm:text-2xl">
-                            Use the 7-day trial to decide whether the hub fits your route.
+                            Research firms and prepare for your next route with Pro.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
-                            Pro is the fastest way to evaluate real firm options, inspect the training library, and use
-                            the core member toolkit before paid billing begins.
+                            Pro brings full firm profiles, the training library, and the core member toolkit
+                            together for {proPlan.price}/month.
                         </p>
 
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -202,10 +202,10 @@ function MembershipContent() {
                             ))}
                         </ul>
                         <p className="mt-4 rounded-lg bg-white/15 px-3 py-2 text-xs leading-5 text-white ring-1 ring-white/10">
-                            $0 due today for Pro. Cancel before day 7 if the membership is not the right fit.
+                            New Pro subscriptions are billed at signup and renew monthly unless canceled.
                         </p>
                         <p className="mt-3 text-xs leading-5 text-slate-300">
-                            Use the trial window to inspect firm profiles, training, and route-fit resources before billing starts.
+                            Start with the Free directory preview if you want to explore before subscribing.
                         </p>
                     </div>
                 </div>
@@ -221,8 +221,8 @@ function MembershipContent() {
                             Pick the plan by what you need to decide this week.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            Preview 3 firms for free, test Pro for seven days, or stay paid only when the current firm
-                            intel, training, and readiness resources are worth it for your route.
+                            Preview 3 firms for free, then choose Pro when the full firm intel, training,
+                            and readiness resources fit your route.
                         </p>
                     </div>
 
@@ -248,7 +248,7 @@ function MembershipContent() {
                             Know how checkout, support, and access work before you choose.
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
-                            The membership is designed to be easy to test and easy to cancel. Review the
+                            Review the Free preview, plan features, cancellation options, and the
                             support and policy links before paid access starts.
                         </p>
                     </div>
@@ -298,7 +298,7 @@ function MembershipContent() {
 
                                         {isPro && (
                                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                                                7 Day Free Trial
+                                                Full directory
                                             </div>
                                         )}
 
@@ -387,12 +387,15 @@ function MembershipContent() {
                                 Billing clarity
                             </h2>
                             <p className="mt-3">
-                                Pro starts with $0 due today for the 7-day trial. After billing starts,
-                                paid digital memberships, firm intel, training, and templates
+                                New Pro subscriptions cost {proPlan.price}/month and are billed at signup, with no free trial.
+                                Paid digital memberships, firm intel, training, and templates
                                 are non-refundable because access is delivered instantly.
                             </p>
                             <p className="mt-2">
-                                You can cancel anytime before renewal from your billing settings.
+                                Existing trials and subscriptions retain their current terms.
+                            </p>
+                            <p className="mt-2">
+                                Use Manage or cancel membership on your profile or signed-in pricing page to review cancellation before renewal.
                             </p>
                         </div>
                     </aside>
