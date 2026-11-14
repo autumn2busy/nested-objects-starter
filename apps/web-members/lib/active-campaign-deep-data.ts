@@ -464,7 +464,7 @@ async function syncEcommerceOrder(profile: ProfileUpdateData, customerId: string
     const payload = {
         ecomOrder: {
             externalid: externalId,
-            source: 1, // 1 = Historical, 0 = Real-time
+            source: 1, // Existing realtime behavior; new no-email Pass imports use historical source 0.
             email: profile.email,
             orderNumber: externalId,
             totalPrice: price,

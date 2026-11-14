@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
     const webhookSecret = process.env.OUTSETA_WEBHOOK_SECRET;
 
     // In production, strictly enforce the secret
-    if (!webhookSecret && process.env.NODE_ENV === 'production') {
+    if (!webhookSecret && (process.env.NODE_ENV === 'production' || ['verify', 'apply'].includes(process.env.AC_NONRECURRING_SYNC_MODE || ''))) {
       console.error(`[${requestId}] Configuration error: OUTSETA_WEBHOOK_SECRET missing in production`);
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
@@ -444,6 +444,17 @@ export async function POST(request: NextRequest) {
       } catch (conversionError) {
         console.error(`[${requestId}] Signup conversion event failed:`, conversionError);
       }
+    }
+
+    // The opt-in no-email path runs AFTER the membership projection exists, so
+    // Free signup does not depend on ordering of two provider callbacks. Its
+    // fresh account/person/hold read is the authority, never the cached tier.
+    if (profileData.subscription_tier === 'free' && ['verify', 'apply'].includes(process.env.AC_NONRECURRING_SYNC_MODE || '')) {
+      const { reconcileNonrecurringAccount } = await import('@/lib/nonrecurring-ac-sync');
+      const nonrecurringSync = await reconcileNonrecurringAccount(profileData.outseta_account_id || '');
+      return NextResponse.json({ profileSynced: true, nonrecurringSync }, {
+        status: ['blocked', 'uncertain'].includes(nonrecurringSync.state) ? 409 : 200,
+      });
     }
 
     // TRIGGER AC SYNC
