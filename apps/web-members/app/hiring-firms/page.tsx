@@ -297,7 +297,7 @@ async function getFirms(
     if (stateFilterValue) andFilters.push(`or(${stateFilterValue})`)
     if (searchFilter) andFilters.push(`or(${searchFilter})`)
     if (industryFilter) andFilters.push(industryFilter)
-    if (sourceFilter) andFilters.push(sourceFilter)
+    if (sourceFilter) andFilters.push(`or(${sourceFilter})`)
 
     // NOTE: pay_min/pay_max are stored as TEXT in the database, so PostgREST
     // does lexicographic comparison (e.g. "25" > "100"). We must filter
