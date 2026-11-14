@@ -106,6 +106,16 @@ test('fresh exact current-cycle Directory Pass evidence is allowed', () => {
   assert.equal(entitlement.currentDirectoryPassEntitlement(boundedFutureEnd, identity, now, DIRECTORY_PASS_UID), true)
 })
 
+test('real Outseta uncancelled EndDate cannot extend twelve-month expiry', () => {
+  const actual = changed(value => { value.CurrentSubscription.EndDate = '2099-12-31T00:00:00' })
+  assert.equal(entitlement.currentDirectoryPassEntitlement(actual, identity, now, DIRECTORY_PASS_UID), true)
+  const expiry = Date.parse(actual.CurrentSubscription.ExpirationDate)
+  assert.equal(entitlement.currentDirectoryPassEntitlement(actual, identity, expiry, DIRECTORY_PASS_UID), false)
+  assert.equal(entitlement.currentDirectoryPassEntitlement(actual, identity, expiry + 1, DIRECTORY_PASS_UID), false)
+  actual.CurrentSubscription.EndDate = '2027-04-15T12:00:00.000Z'
+  assert.equal(entitlement.currentDirectoryPassEntitlement(actual, identity, now, DIRECTORY_PASS_UID), false)
+})
+
 test('identity, current cycle, provider stage, one-time terms and plan configuration all fail closed on mismatch', () => {
   const invalid = [
     value => { value.Uid = 'other-account' },
@@ -139,7 +149,6 @@ test('expired, future, malformed and extended dates never grant Directory Pass a
     value => { value.CurrentSubscription.ExpirationDate = '2027-11-15T15:30:00.000Z' },
     value => { value.CurrentSubscription.ExpirationDate = '2027-11-14' },
     value => { value.CurrentSubscription.EndDate = '2027-04-15T12:00:00.000Z' },
-    value => { value.CurrentSubscription.EndDate = '2027-11-14T15:30:00.001Z' },
     value => { delete value.CurrentSubscription.EndDate },
   ]
   for (const mutate of invalid) {
