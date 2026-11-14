@@ -70,7 +70,9 @@ export function currentDirectoryPassEntitlement(
 
   if (subscription.EndDate !== null) {
     const end = parseOutsetaUtcTimestamp(subscription.EndDate)
-    if (end === null || end <= now || end > expiration || end > maximumExpiration) return false
+    // An uncancelled Outseta subscription may use a far-future EndDate.
+    // The independently bounded ExpirationDate still caps access at 12 months.
+    if (end === null || end <= now) return false
   }
   return true
 }
