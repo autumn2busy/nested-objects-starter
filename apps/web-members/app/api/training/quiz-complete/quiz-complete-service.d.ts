@@ -1,6 +1,9 @@
 export type PersistQuizCompletionParams = {
   supabase: any
   userId: string
+  profileId?: string
+  previousCompletedModuleIds?: string[]
+  previousCompletedModuleIds?: string[]
   moduleId: string
   score: number
   passed: boolean

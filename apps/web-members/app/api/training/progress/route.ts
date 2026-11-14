@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
+import { canOpenTrainingModule, readTrainingAccess } from '@/lib/training-access'
+
 import { getCurrentUser, getOutsetaUserId } from '@/lib/auth-server'
 import { createServiceRoleClient } from '@/lib/supabase-admin'
 import {
-    getLookupUserIds,
-    logNoRowsTelemetry,
     resolveTrainingIdentity,
     runTrainingUserIdMigrationOncePerRuntime,
 } from '@/lib/training-identity'
@@ -15,83 +15,23 @@ const PROFILE_SELECT = 'id, user_id, outseta_person_uid'
 export async function GET(request: Request) {
     try {
         const user = await getCurrentUser()
-        const outsetaId = getOutsetaUserId(user)
-
-        if (!user || !outsetaId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
+        if (!user?.sub) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const supabase = createServiceRoleClient()
-        const { searchParams } = new URL(request.url)
-        const moduleId = searchParams.get('moduleId')
-
-        const identity = await resolveTrainingIdentity({
-            supabase,
-            outsetaId,
-            user,
-            profileSelect: PROFILE_SELECT,
-        })
-
-        if (!identity) {
-            return NextResponse.json({ completedModuleIds: [], progress: [] })
-        }
-
-        await runTrainingUserIdMigrationOncePerRuntime(supabase, identity)
-
-        const lookupIds = getLookupUserIds(identity)
-
+        const state = await readTrainingAccess(supabase, user)
+        const moduleId = new URL(request.url).searchParams.get('moduleId')
         if (moduleId) {
-            const { data: canonicalProgress } = await supabase
-                .from('training_progress')
-                .select('lesson_id, resource_type, status')
-                .eq('user_id', identity.canonicalUserId)
-                .eq('module_id', moduleId)
-
-            if ((canonicalProgress?.length || 0) > 0) {
-                return NextResponse.json({ progress: canonicalProgress || [], completedModuleIds: [] })
+            const trainingModule = state.modules.find(item => item.id === moduleId || item.slug === moduleId)
+            if (!trainingModule || !canOpenTrainingModule(user['outseta:planUid'], trainingModule, state)) {
+                return NextResponse.json({ error: 'Training access required' }, { status: 403 })
             }
-
-            const { data: fallbackProgress } = await supabase
-                .from('training_progress')
-                .select('lesson_id, resource_type, status')
-                .in('user_id', lookupIds)
-                .eq('module_id', moduleId)
-
-            if ((fallbackProgress?.length || 0) === 0) {
-                logNoRowsTelemetry('PROGRESS:GET_MODULE', identity, { moduleId })
-            }
-
-            return NextResponse.json({ progress: fallbackProgress || [], completedModuleIds: [] })
+            const { data, error } = await supabase.from('training_progress')
+                .select('lesson_id,resource_type,status').in('user_id', state.lookupUserIds).eq('module_id', trainingModule.id)
+            if (error) throw new Error('Training lesson progress unavailable')
+            return NextResponse.json({ progress: data || [], completedModuleIds: state.completedModuleIds, waivedModuleIds: state.waivedModuleIds })
         }
-
-        const { data: canonicalPassedQuizzes } = await supabase
-            .from('quiz_attempts')
-            .select('module_id')
-            .eq('user_id', identity.canonicalUserId)
-            .eq('passed', true)
-
-        let passedQuizzes = canonicalPassedQuizzes || []
-
-        if (passedQuizzes.length === 0) {
-            const { data: fallbackPassedQuizzes } = await supabase
-                .from('quiz_attempts')
-                .select('module_id')
-                .in('user_id', lookupIds)
-                .eq('passed', true)
-
-            passedQuizzes = fallbackPassedQuizzes || []
-
-            if (passedQuizzes.length === 0) {
-                logNoRowsTelemetry('PROGRESS:GET_COMPLETED_MODULES', identity)
-            }
-        }
-
-        const completedModuleIds = Array.from(new Set(passedQuizzes.map((q: any) => q.module_id)))
-
-        return NextResponse.json({ completedModuleIds })
-    } catch (error) {
-        console.error('Error in training/progress GET:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json({ completedModuleIds: state.completedModuleIds, waivedModuleIds: state.waivedModuleIds })
+    } catch {
+        return NextResponse.json({ error: 'Training progress is temporarily unavailable' }, { status: 503 })
     }
 }
 
@@ -109,6 +49,18 @@ export async function POST(request: Request) {
 
         const supabase = createServiceRoleClient()
 
+        const state = await readTrainingAccess(supabase, user)
+        const trainingModule = state.modules.find(item => item.id === module_id)
+        if (!trainingModule || !canOpenTrainingModule(user['outseta:planUid'], trainingModule, state)) {
+            return NextResponse.json({ error: 'Training access required' }, { status: 403 })
+        }
+        // Quiz results belong to the dedicated persistence path, never lesson updates.
+        if (resource_type !== 'lesson' || status !== 'completed' || quiz_passed !== undefined || quiz_score !== undefined) {
+            return NextResponse.json({ error: 'Unsupported progress update' }, { status: 400 })
+        }
+        const lesson = await supabase.from('training_lessons').select('id').eq('id', lesson_id).eq('module_id', trainingModule.id).maybeSingle()
+        if (lesson.error) throw new Error('Lesson lookup unavailable')
+        if (!lesson.data) return NextResponse.json({ error: 'Lesson not found' }, { status: 400 })
         const identity = await resolveTrainingIdentity({
             supabase,
             outsetaId,
@@ -143,19 +95,6 @@ export async function POST(request: Request) {
         if (progressError) {
             console.error('[PROGRESS] Error inserting into training_progress:', progressError)
             throw progressError
-        }
-
-        if (quiz_passed || (status === 'completed' && resource_type === 'quiz')) {
-            const { error: qaError } = await supabase.from('quiz_attempts').upsert({
-                user_id: identity.canonicalUserId,
-                module_id,
-                passed: true,
-                score: quiz_score || 100,
-                completed_at: new Date().toISOString(),
-            })
-            if (qaError) {
-                console.error('[PROGRESS] Error inserting into quiz_attempts:', qaError)
-            }
         }
 
         return NextResponse.json({ success: true })

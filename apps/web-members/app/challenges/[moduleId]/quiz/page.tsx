@@ -2,8 +2,10 @@
 /* eslint-disable */
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+import { saveTrainingQuiz } from '@/lib/training-quiz-receipt'
+import { useAuth } from '@/components/auth-provider'
+import { useParams } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { TrainingQuestion } from '@/types/training'
 import QuizEngine from '@/components/training/QuizEngine'
@@ -13,7 +15,11 @@ import Link from 'next/link'
 export default function ModuleQuizPage() {
     const params = useParams()
     const moduleId = params.moduleId as string
-    const router = useRouter()
+    const { user } = useAuth()
+    const currentMember = useRef(user?.sub)
+    currentMember.current = user?.sub
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+    const pendingScore = useRef<number | null>(null)
     const [questions, setQuestions] = useState<TrainingQuestion[]>([])
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
@@ -40,30 +46,15 @@ export default function ModuleQuizPage() {
         fetchQuestions()
     }, [moduleId])
 
+    useEffect(() => { setSaveStatus('idle'); pendingScore.current = null }, [user?.sub, moduleId])
+
     const handleQuizComplete = async (score: number) => {
-        try {
-            const passed = score >= 80
-
-            // Use the correct quiz-complete API that also updates trust score
-            await fetch('/api/training/quiz-complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    module_id: moduleId,
-                    score,
-                    passed,
-                    total_questions: questions.length
-                })
-            })
-
-            // Note: QuizEngine handles the "Completed" UI state. 
-            // We just save the data here silently or we could redirect?
-            // QuizEngine current implementation stays on the "Passed/Failed" screen with a "Return" button.
-            // That works.
-
-        } catch (err) {
-            console.error('Failed to save quiz results', err)
-        }
+        if (saveStatus === 'saving') return
+        const member = user?.sub
+        pendingScore.current = score
+        setSaveStatus('saving')
+        const receipt = await saveTrainingQuiz({ module_id: moduleId, score, total_questions: questions.length })
+        if (currentMember.current === member) setSaveStatus(receipt.saved ? 'saved' : 'error')
     }
 
     if (loading) {
@@ -84,7 +75,10 @@ export default function ModuleQuizPage() {
             </div>
 
             <QuizEngine
+                key={String(user?.sub) + moduleId}
                 questions={questions}
+                saveStatus={saveStatus}
+                onRetrySave={() => { if (pendingScore.current !== null) void handleQuizComplete(pendingScore.current) }}
                 onComplete={handleQuizComplete}
                 moduleId={moduleId}
             />

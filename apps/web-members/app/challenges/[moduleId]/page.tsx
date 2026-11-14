@@ -16,6 +16,7 @@ import FlashcardDeck from '@/components/training/FlashcardDeck'
 import IncomeCalculator from '@/components/training/IncomeCalculator'
 import InteractiveScenario from '@/components/training/InteractiveScenario'
 import DynamicQuiz from '@/components/training/DynamicQuiz'
+import { saveTrainingQuiz } from '@/lib/training-quiz-receipt'
 
 // Types
 interface TrainingModule {
@@ -138,12 +139,17 @@ const KnowledgeCheck = ({ question, options, correctIndex, explanation }: { ques
 
 // Main Component
 export default function ModuleOverviewPage() {
+    const { user } = useAuth()
+    const params = useParams()
+    return <ModuleOverviewContent key={String(user?.sub ?? 'signed-out') + ':' + String(params.moduleId)} />
+}
+
+function ModuleOverviewContent() {
     const params = useParams()
     const moduleId = params.moduleId as string
 
-    const { isAuthenticated, isLoading: authLoading, hasAccess, login, signup } = useAuth()
+    const { user, isAuthenticated, isLoading: authLoading, hasAccess, login, signup } = useAuth()
     const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
-    const showGate = !authLoading && !hasTrainingAccess
 
     const [module, setModule] = useState<TrainingModule | null>(null)
     const [lessons, setLessons] = useState<TrainingLesson[]>([])
@@ -153,6 +159,12 @@ export default function ModuleOverviewPage() {
     const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set())
     const [quizPassed, setQuizPassed] = useState(false)
+    const [quizSaveStatus, setQuizSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+    const [progressError, setProgressError] = useState<string | null>(null)
+    const pendingQuiz = useRef<{ score: number; passed: boolean } | null>(null)
+    const currentMember = useRef(user?.sub)
+    currentMember.current = user?.sub
+    const showGate = !authLoading && (!isAuthenticated || (!hasTrainingAccess && module?.module_number !== 1))
     const [selectedAudience, setSelectedAudience] = useState<AudienceType>(null)
     const mainRef = useRef<HTMLElement>(null) // Ref for scrolling
 
@@ -238,146 +250,55 @@ export default function ModuleOverviewPage() {
     }, [activeView, activeLessonId])
 
     // Ref to prevent double-hydration or loops
-    const hasHydrated = useRef<string | null>(null)
-
-    // Load/save progress — hydrate from Supabase (source of truth), then merge localStorage cache
+    // Saved server records are authoritative; do not merge the old shared browser cache.
     useEffect(() => {
-        if (!module) return
-        if (!isAuthenticated || authLoading) {
-            // Not logged in — try localStorage only
+        let cancelled = false
+        setCompletedLessons(new Set())
+        setQuizPassed(false)
+        setQuizSaveStatus('idle')
+        pendingQuiz.current = null
+        setProgressError(null)
+        if (!module || !isAuthenticated || authLoading) return
+        async function hydrate() {
             try {
-                const saved = localStorage.getItem(`module_${module.id}_progress`)
-                if (saved) { const p = JSON.parse(saved); setCompletedLessons(new Set(p.completedLessons || [])); setQuizPassed(p.quizPassed || false) }
-            } catch { }
-            return
+                const response = await fetch('/api/training/progress?moduleId=' + encodeURIComponent(module!.id), { cache: 'no-store' })
+                if (!response.ok) throw new Error('Progress unavailable')
+                const data = await response.json()
+                if (cancelled) return
+                const lessonIds = new Set(lessons.map(lesson => lesson.id))
+                setCompletedLessons(new Set<string>((data.progress || []).filter((row: any) => row.resource_type === 'lesson' && row.status === 'completed' && lessonIds.has(row.lesson_id)).map((row: any) => row.lesson_id)))
+                setQuizPassed((data.completedModuleIds || []).includes(module!.id))
+            } catch { if (!cancelled) setProgressError('Saved progress could not be loaded. Refresh to try again.') }
         }
+        void hydrate()
+        return () => { cancelled = true }
+    }, [module, lessons, isAuthenticated, authLoading, user?.sub])
 
-        // Only run the server hydration once per module
-        if (hasHydrated.current !== module.id) {
-            hasHydrated.current = module.id
-            
-            // Load localStorage immediately for fast UI
-            let localCompleted = new Set<string>()
-            let localQuizPassed = false
-            try {
-                const saved = localStorage.getItem(`module_${module.id}_progress`)
-                if (saved) { const p = JSON.parse(saved); localCompleted = new Set(p.completedLessons || []); localQuizPassed = p.quizPassed || false }
-            } catch { }
-            if (localCompleted.size > 0 || localQuizPassed) {
-                setCompletedLessons(localCompleted)
-                setQuizPassed(localQuizPassed)
-            }
-
-            // Then fetch from Supabase and merge (Supabase is source of truth)
-            const hydrateFromServer = async () => {
-                try {
-                    // Fetch lesson progress
-                    const progressRes = await fetch(`/api/training/progress?moduleId=${module!.id}`, { cache: 'no-store' })
-                    if (progressRes.ok) {
-                        const progressData = await progressRes.json()
-                        const serverLessons = new Set<string>(
-                            (progressData.progress || [])
-                                .filter((p: any) => p.resource_type === 'lesson' && p.status === 'completed')
-                                .map((p: any) => p.lesson_id)
-                        )
-                        // Merge: union of localStorage + Supabase
-                        const merged = new Set([...localCompleted, ...serverLessons])
-                        if (merged.size > localCompleted.size) {
-                            setCompletedLessons(merged)
-                        }
-                    }
-
-                    // Fetch quiz pass status from overall progress endpoint
-                    const quizRes = await fetch('/api/training/progress', { cache: 'no-store' })
-                    if (quizRes.ok) {
-                        const quizData = await quizRes.json()
-                        const completedModuleIds: string[] = quizData.completedModuleIds || []
-                        if (completedModuleIds.includes(module!.id)) {
-                            setQuizPassed(true)
-                            localQuizPassed = true
-                        }
-                    }
-                } catch (err) {
-                    console.error('Failed to hydrate progress from server:', err)
-                }
-            }
-            hydrateFromServer()
-        }
-
-        // Sync state back to localStorage whenever it changes
-        localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({
-            completedLessons: Array.from(completedLessons),
-            quizPassed: quizPassed
-        }))
-
-        const aud = localStorage.getItem('nested_objects_audience')
-        if (aud) setSelectedAudience(aud as AudienceType)
-    }, [module, isAuthenticated, authLoading, completedLessons, quizPassed])
-
-    const saveProgress = async (completed: Set<string>, passed: boolean, newLessonId?: string) => {
-        if (!module) return
-        // Save to localStorage for instant UI feedback
-        localStorage.setItem(`module_${module.id}_progress`, JSON.stringify({ completedLessons: Array.from(completed), quizPassed: passed }))
-        // Persist the newly completed lesson to Supabase
-        if (newLessonId) {
-            try {
-                const res = await fetch('/api/training/progress', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        module_id: module.id,
-                        lesson_id: newLessonId,
-                        resource_type: 'lesson',
-                        status: 'completed',
-                    })
-                })
-                if (!res.ok) {
-                    const errData = await res.json()
-                    console.error('SERVER ERROR saving progress:', errData)
-                    alert(`Training Server Error: ${errData.error || res.statusText}\nDetails: ${errData.details || 'Check console'}`)
-                }
-            } catch (err) {
-                console.error('Failed to save lesson progress:', err)
-            }
-        }
-    }
-
-    const markLessonComplete = (id: string) => {
-        const newSet = new Set(completedLessons); newSet.add(id); setCompletedLessons(newSet); saveProgress(newSet, quizPassed, id)
+    const markLessonComplete = async (id: string) => {
+        if (!module || completedLessons.has(id)) return
+        const member = user?.sub
+        try {
+            const response = await fetch('/api/training/progress', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ module_id: module.id, lesson_id: id, resource_type: 'lesson', status: 'completed' }),
+            })
+            const receipt = await response.json()
+            if (!response.ok || receipt?.success !== true) throw new Error('Lesson save unavailable')
+            if (currentMember.current !== member) return
+            setCompletedLessons(current => new Set([...current, id]))
+            setProgressError(null)
+        } catch { if (currentMember.current === member) setProgressError('Lesson completion was not saved. Select Mark complete again to retry.') }
     }
 
     const handleQuizComplete = async (score: number, passed: boolean) => {
-        // Always save to localStorage for instant UI
-        if (passed) { setQuizPassed(true) }
-        saveProgress(completedLessons, passed)
-
-        // Persist quiz result to Supabase and recalculate trust score
-        try {
-            const res = await fetch('/api/training/quiz-complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    module_id: module?.id,
-                    score,
-                    passed,
-                    total_questions: quizQuestions.length,
-                })
-            })
-
-            if (!res.ok) {
-                const errData = await res.json()
-                console.error('SERVER ERROR saving quiz:', errData)
-                alert(`Assessment Server Error: ${errData.error || res.statusText}\nDetails: ${errData.details || 'Check console'}`)
-                return;
-            }
-
-            const data = await res.json()
-            if (data.success && data.passed) {
-                console.log(`✅ Quiz passed! Trust score: ${data.trustScore} (${data.trustTier})`)
-            }
-        } catch (err) {
-            console.error('Failed to save quiz result:', err)
-        }
+        if (!module || quizSaveStatus === 'saving') return
+        const member = user?.sub
+        pendingQuiz.current = { score, passed }
+        setQuizSaveStatus('saving')
+        const receipt = await saveTrainingQuiz({ module_id: module.id, score, total_questions: quizQuestions.length })
+        if (currentMember.current !== member) return
+        setQuizSaveStatus(receipt.saved ? 'saved' : 'error')
+        if (receipt.saved && receipt.passed) setQuizPassed(true)
     }
     const handleAudienceSelect = (a: AudienceType) => { setSelectedAudience(a); if (a) localStorage.setItem('nested_objects_audience', a); else localStorage.removeItem('nested_objects_audience') }
 
@@ -400,7 +321,9 @@ export default function ModuleOverviewPage() {
                     <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"><BookOpen className="w-5 h-5 text-emerald-600" /></div>
                     <div><p className="text-xs text-slate-500">Module {module.module_number}</p><h2 className="font-bold text-slate-900 text-sm">{module.title}</h2></div>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">{progressPercent}% Complete • {completedLessons.size}/{lessons.length}</p>
+                <p className="mt-2 text-xs text-slate-500">{progressPercent}% of lessons complete • {completedLessons.size}/{lessons.length}</p>
+                {!quizPassed && canTakeQuiz && <button className="mt-2 text-sm font-semibold text-emerald-700 underline" onClick={() => setActiveView('quiz')}>Assessment required: score 80% or higher</button>}
+                {progressError && <p role="alert" className="mt-2 text-sm text-red-700">{progressError}</p>}
             </div>
             <div className="p-2">
                 <button onClick={() => setActiveView('overview')} className={`w-full p-3 rounded-lg text-left flex items-center gap-3 ${activeView === 'overview' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-50'}`}>
@@ -471,7 +394,7 @@ export default function ModuleOverviewPage() {
                     </div>
                     <div className="relative w-32 h-32 flex-shrink-0 hidden md:block">
                         <svg className="w-full h-full transform -rotate-90"><circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" /><circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={351.86} strokeDashoffset={351.86 - (351.86 * progressPercent) / 100} className="text-emerald-500" strokeLinecap="round" /></svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-2xl font-bold">{progressPercent}%</span><span className="text-[10px] uppercase font-semibold text-slate-400">Complete</span></div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-2xl font-bold">{progressPercent}%</span><span className="text-[10px] uppercase font-semibold text-slate-400">Lessons complete</span></div>
                     </div>
                 </div>
             </div>
@@ -500,7 +423,7 @@ export default function ModuleOverviewPage() {
 
                 <button onClick={() => canTakeQuiz && setActiveView('quiz')} disabled={!canTakeQuiz} className={`p-6 rounded-xl border transition text-left ${canTakeQuiz ? 'bg-white hover:shadow-md' : 'bg-slate-50 opacity-60 cursor-not-allowed'}`}>
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${canTakeQuiz ? 'bg-red-100' : 'bg-slate-200'}`}>{canTakeQuiz ? <Award className="w-6 h-6 text-red-600" /> : <Lock className="w-6 h-6 text-slate-400" />}</div>
-                    <h3 className="font-bold text-slate-900 mb-1">Assessment</h3><p className="text-sm text-slate-500">{quizPassed ? '✓ Passed' : canTakeQuiz ? 'Earn certificate' : `${requiredForQuiz - completedLessons.size} more lessons`}</p>
+                    <h3 className="font-bold text-slate-900 mb-1">Assessment</h3><p className="text-sm text-slate-500">{quizPassed ? '✓ Assessment passed and saved' : canTakeQuiz ? 'Pass with 80% or higher' : `${requiredForQuiz - completedLessons.size} more lessons`}</p>
                 </button>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -677,13 +600,15 @@ export default function ModuleOverviewPage() {
             >
                 <Sidebar />
                 <main ref={mainRef} className="flex-1 overflow-y-auto">
+                    {progressError && <p role="alert" className="p-4 text-red-700 lg:hidden">{progressError}</p>}
+                    {!quizPassed && canTakeQuiz && activeView !== 'quiz' && <p className="p-4 text-sm">Lesson progress is separate from assessment completion. <button className="font-semibold text-emerald-700 underline" onClick={() => setActiveView('quiz')}>Take or retake the assessment (80% to pass)</button></p>}
                     <div className="max-w-4xl mx-auto px-6 py-8">
                         {activeView === 'overview' && <Overview />}
                         {activeView === 'lesson' && <LessonContent />}
                         {activeView === 'flashcards' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Flashcards</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><FlashcardDeck cards={flashcards} /></div>}
                         {activeView === 'calculator' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Income Calculator</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><IncomeCalculator /></div>}
                         {activeView === 'scenario' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Interactive Scenarios</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><InteractiveScenario scenarios={scenarios} /></div>}
-                        {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><DynamicQuiz questions={quizQuestions} onComplete={handleQuizComplete} /></div>}
+                        {activeView === 'quiz' && <div className="bg-white rounded-2xl border p-8"><div className="flex items-center justify-between mb-6"><h2 className="text-2xl font-bold">Module Assessment</h2><button onClick={() => setActiveView('overview')} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg"><X className="w-5 h-5" /></button></div><DynamicQuiz key={String(user?.sub) + module.id} questions={quizQuestions} onComplete={handleQuizComplete} saveStatus={quizSaveStatus} onRetrySave={() => { const pending = pendingQuiz.current; if (pending) void handleQuizComplete(pending.score, pending.passed) }} /></div>}
                     </div>
                 </main>
             </div>

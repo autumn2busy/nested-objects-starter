@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BookOpen, ChevronRight, Lock, CheckCircle2, Shield } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
+import { canOpenTrainingModule } from '@/lib/training-access-policy'
 
 type TrainingModule = {
   id: string
@@ -12,6 +13,7 @@ type TrainingModule = {
   description: string | null
   icon?: string | null
   is_new?: boolean | null
+  requires_previous_module?: boolean | null
 }
 
 type TrainingModulesGateProps = {
@@ -23,36 +25,42 @@ type TrainingModulesGateProps = {
 // basic_training requires 'zWZD0rQp' (Directory+)
 // Free / no plan users get Module 1 only
 
-export default function TrainingModulesGate({ modules }: TrainingModulesGateProps) {
-  const { isAuthenticated, isLoading, hasAccess, planUid, login, signup } = useAuth()
+export default function TrainingModulesGate(props: TrainingModulesGateProps) {
+  const { user, planUid } = useAuth()
+  return <MemberTrainingModules key={String(user?.sub ?? 'signed-out') + ':' + String(planUid)} {...props} />
+}
+
+function MemberTrainingModules({ modules }: TrainingModulesGateProps) {
+  const { user, isAuthenticated, isLoading, hasAccess, planUid, login, signup } = useAuth()
   const [passedModuleIds, setPassedModuleIds] = useState<Set<string>>(new Set())
   const [progressLoading, setProgressLoading] = useState(true)
+  const [waivedModuleIds, setWaivedModuleIds] = useState<string[]>([])
+  const [progressError, setProgressError] = useState(false)
 
   const hasTrainingAccess = isAuthenticated && hasAccess('basic_training')
 
-  // Fetch which modules the user has passed quizzes for
   useEffect(() => {
-    if (!isAuthenticated || isLoading) {
-      setProgressLoading(false)
-      return
-    }
-
+    let cancelled = false
+    setPassedModuleIds(new Set())
+    setWaivedModuleIds([])
+    setProgressError(false)
+    setProgressLoading(isAuthenticated)
+    if (!isAuthenticated || isLoading) return
     async function fetchProgress() {
       try {
         const res = await fetch('/api/training/progress', { cache: 'no-store' })
-        if (res.ok) {
-          const data = await res.json()
+        if (!res.ok) throw new Error('Progress unavailable')
+        const data = await res.json()
+        if (!cancelled) {
           setPassedModuleIds(new Set(data.completedModuleIds || []))
+          setWaivedModuleIds(data.waivedModuleIds || [])
         }
-      } catch (err) {
-        console.error('Failed to fetch training progress:', err)
-      } finally {
-        setProgressLoading(false)
-      }
+      } catch { if (!cancelled) setProgressError(true) }
+      finally { if (!cancelled) setProgressLoading(false) }
     }
-
-    fetchProgress()
-  }, [isAuthenticated, isLoading])
+    void fetchProgress()
+    return () => { cancelled = true }
+  }, [isAuthenticated, isLoading, user?.sub, planUid])
 
   // Not loading, not authenticated → show full gate overlay
   const showFullGate = !isLoading && !isAuthenticated
@@ -63,46 +71,24 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
   // Sort modules by module_number for sequential logic
   const sortedModules = [...(modules || [])].sort((a, b) => a.module_number - b.module_number)
 
-  // Determine if a module is unlocked based on sequential quiz completion
-  const isModuleUnlocked = (module: TrainingModule, index: number): boolean => {
-    // Module 1 is always unlocked (if plan allows)
-    if (index === 0 || module.module_number === 1) return true
-
-    // Plan-gated: if no training access, only module 1 is available
-    if (showPartialLock) return false
-
-    // Sequential lock: previous module must have a passed quiz
-    // We look for any module with (current.module_number - 1) that is passed
-    const previousModuleNum = module.module_number - 1
-    const previousModule = sortedModules.find(m => m.module_number === previousModuleNum)
-
-    if (!previousModule) {
-      // If we can't find a module with (N-1), default to index-1 fallback
-      const idxPrev = sortedModules[index - 1]
-      return idxPrev ? passedModuleIds.has(idxPrev.id) : true
-    }
-
-    const hasPassedPrevious = passedModuleIds.has(previousModule.id)
-
-    // Diagnostic log for Module 6 or others that stay locked
-    if (module.module_number >= 5 && !hasPassedPrevious && !passedModuleIds.has(module.id)) {
-      console.log(`[TRAINING] Module ${module.module_number} lock check: previous module ${previousModuleNum} (${previousModule.id}) passed? ${hasPassedPrevious}. Current module ${module.id} in passed list? ${passedModuleIds.has(module.id)}`)
-    }
-
-    return hasPassedPrevious
-  }
+  const isModuleUnlocked = (module: TrainingModule): boolean => canOpenTrainingModule(planUid,
+    { ...module, requires_previous_module: module.requires_previous_module ?? true }, {
+      modules: sortedModules.map(item => ({ ...item, requires_previous_module: item.requires_previous_module ?? true })),
+      completedModuleIds: Array.from(passedModuleIds), waivedModuleIds,
+    })
 
   // Determine module status for display
   const getModuleStatus = (module: TrainingModule, index: number): 'completed' | 'available' | 'locked-plan' | 'locked-progress' => {
     const isPassed = passedModuleIds.has(module.id)
+    if (showPartialLock && module.module_number > 1) return 'locked-plan'
     if (isPassed) return 'completed'
-    if (showPartialLock && index > 0) return 'locked-plan'
-    if (!isModuleUnlocked(module, index)) return 'locked-progress'
+    if (!isModuleUnlocked(module)) return 'locked-progress'
     return 'available'
   }
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12">
+      {progressError && <p role="alert" className="mb-4">Saved training progress could not be loaded. Refresh to try again.</p>}
       {(isLoading || progressLoading) ? (
         <div className="flex items-center justify-center py-20">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-copper border-t-transparent" />
@@ -147,7 +133,7 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                             </>
                           ) : (
                             <>
-                              <p className="text-sm font-semibold text-slate-700">Complete Module {module.module_number - 1} first</p>
+                              <p className="text-sm font-semibold text-slate-700">Pass the Module {module.module_number - 1} assessment</p>
                               <p className="text-xs text-slate-500 mt-1">Pass the quiz with 80% or higher</p>
                             </>
                           )}
@@ -170,6 +156,7 @@ export default function TrainingModulesGate({ modules }: TrainingModulesGateProp
                     // Unlocked module card — clickable
                     <Link href={`/challenges/${module.id}`} className="block h-full">
                       <div className={`bg-white border text-card-foreground shadow-sm rounded-2xl p-6 h-full transition-all hover:border-brand-copper hover:shadow-lg hover:-translate-y-1 relative overflow-hidden ${isCompleted ? 'border-emerald-200' : ''}`}>
+                        {waivedModuleIds.includes(module.id) && <p className="mb-3 text-sm text-emerald-700">Prerequisite waiver approved</p>}
                         {/* Status badge */}
                         {isCompleted ? (
                           <span className="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1">
