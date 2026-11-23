@@ -54,7 +54,7 @@ jobs:
         run: node --test tests/active-campaign-sync.test.mjs tests/outseta-billing-stage.test.mjs tests/directory-pass-lifecycle.test.mjs tests/directory-pass-tier-migration.test.mjs
       - name: Verify nonrecurring payment evidence, no-email providers and receipt recovery
         working-directory: apps/web-members
-        run: node --test tests/directory-pass-payment.test.mjs tests/nonrecurring-provider-sync.test.mjs tests/nonrecurring-account-sync.test.mjs tests/ac-pass-receipts-migration.test.mjs
+        run: node --test tests/stripe-readiness.test.mjs tests/directory-pass-payment.test.mjs tests/nonrecurring-provider-sync.test.mjs tests/nonrecurring-account-sync.test.mjs tests/ac-pass-receipts-migration.test.mjs
       - name: Lint and typecheck member app
         working-directory: apps/web-members
         run: |
