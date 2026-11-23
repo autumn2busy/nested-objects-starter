@@ -3,8 +3,11 @@ export type ReadinessInput = { expectedStripeAccountId: string; outsetaAccountUi
 export async function verifyStripeReadiness(input: ReadinessInput, env: Record<string, string | undefined>, fetcher: typeof fetch = fetch) {
   const result = { authenticated: false, liveKey: false, accountMatched: false, outsetaCustomerMatched: false,
     chargesReadable: false, paymentIntentsReadable: false, refundsReadable: false }
-  const key = env.STRIPE_SECRET_KEY
-  if (!key || !/^(?:sk|rk)_live_[A-Za-z0-9]+$/.test(key)) return { ...result, code: 'live_key_required' }
+  const key = env.STRIPE_SECRET_KEY?.trim()
+  if (!key) return { ...result, code: 'live_key_missing' }
+  if (/^pk_/.test(key)) return { ...result, code: 'publishable_key_supplied' }
+  if (/^(?:sk|rk)_test_/.test(key)) return { ...result, code: 'test_key_supplied' }
+  if (!/^(?:sk|rk)_live_[A-Za-z0-9]+$/.test(key)) return { ...result, code: 'live_key_format_invalid' }
   result.liveKey = true
   const outsetaKey = env.OUTSETA_API_KEY || env.NEXT_PUBLIC_OUTSETA_PUBLIC_KEY
   if (!outsetaKey || !env.OUTSETA_API_SECRET) return { ...result, code: 'outseta_configuration_required' }

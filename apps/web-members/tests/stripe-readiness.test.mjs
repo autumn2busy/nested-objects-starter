@@ -26,9 +26,9 @@ test('live credential read checks exact Stripe account and authoritative Outseta
  assert.ok(f.calls.every(x=>!x.init.body));assert.ok(Object.values(r).every(x=>typeof x==='boolean'||x==='stripe_readiness_verified'))
  assert.ok(!JSON.stringify(r).includes('acct_'));assert.ok(!JSON.stringify(r).includes('cus_'));assert.ok(!JSON.stringify(r).includes('fixture'))
 })
-for(const key of [undefined,'sk_test_fixture','pk_live_fixture','rk_live_fixture\n'])test('rejects absent, test, public, malformed key '+String(key),async()=>{
+for(const key of [undefined,'sk_test_fixture','pk_live_fixture','rk_live_fi xture'])test('rejects absent, test, public, malformed key '+String(key),async()=>{
  let called=false;const r=await verifyStripeReadiness(input,{...env,STRIPE_SECRET_KEY:key},async()=>{called=true})
- assert.equal(r.code,'live_key_required');assert.equal(called,false)
+ assert.equal(r.code,key===undefined?'live_key_missing':key.startsWith('sk_test_')?'test_key_supplied':key.startsWith('pk_')?'publishable_key_supplied':'live_key_format_invalid');assert.equal(called,false)
 })
 test('wrong account stops before Outseta/customer reads',async()=>{
  const f=fixture({change:(url,b)=>url.endsWith('/account')?{id:'acct_other'}:b})
@@ -65,3 +65,5 @@ test('diagnostic rejects unsigned/stale/extra-scope requests before touching Str
  const r=await request(base);assert.equal(r.status,200);assert.equal(r.headers['Cache-Control'],'no-store');assert.equal(calls,1)
  assert.equal(route.GET,undefined)
 })
+
+test('outer paste whitespace is normalized without exposing or altering the credential',async()=>{const f=fixture();const r=await verifyStripeReadiness(input,{...env,STRIPE_SECRET_KEY:' \n'+env.STRIPE_SECRET_KEY+'\r\n '},f.fetcher);assert.equal(r.code,'stripe_readiness_verified');assert.ok(f.calls.filter(x=>x.url.startsWith('https://api.stripe.com/')).every(x=>x.init.headers.Authorization==='Bearer '+env.STRIPE_SECRET_KEY))})
