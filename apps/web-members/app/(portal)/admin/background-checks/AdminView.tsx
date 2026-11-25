@@ -8,17 +8,18 @@ type PendingProfile = {
     id: string
     fullName: string
     email: string
-    shieldId: string
+    shieldId: string | null
     submittedAt: string
     trustScore: number
 }
 
 const SHIELDHUB_VERIFICATION_URL = 'https://www.shieldhub.com/shieldid-verification/'
 
-function ShieldHubActions({ shieldId }: { shieldId: string }) {
+function ShieldHubActions({ shieldId }: { shieldId: string | null }) {
     const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
 
     const copyShieldId = async () => {
+        if (!shieldId?.trim()) return
         try {
             await navigator.clipboard.writeText(shieldId)
             setCopyStatus('copied')
@@ -39,7 +40,7 @@ function ShieldHubActions({ shieldId }: { shieldId: string }) {
                 Verify on ShieldHub
                 <span className="sr-only"> (opens in a new tab)</span>
             </a>
-            {shieldId.trim() && (
+            {shieldId?.trim() && (
                 <button
                     type="button"
                     onClick={copyShieldId}
