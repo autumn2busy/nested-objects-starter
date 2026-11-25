@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle, XCircle, Shield, AlertCircle, Loader2 } from 'lucide-react'
+import { CheckCircle, XCircle, Shield, AlertCircle, Loader2, Copy, ExternalLink } from 'lucide-react'
 
 type PendingProfile = {
     id: string
@@ -11,6 +11,50 @@ type PendingProfile = {
     shieldId: string
     submittedAt: string
     trustScore: number
+}
+
+const SHIELDHUB_VERIFICATION_URL = 'https://www.shieldhub.com/shieldid-verification/'
+
+function ShieldHubActions({ shieldId }: { shieldId: string }) {
+    const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+    const copyShieldId = async () => {
+        try {
+            await navigator.clipboard.writeText(shieldId)
+            setCopyStatus('copied')
+        } catch {
+            setCopyStatus('failed')
+        }
+    }
+
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <a
+                href={SHIELDHUB_VERIFICATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100"
+            >
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                Verify on ShieldHub
+                <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+            {shieldId.trim() && (
+                <button
+                    type="button"
+                    onClick={copyShieldId}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                    Copy ShieldID
+                </button>
+            )}
+            <span role="status" className="text-xs text-slate-600">
+                {copyStatus === 'copied' && 'Copied'}
+                {copyStatus === 'failed' && 'Could not copy. Select and copy the ABC# above.'}
+            </span>
+        </div>
+    )
 }
 
 export default function AdminView({ initialProfiles }: { initialProfiles: PendingProfile[] }) {
@@ -90,7 +134,7 @@ export default function AdminView({ initialProfiles }: { initialProfiles: Pendin
                                     </span>
                                 </div>
                                 <p className="text-slate-500">{profile.email}</p>
-                                <div className="mt-3 flex items-center gap-3 text-sm">
+                                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                                     <div className="font-mono bg-blue-50 text-blue-700 font-medium px-3 py-1 rounded-md border border-blue-100">
                                         ABC#: {profile.shieldId || 'No ID Provided'}
                                     </div>
@@ -98,9 +142,10 @@ export default function AdminView({ initialProfiles }: { initialProfiles: Pendin
                                         Submitted {new Date(profile.submittedAt).toLocaleDateString()}
                                     </span>
                                 </div>
+                                <ShieldHubActions shieldId={profile.shieldId} />
                             </div>
 
-                            <div className="flex items-center gap-3 md:ml-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
+                            <div className="flex flex-wrap items-center gap-3 md:ml-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
                                 <button
                                     onClick={() => handleVerification(profile.id, 'reject')}
                                     disabled={processingId === profile.id}
